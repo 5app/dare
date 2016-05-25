@@ -15,7 +15,8 @@ Then in script, create a `db.js` connection file that configures dare and return
 
 	// Define a module for connecting
 	dare.execute = (sql, callback) => {
-		// Compose the query and send it.
+		// Connect to DB, and execute the `sql`,
+		// Execute `callback(errorResponse, successResponse)`;
 	};
 
 	// Return the db instance
