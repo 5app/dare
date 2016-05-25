@@ -3,6 +3,59 @@
 // Test Generic DB functions
 let SQLEXP = require('../lib/sql-match');
 
+// Create a schema
+let options = {
+	schema: {
+		// Users table
+		users: {
+			country_id: {
+				references: 'country.id'
+			}
+		},
+
+		// Users have multiple emails
+		users_email: {
+
+			// User_id defines a field which references the users table
+			user_id: {
+				references: 'users.id'
+			}
+
+		},
+
+		country: {
+
+		},
+
+		comments: {
+			author_id: {
+				references: 'users.id'
+			}
+		},
+
+		activityEvents: {
+			session_id: {
+				references: 'activitySession.id'
+			},
+			ref_id: {
+				references: 'apps.id'
+			}
+		},
+
+		apps: {
+
+		}
+
+	},
+
+	table_alias: {
+		'author': 'users',
+		'events': 'activityEvents',
+		'asset': 'apps'
+	}
+};
+
+
 describe('get - request object', () => {
 
 	let dare;
@@ -618,17 +671,43 @@ describe('get - request object', () => {
 });
 
 
+// deciding on how to connect two tables depends on which one holds the connection
+// The join_handler here looks columns on both tables to find one which has a reference field to the other.
 function join_handler(join_table, root_table) {
-	var map = {};
-	switch(join_table) {
-		case 'activitySession':
-			map[join_table + '.id'] = root_table + '.session_id';
-			break;
-		case 'apps':
-		case 'asset':
-			map[join_table + '.id'] = root_table + '.ref_id';
-			break;
+
+	let schema = options.schema;
+	let alias = options.table_alias;
+
+	// Get the references
+	let map = {};
+
+	let a = [join_table, root_table];
+
+	for (let i = 0, len = a.length; i < len; i++) {
+
+		// Mark the focus table
+		let alias_a = a[i];
+		let ref_a = alias[alias_a] || alias_a;
+		let table_a = schema[ref_a];
+
+		// Loop through the
+		if (table_a) {
+
+			// Get the reference table
+			let alias_b = a[(i + 1) % len];
+			let ref_b = alias[alias_b] || alias_b;
+			// let table_b = schema[ref_b];
+
+			// Loop through the table fields
+			for (let field in table_a) {
+				let column = table_a[field];
+				if (column && column.references && column.references.split('.')[0] === ref_b) {
+					map[alias_b + '.' + column.references.split('.')[1]] = alias_a + '.' + field;
+				}
+			}
+		}
 	}
+
 	return map;
 }
 
