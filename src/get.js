@@ -225,7 +225,7 @@ function serialize(obj, separator, delimiter) {
 
 function queryFilter(opts, filter, tableID) {
 
-	for(let key in filter) {
+	for (let key in filter) {
 		// Capture errors in the key
 		checkKey(key);
 
@@ -286,8 +286,8 @@ function prepareCondition(obj) {
 	let a = [];
 
 	let range_handler = (field, value, index) => {
-		if (value !== ''){
-			a.push([field, (index?'<':'>'), value]);
+		if (value !== '') {
+			a.push([field, (index ? '<' : '>'), value]);
 		}
 	};
 

@@ -280,14 +280,14 @@ describe('get - request object', () => {
 				10,
 				'string',
 				{
-					"id OR 1": "1"
+					'id OR 1': '1'
 				},
 				{
-					"DATE(field)": "1"
+					'DATE(field)': '1'
 				},
 				{
 					asset: {
-						"id OR 1": "1"
+						'id OR 1': '1'
 					}
 				}
 			].forEach(value => {

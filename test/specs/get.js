@@ -93,7 +93,7 @@ describe('get', () => {
 		it('should throw an error if limit is invalid', (done) => {
 
 			dare.execute = () => {
-				done("Should not execute");
+				done('Should not execute');
 			};
 
 			dare

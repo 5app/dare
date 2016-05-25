@@ -30,7 +30,7 @@ Dare.prototype.prepare = require('./utils/prepare');
 Dare.prototype.use = function(options) {
 	let inst = Object.create(this);
 	inst.options = Object.assign({}, this.options);
-	for(var x in options) {
+	for (var x in options) {
 		inst.options[x] = options[x];
 	}
 	return inst;
@@ -176,7 +176,7 @@ Dare.prototype.del = function del(table, query, opts) {
 		`DELETE FROM ${table}
 		WHERE
 		${serialize(query, '=', 'AND')}
-		${serialize(opts, ' ', ' ')}` ,
+		${serialize(opts, ' ', ' ')}`,
 	a)
 	.then(mustAffectRows);
 };

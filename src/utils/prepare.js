@@ -5,10 +5,10 @@ module.exports = (sql, prepared) => {
 	return sql.split(/\B\?\B/).map(pre => pre + value(prepared[i++])).join('');
 };
 
-function value(v, s = "'") {
+function value(v, s = '\'') {
 	let t = typeof v;
 	if (t === 'string') {
-		return s + v.replace(/\\/, "\\\\").replace(/[']/, "\\'") + s;
+		return s + v.replace(/\\/, '\\\\\'').replace(/[']/, '\\\'') + s;
 	}
 	else if (v !== undefined) {
 		return v;
