@@ -14,10 +14,10 @@ var SQL_ERROR_STATUSCODES = {
 
 module.exports = Dare;
 
-function Dare(options = {}) {
+function Dare(options) {
 
 	// Overwrite default properties
-	this.options = options;
+	this.options = options || {};
 }
 
 // Set default function

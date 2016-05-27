@@ -2,7 +2,7 @@
 
 let error = require('./utils/error');
 
-module.exports = function(table, fields, filter, opts = {}) {
+module.exports = function(table, fields, filter, opts) {
 
 	// If typeof
 	if (typeof table === 'object') {
@@ -15,6 +15,9 @@ module.exports = function(table, fields, filter, opts = {}) {
 			opts = filter || {};
 			filter = fields;
 			fields = ['*'];
+		}
+		else if (!opts) {
+			opts = {};
 		}
 
 		// Set the table
