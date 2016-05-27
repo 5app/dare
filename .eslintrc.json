@@ -10,8 +10,7 @@
 	},
 	"extends": "eslint:recommended",
 	"rules": {
-		"no-console-log": 0,
-		"no-console": 0,
+		"no-console": 2,
 		"no-empty": 2,
 		"no-extra-semi": 2,
 		"no-fallthrough": 2,
