@@ -62,7 +62,7 @@ describe('get - request object', () => {
 	let limit = 5;
 
 	beforeEach(() => {
-		dare = new Dare();
+		dare = new Dare(options);
 	});
 
 	it('should contain the function dare.get', () => {
@@ -77,7 +77,7 @@ describe('get - request object', () => {
 				SELECT activityEvents.created_time, COUNT(*) AS _count, asset.id AS 'asset.id', asset.name AS 'asset.name'
 				FROM activityEvents
 					LEFT JOIN activitySession ON (activitySession.id = activityEvents.session_id)
-					LEFT JOIN asset ON (asset.id = activityEvents.ref_id)
+					LEFT JOIN apps asset ON (asset.id = activityEvents.ref_id)
 				WHERE activityEvents.category = ?
 					AND activityEvents.action = ?
 					AND activityEvents.created_time > ?
@@ -112,8 +112,7 @@ describe('get - request object', () => {
 			],
 			groupby: 'asset.id',
 			orderby: 'count DESC',
-			limit,
-			join_handler
+			limit
 		})
 		.then(() => {
 			done();
@@ -148,8 +147,7 @@ describe('get - request object', () => {
 						]
 					}
 				],
-				limit,
-				join_handler
+				limit
 			})
 			.then((resp) => {
 				expect(resp).to.be.an('array');
@@ -183,8 +181,7 @@ describe('get - request object', () => {
 					dare.get({
 						table: 'activityEvents',
 						fields: value,
-						limit,
-						join_handler
+						limit
 					})
 					.catch(done);
 
@@ -213,8 +210,7 @@ describe('get - request object', () => {
 					dare.get({
 						table: 'activityEvents',
 						fields: value,
-						limit,
-						join_handler
+						limit
 					})
 					.then(done, err => {
 						expect(err).to.have.property('message');
@@ -263,8 +259,7 @@ describe('get - request object', () => {
 							'id'
 						],
 						filter: value,
-						limit,
-						join_handler
+						limit
 					})
 					.catch(done);
 
@@ -300,8 +295,7 @@ describe('get - request object', () => {
 						table: 'activityEvents',
 						fields: ['id'],
 						filter: value,
-						limit,
-						join_handler
+						limit
 					})
 					.then(done, err => {
 						expect(err).to.have.property('message');
@@ -334,8 +328,7 @@ describe('get - request object', () => {
 						fields: [
 							'id'
 						],
-						limit: value,
-						join_handler
+						limit: value
 					})
 					.catch(done);
 
@@ -355,8 +348,7 @@ describe('get - request object', () => {
 						fields: [
 							'id'
 						],
-						limit: value,
-						join_handler
+						limit: value
 					})
 					.then(done, err => {
 						expect(err).to.have.property('message');
@@ -386,8 +378,7 @@ describe('get - request object', () => {
 						table: 'table',
 						fields: ['id'],
 						groupby: value,
-						limit,
-						join_handler
+						limit
 					})
 					.then(() => {
 						done();
@@ -410,8 +401,7 @@ describe('get - request object', () => {
 						table: 'table',
 						fields: ['id'],
 						groupby: value,
-						limit,
-						join_handler
+						limit
 					})
 					.then(done, err => {
 						expect(err).to.have.property('message');
@@ -437,8 +427,7 @@ describe('get - request object', () => {
 						table: 'table',
 						fields: ['id'],
 						groupby: value,
-						limit,
-						join_handler
+						limit
 					})
 					.then(() => (done()))
 					.catch(done);        });
@@ -469,8 +458,7 @@ describe('get - request object', () => {
 						table: 'table',
 						fields: ['id'],
 						orderby: value,
-						limit,
-						join_handler
+						limit
 					})
 					.then(() => {
 						done();
@@ -493,8 +481,7 @@ describe('get - request object', () => {
 						table: 'table',
 						fields: ['id'],
 						orderby: value,
-						limit,
-						join_handler
+						limit
 					})
 					.then(done, err => {
 						expect(err).to.have.property('message');
@@ -523,8 +510,7 @@ describe('get - request object', () => {
 						table: 'table',
 						fields: ['id'],
 						orderby: value,
-						limit,
-						join_handler
+						limit
 					})
 					.then(() => (done()))
 					.catch(done);
@@ -549,8 +535,7 @@ describe('get - request object', () => {
 				fields: [
 					'created_time'
 				],
-				limit,
-				join_handler: (() => null)
+				limit: (() => null)
 			})
 			.then(() => {
 				done(new Error('Should have thrown an error'));
@@ -564,7 +549,7 @@ describe('get - request object', () => {
 
 
 	describe('table_alias_handler', () => {
-		it('should use request.table_alias_handler for interpretting the table names', done => {
+		it('should use options.table_alias_handler for interpretting the table names', done => {
 
 			dare.sql = (sql) => {
 
@@ -587,7 +572,6 @@ describe('get - request object', () => {
 					}
 				],
 				limit,
-				join_handler,
 				table_alias_handler: (table) => ({'events': 'activityEvents', 'asset': 'apps'}[table])
 			})
 			.then(() => {
@@ -596,10 +580,10 @@ describe('get - request object', () => {
 
 		});
 
-		it('should use the given name if no table_alias_handler is defined', done => {
+		it('should use the options.table_alias hash if no handler is defined', done => {
 
 			dare.sql = (sql) => {
-				expect(sql).to.contain('LEFT JOIN asset');
+				expect(sql).to.contain('LEFT JOIN apps asset');
 				return Promise.resolve([]);
 			};
 
@@ -615,8 +599,11 @@ describe('get - request object', () => {
 						asset: ['name']
 					}
 				],
-				limit,
-				join_handler
+				table_alias: {
+					'events': 'activityEvents',
+					'asset': 'apps'
+				},
+				limit
 			})
 			.then(() => {
 				done();
@@ -634,7 +621,6 @@ describe('get - request object', () => {
 					table: 'private',
 					fields: ['id'],
 					limit,
-					join_handler,
 					table_alias_handler: () => (false)
 				})
 				.then(done, err => {
@@ -656,7 +642,6 @@ describe('get - request object', () => {
 						}
 					],
 					limit,
-					join_handler,
 					table_alias_handler: (table_alias) => ({'public': 'public'}[table_alias])
 				})
 				.then(done, err => {
@@ -669,48 +654,6 @@ describe('get - request object', () => {
 	});
 
 });
-
-
-// deciding on how to connect two tables depends on which one holds the connection
-// The join_handler here looks columns on both tables to find one which has a reference field to the other.
-function join_handler(join_table, root_table) {
-
-	let schema = options.schema;
-	let alias = options.table_alias;
-
-	// Get the references
-	let map = {};
-
-	let a = [join_table, root_table];
-
-	for (let i = 0, len = a.length; i < len; i++) {
-
-		// Mark the focus table
-		let alias_a = a[i];
-		let ref_a = alias[alias_a] || alias_a;
-		let table_a = schema[ref_a];
-
-		// Loop through the
-		if (table_a) {
-
-			// Get the reference table
-			let alias_b = a[(i + 1) % len];
-			let ref_b = alias[alias_b] || alias_b;
-			// let table_b = schema[ref_b];
-
-			// Loop through the table fields
-			for (let field in table_a) {
-				let column = table_a[field];
-				if (column && column.references && column.references.split('.')[0] === ref_b) {
-					map[alias_b + '.' + column.references.split('.')[1]] = alias_a + '.' + field;
-				}
-			}
-		}
-	}
-
-	return map;
-}
-
 
 function nosql(done) {
 	return () => done(new Error('Unexpected call dare.sql'));
