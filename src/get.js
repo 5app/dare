@@ -311,6 +311,11 @@ function prepareCondition(obj) {
 			range.forEach(range_handler.bind(null, field));
 		}
 
+		// Is this an array match?
+		else if (typeof value === 'string' && value.match('%')) {
+			a.push([field, 'LIKE', value]);
+		}
+
 		// Add to the array of items
 		else {
 			a.push([field, '=', value]);

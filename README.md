@@ -45,7 +45,7 @@ The `db.get` method is used to build and execute a `SELECT ...` SQL statement.
 |----------|-------------------|----------------
 | table    | string            | Name of the table to access
 | fields   | Array strings     | Fields Array
-| filter    | Hash (key=>Value) | Query Object
+| filter   | Hash (key=>Value) | Query Object
 | options  | Hash (key=>Value) | Additional Options
 
 e.g.
@@ -143,7 +143,7 @@ The SQL this creates renames the fields and then recreates the structured format
 - The relationship between the tables must be defined in the scheme.
 
 
-## Filter Object
+## Filter
 
 The Filter Object is a Fields=>Value object literal, defining the SQL condition to attach to a statement.
 
@@ -157,7 +157,7 @@ e.g.
 
 	// ... WHERE id = 1 AND is_hidden = 0 ...
 
-Similar too the Fields Object values, if nested objects are defined these map conditions on Relational tables.
+The filter object can contain nested objects (Similar too the Fields Object). Nested objects define conditions on Relational tables.
 
 	{
 		country: {
@@ -165,6 +165,20 @@ Similar too the Fields Object values, if nested objects are defined these map co
 		}
 	}
 
-	// ... WHERE country.name = 'UK' ...
+Creates the following SQL JOIN Condition
 
+	... WHERE country.name = 'UK' ...
+
+### Filter Values
+
+Filter values also carry the condition, =, IN, NOT, etc...
+
+| Value                     | Type           | e.g. SQL
+|---------------------------|----------------|----------------
+| 1                         | number         | `id = 1`
+| 'Andrew'                  | string         | `name = 'Andrew'`
+| [1, 'a']                  | Array values   | `tag IN (1, 'a')`
+| '2016-03-04T16:08:32Z..'  | Greater than   | `date > '2016-03-04T16:08:32Z'`
+| '2016-03-04..2016-03-05'  | Between        | `BETWEEN '2016-03-04' AND '2016-03-05'`
+| 'And%'	                | Pattern        | `name LIKE 'And%'`
 

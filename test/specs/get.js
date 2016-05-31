@@ -72,6 +72,21 @@ describe('get', () => {
 
 		});
 
+		it('should support wildcard characters for pattern matching', (done) => {
+
+			dare.execute = (query, callback) => {
+				expect(query).to.match(SQLEXP('SELECT test.id, test.name FROM test WHERE test.name LIKE \'And%\' LIMIT 5'));
+				callback(null, [{id: 1, name: '1'}, {id: 2, name: '2'}]);
+			};
+
+			dare
+			.get('test', ['id', 'name'], {name: 'And%'}, {limit: 5})
+			.then((resp) => {
+				expect(resp).to.be.a('array');
+				done();
+			}, done);
+
+		});
 		it('should have an overidable limit', (done) => {
 
 			dare.execute = (query, callback) => {
