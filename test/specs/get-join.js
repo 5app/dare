@@ -361,6 +361,60 @@ describe('get - request object', () => {
 		});
 	});
 
+	describe('start', () => {
+
+		describe('should accept', () => {
+
+			['90', 90, '99', 1].forEach(value => {
+
+				it('valid: ' + value + ' (' + (typeof value) + ')', done => {
+
+					dare.sql = (sql) => {
+						expect(sql).to.contain('LIMIT ' + value + ' 100');
+						done();
+						return Promise.resolve([]);
+					};
+
+					dare.get({
+						table: 'activityEvents',
+						fields: [
+							'id'
+						],
+						limit: 100,
+						start: value
+					})
+					.catch(done);
+
+				});
+
+			});
+		});
+
+		describe('should ignore', () => {
+
+			['nonsense', 0, -1, 101, NaN, {}, null].forEach(value => {
+
+				it('invalid: ' + value + ' (' + (typeof value) + ')', done => {
+
+					dare.get({
+						table: 'activityEvents',
+						fields: [
+							'id'
+						],
+						limit: 100,
+						start: value
+					})
+					.then(done, err => {
+						expect(err).to.have.property('message');
+						done();
+					});
+
+				});
+
+			});
+		});
+	});
+
 	describe('groupby', () => {
 
 		describe('should accept', () => {

@@ -51,7 +51,13 @@ function buildQuery(opts, accept, reject) {
 		if (isNaN(_limit) || _limit > 100 || _limit < 1) {
 			return reject({message: `Out of bounds limit value: '${limit}'`});
 		}
-		limit = _limit;
+
+		let start = parseInt(opts.start || 0, 10);
+		if (isNaN(start) || start < 0) {
+			return reject({message: `Out of bounds start value: '${start}'`});
+		}
+
+		limit = (start ? start + ' ' : '') + _limit;
 	}
 
 	// Initiate join
