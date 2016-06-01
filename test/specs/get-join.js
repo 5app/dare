@@ -370,7 +370,7 @@ describe('get - request object', () => {
 				it('valid: ' + value + ' (' + (typeof value) + ')', done => {
 
 					dare.sql = (sql) => {
-						expect(sql).to.contain('LIMIT ' + value + ' 100');
+						expect(sql).to.contain('LIMIT ' + value + ',100');
 						done();
 						return Promise.resolve([]);
 					};

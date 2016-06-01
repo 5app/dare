@@ -57,7 +57,7 @@ function buildQuery(opts, accept, reject) {
 			return reject({message: `Out of bounds start value: '${start}'`});
 		}
 
-		limit = (start ? start + ' ' : '') + _limit;
+		limit = (start ? start + ',' : '') + _limit;
 	}
 
 	// Initiate join
