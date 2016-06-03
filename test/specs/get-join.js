@@ -18,7 +18,7 @@ let options = {
 
 			// User_id defines a field which references the users table
 			user_id: {
-				references: 'users.id'
+				references: ['users.id']
 			}
 
 		},
@@ -573,33 +573,153 @@ describe('get - request object', () => {
 		});
 	});
 
-	describe('join_handler', () => {
+	describe('scheme', () => {
 
-		it('should throw and error when the request.join_handler returns an empty join condition', done => {
+		it('should throw an error when there are two tables with an undefined relationship', done => {
 
 			dare.sql = () => done(new Error('Unexpected call dare.sql'));
 
-			dare.get({
-				table: 'activityEvents',
-				filter: {
-					activitySession : {
-						domain: '5app.com'
-					}
+			// Redefine the structure
+			dare.options = {
+				schema: {
+					asset: {name:{}},
+					comments: {name:{}}
 				},
+				table_alias: {}
+			};
+
+			// The table country has no relationship with assets
+			dare.get({
+				table: 'asset',
 				fields: [
-					'created_time'
-				],
-				limit: (() => null)
+					'name',
+					{
+						'comments' : ['name']
+					}
+				]
 			})
 			.then(() => {
 				done(new Error('Should have thrown an error'));
 			}, (err) => {
-				expect(err).to.have.property('message');
+				expect(err).to.have.property('message', 'Could not understand field "comments"');
 				done();
 			});
 
 		});
+
+		it('should understand options.schema which defines table structure which reference other tables.', done => {
+
+			// Set the schema
+			dare.sql = () => {
+				return Promise.resolve([{}]);
+			};
+
+			// Redefine the structure
+			dare.options = {
+				schema: {
+					asset: {name:{}},
+					comments: {
+						name: {},
+						asset_id: {
+							references: 'asset.id'
+						}
+					}
+				},
+				table_alias: {}
+			};
+
+			// The table country has no relationship with assets
+			dare.get({
+				table: 'asset',
+				fields: [
+					'name',
+					{
+						'comments' : ['name']
+					}
+				]
+			})
+			.then(() => {
+				done();
+			}, done);
+
+		});
+
+		it('should understand Multiple Schema references.', done => {
+
+			// Set the schema
+			dare.sql = () => {
+				return Promise.resolve([{}]);
+			};
+
+			// Redefine the structure
+			dare.options = {
+				schema: {
+					asset: {name:{}},
+					assetType: {
+						// references can be as simple as a string to another [table].[field]
+						asset_id: 'asset.id'
+					},
+					comments: {
+						name: {},
+						asset_id: {
+							// There can also be multiple references to connect more than one table on this key...
+							references: ['asset.id', 'assetType.asset_id']
+						}
+					}
+				},
+				table_alias: {}
+			};
+
+			// The table country has no relationship with assets
+			dare.get({
+				table: 'comments',
+				fields: [
+					'name',
+					{
+						'asset' : ['name']
+					},
+					{
+						'assetType' : ['name']
+					}
+				]
+			})
+			.then(() => {
+				done();
+			}, done);
+
+		});
+
+
+
 	});
+
+	// describe('join_handler', () => {
+
+	// 	it('should throw and error when the request.join_handler returns an empty join condition', done => {
+
+	// 		dare.sql = () => done(new Error('Unexpected call dare.sql'));
+
+	// 		dare.get({
+	// 			table: 'activityEvents',
+	// 			filter: {
+	// 				activitySession : {
+	// 					domain: '5app.com'
+	// 				}
+	// 			},
+	// 			fields: [
+	// 				'created_time'
+	// 			],
+	// 			limit: 100
+	// 		})
+	// 		.then(() => {
+	// 			done(new Error('Should have thrown an error'));
+	// 		}, (err) => {
+	// 			expect(err).to.have.property('message');
+	// 			done();
+	// 		});
+
+	// 	});
+	// });
 
 
 	describe('table_alias_handler', () => {

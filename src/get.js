@@ -437,9 +437,26 @@ function default_join_handler(join_table, root_table, options) {
 			// Loop through the table fields
 			for (let field in table_a) {
 				let column = table_a[field];
-				if (column && column.references && column.references.split('.')[0] === ref_b) {
-					map[alias_b + '.' + column.references.split('.')[1]] = alias_a + '.' + field;
+
+				let ref = [];
+
+				if (typeof column === 'string' || Array.isArray(column)) {
+					ref = column;
 				}
+				else if (column.references) {
+					ref = column.references;
+				}
+
+				if (typeof ref === 'string') {
+					ref = [ref];
+				}
+
+				ref.forEach(ref => {
+					let a = ref.split('.');
+					if (a[0] === ref_b) {
+						map[alias_b + '.' + a[1]] = alias_a + '.' + field;
+					}
+				});
 			}
 		}
 	}
