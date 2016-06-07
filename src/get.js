@@ -68,18 +68,9 @@ function buildQuery(opts, accept, reject) {
 		opts.where = {};
 	}
 
-	// Table Alias
-	opts.table_alias = opts.table_alias || {};
-
-	// Table alias handler
-	// Given a table alias name, it should return the actual name of the table.
-	// It\s good to redefine this and it should return falsy value if you want to restrict table access.
-	// Otherwise default tables are passed through verbatim.
-	let table_alias_handler = opts.table_alias_handler || ((table) => opts.table_alias[table] || table);
-
 	// Get the root tableID
 	let tableID = opts.table;
-	let tableName = table_alias_handler(opts.table);
+	let tableName = this.table_alias_handler(opts.table);
 
 	// Reject when the table is not recognised
 	if (!tableName) {
@@ -174,12 +165,11 @@ function buildQuery(opts, accept, reject) {
 	}
 
 	// Join
-	let join_handler = opts.join_handler || default_join_handler;
 	let join = [];
 
 	for (let join_ref in opts.join) {
 		// Get the condition
-		let join_condition = join_handler(join_ref, opts.join[join_ref], opts);
+		let join_condition = this.join_handler(join_ref, opts.join[join_ref]);
 
 		// Reject if the join has no condition
 		if (!join_condition || Object.keys(join_condition).length === 0) {
@@ -187,7 +177,7 @@ function buildQuery(opts, accept, reject) {
 		}
 
 		// Is there an alias for this table
-		let join_table = table_alias_handler(join_ref);
+		let join_table = this.table_alias_handler(join_ref);
 		if (!join_table) {
 			return reject({message: `Unrecognized reference '${join_ref}'`});
 		}
@@ -404,62 +394,4 @@ function checkFormat(str) {
 	if (!c.match(/^(((DISTINCT)\s)?[a-z\_\.]+|\*)$/i)) {
 		throw new Error(`The field definition '${str}' is invalid.`);
 	}
-}
-
-
-// deciding on how to connect two tables depends on which one holds the connection
-// The join_handler here looks columns on both tables to find one which has a reference field to the other.
-function default_join_handler(join_table, root_table, options) {
-
-	let schema = options.schema;
-	let alias = options.table_alias;
-
-	// Get the references
-	let map = {};
-
-	let a = [join_table, root_table];
-
-	for (let i = 0, len = a.length; i < len; i++) {
-
-		// Mark the focus table
-		let alias_a = a[i];
-		let ref_a = alias[alias_a] || alias_a;
-		let table_a = schema[ref_a];
-
-		// Loop through the
-		if (table_a) {
-
-			// Get the reference table
-			let alias_b = a[(i + 1) % len];
-			let ref_b = alias[alias_b] || alias_b;
-			// let table_b = schema[ref_b];
-
-			// Loop through the table fields
-			for (let field in table_a) {
-				let column = table_a[field];
-
-				let ref = [];
-
-				if (typeof column === 'string' || Array.isArray(column)) {
-					ref = column;
-				}
-				else if (column.references) {
-					ref = column.references;
-				}
-
-				if (typeof ref === 'string') {
-					ref = [ref];
-				}
-
-				ref.forEach(ref => {
-					let a = ref.split('.');
-					if (a[0] === ref_b) {
-						map[alias_b + '.' + a[1]] = alias_a + '.' + field;
-					}
-				});
-			}
-		}
-	}
-
-	return map;
 }

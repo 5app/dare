@@ -24,7 +24,7 @@ describe('patch', () => {
 		};
 
 		dare
-		.patch('test', {name: 'name'}, {id: 1})
+		.patch('test', {id: 1}, {name: 'name'})
 		.then((resp) => {
 			expect(resp).to.have.property('success', true);
 			done();
@@ -38,7 +38,7 @@ describe('patch', () => {
 		};
 
 		dare
-		.patch('groups', {name: 'name'}, {id: 20000})
+		.patch('groups', {id: 20000}, {name: 'name'})
 		.then(() => {
 			done('Should not be called');
 		})
@@ -47,5 +47,69 @@ describe('patch', () => {
 			expect(err).to.have.property('message', 'Not Found');
 			done();
 		});
+	});
+
+	it('should understand a request object', (done) => {
+
+		dare.execute = (query, callback) => {
+			// limit: 1
+			expect(query).to.match(SQLEXP('UPDATE test SET name = \'name\' WHERE id = 1 LIMIT 1'));
+			callback(null, {success: true});
+		};
+
+		dare
+		.patch({
+			table: 'test',
+			filter: {id: 1},
+			body: {name: 'name'}
+		})
+		.then(() => {
+			done();
+		}, done);
+	});
+
+	it('should apply the request.limit', (done) => {
+
+		dare.execute = (query, callback) => {
+			// limit: 1
+			expect(query).to.match(SQLEXP('UPDATE test SET name = \'name\' WHERE id = 1 LIMIT 111'));
+			callback(null, {success: true});
+		};
+
+		dare
+		.patch({
+			table: 'test',
+			filter: {id: 1},
+			body: {name: 'name'},
+			limit: 111
+		})
+		.then(() => {
+			done();
+		}, done);
+	});
+
+	it('should use table aliases', (done) => {
+
+		dare.execute = (query, callback) => {
+			// limit: 1
+			expect(query).to.match(SQLEXP('UPDATE tablename SET name = \'name\' WHERE id = 1 LIMIT 1'));
+			callback(null, {success: true});
+		};
+
+		dare.options = {
+			table_alias: {
+				'test': 'tablename'
+			}
+		};
+
+		dare
+		.patch({
+			table: 'test',
+			filter: {id: 1},
+			body: {name: 'name'}
+		})
+		.then(() => {
+			done();
+		}, done);
 	});
 });

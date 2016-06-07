@@ -26,6 +26,68 @@ Dare.prototype.execute = (query, callback) => callback(new Error('Define dare.ex
 // Default prepare statement.
 Dare.prototype.prepare = require('./utils/prepare');
 
+// Set default table_alias handler
+Dare.prototype.table_alias_handler = function(name) {
+	return (this.options.table_alias ? this.options.table_alias[name] : null) || name;
+};
+
+// deciding on how to connect two tables depends on which one holds the connection
+// The join_handler here looks columns on both tables to find one which has a reference field to the other.
+Dare.prototype.join_handler = function(join_table, root_table) {
+
+	let schema = this.options.schema;
+
+	// Get the references
+	let map = {};
+
+	let a = [join_table, root_table];
+
+	for (let i = 0, len = a.length; i < len; i++) {
+
+		// Mark the focus table
+		let alias_a = a[i];
+		let ref_a = this.table_alias_handler(alias_a);
+		let table_a = schema[ref_a];
+
+		// Loop through the
+		if (table_a) {
+
+			// Get the reference table
+			let alias_b = a[(i + 1) % len];
+			let ref_b = this.table_alias_handler(alias_b);
+			// let table_b = schema[ref_b];
+
+			// Loop through the table fields
+			for (let field in table_a) {
+				let column = table_a[field];
+
+				let ref = [];
+
+				if (typeof column === 'string' || Array.isArray(column)) {
+					ref = column;
+				}
+				else if (column.references) {
+					ref = column.references;
+				}
+
+				if (typeof ref === 'string') {
+					ref = [ref];
+				}
+
+				ref.forEach(ref => {
+					let a = ref.split('.');
+					if (a[0] === ref_b) {
+						map[alias_b + '.' + a[1]] = alias_a + '.' + field;
+					}
+				});
+			}
+		}
+	}
+
+	return map;
+};
+
+
 // Create an instance
 Dare.prototype.use = function(options) {
 	let inst = Object.create(this);
@@ -56,16 +118,27 @@ Dare.prototype.sql = function sql(sql, prepared) {
 
 Dare.prototype.get = require('./get');
 
-Dare.prototype.patch = function patch(table, post, query, opts) {
+Dare.prototype.patch = function patch(table, filter, body, opts) {
 
-	opts = opts || {};
+	if (typeof table === 'object') {
+		opts = table;
+	}
+	else {
+		opts = opts || {};
+		opts.table = table;
+		opts.filter = filter;
+		opts.body = body;
+	}
 
 	// Set default limit
 	limit(opts);
 
+	// Table
+	table = this.table_alias_handler(opts.table);
+
 	// Clone
-	post = clone(post);
-	query = clone(query);
+	let post = clone(opts.body);
+	let query = clone(opts.filter);
 
 	// Prepare post
 	let a = prepare(post);
@@ -79,7 +152,7 @@ Dare.prototype.patch = function patch(table, post, query, opts) {
 					${serialize(post, '=', ',')}
 				WHERE
 					${serialize(query, '=', 'AND')}
-				${serialize(opts, ' ', ' ')}`;
+				LIMIT ${opts.limit}`;
 
 	return this.sql(sql, a)
 	.then(mustAffectRows);
@@ -94,9 +167,21 @@ Dare.prototype.patch = function patch(table, post, query, opts) {
 
 Dare.prototype.post = function post(table, post, opts) {
 
-	opts = opts || {};
+	if (typeof table === 'object') {
+		opts = table;
+		table = opts.table;
+		post = opts.body;
+	}
+	else {
+		opts = opts || {};
+		opts.table = table;
+		opts.body = post;
+	}
 
-		// Clone object before formatting
+	// Table
+	table = this.table_alias_handler(opts.table);
+
+	// Clone object before formatting
 	if (!Array.isArray(post)) {
 		post = [post];
 	}

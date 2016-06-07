@@ -61,4 +61,22 @@ describe('post', () => {
 
 	});
 
+	it('should understand a request object', (done) => {
+
+		dare.execute = (query, callback) => {
+			// limit: 1
+			expect(query).to.match(SQLEXP('INSERT INTO test (name) VALUES (\'name\')'));
+			callback(null, {success: true});
+		};
+
+		dare
+		.post({
+			table: 'test',
+			body: {name: 'name'}
+		})
+		.then(() => {
+			done();
+		}, done);
+	});
+
 });

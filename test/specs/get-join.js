@@ -733,6 +733,8 @@ describe('get - request object', () => {
 				return Promise.resolve([]);
 			};
 
+			dare.table_alias_handler = (table) => ({'events': 'activityEvents', 'asset': 'apps'}[table]);
+
 			dare.get({
 				table: 'events',
 				filter: {
@@ -745,8 +747,7 @@ describe('get - request object', () => {
 						asset: ['name']
 					}
 				],
-				limit,
-				table_alias_handler: (table) => ({'events': 'activityEvents', 'asset': 'apps'}[table])
+				limit
 			})
 			.then(() => {
 				done();
@@ -761,6 +762,12 @@ describe('get - request object', () => {
 				return Promise.resolve([]);
 			};
 
+			dare.options.table_alias = {
+				'events': 'activityEvents',
+				'asset': 'apps'
+			};
+
+
 			dare.get({
 				table: 'events',
 				filter: {
@@ -773,10 +780,6 @@ describe('get - request object', () => {
 						asset: ['name']
 					}
 				],
-				table_alias: {
-					'events': 'activityEvents',
-					'asset': 'apps'
-				},
 				limit
 			})
 			.then(() => {
@@ -791,11 +794,13 @@ describe('get - request object', () => {
 
 				dare.sql = nosql(done);
 
+				dare.table_alias_handler = () => (false);
+
+
 				dare.get({
 					table: 'private',
 					fields: ['id'],
-					limit,
-					table_alias_handler: () => (false)
+					limit
 				})
 				.then(done, err => {
 					expect(err).to.have.property('message');
@@ -807,6 +812,8 @@ describe('get - request object', () => {
 
 				dare.sql = nosql(done);
 
+				dare.table_alias_handler = (table_alias) => ({'public': 'public'}[table_alias]);
+
 				dare.get({
 					table: 'public',
 					filter: ['id'],
@@ -815,8 +822,7 @@ describe('get - request object', () => {
 							asset: ['name']
 						}
 					],
-					limit,
-					table_alias_handler: (table_alias) => ({'public': 'public'}[table_alias])
+					limit
 				})
 				.then(done, err => {
 					expect(err).to.have.property('message');
