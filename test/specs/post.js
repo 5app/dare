@@ -79,4 +79,84 @@ describe('post', () => {
 		}, done);
 	});
 
+
+
+	it('should trigger pre handler, options.post.[table]', (done) => {
+
+		dare.execute = (query, callback) => {
+			expect(query).to.match(SQLEXP('INSERT INTO tbl (name) VALUES (\'andrew\')'));
+			callback(null, {success: true});
+		};
+
+		dare.options = {
+			post: {
+				'tbl': (req) => {
+					// Augment the request
+					req.body.name = 'andrew';
+				}
+			}
+		};
+
+		dare
+		.post({
+			table: 'tbl',
+			body: {name: 'name'}
+		})
+		.then(() => {
+			done();
+		}, done);
+	});
+
+
+	it('should trigger pre handler, options.post.default, and wait for Promise to resolve', (done) => {
+
+		dare.execute = (query, callback) => {
+			expect(query).to.match(SQLEXP('INSERT INTO tbl (name) VALUES (\'andrew\')'));
+			callback(null, {success: true});
+		};
+
+		dare.options = {
+			post: {
+				'default': (req) => {
+					// Augment the request
+					return Promise.resolve().then(() => {
+						req.body.name = 'andrew';
+					});
+				}
+			}
+		};
+
+		dare
+		.post({
+			table: 'tbl',
+			body: {name: 'name'}
+		})
+		.then(() => {
+			done();
+		}, done);
+	});
+
+	it('should trigger pre handler, and handle errors being thrown', (done) => {
+
+		// Should not be called...
+		dare.execute = done;
+
+		dare.options = {
+			post: {
+				'default': () => {
+					// Augment the request
+					throw 'Can\'t touch this';
+				}
+			}
+		};
+
+		dare
+		.post({
+			table: 'tbl',
+			body: {name: 'name'}
+		})
+		.then(done, () => {
+			done();
+		});
+	});
 });

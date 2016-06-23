@@ -112,4 +112,87 @@ describe('patch', () => {
 			done();
 		}, done);
 	});
+
+
+	it('should trigger pre handler, options.patch.[table]', (done) => {
+
+		dare.execute = (query, callback) => {
+			expect(query).to.match(SQLEXP('UPDATE tbl SET name = \'andrew\' WHERE id = 1 LIMIT 1'));
+			callback(null, {success: true});
+		};
+
+		dare.options = {
+			patch: {
+				'tbl': (req) => {
+					// Augment the request
+					req.body.name = 'andrew';
+				}
+			}
+		};
+
+		dare
+		.patch({
+			table: 'tbl',
+			filter: {id: 1},
+			body: {name: 'name'}
+		})
+		.then(() => {
+			done();
+		}, done);
+	});
+
+
+	it('should trigger pre handler, options.patch.default, and wait for Promise to resolve', (done) => {
+
+		dare.execute = (query, callback) => {
+			expect(query).to.match(SQLEXP('UPDATE tbl SET name = \'andrew\' WHERE id = 1 LIMIT 1'));
+			callback(null, {success: true});
+		};
+
+		dare.options = {
+			patch: {
+				'default': (req) => {
+					// Augment the request
+					return Promise.resolve().then(() => {
+						req.body.name = 'andrew';
+					});
+				}
+			}
+		};
+
+		dare
+		.patch({
+			table: 'tbl',
+			filter: {id: 1},
+			body: {name: 'name'}
+		})
+		.then(() => {
+			done();
+		}, done);
+	});
+
+	it('should trigger pre handler, and handle errors being thrown', (done) => {
+
+		// Should not be called...
+		dare.execute = done;
+
+		dare.options = {
+			patch: {
+				'default': () => {
+					// Augment the request
+					throw 'Can\'t touch this';
+				}
+			}
+		};
+
+		dare
+		.patch({
+			table: 'tbl',
+			filter: {id: 1},
+			body: {name: 'name'}
+		})
+		.then(done, () => {
+			done();
+		});
+	});
 });

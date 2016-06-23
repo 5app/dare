@@ -31,6 +31,25 @@ Dare.prototype.table_alias_handler = function(name) {
 	return (this.options.table_alias ? this.options.table_alias[name] : null) || name;
 };
 
+Dare.prototype.pre_handler = function(method, table, options) {
+
+	let handlers = this.options[method] || {};
+	let handler;
+
+	if (table in handlers) {
+		handler = handlers[table];
+	}
+	else if ('default' in handlers) {
+		handler = handlers['default'];
+	}
+
+	if (handler) {
+		return handler(options);
+	}
+
+};
+
+
 // deciding on how to connect two tables depends on which one holds the connection
 // The join_handler here looks columns on both tables to find one which has a reference field to the other.
 Dare.prototype.join_handler = function(join_table, root_table) {
@@ -136,26 +155,31 @@ Dare.prototype.patch = function patch(table, filter, body, opts) {
 	// Table
 	table = this.table_alias_handler(opts.table);
 
-	// Clone
-	let post = clone(opts.body);
-	let query = clone(opts.filter);
+	// Augment
+	return Promise.resolve()
+	.then(() => this.pre_handler('patch', table, opts))
+	.then(() => {
+		// Clone
+		let post = clone(opts.body);
+		let query = clone(opts.filter);
 
-	// Prepare post
-	let a = prepare(post);
+		// Prepare post
+		let a = prepare(post);
 
-	// Prepare query
-	a = a.concat(prepare(query));
+		// Prepare query
+		a = a.concat(prepare(query));
 
-	// Construct a db update
-	let sql = `UPDATE ${table}
-				SET
-					${serialize(post, '=', ',')}
-				WHERE
-					${serialize(query, '=', 'AND')}
-				LIMIT ${opts.limit}`;
+		// Construct a db update
+		let sql = `UPDATE ${table}
+					SET
+						${serialize(post, '=', ',')}
+					WHERE
+						${serialize(query, '=', 'AND')}
+					LIMIT ${opts.limit}`;
 
-	return this.sql(sql, a)
-	.then(mustAffectRows);
+		return this.sql(sql, a)
+		.then(mustAffectRows);
+	});
 };
 
 
@@ -181,59 +205,64 @@ Dare.prototype.post = function post(table, post, opts) {
 	// Table
 	table = this.table_alias_handler(opts.table);
 
-	// Clone object before formatting
-	if (!Array.isArray(post)) {
-		post = [post];
-	}
+	return Promise.resolve()
+	.then(() => this.pre_handler('post', table, opts))
+	.then(() => {
 
-	// If ignore duplicate keys is stated as ignore
-	let exec = '';
-	if (opts.duplicate_keys && opts.duplicate_keys.toString().toLowerCase() === 'ignore') {
-		exec = 'IGNORE';
-	}
-
-	// Capture keys
-	let fields = [];
-	let prepared = [];
-	let data = post.map(item => {
-		let _data = [];
-		for (var prop in item) {
-
-			// Get the index in the field list
-			let i = fields.indexOf(prop);
-
-			if (i === -1) {
-				i = fields.length;
-				fields.push(prop);
-			}
-
-			// Insert the value at that position
-			_data[i] = item[prop];
+		// Clone object before formatting
+		if (!Array.isArray(post)) {
+			post = [post];
 		}
 
-		return _data;
-	}).map(_data => {
-		// Create prepared values
-		return '(' + fields.map((prop, index) => {
-			if (_data[index] === undefined) {
-				return 'DEFAULT';
+		// If ignore duplicate keys is stated as ignore
+		let exec = '';
+		if (opts.duplicate_keys && opts.duplicate_keys.toString().toLowerCase() === 'ignore') {
+			exec = 'IGNORE';
+		}
+
+		// Capture keys
+		let fields = [];
+		let prepared = [];
+		let data = post.map(item => {
+			let _data = [];
+			for (var prop in item) {
+
+				// Get the index in the field list
+				let i = fields.indexOf(prop);
+
+				if (i === -1) {
+					i = fields.length;
+					fields.push(prop);
+				}
+
+				// Insert the value at that position
+				_data[i] = item[prop];
 			}
-			// Add the value to prepared statement list
-			prepared.push(_data[index]);
 
-			// Return the prepared statement placeholder
-			return '?';
-		}).join(',') + ')';
+			return _data;
+		}).map(_data => {
+			// Create prepared values
+			return '(' + fields.map((prop, index) => {
+				if (_data[index] === undefined) {
+					return 'DEFAULT';
+				}
+				// Add the value to prepared statement list
+				prepared.push(_data[index]);
+
+				// Return the prepared statement placeholder
+				return '?';
+			}).join(',') + ')';
+		});
+
+
+		// Construct a db update
+		let sql = `INSERT ${exec} INTO ${table}
+					(${fields.join(',')})
+					VALUES
+					${data.join(',')}`;
+
+		return this.sql(sql, prepared);
 	});
-
-
-	// Construct a db update
-	let sql = `INSERT ${exec} INTO ${table}
-				(${fields.join(',')})
-				VALUES
-				${data.join(',')}`;
-
-	return this.sql(sql, prepared);
 };
 
 
