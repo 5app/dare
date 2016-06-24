@@ -273,26 +273,40 @@ Dare.prototype.post = function post(table, post, opts) {
 // return Promise
 Dare.prototype.del = function del(table, query, opts) {
 
-	opts = opts || {};
+	if (typeof table === 'object') {
+		opts = table;
+		table = opts.table;
+		query = opts.filter;
+	}
+	else {
+		opts = opts || {};
+		opts.table = table;
+		opts.filter = query;
+	}
 
 	// Set default limit
 	limit(opts);
 
-	// Clone object before formatting
-	query = clone(query);
+	return Promise.resolve()
+	.then(() => this.pre_handler('del', table, opts))
+	.then(() => {
 
-	// Prepare post
-	let a = prepare(query);
+		// Clone object before formatting
+		query = clone(opts.filter);
 
-	// Construct a db update
-	return this.sql(
+		// Prepare post
+		let a = prepare(query);
 
-		`DELETE FROM ${table}
-		WHERE
-		${serialize(query, '=', 'AND')}
-		${serialize(opts, ' ', ' ')}`,
-	a)
-	.then(mustAffectRows);
+		// Construct a db update
+		return this.sql(
+
+			`DELETE FROM ${table}
+			WHERE
+			${serialize(query, '=', 'AND')}
+			LIMIT ${opts.limit}`,
+		a)
+		.then(mustAffectRows);
+	});
 };
 
 

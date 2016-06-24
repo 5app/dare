@@ -48,4 +48,84 @@ describe('del', () => {
 			done();
 		});
 	});
+
+
+	it('should trigger pre handler, options.del.[table]', (done) => {
+
+		dare.execute = (query, callback) => {
+			expect(query).to.match(SQLEXP('DELETE FROM tbl WHERE id = 1 LIMIT 1'));
+			callback(null, {success: true});
+		};
+
+		dare.options = {
+			del: {
+				'tbl': (req) => {
+					// Augment the request
+					req.filter.id = 1;
+				}
+			}
+		};
+
+		dare
+		.del({
+			table: 'tbl',
+			filter: {id: 2}
+		})
+		.then(() => {
+			done();
+		}, done);
+	});
+
+
+	it('should trigger pre handler, options.del.default, and wait for Promise to resolve', (done) => {
+
+		dare.execute = (query, callback) => {
+			expect(query).to.match(SQLEXP('DELETE FROM tbl WHERE id = 1 LIMIT 1'));
+			callback(null, {success: true});
+		};
+
+		dare.options = {
+			del: {
+				'default': (req) => {
+					// Augment the request
+					return Promise.resolve().then(() => {
+						req.filter.id = 1;
+					});
+				}
+			}
+		};
+
+		dare
+		.del({
+			table: 'tbl',
+			filter: {id: 2}
+		})
+		.then(() => {
+			done();
+		}, done);
+	});
+
+	it('should trigger pre handler, and handle errors being thrown', (done) => {
+
+		// Should not be called...
+		dare.execute = done;
+
+		dare.options = {
+			del: {
+				'default': () => {
+					// Augment the request
+					throw 'Can\'t touch this';
+				}
+			}
+		};
+
+		dare
+		.del({
+			table: 'tbl',
+			filter: {id: 2}
+		})
+		.then(done, () => {
+			done();
+		});
+	});
 });
