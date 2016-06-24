@@ -287,6 +287,9 @@ Dare.prototype.del = function del(table, query, opts) {
 	// Set default limit
 	limit(opts);
 
+	// Table
+	table = this.table_alias_handler(opts.table);
+
 	return Promise.resolve()
 	.then(() => this.pre_handler('del', table, opts))
 	.then(() => {

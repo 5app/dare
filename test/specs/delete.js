@@ -49,6 +49,29 @@ describe('del', () => {
 		});
 	});
 
+	it('should use table aliases', (done) => {
+
+		dare.execute = (query, callback) => {
+			// limit: 1
+			expect(query).to.match(SQLEXP('DELETE FROM tablename WHERE id = 1 LIMIT 1'));
+			callback(null, {success: true});
+		};
+
+		dare.options = {
+			table_alias: {
+				'test': 'tablename'
+			}
+		};
+
+		dare
+		.del({
+			table: 'test',
+			filter: {id: 1},
+		})
+		.then(() => {
+			done();
+		}, done);
+	});
 
 	it('should trigger pre handler, options.del.[table]', (done) => {
 
