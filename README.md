@@ -4,35 +4,37 @@ Dare is an API for building SQL, it can be used within an application, or be bou
 
 # Install
 
-
-	npm i dare --save
-
+```bash
+npm i dare --save
+```
 
 Then in script, create a `db.js` connection file that configures dare and returns an instance to be used throughout your application.
 
+```javascript
+let dare = new require('dare');
 
-	let dare = new require('dare');
+// Define a module for connecting
+dare.execute = (sql, callback) => {
+	// Connect to DB, and execute the `sql`,
+	// Execute `callback(errorResponse, successResponse)`;
+};
 
-	// Define a module for connecting
-	dare.execute = (sql, callback) => {
-		// Connect to DB, and execute the `sql`,
-		// Execute `callback(errorResponse, successResponse)`;
-	};
-
-	// Return the db instance
-	module.exports = dare;
-
+// Return the db instance
+module.exports = dare;
+```
 
 Now in your application code, require that configured file and use it... *lavishly*
 
 
-	let db = require('./db.js');
+```javascript
+let db = require('./db.js');
 
-	// e.g.
-	// SELECT id, name FROM users WHERE id = 1 LIMIT 1;
-	db.get('users', ['id', 'name'], {id: 1});
+// e.g.
+// SELECT id, name FROM users WHERE id = 1 LIMIT 1;
+db.get('users', ['id', 'name'], {id: 1});
 
-	// For a full set of methods that dare exposes see below
+// For a full set of methods that dare exposes see below
+```
 
 
 # API
@@ -50,9 +52,10 @@ The `db.get` method is used to build and execute a `SELECT ...` SQL statement.
 
 e.g.
 
-	db.get('table', ['name'], {id: 1});
-	// SELECT name FROM table WHERE id = 1 LIMIT 1;
-
+```javascript
+db.get('table', ['name'], {id: 1});
+// SELECT name FROM table WHERE id = 1 LIMIT 1;
+```
 
 ## db.get(Request Object)
 
@@ -60,13 +63,15 @@ Alternatively a Request Object can be used instead.
 
 e.g.
 
-	db.get({
-		table: 'users',
-		fields: ['name'],
-		filter: {
-			id: 1
-		}
-	});
+```javascript
+db.get({
+	table: 'users',
+	fields: ['name'],
+	filter: {
+		id: 1
+	}
+});
+```
 
 ## Relational Tables
 
@@ -74,6 +79,8 @@ Tell *dare* about the Schema Definition, and Relational fields so it can make SQ
 
 Define a property `schema` in Database Options i.e `dare.init(name, Database Options)` and create a representation of your database joins.
 
+
+```javascript
 	...
 	schema : {
 		'users': {
@@ -88,19 +95,21 @@ Define a property `schema` in Database Options i.e `dare.init(name, Database Opt
 		}
 	}
 	...
+```
 
 Alternatively define this in Additional Options. `db.get(...[, options])`
 
 ## Fields Array
 
-The fields array is defined in 'db.get(...[,fields]...)' only and says what fields from the matching resultset to return.
+The fields array is defined in `db.get(...[,fields]...)` only and says what fields from the matching resultset to return.
 
 ### Items (strings)
 
 In its simplest form it is an Array of Strings, e.g. `['id', 'name', 'created_date']`. This creates a very simple query.
 
-	SELECT id, name, created_date FROM ....
-
+```sql
+SELECT id, name, created_date FROM ....
+```
 
 The array items can also be Objects.
 
@@ -108,6 +117,7 @@ The array items can also be Objects.
 
 Object entries whose value are strings, may define SQL functions. E.g. 
 
+```javascript
 	[
 	  'name',
 	  {
@@ -116,10 +126,13 @@ Object entries whose value are strings, may define SQL functions. E.g.
 	]
 
 	// sql: SELECT name, DATE(created_date) AS _date ...
+```
 
 ### Joined Items (objects)
 
 Objects entries which have Objects as value. In this case they shall attempt to get data from accross multiple tables.
+
+```javascript
 
 	[
 		'name',
@@ -129,17 +142,20 @@ Objects entries which have Objects as value. In this case they shall attempt to 
 	]
 
 	// sql: SELECT [users.]name, county.name
+```
 
 The SQL this creates renames the fields and then recreates the structured format that was requested. So with the above request: a typical response would have the following structure...
 
+```javascript
 	{
 		name: 'Andrew',
 		country: {
 			name: 'UK'
 		}
 	}
+```
 
-- At the moment this only supports n:1 mapping.
+- At the moment this only supports *n:1* mapping.
 - The relationship between the tables must be defined in the scheme.
 
 
@@ -149,6 +165,8 @@ The Filter Object is a Fields=>Value object literal, defining the SQL condition 
 
 e.g.
 
+```javascript
+
 	{
 		id: 1,
 		is_hidden: 0
@@ -156,18 +174,23 @@ e.g.
 
 
 	// ... WHERE id = 1 AND is_hidden = 0 ...
+```
 
 The filter object can contain nested objects (Similar too the Fields Object). Nested objects define conditions on Relational tables.
 
+```javascript
 	{
 		country: {
 			name: 'UK'
 		}
 	}
+```
 
 Creates the following SQL JOIN Condition
 
+```sql
 	... WHERE country.name = 'UK' ...
+```
 
 ### Filter Values
 
