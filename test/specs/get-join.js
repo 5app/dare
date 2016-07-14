@@ -96,7 +96,7 @@ describe('get - request object', () => {
 				category: 'asset',
 				action: 'open',
 				created_time: '2016-03-04T16:08:32Z..',
-				activitySession : {
+				activitySession: {
 					domain: '5app.com'
 				}
 			},
@@ -582,8 +582,8 @@ describe('get - request object', () => {
 			// Redefine the structure
 			dare.options = {
 				schema: {
-					asset: {name:{}},
-					comments: {name:{}}
+					asset: {name: {}},
+					comments: {name: {}}
 				},
 				table_alias: {}
 			};
@@ -594,7 +594,7 @@ describe('get - request object', () => {
 				fields: [
 					'name',
 					{
-						'comments' : ['name']
+						'comments': ['name']
 					}
 				]
 			})
@@ -617,15 +617,14 @@ describe('get - request object', () => {
 			// Redefine the structure
 			dare.options = {
 				schema: {
-					asset: {name:{}},
+					asset: {name: {}},
 					comments: {
 						name: {},
 						asset_id: {
 							references: 'asset.id'
 						}
 					}
-				},
-				table_alias: {}
+				}
 			};
 
 			// The table country has no relationship with assets
@@ -634,7 +633,7 @@ describe('get - request object', () => {
 				fields: [
 					'name',
 					{
-						'comments' : ['name']
+						'comments': ['name']
 					}
 				]
 			})
@@ -644,7 +643,7 @@ describe('get - request object', () => {
 
 		});
 
-		it('should understand Multiple Schema references.', done => {
+		it('should understand multiple References, and pick the appropriate one.', done => {
 
 			// Set the schema
 			dare.sql = () => {
@@ -654,7 +653,7 @@ describe('get - request object', () => {
 			// Redefine the structure
 			dare.options = {
 				schema: {
-					asset: {name:{}},
+					asset: {name: {}},
 					assetType: {
 						// references can be as simple as a string to another [table].[field]
 						asset_id: 'asset.id'
@@ -666,8 +665,7 @@ describe('get - request object', () => {
 							references: ['asset.id', 'assetType.asset_id']
 						}
 					}
-				},
-				table_alias: {}
+				}
 			};
 
 			// The table country has no relationship with assets
@@ -676,10 +674,10 @@ describe('get - request object', () => {
 				fields: [
 					'name',
 					{
-						'asset' : ['name']
+						'asset': ['name']
 					},
 					{
-						'assetType' : ['name']
+						'assetType': ['name']
 					}
 				]
 			})
@@ -688,8 +686,6 @@ describe('get - request object', () => {
 			}, done);
 
 		});
-
-
 
 	});
 

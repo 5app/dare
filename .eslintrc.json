@@ -1,4 +1,5 @@
 {
+	"root": true,
 	"env": {
 		"commonjs": true,
 		"es6": true,
@@ -26,11 +27,13 @@
 		"comma-dangle": 0,
 		"comma-spacing": [2, { "before": false, "after": true }],
 		"indent": [2, "tab", {"SwitchCase": 1}],
+		"key-spacing": [2, { "beforeColon": false }],
 		"keyword-spacing": [2, { "before": true }],
 		"linebreak-style": [2, "unix"],
 		"one-var": [2, "never"],
 		"quotes": [2, "single"],
 		"semi": [2, "always"],
+		"semi-spacing": [2, {"before": false, "after": true}],
 		"space-before-blocks": 2,
 		"space-infix-ops": [2, {"int32Hint": false}],
 		"space-in-parens": [2, "never"]
