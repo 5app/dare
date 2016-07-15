@@ -50,61 +50,7 @@ Dare.prototype.pre_handler = function(method, table, options) {
 };
 
 
-// deciding on how to connect two tables depends on which one holds the connection
-// The join_handler here looks columns on both tables to find one which has a reference field to the other.
-Dare.prototype.join_handler = function(join_table, root_table) {
-
-	let schema = this.options.schema;
-
-	// Get the references
-	let map = {};
-
-	let a = [join_table, root_table];
-
-	for (let i = 0, len = a.length; i < len; i++) {
-
-		// Mark the focus table
-		let alias_a = a[i];
-		let ref_a = this.table_alias_handler(alias_a);
-		let table_a = schema[ref_a];
-
-		// Loop through the
-		if (table_a) {
-
-			// Get the reference table
-			let alias_b = a[(i + 1) % len];
-			let ref_b = this.table_alias_handler(alias_b);
-			// let table_b = schema[ref_b];
-
-			// Loop through the table fields
-			for (let field in table_a) {
-				let column = table_a[field];
-
-				let ref = [];
-
-				if (typeof column === 'string' || Array.isArray(column)) {
-					ref = column;
-				}
-				else if (column.references) {
-					ref = column.references;
-				}
-
-				if (typeof ref === 'string') {
-					ref = [ref];
-				}
-
-				ref.forEach(ref => {
-					let a = ref.split('.');
-					if (a[0] === ref_b) {
-						map[alias_b + '.' + a[1]] = alias_a + '.' + field;
-					}
-				});
-			}
-		}
-	}
-
-	return map;
-};
+Dare.prototype.join_handler = require('./join_handler');
 
 
 // Create an instance

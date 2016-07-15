@@ -166,23 +166,11 @@ function buildQuery(opts, accept, reject) {
 
 	// Join
 	let join = [];
-
-	for (let join_ref in opts.join) {
-		// Get the condition
-		let join_condition = this.join_handler(join_ref, opts.join[join_ref]);
-
-		// Reject if the join has no condition
-		if (!join_condition || Object.keys(join_condition).length === 0) {
-			return reject({message: 'Could not understand field "' + join_ref + '"'});
-		}
-
-		// Is there an alias for this table
-		let join_table = this.table_alias_handler(join_ref);
-		if (!join_table) {
-			return reject({message: `Unrecognized reference '${join_ref}'`});
-		}
-
-		join.push(`LEFT JOIN ${join_table} ${join_ref === join_table ? '' : join_ref} ON (${serialize(join_condition, '=', 'AND')})`);
+	try {
+		join = this.join_handler(opts.join);
+	}
+	catch (e) {
+		return reject({message: e});
 	}
 
 	// Put it all together
@@ -217,15 +205,6 @@ function buildQuery(opts, accept, reject) {
 		// console.log("SQLERROR:" + this.prepare(sql, values));
 		throw err;
 	});
-}
-
-
-function serialize(obj, separator, delimiter) {
-	let r = [];
-	for (let x in obj) {
-		r.push(`${x} ${separator} ${obj[x]}`);
-	}
-	return r.join(` ${delimiter} `);
 }
 
 function queryFilter(opts, filter, tableID) {

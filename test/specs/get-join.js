@@ -577,15 +577,14 @@ describe('get - request object', () => {
 
 		it('should throw an error when there are two tables with an undefined relationship', done => {
 
-			dare.sql = () => done(new Error('Unexpected call dare.sql'));
+			dare.sql = () => done('Unexpected call dare.sql');
 
 			// Redefine the structure
 			dare.options = {
 				schema: {
 					asset: {name: {}},
 					comments: {name: {}}
-				},
-				table_alias: {}
+				}
 			};
 
 			// The table country has no relationship with assets
@@ -599,7 +598,7 @@ describe('get - request object', () => {
 				]
 			})
 			.then(() => {
-				done(new Error('Should have thrown an error'));
+				done('Should have thrown an error');
 			}, (err) => {
 				expect(err).to.have.property('message', 'Could not understand field "comments"');
 				done();
@@ -684,6 +683,65 @@ describe('get - request object', () => {
 			.then(() => {
 				done();
 			}, done);
+
+		});
+
+		it('should allow simple descriptions of deep links', done => {
+
+
+			// Set the schema
+			dare.sql = () => {
+				return Promise.resolve([{}]);
+			};
+
+			// Here the schema is a series of tables a street, belongs to 1 town and in return 1 country
+			dare.options = {
+				schema: {
+					street: {
+						// references can be as simple as a string to another [table].[field]
+						town_id: 'town.id'
+					},
+					town: {
+						country_id: 'country.id'
+					},
+					country: {}
+				}
+			};
+
+			// If we just wanted the street name and country
+			// The app should understand the relationship between street and country
+			// and join up the town automatically in the SQL
+			dare.get({
+				table: 'street',
+				fields: [
+					'name',
+					{
+						'country': ['name']
+					}
+				]
+			})
+			.then(() => {
+				done();
+			}, done);
+
+
+			// // Users table
+			// users: {
+			// 	country_id: {
+			// 		references: 'country.id'
+			// 	}
+			// },
+
+			// // N:M
+			// userGroups: {
+			// 	user_id: 'users.id',
+			// 	group_id: 'group.id'
+			// },
+
+			// group: {
+			// 	id: {}
+			// }
+
 
 		});
 
