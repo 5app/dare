@@ -887,6 +887,43 @@ describe('get - request object', () => {
 
 	});
 
+	describe('GROUP CONCAT', () => {
+		it('should write one to many requests with group concat', done => {
+
+			dare.sql = (sql) => {
+
+				expect(sql).to.contain('GROUP_CONCAT(IFNULL(town.id, \'\') SEPARATOR \'$$\') AS \'town[$$].id\'');
+				expect(sql).to.contain('GROUP_CONCAT(IFNULL(town.name, \'\') SEPARATOR \'$$\') AS \'town[$$].name\'');
+
+				return Promise.resolve([]);
+			};
+
+			// Here the schema is a series of tables a street, belongs to 1 town and in return 1 country
+			dare.options = {
+				schema: {
+					town: {
+						country_id: 'country.id'
+					},
+					country: {}
+				}
+			};
+
+			dare.get({
+				table: 'country',
+				fields: [
+					{
+						town: ['id', 'name']
+					}
+				],
+				limit
+			})
+			.then(() => {
+				done();
+			}, done);
+
+		});
+	});
+
 });
 
 function nosql(done) {

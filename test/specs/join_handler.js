@@ -1,7 +1,5 @@
 'use strict';
 
-let SQLEXP = require('../lib/sql-match');
-
 describe('join_handler', () => {
 
 	let dare;
@@ -33,7 +31,15 @@ describe('join_handler', () => {
 		expect(joins).to.be.an('array');
 		expect(joins.length).to.eql(1);
 
-		expect(joins[0]).to.match(SQLEXP('LEFT JOIN child ON (parent.id = child.parent_id)'));
+		expect(joins[0]).to.deep.equal({
+			table: 'child',
+			alias: 'child',
+			conditions: {
+				'parent.id': 'child.parent_id'
+			},
+			root: 'parent',
+			many: true,
+		});
 
 	});
 
@@ -60,8 +66,25 @@ describe('join_handler', () => {
 		expect(joins).to.be.an('array');
 		expect(joins.length).to.eql(2);
 
-		expect(joins[0]).to.match(SQLEXP('LEFT JOIN child ON (parent.id = child.parent_id)'));
-		expect(joins[1]).to.match(SQLEXP('LEFT JOIN parent ON (grandparent.id = parent.grand_id)'));
+		expect(joins[0]).to.deep.equal({
+			table: 'child',
+			alias: 'child',
+			conditions: {
+				'parent.id': 'child.parent_id'
+			},
+			root: 'parent',
+			many: true,
+		});
+
+		expect(joins[1]).to.deep.equal({
+			table: 'parent',
+			alias: 'parent',
+			conditions: {
+				'grandparent.id': 'parent.grand_id'
+			},
+			root: 'grandparent',
+			many: true,
+		});
 
 	});
 
@@ -87,8 +110,57 @@ describe('join_handler', () => {
 		expect(joins).to.be.an('array');
 		expect(joins.length).to.eql(2);
 
-		expect(joins[0]).to.match(SQLEXP('LEFT JOIN parent ON (grandparent.id = parent.grand_id)'));
-		expect(joins[1]).to.match(SQLEXP('LEFT JOIN child ON (parent.id = child.parent_id)'));
+		expect(joins[0]).to.deep.equal({
+			table: 'parent',
+			alias: 'parent',
+			conditions: {
+				'grandparent.id': 'parent.grand_id'
+			},
+			root: 'grandparent',
+			many: true,
+		});
+
+		expect(joins[1]).to.deep.equal({
+			table: 'child',
+			alias: 'child',
+			conditions: {
+				'parent.id': 'child.parent_id'
+			},
+			root: 'parent',
+			many: true,
+		});
+
+	});
+
+	it('should set many=false when the root table has the join reference key', () => {
+
+		// Given a relationship between
+		dare.options = {
+			schema: {
+				parent: {
+					child_id: 'child.id'
+				},
+				child: {
+				}
+			}
+		};
+
+		let joins = dare.join_handler({
+			'child': 'parent'
+		});
+
+		expect(joins).to.be.an('array');
+		expect(joins.length).to.eql(1);
+
+		expect(joins[0]).to.deep.equal({
+			table: 'child',
+			alias: 'child',
+			conditions: {
+				'child.id': 'parent.child_id'
+			},
+			root: 'parent',
+			many: false,
+		});
 
 	});
 });

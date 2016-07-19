@@ -8,19 +8,17 @@ module.exports = function join_handler(joinMap) {
 	for (let joinAlias in joinMap) {
 		let rootAlias = joinMap[joinAlias];
 		joins = joins.concat(join_table.call(this, joinAlias, rootAlias));
-
 	}
+
+	// Mark as many if it is joined
+	joins.forEach(join => {
+		if (!join.many) {
+			join.many = !!joins.filter(item => ((join.root === item.alias) && item.many)).length;
+		}
+	});
 
 	return joins;
 };
-
-function serialize(obj, separator, delimiter) {
-	let r = [];
-	for (let x in obj) {
-		r.push(`${x} ${separator} ${obj[x]}`);
-	}
-	return r.join(` ${delimiter} `);
-}
 
 function links(tableObj, joinTable) {
 
@@ -132,7 +130,14 @@ function join_table(joinAlias, rootAlias) {
 		throw `Unrecognized reference '${joinAlias}'`;
 	}
 
-	joins.push(`LEFT JOIN ${joinTable} ${joinTable === joinAlias ? '' : joinAlias} ON (${serialize(join_condition, '=', 'AND')})`);
+	// Should return a join array
+	joins.push({
+		table: joinTable,
+		alias: joinAlias,
+		root: rootAlias,
+		conditions: join_condition,
+		many: !!joinCond
+	});
 
 	return joins;
 

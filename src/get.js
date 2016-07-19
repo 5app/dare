@@ -164,19 +164,50 @@ function buildQuery(opts, accept, reject) {
 		opts.orderby = '';
 	}
 
+
 	// Join
-	let join = [];
+	let joins = [];
 	try {
-		join = this.join_handler(opts.join);
+		// Get join tables...
+		let a = this.join_handler(opts.join);
+		joins = a.map(join => `LEFT JOIN ${join.table} ${join.table === join.alias ? '' : join.alias} ON (${serialize(join.conditions, '=', 'AND')})`);
+
+		// Is group concat supported?
+		if (this.group_concat) {
+
+			// Get the joins which have a many relationship
+			let manyJoins = a.filter(join => join.many);
+
+			// Format fields which have join table with many
+			opts.fields = opts.fields.map(field => {
+				let b = field.split(' AS ');
+				let label = b[1];
+				if (!label) {
+					return field;
+				}
+				let many = manyJoins.filter(join => !!label.match(join.alias + '.'));
+				if (many.length) {
+					b[0] = `GROUP_CONCAT(IFNULL(${b[0]}, '') SEPARATOR '${this.group_concat}')`;
+					if (b[1]) {
+						many.forEach(join => {
+							b[1] = b[1].replace(join.alias + '.', () => join.alias + `[${this.group_concat}].`);
+						});
+					}
+					field = b.join(' AS ');
+				}
+				return field;
+			});
+		}
 	}
 	catch (e) {
 		return reject({message: e});
 	}
 
+
 	// Put it all together
 	let sql = `SELECT ${opts.fields.toString()}
 						 FROM ${tableName} ${tableID === tableName ? '' : tableID}
-								${join.join('\n')}
+								${joins.join('\n')}
 						 WHERE
 							 ${conditions.join(' AND ')}
 						 ${opts.groupby}
@@ -185,7 +216,7 @@ function buildQuery(opts, accept, reject) {
 
 	return this
 	.sql(sql, values)
-	.then(responseHandler)
+	.then(this.response_handler.bind(this))
 	.then(resp => {
 
 		// If limit was not defined we should return the first result only.
@@ -300,56 +331,6 @@ function prepareCondition(obj) {
 	return a;
 }
 
-// Response
-function responseHandler(resp) {
-	// Iterate over the response array and trigger formatting
-	return resp.map(formatHandler);
-}
-
-// Format
-function formatHandler(item) {
-
-	// Some of the names were prefixed too ensure uniqueness, e.g., [{name: name, 'asset:name': name}]
-	for (var x in item) {
-
-		// Check the key for expansion key '.'
-		let a = x.split('.');
-
-
-		if (a.length > 1) {
-
-			// Create new object
-			explodeKeyValue(item, a, item[x]);
-
-			// Delete the original key
-			delete item[x];
-		}
-	}
-
-	return item;
-}
-
-function explodeKeyValue(obj, a, value) {
-
-	// Is this the end?
-	if (a.length === 0) {
-		return value;
-	}
-
-	// Remove the last one from the iteration
-	let key = a.shift();
-
-	if (!(key in obj)) {
-		// Create a new object
-		obj[key] = {};
-	}
-
-	// Update key value
-	obj[key] = explodeKeyValue(obj[key], a, value);
-
-	return obj;
-}
-
 function checkKey(x) {
 	let reg = /^([a-z\_]+\.)?([a-z\_]+|\*)+$/i;
 
@@ -373,4 +354,12 @@ function checkFormat(str) {
 	if (!c.match(/^(((DISTINCT)\s)?[a-z\_\.]+|\*)$/i)) {
 		throw new Error(`The field definition '${str}' is invalid.`);
 	}
+}
+
+function serialize(obj, separator, delimiter) {
+	let r = [];
+	for (let x in obj) {
+		r.push(`${x} ${separator} ${obj[x]}`);
+	}
+	return r.join(` ${delimiter} `);
 }

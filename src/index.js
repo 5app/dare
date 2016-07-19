@@ -23,6 +23,9 @@ function Dare(options) {
 // Set default function
 Dare.prototype.execute = (query, callback) => callback(new Error('Define dare.execute to continue'));
 
+// Group concat
+Dare.prototype.group_concat = '$$';
+
 // Default prepare statement.
 Dare.prototype.prepare = require('./utils/prepare');
 
@@ -52,6 +55,7 @@ Dare.prototype.pre_handler = function(method, table, options) {
 
 Dare.prototype.join_handler = require('./join_handler');
 
+Dare.prototype.response_handler = require('./response_handler');
 
 // Create an instance
 Dare.prototype.use = function(options) {
@@ -199,7 +203,6 @@ Dare.prototype.post = function post(table, post, opts) {
 				return '?';
 			}).join(',') + ')';
 		});
-
 
 		// Construct a db update
 		let sql = `INSERT ${exec} INTO ${table}
