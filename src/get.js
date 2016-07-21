@@ -130,41 +130,6 @@ function buildQuery(opts, accept, reject) {
 		}
 	}
 
-	// Groupby
-	// If the content is grouped
-	if (opts.groupby) {
-		// Check inject
-		checkFormat(opts.groupby);
-
-		// Find the special _group column...
-		let i = opts.fields.indexOf(tableID + '._group');
-
-		if (i > -1) {
-			// ... and replace it.
-			opts.fields[i] = opts.groupby + ' as _group';
-		}
-
-		// Add the grouping
-		opts.groupby = `GROUP BY ${opts.groupby}`;
-	}
-	else {
-		opts.groupby = '';
-	}
-
-	// Orderby
-	// If the content is ordered
-	if (opts.orderby) {
-		// Check format
-		checkFormat(opts.orderby.replace(/\s*(DESC|ASC)$/, ''));
-
-		// Add the grouping
-		opts.orderby = `ORDER BY ${opts.orderby}`;
-	}
-	else {
-		opts.orderby = '';
-	}
-
-
 	// Join
 	let joins = [];
 	try {
@@ -197,10 +162,48 @@ function buildQuery(opts, accept, reject) {
 				}
 				return field;
 			});
+
+			if (manyJoins.length && !opts.groupby) {
+				opts.groupby = 'id';
+			}
 		}
 	}
 	catch (e) {
 		return reject({message: e});
+	}
+
+	// Groupby
+	// If the content is grouped
+	if (opts.groupby) {
+		// Check inject
+		checkFormat(opts.groupby);
+
+		// Find the special _group column...
+		let i = opts.fields.indexOf(tableID + '._group');
+
+		if (i > -1) {
+			// ... and replace it.
+			opts.fields[i] = opts.groupby + ' as _group';
+		}
+
+		// Add the grouping
+		opts.groupby = `GROUP BY ${opts.groupby}`;
+	}
+	else {
+		opts.groupby = '';
+	}
+
+	// Orderby
+	// If the content is ordered
+	if (opts.orderby) {
+		// Check format
+		checkFormat(opts.orderby.replace(/\s*(DESC|ASC)$/, ''));
+
+		// Add the grouping
+		opts.orderby = `ORDER BY ${opts.orderby}`;
+	}
+	else {
+		opts.orderby = '';
 	}
 
 
