@@ -12,7 +12,7 @@ describe('join_handler', () => {
 		expect(dare).to.have.property('join_handler');
 	});
 
-	it('should given a table-join map return an array of SQL LEFT JOINS', () => {
+	it('should return an array of objects which describe the join between the two tables', () => {
 
 		// Given a relationship between
 		dare.options = {
@@ -43,7 +43,7 @@ describe('join_handler', () => {
 
 	});
 
-	it('should create sql for each key=value in the join map', () => {
+	it('should create multiple join objects as required', () => {
 
 		// Given a relationship between
 		dare.options = {
