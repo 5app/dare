@@ -80,7 +80,6 @@ describe('post', () => {
 	});
 
 
-
 	it('should trigger pre handler, options.post.[table]', (done) => {
 
 		dare.execute = (query, callback) => {

@@ -156,8 +156,6 @@ describe('get', () => {
 
 	describe('Request Object', () => {
 
-
-
 	});
 });
 
