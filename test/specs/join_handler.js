@@ -112,9 +112,9 @@ describe('join_handler', () => {
 
 		expect(joins[0]).to.deep.equal({
 			table: 'parent',
-			alias: 'parent',
+			alias: 'a',
 			conditions: {
-				'grandparent.id': 'parent.grand_id'
+				'grandparent.id': 'a.grand_id'
 			},
 			root: 'grandparent',
 			many: true,
@@ -124,9 +124,9 @@ describe('join_handler', () => {
 			table: 'child',
 			alias: 'child',
 			conditions: {
-				'parent.id': 'child.parent_id'
+				'a.id': 'child.parent_id'
 			},
-			root: 'parent',
+			root: 'a',
 			many: true,
 		});
 

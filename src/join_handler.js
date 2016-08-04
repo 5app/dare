@@ -5,6 +5,12 @@ module.exports = function join_handler(joinMap) {
 
 	let joins = [];
 
+	this.uniqueTableAlias = '';
+	this.getUniqueTableAlias = () => {
+		this.uniqueTableAlias += 'a';
+		return this.uniqueTableAlias;
+	};
+
 	for (let joinAlias in joinMap) {
 		let rootAlias = joinMap[joinAlias];
 		joins = joins.concat(join_table.call(this, joinAlias, rootAlias));
@@ -52,11 +58,11 @@ function links(tableObj, joinTable) {
 	return Object.keys(map).length ? map : null;
 }
 
-function join_table(joinAlias, rootAlias) {
+function join_table(joinAlias, rootAlias, joinTable) {
 
 	let joins = [];
 
-	let joinTable = this.table_alias_handler(joinAlias);
+	joinTable = joinTable || this.table_alias_handler(joinAlias);
 	let rootTable = this.table_alias_handler(rootAlias);
 	let joinCond = links(this.options.schema[joinTable], rootTable);
 	let rootCond = links(this.options.schema[rootTable], joinTable);
@@ -82,12 +88,15 @@ function join_table(joinAlias, rootAlias) {
 
 				// Awesome, this table (tbl) is the link table and can be used to join up both these tables.
 				if (nextCond) {
+					// Create a unique Alias for this join table
+					let linkAlias = this.getUniqueTableAlias();
+
 					// Add this link table
-					joins = joins.concat(join_table.call(this, linkTable, rootAlias));
+					joins = joins.concat(join_table.call(this, linkAlias, rootAlias, linkTable));
 
 					// Update the current rootTable to point to this linkTable
 					rootTable = linkTable;
-					rootAlias = linkTable;
+					rootAlias = linkAlias;
 
 					// Stop looking for more tables
 					break;
