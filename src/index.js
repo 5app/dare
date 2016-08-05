@@ -34,7 +34,11 @@ Dare.prototype.table_alias_handler = function(name) {
 	return (this.options.table_alias ? this.options.table_alias[name] : null) || name;
 };
 
-Dare.prototype.pre_handler = function(method, table, options) {
+Dare.prototype.pre_handler = function(method, options) {
+
+	// Table
+	let table = this.table_alias_handler(options.table);
+	options.table = table;
 
 	let handlers = this.options[method] || {};
 	let handler;
@@ -102,13 +106,11 @@ Dare.prototype.patch = function patch(table, filter, body, opts) {
 	// Set default limit
 	limit(opts);
 
-	// Table
-	table = this.table_alias_handler(opts.table);
-
 	// Augment
 	return Promise.resolve()
-	.then(() => this.pre_handler('patch', table, opts))
+	.then(() => this.pre_handler('patch', opts))
 	.then(() => {
+		let table = opts.table;
 		// Clone
 		let post = clone(opts.body);
 		let query = clone(opts.filter);
@@ -153,11 +155,11 @@ Dare.prototype.post = function post(table, post, opts) {
 	}
 
 	// Table
-	table = this.table_alias_handler(opts.table);
-
 	return Promise.resolve()
-	.then(() => this.pre_handler('post', table, opts))
+	.then(() => this.pre_handler('post', opts))
 	.then(() => {
+		// Set table
+		let table = opts.table;
 
 		// Clone object before formatting
 		if (!Array.isArray(post)) {
@@ -236,12 +238,11 @@ Dare.prototype.del = function del(table, query, opts) {
 	// Set default limit
 	limit(opts);
 
-	// Table
-	table = this.table_alias_handler(opts.table);
-
 	return Promise.resolve()
-	.then(() => this.pre_handler('del', table, opts))
+	.then(() => this.pre_handler('del', opts))
 	.then(() => {
+		// Table
+		let table = opts.table;
 
 		// Clone object before formatting
 		query = clone(opts.filter);
