@@ -1,13 +1,13 @@
-// Export Dare
-
 'use strict';
 
-var SQL_ERROR_DICTIONARY = {
+let extend = require('tricks/object/extend');
+
+const SQL_ERROR_DICTIONARY = {
 	ER_DUP_ENTRY: 'duplicate entry',
 	NOT_FOUND: 'Not Found'
 };
 
-var SQL_ERROR_STATUSCODES = {
+const SQL_ERROR_STATUSCODES = {
 	ER_DUP_ENTRY: 409,
 	NOT_FOUND: 404
 };
@@ -93,15 +93,8 @@ Dare.prototype.get = require('./get');
 
 Dare.prototype.patch = function patch(table, filter, body, opts) {
 
-	if (typeof table === 'object') {
-		opts = table;
-	}
-	else {
-		opts = opts || {};
-		opts.table = table;
-		opts.filter = filter;
-		opts.body = body;
-	}
+	// Get Request Object
+	opts = typeof table === 'object' ? table : extend(opts, {table, filter, body});
 
 	// Set default limit
 	limit(opts);
@@ -141,18 +134,10 @@ Dare.prototype.patch = function patch(table, filter, body, opts) {
 // @opts object
 // return Promise
 
-Dare.prototype.post = function post(table, post, opts) {
+Dare.prototype.post = function post(table, body, opts) {
 
-	if (typeof table === 'object') {
-		opts = table;
-		table = opts.table;
-		post = opts.body;
-	}
-	else {
-		opts = opts || {};
-		opts.table = table;
-		opts.body = post;
-	}
+	// Get Request Object
+	opts = typeof table === 'object' ? table : extend(opts, {table, body});
 
 	// Table
 	return Promise.resolve()
@@ -160,6 +145,7 @@ Dare.prototype.post = function post(table, post, opts) {
 	.then(() => {
 		// Set table
 		let table = opts.table;
+		let post = opts.body;
 
 		// Clone object before formatting
 		if (!Array.isArray(post)) {
@@ -222,18 +208,10 @@ Dare.prototype.post = function post(table, post, opts) {
 // @query object
 // @opts object
 // return Promise
-Dare.prototype.del = function del(table, query, opts) {
+Dare.prototype.del = function del(table, filter, opts) {
 
-	if (typeof table === 'object') {
-		opts = table;
-		table = opts.table;
-		query = opts.filter;
-	}
-	else {
-		opts = opts || {};
-		opts.table = table;
-		opts.filter = query;
-	}
+	// Get Request Object
+	opts = typeof table === 'object' ? table : extend(opts, {table, filter});
 
 	// Set default limit
 	limit(opts);
@@ -245,7 +223,7 @@ Dare.prototype.del = function del(table, query, opts) {
 		let table = opts.table;
 
 		// Clone object before formatting
-		query = clone(opts.filter);
+		let query = clone(opts.filter);
 
 		// Prepare post
 		let a = prepare(query);

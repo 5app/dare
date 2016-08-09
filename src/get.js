@@ -1,10 +1,11 @@
 'use strict';
 
+let extend = require('tricks/object/extend');
 let error = require('./utils/error');
 
 module.exports = function(table, fields, filter, opts) {
 
-	// If typeof
+	// Get Request Object
 	if (typeof table === 'object') {
 		opts = table;
 	}
@@ -16,14 +17,8 @@ module.exports = function(table, fields, filter, opts) {
 			filter = fields;
 			fields = ['*'];
 		}
-		else if (!opts) {
-			opts = {};
-		}
 
-		// Set the table
-		opts.table = table;
-		opts.fields = fields;
-		opts.filter = filter;
+		opts = extend(opts, {table, fields, filter});
 	}
 
 	// Inherit the options from the instance
