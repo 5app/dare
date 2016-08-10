@@ -1,7 +1,5 @@
 'use strict';
 
-let extend = require('tricks/object/extend');
-
 const SQL_ERROR_DICTIONARY = {
 	ER_DUP_ENTRY: 'duplicate entry',
 	NOT_FOUND: 'Not Found'
@@ -91,10 +89,10 @@ Dare.prototype.sql = function sql(sql, prepared) {
 
 Dare.prototype.get = require('./get');
 
-Dare.prototype.patch = function patch(table, filter, body, opts) {
+Dare.prototype.patch = function patch(table, filter, body, opts = {}) {
 
 	// Get Request Object
-	opts = typeof table === 'object' ? table : extend(opts, {table, filter, body});
+	opts = typeof table === 'object' ? table : Object.assign(opts, {table, filter, body});
 
 	// Set default limit
 	limit(opts);
@@ -134,10 +132,10 @@ Dare.prototype.patch = function patch(table, filter, body, opts) {
 // @opts object
 // return Promise
 
-Dare.prototype.post = function post(table, body, opts) {
+Dare.prototype.post = function post(table, body, opts = {}) {
 
 	// Get Request Object
-	opts = typeof table === 'object' ? table : extend(opts, {table, body});
+	opts = typeof table === 'object' ? table : Object.assign(opts, {table, body});
 
 	// Table
 	return Promise.resolve()
@@ -208,10 +206,10 @@ Dare.prototype.post = function post(table, body, opts) {
 // @query object
 // @opts object
 // return Promise
-Dare.prototype.del = function del(table, filter, opts) {
+Dare.prototype.del = function del(table, filter, opts = {}) {
 
 	// Get Request Object
-	opts = typeof table === 'object' ? table : extend(opts, {table, filter});
+	opts = typeof table === 'object' ? table : Object.assign(opts, {table, filter});
 
 	// Set default limit
 	limit(opts);
