@@ -1,6 +1,6 @@
 {
   "name": "dare",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "Database to REST, REST to Database",
   "main": "src/index.js",
   "scripts": {
@@ -28,6 +28,5 @@
     "eslint": "^2.10.2",
     "mocha": "^2.5.2"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }
