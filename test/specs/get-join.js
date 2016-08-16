@@ -150,6 +150,7 @@ describe('get - request object', () => {
 				limit
 			})
 			.then((resp) => {
+				console.log(resp);
 				expect(resp).to.be.an('array');
 				expect(resp.length).to.eql(1);
 				let item = resp[0];
@@ -746,6 +747,82 @@ describe('get - request object', () => {
 		});
 
 	});
+
+
+	describe('generated fields', () => {
+
+		it('should allow bespoke fields to be defined in the schema', (done) => {
+
+			// Create handler for 'asset.thumbnail'
+			dare.options = {
+				schema: {
+					'assets': {
+						thumbnail: (fields) => {
+							// Update the current fields array to include any dependencies missing
+							if (fields.indexOf('id') === -1) {
+								fields.push('id');
+							}
+
+							// Return either a SQL string or a function to run on the response object
+							return (obj) => `/asset/${obj.id}/thumbnail`;
+						}
+					},
+					'picture': {
+						asset_id: 'assets.id',
+						image: function(fields) {
+							// Update the current fields array to include any dependencies missing
+							if (fields.indexOf('id') === -1) {
+								fields.push('id');
+							}
+
+							// Return either a SQL string or a function to run on the response object
+							return (obj) => this.options.meta.root + `/picture/${obj.id}/image`;
+						}
+					}
+				}
+			};
+
+			// Stub the execute function
+			dare.sql = (sql) => {
+
+				// Ensure that there is no thumbnail field requested.
+				return Promise.resolve([{
+					'id': 1,
+					'name': 'Andrew',
+					'picture[$$].id': 100
+				}]);
+			};
+
+			dare.get({
+				table: 'assets',
+				fields: [
+					'name',
+					'thumbnail',
+					{
+						picture: ['image']
+					}
+				],
+				meta: {
+					root: 'http://example.com'
+				}
+			})
+			.then((resp) => {
+				expect(resp).to.deep.equal({
+					id: 1,
+					name: 'Andrew',
+					thumbnail: '/asset/1/thumbnail',
+					picture: {
+						id: 100,
+						image: 'http://example.com/picture/100/image'
+					}
+				})
+				done();
+			}, done);
+
+
+		});
+	});
+
 
 	// describe('join_handler', () => {
 

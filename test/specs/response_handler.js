@@ -5,7 +5,11 @@ describe('response_handler', () => {
 	let dare;
 
 	beforeEach(() => {
+		// Create a new instance
 		dare = new Dare();
+
+		// Create an execution instance
+		dare = dare.use();
 	});
 
 	it('response handler should be defined in instances of Dare', () => {

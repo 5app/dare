@@ -5,12 +5,6 @@ module.exports = function join_handler(joinMap) {
 
 	let joins = [];
 
-	this.uniqueTableAlias = '';
-	this.getUniqueTableAlias = () => {
-		this.uniqueTableAlias += 'a';
-		return this.uniqueTableAlias;
-	};
-
 	for (let joinAlias in joinMap) {
 		let rootAlias = joinMap[joinAlias];
 		joins = joins.concat(join_table.call(this, joinAlias, rootAlias));
@@ -39,7 +33,7 @@ function links(tableObj, joinTable) {
 		if (typeof column === 'string' || Array.isArray(column)) {
 			ref = column;
 		}
-		else if (column.references) {
+		else if (typeof column === 'object' && column.references) {
 			ref = column.references;
 		}
 
@@ -89,7 +83,7 @@ function join_table(joinAlias, rootAlias, joinTable) {
 				// Awesome, this table (tbl) is the link table and can be used to join up both these tables.
 				if (nextCond) {
 					// Create a unique Alias for this join table
-					let linkAlias = this.getUniqueTableAlias();
+					let linkAlias = this.get_unique_alias();
 
 					// Add this link table
 					joins = joins.concat(join_table.call(this, linkAlias, rootAlias, linkTable));

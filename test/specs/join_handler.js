@@ -5,7 +5,11 @@ describe('join_handler', () => {
 	let dare;
 
 	beforeEach(() => {
+		// Create a new instance
 		dare = new Dare();
+
+		// Create an execution instance
+		dare = dare.use();
 	});
 
 	it('join handler should be defined in instances of Dare', () => {

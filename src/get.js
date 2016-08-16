@@ -20,15 +20,17 @@ module.exports = function(table, fields, filter, opts = {}) {
 		opts = Object.assign(opts, {table, fields, filter});
 	}
 
-	// Inherit the options from the instance
-	opts = Object.assign({}, this.options, opts);
+	// Create a new instance with options
+	let _this = this.use(opts);
 
 	return new Promise((accept, reject) => {
-		buildQuery.call(this, opts, accept, reject);
+		buildQuery.call(_this, accept, reject);
 	});
 };
 
-function buildQuery(opts, accept, reject) {
+function buildQuery(accept, reject) {
+
+	let opts = this.options;
 
 	// Restrict the maximum items to respond with
 
@@ -61,6 +63,9 @@ function buildQuery(opts, accept, reject) {
 	if (!opts.where) {
 		opts.where = {};
 	}
+
+	// Set the table_response_handlers
+	opts.response_handlers = [];
 
 	// Get the root tableID
 	let tableID = opts.table;
@@ -111,7 +116,7 @@ function buildQuery(opts, accept, reject) {
 	if (opts.fields) {
 
 		// Add the conditions
-		opts.fields = queryFields(opts, opts.fields, tableID);
+		opts.fields = queryFields.call(this, opts.fields, tableID);
 	}
 
 	{
@@ -253,18 +258,29 @@ function queryFilter(opts, filter, tableID) {
 	}
 }
 
-function queryFields(opts, fields, tableID, depth) {
+function queryFields(fields, tableID, depth) {
 
 	depth = depth || 0;
 	let a = [];
+	let table_structure = {};
+	let opts = this.options;
 
-	fields.forEach(field => {
+	if (opts && opts.schema){
+		let table = this.table_alias_handler(tableID);
+		table_structure = opts.schema[table] || {};
+	}
+
+	if (!Array.isArray(fields)) {
+		throw new Error(`The field definition '${fields}' is invalid.`);
+	}
+
+	walk(fields, field => {
 		if (typeof field !== 'string') {
 			for (let x in field) {
 				// Which table is being joined
 				if (Array.isArray(field[x])) {
 					opts.join[x] = tableID;
-					a = a.concat(queryFields(opts, field[x], x, depth + 1));
+					a = a.concat(queryFields.call(this, field[x], x, depth + 1));
 				}
 				else {
 					// Check errors in the key field
@@ -279,12 +295,33 @@ function queryFields(opts, fields, tableID, depth) {
 		}
 		else {
 
+			// Check errors in the key field
+			checkKey(field);
+
+			// Does this field have a handler in the schema
+			if (table_structure[field]) {
+
+				let handler = table_structure[field];
+
+				if (typeof handler === 'function') {
+
+					let res = handler.call(this, fields);
+
+					if (typeof res === 'function') {
+						// Add this function to each row of the response
+						opts.response_handlers.push(setField.bind(this, field, tableID, depth, res));
+
+						// Do not add this field to the current list
+						return;
+					}
+				}
+			}
+
+
 			if (field.indexOf('.') === -1) {
 				field = tableID + '.' + field;
 			}
 
-			// Check errors in the key field
-			checkKey(field);
 
 			let as = (depth ? ` AS '${field}'` : '');
 			a.push(field + as);
@@ -359,4 +396,23 @@ function serialize(obj, separator, delimiter) {
 		r.push(`${x} ${separator} ${obj[x]}`);
 	}
 	return r.join(` ${delimiter} `);
+}
+
+function walk(a, handler) {
+	// support a growing list of array items.
+	for(let i = 0; i < a.length; i++) {
+		handler(a[i]);
+	}
+}
+
+function setField(field, tableID, depth, handler, obj) {
+
+	if (depth) {
+		obj = obj[tableID];
+	}
+	if (!Array.isArray(obj)) {
+		obj = [obj];
+	}
+
+	obj.forEach(item => item[field] = handler.call(this, item));
 }

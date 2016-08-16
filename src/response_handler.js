@@ -3,7 +3,7 @@
 // Response
 module.exports = function responseHandler(resp) {
 	// Iterate over the response array and trigger formatting
-	return resp.map(formatHandler);
+	return resp.map(formatHandler.bind(this));
 };
 
 // Format
@@ -24,6 +24,10 @@ function formatHandler(item) {
 			// Delete the original key
 			delete item[x];
 		}
+	}
+
+	if (this.options.response_handlers) {
+		this.options.response_handlers.forEach(callback => callback(item));
 	}
 
 	return item;

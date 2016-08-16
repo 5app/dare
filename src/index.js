@@ -24,12 +24,18 @@ Dare.prototype.execute = (query, callback) => callback(new Error('Define dare.ex
 // Group concat
 Dare.prototype.group_concat = '$$';
 
+
 // Default prepare statement.
 Dare.prototype.prepare = require('./utils/prepare');
 
 // Set default table_alias handler
 Dare.prototype.table_alias_handler = function(name) {
 	return (this.options.table_alias ? this.options.table_alias[name] : null) || name;
+};
+
+Dare.prototype.get_unique_alias = function() {
+	this.current_unique_alias += 'a';
+	return this.current_unique_alias;
 };
 
 Dare.prototype.pre_handler = function(method, options) {
@@ -62,10 +68,10 @@ Dare.prototype.response_handler = require('./response_handler');
 // Create an instance
 Dare.prototype.use = function(options) {
 	let inst = Object.create(this);
-	inst.options = Object.assign({}, this.options);
-	for (var x in options) {
-		inst.options[x] = options[x];
-	}
+	inst.options = Object.assign({}, this.options, options);
+
+	// Set SQL level states
+	inst.current_unique_alias = '';
 	return inst;
 };
 
