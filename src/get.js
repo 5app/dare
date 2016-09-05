@@ -142,6 +142,9 @@ function buildQuery(accept, reject) {
 			// Get the joins which have a many relationship
 			let manyJoins = a.filter(join => join.many);
 
+			// Add default groupby
+			let group = false;
+
 			// Format fields which have join table with many
 			opts.fields = opts.fields.map(field => {
 				let b = field.split(' AS ');
@@ -151,6 +154,10 @@ function buildQuery(accept, reject) {
 				}
 				let many = manyJoins.filter(join => !!label.match(join.alias + '.'));
 				if (many.length) {
+
+					// Mark as group
+					group = true;
+
 					b[0] = `GROUP_CONCAT(IFNULL(${b[0]}, '') SEPARATOR '${this.group_concat}')`;
 					if (b[1]) {
 						many.forEach(join => {
@@ -162,7 +169,7 @@ function buildQuery(accept, reject) {
 				return field;
 			});
 
-			if (manyJoins.length && !opts.groupby) {
+			if (group && !opts.groupby) {
 				opts.groupby = 'id';
 			}
 		}
@@ -265,7 +272,7 @@ function queryFields(fields, tableID, depth) {
 	let table_structure = {};
 	let opts = this.options;
 
-	if (opts && opts.schema){
+	if (opts && opts.schema) {
 		let table = this.table_alias_handler(tableID);
 		table_structure = opts.schema[table] || {};
 	}
@@ -400,7 +407,7 @@ function serialize(obj, separator, delimiter) {
 
 function walk(a, handler) {
 	// support a growing list of array items.
-	for(let i = 0; i < a.length; i++) {
+	for (let i = 0; i < a.length; i++) {
 		handler(a[i]);
 	}
 }

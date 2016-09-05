@@ -150,7 +150,6 @@ describe('get - request object', () => {
 				limit
 			})
 			.then((resp) => {
-				console.log(resp);
 				expect(resp).to.be.an('array');
 				expect(resp.length).to.eql(1);
 				let item = resp[0];
@@ -783,7 +782,7 @@ describe('get - request object', () => {
 			};
 
 			// Stub the execute function
-			dare.sql = (sql) => {
+			dare.sql = () => {
 
 				// Ensure that there is no thumbnail field requested.
 				return Promise.resolve([{
@@ -815,7 +814,7 @@ describe('get - request object', () => {
 						id: 100,
 						image: 'http://example.com/picture/100/image'
 					}
-				})
+				});
 				done();
 			}, done);
 
