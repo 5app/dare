@@ -63,6 +63,8 @@ Dare.prototype.pre_handler = function(method, options) {
 
 Dare.prototype.join_handler = require('./join_handler');
 
+Dare.prototype.table_handler = require('./table_handler');
+
 Dare.prototype.response_handler = require('./response_handler');
 
 // Create an instance

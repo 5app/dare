@@ -134,6 +134,9 @@ function buildQuery(accept, reject) {
 	try {
 		// Get join tables...
 		let a = this.join_handler(opts.join);
+		// Format the table references
+		a = this.table_handler(a);
+		// Create the SQL JOINS
 		joins = a.map(join => `LEFT JOIN ${join.table} ${join.table === join.alias ? '' : join.alias} ON (${serialize(join.conditions, '=', 'AND')})`);
 
 		// Is group concat supported?
