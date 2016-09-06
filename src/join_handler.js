@@ -109,14 +109,14 @@ function join_table(joinAlias, rootAlias, joinTable) {
 
 	if (joinCond) {
 		for (let i in joinCond) {
-			let a = joinAlias + '.' + i;
+			let a = i;
 			let b = rootAlias + '.' + joinCond[i].split('.')[1];
-			join_condition[b] = a;
+			join_condition[a] = b;
 		}
 	}
 	else if (rootCond) {
 		for (let i in rootCond) {
-			let a = joinAlias + '.' + rootCond[i].split('.')[1];
+			let a = rootCond[i].split('.')[1];
 			let b = rootAlias + '.' + i;
 			join_condition[a] = b;
 		}

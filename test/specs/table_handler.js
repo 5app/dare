@@ -21,11 +21,13 @@ describe('table_handler', () => {
 			},
 			table_conditions: {
 				'users': function(item) {
-					let cond = {};
-					cond[`${item.alias}.domain_id`] = this.options.meta.domain_id;
+					// Add the join condition domain_id
+					let cond = {
+						domain_id: this.options.meta.domain_id
+					};
 
 					// Update table join conditions
-					item.conditions = Object.assign(item.conditions, cond);
+					Object.assign(item.conditions, cond);
 				}
 			},
 			meta: {
@@ -55,7 +57,7 @@ describe('table_handler', () => {
 			table: 'users',
 			alias: 'peeps',
 			conditions: {
-				'peeps.domain_id': 10,
+				'domain_id': 10,
 				'id': 1000
 			}
 		});
@@ -84,7 +86,7 @@ describe('table_handler', () => {
 			table: 'users',
 			alias: 'peeps',
 			conditions: {
-				'peeps.domain_id': 10,
+				'domain_id': 10,
 				'id': 1000
 			}
 		});

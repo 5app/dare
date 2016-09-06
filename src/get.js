@@ -136,6 +136,12 @@ function buildQuery(accept, reject) {
 		let a = this.join_handler(opts.join);
 		// Format the table references
 		a = this.table_handler(a);
+
+		// Prefix all the conditional keys
+		a.forEach(join => {
+			join.conditions = prefixKeys(join.conditions, join.alias + '.');
+		});
+
 		// Create the SQL JOINS
 		joins = a.map(join => `LEFT JOIN ${join.table} ${join.table === join.alias ? '' : join.alias} ON (${serialize(join.conditions, '=', 'AND')})`);
 
@@ -425,4 +431,12 @@ function setField(field, tableID, depth, handler, obj) {
 	}
 
 	obj.forEach(item => item[field] = handler.call(this, item));
+}
+
+function prefixKeys(obj, prefix = '') {
+	let r = {};
+	for (var x in obj) {
+		r[prefix + x] = obj[x];
+	}
+	return r;
 }

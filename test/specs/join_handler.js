@@ -39,7 +39,7 @@ describe('join_handler', () => {
 			table: 'child',
 			alias: 'child',
 			conditions: {
-				'parent.id': 'child.parent_id'
+				'parent_id': 'parent.id'
 			},
 			root: 'parent',
 			many: true,
@@ -74,7 +74,7 @@ describe('join_handler', () => {
 			table: 'child',
 			alias: 'child',
 			conditions: {
-				'parent.id': 'child.parent_id'
+				'parent_id': 'parent.id'
 			},
 			root: 'parent',
 			many: true,
@@ -84,7 +84,7 @@ describe('join_handler', () => {
 			table: 'parent',
 			alias: 'parent',
 			conditions: {
-				'grandparent.id': 'parent.grand_id'
+				'grand_id': 'grandparent.id'
 			},
 			root: 'grandparent',
 			many: true,
@@ -118,7 +118,7 @@ describe('join_handler', () => {
 			table: 'parent',
 			alias: 'a',
 			conditions: {
-				'grandparent.id': 'a.grand_id'
+				'grand_id': 'grandparent.id'
 			},
 			root: 'grandparent',
 			many: true,
@@ -128,7 +128,7 @@ describe('join_handler', () => {
 			table: 'child',
 			alias: 'child',
 			conditions: {
-				'a.id': 'child.parent_id'
+				'parent_id': 'a.id'
 			},
 			root: 'a',
 			many: true,
@@ -160,7 +160,7 @@ describe('join_handler', () => {
 			table: 'child',
 			alias: 'child',
 			conditions: {
-				'child.id': 'parent.child_id'
+				'id': 'parent.child_id'
 			},
 			root: 'parent',
 			many: false,
