@@ -167,7 +167,7 @@ function buildQuery(accept, reject) {
 					// Mark as group
 					group = true;
 
-					b[0] = `GROUP_CONCAT(IFNULL(${b[0]}, '') SEPARATOR '${this.group_concat}')`;
+					b[0] = `GROUP_CONCAT(CONCAT('"', IFNULL(${b[0]}, ''), '"') SEPARATOR '${this.group_concat}')`;
 					if (b[1]) {
 						many.forEach(join => {
 							b[1] = b[1].replace(join.alias + '.', () => join.alias + `[${this.group_concat}].`);

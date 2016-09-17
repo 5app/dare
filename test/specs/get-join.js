@@ -964,15 +964,21 @@ describe('get - request object', () => {
 	});
 
 	describe('GROUP CONCAT', () => {
-		it('should write one to many requests with group concat', done => {
+
+		it('should write one to many requests with group concat, and format the response as an array', done => {
 
 			dare.sql = (sql) => {
 
-				expect(sql).to.contain('GROUP_CONCAT(IFNULL(town.id, \'\') SEPARATOR \'$$\') AS \'town[$$].id\'');
-				expect(sql).to.contain('GROUP_CONCAT(IFNULL(town.name, \'\') SEPARATOR \'$$\') AS \'town[$$].name\'');
+				console.log(sql);
+
+				expect(sql).to.contain('GROUP_CONCAT(CONCAT(\'"\', IFNULL(town.id, \'\'), \'"\') SEPARATOR \'$$\') AS \'town[$$].id\'');
+				expect(sql).to.contain('GROUP_CONCAT(CONCAT(\'"\', IFNULL(town.name, \'\'), \'"\') SEPARATOR \'$$\') AS \'town[$$].name\'');
 				expect(sql).to.contain('GROUP BY id');
 
-				return Promise.resolve([]);
+				return Promise.resolve([{
+					'town[$$].id': '"1"$$"2"',
+					'town[$$].name': '"a"$$"b"'
+				}]);
 			};
 
 			// Here the schema is a series of tables a street, belongs to 1 town and in return 1 country
@@ -994,9 +1000,51 @@ describe('get - request object', () => {
 				],
 				limit
 			})
-			.then(() => {
+			.then(resp => {
+				let towns = resp[0].town;
+				expect(towns).to.be.an('array');
+				console.log(towns);
+				expect(towns[0].id).to.equal('1');
+				expect(towns[0].name).to.equal('a');
 				done();
-			}, done);
+			}).catch(done);
+
+		});
+		it('should write one to many requests with group concat, and format the response as an array', done => {
+
+			dare.sql = (sql) => {
+
+				return Promise.resolve([{
+					'town[$$].id': '',
+					'town[$$].name': ''
+				}]);
+			};
+
+			// Here the schema is a series of tables a street, belongs to 1 town and in return 1 country
+			dare.options = {
+				schema: {
+					town: {
+						country_id: 'country.id'
+					},
+					country: {}
+				}
+			};
+
+			dare.get({
+				table: 'country',
+				fields: [
+					{
+						town: ['id', 'name']
+					}
+				],
+				limit
+			})
+			.then(resp => {
+				let towns = resp[0].town;
+				expect(towns).to.be.an('array');
+				expect(towns.length).to.equal(0);
+				done();
+			}).catch(done);
 
 		});
 	});

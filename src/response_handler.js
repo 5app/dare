@@ -61,12 +61,20 @@ function explodeKeyValue(obj, a, value) {
 			obj[key] = [];
 		}
 
+		// Is there no results
+		if (value === '') {
+			return obj;
+		}
+
 		value.split(delimiter).forEach((value, i) => {
 
 			if (!obj[key][i]) {
 				// Create a new object
 				obj[key][i] = {};
 			}
+
+			// Remove quotes
+			value = value.replace(/^"(.*)"$/, '$1');
 
 			obj[key][i] = explodeKeyValue(obj[key][i], a, value);
 		});
