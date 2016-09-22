@@ -969,8 +969,6 @@ describe('get - request object', () => {
 
 			dare.sql = (sql) => {
 
-				console.log(sql);
-
 				expect(sql).to.contain('GROUP_CONCAT(CONCAT(\'"\', IFNULL(town.id, \'\'), \'"\') SEPARATOR \'$$\') AS \'town[$$].id\'');
 				expect(sql).to.contain('GROUP_CONCAT(CONCAT(\'"\', IFNULL(town.name, \'\'), \'"\') SEPARATOR \'$$\') AS \'town[$$].name\'');
 				expect(sql).to.contain('GROUP BY id');
@@ -1003,7 +1001,6 @@ describe('get - request object', () => {
 			.then(resp => {
 				let towns = resp[0].town;
 				expect(towns).to.be.an('array');
-				console.log(towns);
 				expect(towns[0].id).to.equal('1');
 				expect(towns[0].name).to.equal('a');
 				done();
@@ -1012,7 +1009,7 @@ describe('get - request object', () => {
 		});
 		it('should write one to many requests with group concat, and format the response as an array', done => {
 
-			dare.sql = (sql) => {
+			dare.sql = () => {
 
 				return Promise.resolve([{
 					'town[$$].id': '',
