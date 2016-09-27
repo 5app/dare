@@ -109,6 +109,12 @@ Dare.prototype.patch = function patch(table, filter, body, opts = {}) {
 	return Promise.resolve()
 	.then(() => this.pre_handler('patch', opts))
 	.then(() => {
+
+		// Skip this operation?
+		if (opts.skip) {
+			return opts.skip;
+		}
+
 		let table = opts.table;
 		// Clone
 		let post = clone(opts.body);
@@ -149,6 +155,12 @@ Dare.prototype.post = function post(table, body, opts = {}) {
 	return Promise.resolve()
 	.then(() => this.pre_handler('post', opts))
 	.then(() => {
+
+		// Skip this operation?
+		if (opts.skip) {
+			return opts.skip;
+		}
+
 		// Set table
 		let table = opts.table;
 		let post = opts.body;
@@ -225,6 +237,12 @@ Dare.prototype.del = function del(table, filter, opts = {}) {
 	return Promise.resolve()
 	.then(() => this.pre_handler('del', opts))
 	.then(() => {
+
+		// Skip this operation?
+		if (opts.skip) {
+			return opts.skip;
+		}
+
 		// Table
 		let table = opts.table;
 

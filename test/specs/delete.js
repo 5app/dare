@@ -151,4 +151,29 @@ describe('del', () => {
 			done();
 		});
 	});
+
+	it('should return options.skip if set and not trigger further operations', (done) => {
+
+		// Should not be called...
+		dare.execute = done;
+
+		dare.options = {
+			del: {
+				'default': (options) => {
+					options.skip = true;
+				}
+			}
+		};
+
+		dare
+		.del({
+			table: 'tbl',
+			filter: {id: 2}
+		})
+		.then((resp) => {
+			expect(resp).to.eql(true);
+			done();
+		})
+		.catch(done);
+	});
 });
