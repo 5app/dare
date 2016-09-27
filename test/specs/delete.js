@@ -151,38 +151,4 @@ describe('del', () => {
 			done();
 		});
 	});
-
-	it('should run an update statement to set the value of is_deleted when opts.soft_delete is truthy', (done) => {
-
-		// Should not be called...
-		dare.execute = (query, callback) => {
-			// limit: 1
-			expect(query).to.match(/UPDATE tbl/);
-			expect(query).to.match(/SET is_deleted = 1/);
-			expect(query).to.match(/id = 4/);
-			callback(null, {success: true});
-		};
-
-		dare.options = {
-			del: {
-				'default': (options) => {
-
-					options.soft_delete = true;
-					// Augment the request
-					return Promise.resolve().then(() => {
-					});
-				}
-			}
-		};
-
-		dare
-		.del({
-			table: 'tbl',
-			filter: {id: 4}
-		})
-		.then((resp) => {
-			expect(resp).to.have.property('success', true);
-			done();
-		}, done);
-	});
 });

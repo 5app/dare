@@ -234,25 +234,14 @@ Dare.prototype.del = function del(table, filter, opts = {}) {
 		// Prepare post
 		let a = prepare(query);
 
-		let sql;
-		if (!opts.soft_delete) {
-			sql =
-				`DELETE FROM ${table}
-				 WHERE
-				 ${serialize(query, '=', 'AND')}
-				 LIMIT ${opts.limit}`;
-		}
-		else {
-			sql =
-				`UPDATE ${table}
-				 SET is_deleted = 1
-				 WHERE
-				 ${serialize(query, '=', 'AND')}
-				 LIMIT ${opts.limit}`;
-		}
-
 		// Construct a db update
-		return this.sql(sql, a)
+		return this.sql(
+
+			`DELETE FROM ${table}
+			WHERE
+			${serialize(query, '=', 'AND')}
+			LIMIT ${opts.limit}`,
+		a)
 		.then(mustAffectRows);
 	});
 };
