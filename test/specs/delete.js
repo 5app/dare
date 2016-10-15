@@ -2,6 +2,7 @@
 
 // Test Generic DB functions
 let SQLEXP = require('../lib/sql-match');
+const error = require('../../src/utils/error');
 
 describe('del', () => {
 
@@ -42,9 +43,8 @@ describe('del', () => {
 		.then(() => {
 			done('Should not be called');
 		})
-		.catch((err) => {
-			expect(err).to.have.property('status', 404);
-			expect(err).to.have.property('message', 'Not Found');
+		.catch(err => {
+			expect(err).to.eql(error.NOT_FOUND);
 			done();
 		});
 	});

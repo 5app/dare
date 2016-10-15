@@ -1,14 +1,7 @@
 'use strict';
 
-const SQL_ERROR_DICTIONARY = {
-	ER_DUP_ENTRY: 'duplicate entry',
-	NOT_FOUND: 'Not Found'
-};
-
-const SQL_ERROR_STATUSCODES = {
-	ER_DUP_ENTRY: 409,
-	NOT_FOUND: 404
-};
+const getHandler = require('./get');
+const error = require('./utils/error');
 
 module.exports = Dare;
 
@@ -95,7 +88,30 @@ Dare.prototype.sql = function sql(sql, prepared) {
 };
 
 
-Dare.prototype.get = require('./get');
+Dare.prototype.get = function get(table, fields, filter, opts = {}) {
+
+	// Get Request Object
+	if (typeof table === 'object') {
+		opts = table;
+	}
+	else {
+
+		// Shuffle
+		if (typeof fields === 'object' && !Array.isArray(fields)) {
+			opts = filter || {};
+			filter = fields;
+			fields = ['*'];
+		}
+
+		opts = Object.assign(opts, {table, fields, filter});
+	}
+
+	// Create a new instance with options
+	let _this = this.use(opts);
+
+	return Promise.resolve()
+	.then(() => getHandler.call(_this));
+};
 
 Dare.prototype.patch = function patch(table, filter, body, opts = {}) {
 
@@ -273,16 +289,6 @@ function clone(obj) {
 	return r;
 }
 
-function error(err) {
-
-	var message = SQL_ERROR_DICTIONARY[err.code] || 'request failed';
-	return {
-		status: err.status || SQL_ERROR_STATUSCODES[err.code] || 500,
-		code: err.code,
-		error: message,
-		message: message
-	};
-}
 
 function prepare(obj) {
 
@@ -337,7 +343,7 @@ function limit(opts) {
 
 function mustAffectRows(result) {
 	if (result.affectedRows === 0) {
-		throw error({code: 'NOT_FOUND'});
+		throw error.NOT_FOUND;
 	}
 	return result;
 }

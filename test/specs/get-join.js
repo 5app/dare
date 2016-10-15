@@ -1,7 +1,10 @@
 'use strict';
 
+const error = require('../../src/utils/error');
+
 // Test Generic DB functions
 let SQLEXP = require('../lib/sql-match');
+
 
 // Create a schema
 let options = {
@@ -213,6 +216,7 @@ describe('get - request object', () => {
 						limit
 					})
 					.then(done, err => {
+						expect(err.code).to.eql(error.INVALID_REFERENCE.code);
 						expect(err).to.have.property('message');
 						done();
 					})
@@ -298,6 +302,7 @@ describe('get - request object', () => {
 						limit
 					})
 					.then(done, err => {
+						expect(err.code).to.eql(error.INVALID_REFERENCE.code);
 						expect(err).to.have.property('message');
 						done();
 					})
@@ -351,6 +356,7 @@ describe('get - request object', () => {
 						limit: value
 					})
 					.then(done, err => {
+						expect(err.code).to.eql(error.INVALID_LIMIT.code);
 						expect(err).to.have.property('message');
 						done();
 					});
@@ -392,7 +398,7 @@ describe('get - request object', () => {
 
 		describe('should ignore', () => {
 
-			['nonsense', 0, -1, 101, NaN, {}, null].forEach(value => {
+			['nonsense', -1, NaN, {}, null].forEach(value => {
 
 				it('invalid: ' + value + ' (' + (typeof value) + ')', done => {
 
@@ -405,6 +411,7 @@ describe('get - request object', () => {
 						start: value
 					})
 					.then(done, err => {
+						expect(err.code).to.eql(error.INVALID_START.code);
 						expect(err).to.have.property('message');
 						done();
 					});
@@ -458,6 +465,7 @@ describe('get - request object', () => {
 						limit
 					})
 					.then(done, err => {
+						expect(err.code).to.eql(error.INVALID_REFERENCE.code);
 						expect(err).to.have.property('message');
 						done();
 					})
@@ -483,8 +491,9 @@ describe('get - request object', () => {
 						groupby: value,
 						limit
 					})
-					.then(() => (done()))
-					.catch(done);        });
+					.then(() => done())
+					.catch(done);
+				});
 			});
 		});
 	});
@@ -538,6 +547,7 @@ describe('get - request object', () => {
 						limit
 					})
 					.then(done, err => {
+						expect(err.code).to.eql(error.INVALID_REFERENCE.code);
 						expect(err).to.have.property('message');
 						done();
 					})
@@ -600,7 +610,8 @@ describe('get - request object', () => {
 			.then(() => {
 				done('Should have thrown an error');
 			}, (err) => {
-				expect(err).to.have.property('message', 'Could not understand field "comments"');
+				expect(err.code).to.eql(error.INVALID_REFERENCE.code);
+				expect(err).to.have.property('message', 'Could not understand field \'comments\'');
 				done();
 			});
 
@@ -933,6 +944,7 @@ describe('get - request object', () => {
 					limit
 				})
 				.then(done, err => {
+					expect(err.code).to.eql(error.INVALID_REFERENCE.code);
 					expect(err).to.have.property('message');
 					done();
 				}).catch(done);
@@ -946,7 +958,6 @@ describe('get - request object', () => {
 
 				dare.get({
 					table: 'public',
-					filter: ['id'],
 					fields: [
 						{
 							asset: ['name']
@@ -955,6 +966,7 @@ describe('get - request object', () => {
 					limit
 				})
 				.then(done, err => {
+					expect(err.code).to.eql(error.INVALID_REFERENCE.code);
 					expect(err).to.have.property('message');
 					done();
 				}).catch(done);

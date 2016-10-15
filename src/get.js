@@ -2,33 +2,7 @@
 
 let error = require('./utils/error');
 
-module.exports = function(table, fields, filter, opts = {}) {
-
-	// Get Request Object
-	if (typeof table === 'object') {
-		opts = table;
-	}
-	else {
-
-		// Shuffle
-		if (typeof fields === 'object' && !Array.isArray(fields)) {
-			opts = filter || {};
-			filter = fields;
-			fields = ['*'];
-		}
-
-		opts = Object.assign(opts, {table, fields, filter});
-	}
-
-	// Create a new instance with options
-	let _this = this.use(opts);
-
-	return new Promise((accept, reject) => {
-		buildQuery.call(_this, accept, reject);
-	});
-};
-
-function buildQuery(accept, reject) {
+module.exports = function() {
 
 	let opts = this.options;
 
@@ -45,12 +19,22 @@ function buildQuery(accept, reject) {
 	else {
 		let _limit = parseInt(limit, 10);
 		if (isNaN(_limit) || _limit > 100 || _limit < 1) {
-			return reject({message: `Out of bounds limit value: '${limit}'`});
+			throw Object.assign(error.INVALID_LIMIT, {
+				message: `Out of bounds limit value: '${limit}'`
+			});
 		}
 
-		let start = parseInt(opts.start || 0, 10);
-		if (isNaN(start) || start < 0) {
-			return reject({message: `Out of bounds start value: '${start}'`});
+		let start = opts.start;
+
+		if (start !== undefined) {
+			if (typeof start === 'string' && start.match(/^\d+$/)) {
+				start = +opts.start;
+			}
+			if (typeof start !== 'number' || isNaN(start) || start < 0) {
+				throw Object.assign(error.INVALID_START, {
+					message: `Out of bounds start value: '${start}'`
+				});
+			}
 		}
 
 		limit = (start ? start + ',' : '') + _limit;
@@ -73,7 +57,9 @@ function buildQuery(accept, reject) {
 
 	// Reject when the table is not recognised
 	if (!tableName) {
-		return reject({message: `Unrecognized reference '${opts.table}'`});
+		throw Object.assign(error.INVALID_REFERENCE, {
+			message: `Unrecognized reference '${opts.table}'`
+		});
 	}
 
 	// Filters
@@ -86,7 +72,9 @@ function buildQuery(accept, reject) {
 	if (opts.filter) {
 		// If filter is not an object
 		if (typeof opts.filter !== 'object') {
-			return reject({message: `The filter '${opts.filter}' is invalid.`});
+			throw Object.assign(error.INVALID_REFERENCE, {
+				message: `The filter '${opts.filter}' is invalid.`
+			});
 		}
 
 		// Add the conditions
@@ -113,11 +101,8 @@ function buildQuery(accept, reject) {
 
 	// Fields
 	// e.g. fields = [action, category, count, {app: [name, id]}]
-	if (opts.fields) {
+	opts.fields = queryFields.call(this, opts.fields, tableID);
 
-		// Add the conditions
-		opts.fields = queryFields.call(this, opts.fields, tableID);
-	}
 
 	{
 		// Count is a special field, find it ...
@@ -131,7 +116,7 @@ function buildQuery(accept, reject) {
 
 	// Join
 	let joins = [];
-	try {
+	{
 		// Get join tables...
 		let a = this.join_handler(opts.join);
 		// Format the table references
@@ -183,9 +168,6 @@ function buildQuery(accept, reject) {
 			}
 		}
 	}
-	catch (e) {
-		return reject({message: e});
-	}
 
 	// Groupby
 	// If the content is grouped
@@ -211,8 +193,15 @@ function buildQuery(accept, reject) {
 	// Orderby
 	// If the content is ordered
 	if (opts.orderby) {
+
+		let test = opts.orderby;
+
+		if (typeof test === 'string') {
+			test = test.replace(/\s*(DESC|ASC)$/, '');
+		}
+
 		// Check format
-		checkFormat(opts.orderby.replace(/\s*(DESC|ASC)$/, ''));
+		checkFormat(test);
 
 		// Add the grouping
 		opts.orderby = `ORDER BY ${opts.orderby}`;
@@ -243,18 +232,12 @@ function buildQuery(accept, reject) {
 				return resp[0];
 			}
 			else {
-				throw error({code: 'NOT_FOUND'});
+				throw error.NOT_FOUND;
 			}
 		}
 		return resp;
-	})
-	.then(accept)
-	.catch(err => {
-		reject(err);
-		// console.log("SQLERROR:" + this.prepare(sql, values));
-		throw err;
 	});
-}
+};
 
 function queryFilter(opts, filter, tableID) {
 
@@ -287,7 +270,9 @@ function queryFields(fields, tableID, depth) {
 	}
 
 	if (!Array.isArray(fields)) {
-		throw new Error(`The field definition '${fields}' is invalid.`);
+		throw Object.assign(error.INVALID_REFERENCE, {
+			message: `The field definition '${fields}' is invalid.`
+		});
 	}
 
 	walk(fields, field => {
@@ -386,11 +371,20 @@ function checkKey(x) {
 
 	// Capture errors in the key
 	if (!x.match(reg)) {
-		throw new Error(`The key '${x}' must match ${reg}`);
+		throw Object.assign(error.INVALID_REFERENCE, {
+			message: `The key '${x}' must match ${reg}`
+		});
 	}
 }
 
 function checkFormat(str) {
+
+	if (typeof str !== 'string') {
+		throw Object.assign(error.INVALID_REFERENCE, {
+			message: `The field definition '${str}' is invalid.`
+		});
+	}
+
 	let c = str;
 	let m;
 
@@ -402,7 +396,9 @@ function checkFormat(str) {
 
 	// Is this a valid field
 	if (!c.match(/^(((DISTINCT)\s)?[a-z\_\.]+|\*)$/i)) {
-		throw new Error(`The field definition '${str}' is invalid.`);
+		throw Object.assign(error.INVALID_REFERENCE, {
+			message: `The field definition '${str}' is invalid.`
+		});
 	}
 }
 

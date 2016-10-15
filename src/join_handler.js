@@ -1,3 +1,4 @@
+const error = require('./utils/error');
 
 // deciding on how to connect two tables depends on which one holds the connection
 // The join_handler here looks columns on both tables to find one which has a reference field to the other.
@@ -125,12 +126,16 @@ function join_table(joinAlias, rootAlias, joinTable) {
 
 	// Reject if the join has no condition
 	if (!join_condition || Object.keys(join_condition).length === 0) {
-		throw 'Could not understand field "' + joinAlias + '"';
+		throw Object.assign(error.INVALID_REFERENCE, {
+			message: `Could not understand field '${joinAlias}'`
+		});
 	}
 
 	// Is there an alias for this table
 	if (!joinTable) {
-		throw `Unrecognized reference '${joinAlias}'`;
+		throw Object.assign(error.INVALID_REFERENCE, {
+			message: `Unrecognized reference '${joinAlias}'`
+		});
 	}
 
 	// Should return a join array
