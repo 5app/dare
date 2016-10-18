@@ -73,7 +73,7 @@ describe('patch', () => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
-			expect(query).to.match(SQLEXP('UPDATE test SET name = \'name\' WHERE id = 1 LIMIT 111'));
+			expect(query).to.match(SQLEXP('UPDATE test SET name = \'name\' WHERE id = 1 LIMIT 11'));
 			callback(null, {success: true});
 		};
 
@@ -82,7 +82,7 @@ describe('patch', () => {
 			table: 'test',
 			filter: {id: 1},
 			body: {name: 'name'},
-			limit: 111
+			limit: 11
 		})
 		.then(() => {
 			done();

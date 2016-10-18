@@ -31,25 +31,81 @@ Dare.prototype.get_unique_alias = function() {
 	return this.current_unique_alias;
 };
 
-Dare.prototype.pre_handler = function(method, options) {
+Dare.prototype.format_request = function(method, options) {
 
-	// Table
-	let table = this.table_alias_handler(options.table);
-	options.table = table;
+	return Promise.resolve()
+	.then(() => {
 
-	let handlers = this.options[method] || {};
-	let handler;
+		// Set default limit
+		limit(options);
 
-	if (table in handlers) {
-		handler = handlers[table];
-	}
-	else if ('default' in handlers) {
-		handler = handlers['default'];
-	}
+		// Use the alias to find the real table name
+		{
+			let table = options.table;
+			options.alias = table;
+			options.table = this.table_alias_handler(table);
 
-	if (handler) {
-		return handler(options);
-	}
+			// Reject when the table is not recognised
+			if (!options.table) {
+				throw Object.assign(error.INVALID_REFERENCE, {
+					message: `Unrecognized reference '${options.table}'`
+				});
+			}
+		}
+
+		// Call bespoke table handler
+		{
+			let table = options.table;
+			let handlers = this.options[method] || {};
+			let handler;
+
+			if (table in handlers) {
+				handler = handlers[table];
+			}
+			else if ('default' in handlers) {
+				handler = handlers['default'];
+			}
+
+			if (handler) {
+				handler(options);
+			}
+		}
+
+		// Format filters
+		{
+
+			let filter = options.filter;
+
+			if (filter) {
+
+				// filter must be an object with key=>values
+				if (typeof filter !== 'object') {
+					throw Object.assign(error.INVALID_REFERENCE, {
+						message: `The filter '${filter}' is invalid.`
+					});
+				}
+
+			}
+		}
+
+		// Format fields
+		{
+			let fields = options.fields;
+
+			if (fields) {
+
+				// Fields must be an array
+				if (!Array.isArray(fields)) {
+					throw Object.assign(error.INVALID_REFERENCE, {
+						message: `The field definition '${fields}' is invalid.`
+					});
+				}
+
+			}
+		}
+
+		return options;
+	});
 
 };
 
@@ -109,8 +165,8 @@ Dare.prototype.get = function get(table, fields, filter, opts = {}) {
 	// Create a new instance with options
 	let _this = this.use(opts);
 
-	return Promise.resolve()
-	.then(() => getHandler.call(_this));
+	return _this.format_request('get', opts)
+	.then(opts => getHandler.call(_this, opts));
 };
 
 Dare.prototype.patch = function patch(table, filter, body, opts = {}) {
@@ -118,13 +174,9 @@ Dare.prototype.patch = function patch(table, filter, body, opts = {}) {
 	// Get Request Object
 	opts = typeof table === 'object' ? table : Object.assign(opts, {table, filter, body});
 
-	// Set default limit
-	limit(opts);
-
 	// Augment
-	return Promise.resolve()
-	.then(() => this.pre_handler('patch', opts))
-	.then(() => {
+	return this.format_request('patch', opts)
+	.then(opts => {
 
 		// Skip this operation?
 		if (opts.skip) {
@@ -168,9 +220,8 @@ Dare.prototype.post = function post(table, body, opts = {}) {
 	opts = typeof table === 'object' ? table : Object.assign(opts, {table, body});
 
 	// Table
-	return Promise.resolve()
-	.then(() => this.pre_handler('post', opts))
-	.then(() => {
+	return this.format_request('post', opts)
+	.then(opts => {
 
 		// Skip this operation?
 		if (opts.skip) {
@@ -247,12 +298,8 @@ Dare.prototype.del = function del(table, filter, opts = {}) {
 	// Get Request Object
 	opts = typeof table === 'object' ? table : Object.assign(opts, {table, filter});
 
-	// Set default limit
-	limit(opts);
-
-	return Promise.resolve()
-	.then(() => this.pre_handler('del', opts))
-	.then(() => {
+	return this.format_request('del', opts)
+	.then(opts => {
 
 		// Skip this operation?
 		if (opts.skip) {
@@ -333,11 +380,36 @@ function serialize(obj, separator, delimiter) {
 }
 
 function limit(opts) {
+
 	if (opts.limit === undefined) {
 		opts.limit = 1;
+		opts.single = true;
 	}
-	else if (!opts.limit) {
-		delete opts.limit;
+
+	else {
+		let limit = opts.limit;
+		if (typeof limit === 'string' && limit.match(/^\d+$/)) {
+			limit = +opts.limit;
+		}
+		if (isNaN(limit) || limit > 100 || limit < 1) {
+			throw Object.assign(error.INVALID_LIMIT, {
+				message: `Out of bounds limit value: '${limit}'`
+			});
+		}
+	}
+
+	let start = opts.start;
+
+	if (start !== undefined) {
+		if (typeof start === 'string' && start.match(/^\d+$/)) {
+			start = +opts.start;
+		}
+		if (typeof start !== 'number' || isNaN(start) || start < 0) {
+			throw Object.assign(error.INVALID_START, {
+				message: `Out of bounds start value: '${start}'`
+			});
+		}
+		opts.start = start;
 	}
 }
 

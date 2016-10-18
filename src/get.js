@@ -2,43 +2,15 @@
 
 let error = require('./utils/error');
 
-module.exports = function() {
+module.exports = function(opts) {
 
-	let opts = this.options;
+	opts = Object.assign(this.options, opts);
 
 	// Restrict the maximum items to respond with
+	let single_record = opts.single;
 
-	let limit = opts.limit;
-	let single_record = false;
-
-	// limit
-	if (limit === undefined) {
-		limit = 1;
-		single_record = true;
-	}
-	else {
-		let _limit = parseInt(limit, 10);
-		if (isNaN(_limit) || _limit > 100 || _limit < 1) {
-			throw Object.assign(error.INVALID_LIMIT, {
-				message: `Out of bounds limit value: '${limit}'`
-			});
-		}
-
-		let start = opts.start;
-
-		if (start !== undefined) {
-			if (typeof start === 'string' && start.match(/^\d+$/)) {
-				start = +opts.start;
-			}
-			if (typeof start !== 'number' || isNaN(start) || start < 0) {
-				throw Object.assign(error.INVALID_START, {
-					message: `Out of bounds start value: '${start}'`
-				});
-			}
-		}
-
-		limit = (start ? start + ',' : '') + _limit;
-	}
+	// Limit
+	let limit = (opts.start ? opts.start + ',' : '') + opts.limit;
 
 	// Initiate join
 	opts.join = {};
@@ -52,15 +24,8 @@ module.exports = function() {
 	opts.response_handlers = [];
 
 	// Get the root tableID
-	let tableID = opts.table;
-	let tableName = this.table_alias_handler(opts.table);
-
-	// Reject when the table is not recognised
-	if (!tableName) {
-		throw Object.assign(error.INVALID_REFERENCE, {
-			message: `Unrecognized reference '${opts.table}'`
-		});
-	}
+	let tableID = opts.alias;
+	let tableName = opts.table;
 
 	// Filters
 	// Filters populate the conditions and values (prepared statements)
@@ -70,12 +35,6 @@ module.exports = function() {
 	// Restrict the resources that are returned
 	// e.g. filter= {category: asset, action: open, created_time: 2016-04-12T13:29:23Z..]
 	if (opts.filter) {
-		// If filter is not an object
-		if (typeof opts.filter !== 'object') {
-			throw Object.assign(error.INVALID_REFERENCE, {
-				message: `The filter '${opts.filter}' is invalid.`
-			});
-		}
 
 		// Add the conditions
 		queryFilter(opts, opts.filter, tableID);
@@ -267,12 +226,6 @@ function queryFields(fields, tableID, depth) {
 	if (opts && opts.schema) {
 		let table = this.table_alias_handler(tableID);
 		table_structure = opts.schema[table] || {};
-	}
-
-	if (!Array.isArray(fields)) {
-		throw Object.assign(error.INVALID_REFERENCE, {
-			message: `The field definition '${fields}' is invalid.`
-		});
 	}
 
 	walk(fields, field => {
