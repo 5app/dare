@@ -1,6 +1,6 @@
 'use strict';
 
-let s = '\'';
+const s = '\'';
 
 module.exports = (sql, prepared) => {
 	let i = 0;
@@ -8,7 +8,7 @@ module.exports = (sql, prepared) => {
 };
 
 function value(v) {
-	let t = typeof v;
+	const t = typeof v;
 	if (t === 'string') {
 		return s + v.replace(/\\/, '\\\\\'').replace(/[']/, '\\\'') + s;
 	}

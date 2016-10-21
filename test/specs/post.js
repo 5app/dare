@@ -1,7 +1,7 @@
 'use strict';
 
 // Test Generic DB functions
-let SQLEXP = require('../lib/sql-match');
+const SQLEXP = require('../lib/sql-match');
 
 describe('post', () => {
 
@@ -15,7 +15,7 @@ describe('post', () => {
 		expect(dare.post).to.be.a('function');
 	});
 
-	it('should generate an INSERT statement and execute dare.execute', (done) => {
+	it('should generate an INSERT statement and execute dare.execute', done => {
 
 		dare.execute = (query, callback) => {
 			expect(query).to.match(SQLEXP('INSERT INTO test (id) VALUES (1)'));
@@ -24,7 +24,7 @@ describe('post', () => {
 
 		dare
 		.post('test', {id: 1})
-		.then((resp) => {
+		.then(resp => {
 			expect(resp).to.have.property('id', 1);
 			done();
 		}, done);
@@ -32,7 +32,7 @@ describe('post', () => {
 	});
 
 
-	it('should accept an Array of records to insert', (done) => {
+	it('should accept an Array of records to insert', done => {
 
 		dare.execute = (query, callback) => {
 			expect(query).to.match(SQLEXP('INSERT INTO test (id, name, field) VALUES (1, \'1\', DEFAULT), (2, \'2\', \'extra\')'));
@@ -48,7 +48,7 @@ describe('post', () => {
 	});
 
 
-	it('should accept option.duplicate_keys=ignore', (done) => {
+	it('should accept option.duplicate_keys=ignore', done => {
 
 		dare.execute = (query, callback) => {
 			expect(query).to.match(SQLEXP('INSERT IGNORE INTO test (id) VALUES (1)'));
@@ -61,7 +61,7 @@ describe('post', () => {
 
 	});
 
-	it('should understand a request object', (done) => {
+	it('should understand a request object', done => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -80,7 +80,7 @@ describe('post', () => {
 	});
 
 
-	it('should trigger pre handler, options.post.[table]', (done) => {
+	it('should trigger pre handler, options.post.[table]', done => {
 
 		dare.execute = (query, callback) => {
 			expect(query).to.match(SQLEXP('INSERT INTO tbl (name) VALUES (\'andrew\')'));
@@ -89,7 +89,7 @@ describe('post', () => {
 
 		dare.options = {
 			post: {
-				'tbl': (req) => {
+				'tbl': req => {
 					// Augment the request
 					req.body.name = 'andrew';
 				}
@@ -107,7 +107,7 @@ describe('post', () => {
 	});
 
 
-	it('should trigger pre handler, options.post.default, and wait for Promise to resolve', (done) => {
+	it('should trigger pre handler, options.post.default, and wait for Promise to resolve', done => {
 
 		dare.execute = (query, callback) => {
 			expect(query).to.match(SQLEXP('INSERT INTO tbl (name) VALUES (\'andrew\')'));
@@ -116,12 +116,11 @@ describe('post', () => {
 
 		dare.options = {
 			post: {
-				'default': (req) => {
+				'default': req =>
 					// Augment the request
-					return Promise.resolve().then(() => {
+					Promise.resolve().then(() => {
 						req.body.name = 'andrew';
-					});
-				}
+					})
 			}
 		};
 
@@ -135,7 +134,7 @@ describe('post', () => {
 		}, done);
 	});
 
-	it('should trigger pre handler, and handle errors being thrown', (done) => {
+	it('should trigger pre handler, and handle errors being thrown', done => {
 
 		// Should not be called...
 		dare.execute = done;

@@ -1,33 +1,61 @@
-const error = require('./utils/error');
-
 // deciding on how to connect two tables depends on which one holds the connection
-// The join_handler here looks columns on both tables to find one which has a reference field to the other.
-module.exports = function join_handler(joinMap) {
+// The join_handler here looks at the schema of both tables to find one which has a reference field to the other.
 
-	let joins = [];
+module.exports = function (join_table, rootTable) {
 
-	for (let joinAlias in joinMap) {
-		let rootAlias = joinMap[joinAlias];
-		joins = joins.concat(join_table.call(this, joinAlias, rootAlias));
+	const schema = this.options.schema;
+	const joinTable = join_table.table;
+	const conditions = links(schema[joinTable], rootTable) || invert_links(schema[rootTable], joinTable);
+
+	// Yes, no, Yeah!
+	if (conditions) {
+		return Object.assign(join_table, conditions);
 	}
 
-	// Mark as many if it is joined
-	joins.forEach(join => {
-		if (!join.many) {
-			join.many = !!joins.filter(item => ((join.root === item.alias) && item.many)).length;
-		}
-	});
+	// Crawl the schema for a link table, ... we're only going for a single Kevin Bacon.
+	for (const linkTable in schema) {
 
-	return joins;
+		// Well, this would be silly otherwise...
+		if (linkTable === joinTable || linkTable === rootTable) {
+			continue;
+		}
+
+		// linkTable <> joinTable?
+		const conditions = links(schema[joinTable], linkTable) || invert_links(schema[linkTable], joinTable);
+
+		if (!conditions) {
+			continue;
+		}
+
+		// rootTable <> linkTable
+		const root_conditions = links(schema[linkTable], rootTable) || invert_links(schema[rootTable], linkTable);
+
+		if (!root_conditions) {
+			continue;
+		}
+
+		// Awesome, this table (tbl) is the link table and can be used to join up both these tables.
+		// Also give this link table a unique Alias
+		return Object.assign({
+			alias: this.get_unique_alias(),
+			table: linkTable,
+			joins: [
+				Object.assign(join_table, conditions)
+			]
+		}, root_conditions);
+	}
+
+	// Return a falsy value
+	return null;
 };
 
-function links(tableObj, joinTable) {
+function links(tableObj, joinTable, flipped = false) {
 
-	let map = {};
+	const map = {};
 
 	// Loop through the table fields
-	for (let field in tableObj) {
-		let column = tableObj[field];
+	for (const field in tableObj) {
+		const column = tableObj[field];
 
 		let ref = [];
 
@@ -43,110 +71,31 @@ function links(tableObj, joinTable) {
 		}
 
 		ref.forEach(ref => {
-			let a = ref.split('.');
+			const a = ref.split('.');
 			if (a[0] === joinTable) {
-				map[field] = ref;
+				map[field] = a[1];
 			}
 		});
 	}
 
-	return Object.keys(map).length ? map : null;
+	return Object.keys(map).length ? {
+		conditions: flipped ? invert(map) : map,
+		many: !flipped
+	} : null;
 }
 
-function join_table(joinAlias, rootAlias, joinTable) {
+function invert_links(...args) {
+	return links(...args, true);
+}
 
-	let joins = [];
-
-	joinTable = joinTable || this.table_alias_handler(joinAlias);
-	let rootTable = this.table_alias_handler(rootAlias);
-	let joinCond = links(this.options.schema[joinTable], rootTable);
-	let rootCond = links(this.options.schema[rootTable], joinTable);
-
-	// If there is no way to join these two tables... lets find an intermediary
-	if (!joinCond && !rootCond) {
-		// Find a table other than these in the schema which connects these two tables
-		for (let linkTable in this.options.schema) {
-
-			// do nothing if this is the same table
-			if (linkTable === joinTable || linkTable === rootTable) {
-				continue;
-			}
-
-			// Is there a link from this new table too the joinTable?
-			rootCond = links(this.options.schema[linkTable], joinTable);
-			joinCond = links(this.options.schema[joinTable], linkTable);
-
-			// Great lets double check that this table also joins to the other table
-			if (rootCond || joinCond) {
-				// is there also a link from rootTable
-				let nextCond = links(this.options.schema[linkTable], rootTable) || links(this.options.schema[rootTable], linkTable);
-
-				// Awesome, this table (tbl) is the link table and can be used to join up both these tables.
-				if (nextCond) {
-					// Create a unique Alias for this join table
-					let linkAlias = this.get_unique_alias();
-
-					// Add this link table
-					joins = joins.concat(join_table.call(this, linkAlias, rootAlias, linkTable));
-
-					// Update the current rootTable to point to this linkTable
-					rootTable = linkTable;
-					rootAlias = linkAlias;
-
-					// Stop looking for more tables
-					break;
-				}
-				else {
-					// Reset the join
-					joinCond = null;
-					rootCond = null;
-				}
-			}
-		}
+function invert(o) {
+	if (!o) {
+		return o;
 	}
 
-	// Get the Join Condition
-	let join_condition = {};
-
-	if (joinCond) {
-		for (let i in joinCond) {
-			let a = i;
-			let b = rootAlias + '.' + joinCond[i].split('.')[1];
-			join_condition[a] = b;
-		}
+	const r = {};
+	for (const x in o) {
+		r[o[x]] = x;
 	}
-	else if (rootCond) {
-		for (let i in rootCond) {
-			let a = rootCond[i].split('.')[1];
-			let b = rootAlias + '.' + i;
-			join_condition[a] = b;
-		}
-	}
-
-
-	// Reject if the join has no condition
-	if (!join_condition || Object.keys(join_condition).length === 0) {
-		throw Object.assign(error.INVALID_REFERENCE, {
-			message: `Could not understand field '${joinAlias}'`
-		});
-	}
-
-	// Is there an alias for this table
-	if (!joinTable) {
-		throw Object.assign(error.INVALID_REFERENCE, {
-			message: `Unrecognized reference '${joinAlias}'`
-		});
-	}
-
-	// Should return a join array
-	joins.push({
-		table: joinTable,
-		alias: joinAlias,
-		root: rootAlias,
-		conditions: join_condition,
-		many: !!joinCond
-	});
-
-	return joins;
-
+	return r;
 }

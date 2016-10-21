@@ -28,66 +28,50 @@ describe('join_handler', () => {
 			}
 		};
 
-		let joins = dare.join_handler({
-			'child': 'parent'
-		});
+		const child_table = {
+			table: 'child'
+		};
 
-		expect(joins).to.be.an('array');
-		expect(joins.length).to.eql(1);
+		const join = dare.join_handler(child_table, 'parent');
 
-		expect(joins[0]).to.deep.equal({
+		expect(child_table).to.eql(join);
+
+		expect(child_table).to.deep.equal({
 			table: 'child',
-			alias: 'child',
 			conditions: {
-				'parent_id': 'parent.id'
+				'parent_id': 'id'
 			},
-			root: 'parent',
-			many: true,
+			many: true
 		});
 
 	});
 
-	it('should create multiple join objects as required', () => {
+	it('should return many=false when the table to be joined contains the key for the other', () => {
 
 		// Given a relationship between
 		dare.options = {
 			schema: {
-				grandparent: {},
-				parent: {
-					grand_id: 'grandparent.id'
-				},
+				parent: {},
 				child: {
 					parent_id: 'parent.id'
 				}
 			}
 		};
 
-		let joins = dare.join_handler({
-			'child': 'parent',
-			'parent': 'grandparent',
-		});
+		const parent_table = {
+			table: 'parent'
+		};
 
-		expect(joins).to.be.an('array');
-		expect(joins.length).to.eql(2);
+		const join = dare.join_handler(parent_table, 'child');
 
-		expect(joins[0]).to.deep.equal({
-			table: 'child',
-			alias: 'child',
-			conditions: {
-				'parent_id': 'parent.id'
-			},
-			root: 'parent',
-			many: true,
-		});
+		expect(parent_table).to.eql(join);
 
-		expect(joins[1]).to.deep.equal({
+		expect(parent_table).to.deep.equal({
 			table: 'parent',
-			alias: 'parent',
 			conditions: {
-				'grand_id': 'grandparent.id'
+				'id': 'parent_id'
 			},
-			root: 'grandparent',
-			many: true,
+			many: false
 		});
 
 	});
@@ -99,7 +83,7 @@ describe('join_handler', () => {
 			schema: {
 				grandparent: {},
 				parent: {
-					grand_id: 'grandparent.id'
+					grand_id: 'grandparent.gid'
 				},
 				child: {
 					parent_id: 'parent.id'
@@ -107,64 +91,24 @@ describe('join_handler', () => {
 			}
 		};
 
-		let joins = dare.join_handler({
-			'child': 'grandparent'
-		});
+		const child_table = {
+			table: 'child'
+		};
 
-		expect(joins).to.be.an('array');
-		expect(joins.length).to.eql(2);
+		const join = dare.join_handler(child_table, 'grandparent');
 
-		expect(joins[0]).to.deep.equal({
+		expect(join).to.deep.equal({
 			table: 'parent',
 			alias: 'a',
 			conditions: {
-				'grand_id': 'grandparent.id'
+				'grand_id': 'gid'
 			},
-			root: 'grandparent',
 			many: true,
-		});
-
-		expect(joins[1]).to.deep.equal({
-			table: 'child',
-			alias: 'child',
-			conditions: {
-				'parent_id': 'a.id'
-			},
-			root: 'a',
-			many: true,
+			joins: [
+				child_table
+			]
 		});
 
 	});
 
-	it('should set many=false when the root table has the join reference key', () => {
-
-		// Given a relationship between
-		dare.options = {
-			schema: {
-				parent: {
-					child_id: 'child.id'
-				},
-				child: {
-				}
-			}
-		};
-
-		let joins = dare.join_handler({
-			'child': 'parent'
-		});
-
-		expect(joins).to.be.an('array');
-		expect(joins.length).to.eql(1);
-
-		expect(joins[0]).to.deep.equal({
-			table: 'child',
-			alias: 'child',
-			conditions: {
-				'id': 'parent.child_id'
-			},
-			root: 'parent',
-			many: false,
-		});
-
-	});
 });

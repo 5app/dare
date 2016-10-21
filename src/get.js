@@ -1,192 +1,176 @@
 'use strict';
 
-let error = require('./utils/error');
+const error = require('./utils/error');
 
 module.exports = function(opts) {
 
 	opts = Object.assign(this.options, opts);
 
-	// Restrict the maximum items to respond with
-	let single_record = opts.single;
+	opts.root = true;
 
 	// Limit
-	let limit = (opts.start ? opts.start + ',' : '') + opts.limit;
-
-	// Initiate join
-	opts.join = {};
-
-	// Extend the opts object with the conditions
-	if (!opts.where) {
-		opts.where = {};
-	}
+	const sql_limit = (opts.start ? `${opts.start},` : '') + opts.limit;
 
 	// Set the table_response_handlers
 	opts.response_handlers = [];
 
 	// Get the root tableID
-	let tableID = opts.alias;
-	let tableName = opts.table;
+	const sql_alias = opts.alias;
+	const sql_table = opts.table;
 
-	// Filters
-	// Filters populate the conditions and values (prepared statements)
-	let conditions = [];
-	let values = [];
-
-	// Restrict the resources that are returned
-	// e.g. filter= {category: asset, action: open, created_time: 2016-04-12T13:29:23Z..]
-	if (opts.filter) {
-
-		// Add the conditions
-		queryFilter(opts, opts.filter, tableID);
-
-		// Create a list of conditions
-		conditions = prepareCondition(opts.where).map(condition => {
-			let field = condition[0];
-			let operator = condition[1];
-			let value = condition[2];
-
-			if (Array.isArray(value)) {
-				values = values.concat(value);
-				operator = 'IN';
-				value = '(' + value.map(() => '?') + ')';
-			}
-			else {
-				values.push(value);
-				value = '?';
-			}
-			return `${field} ${operator} ${value}`;
-		});
-	}
+	// Filters populate the filter and values (prepared statements)
+	const sql_filter = [];
+	let sql_values = [];
 
 	// Fields
-	// e.g. fields = [action, category, count, {app: [name, id]}]
-	opts.fields = queryFields.call(this, opts.fields, tableID);
+	const sql_fields = [];
 
+	// Joins
+	const sql_joins = [];
+
+	// Traverse the formatted opts
+	traverse(opts, (item, parent) => {
+
+		// Should this be nested?
+		const group_concat = item.nested_query && item.many ? this.group_concat : null;
+
+		// Build up the SQL conditions
+		// e.g. filter= {category: asset, action: open, created_time: 2016-04-12T13:29:23Z..]
+		if (item.filter) {
+			for (const key in item.filter) {
+
+				const val = item.filter[key];
+
+				prepCondition(key, val).forEach(([field, operator, value]) => {
+					if (Array.isArray(value)) {
+						sql_values = sql_values.concat(value);
+						operator = 'IN';
+						value = `(${  value.map(() => '?')  })`;
+					}
+					else {
+						sql_values.push(value);
+						value = '?';
+					}
+					sql_filter.push(`${item.alias}.${field} ${operator} ${value}`);
+				});
+			}
+		}
+
+		// Fields
+		// e.g. fields = [action, category, count, ...]
+		if (item.fields) {
+
+			// yes, believe it or not but some queries do have them....
+			item.fields.map(prepField).forEach(([def, as]) => {
+
+				// Have we got a generated field?
+				if (typeof def === 'function') {
+					// Add this to the list
+					opts.response_handlers.push(
+						setField.bind(this, !item.root && item.alias, as, def)
+					);
+					return;
+				}
+
+				// Is this a GROUP_CONCAT
+				if (group_concat) {
+					as = `${item.alias}[${this.group_concat}].${as || def}`;
+					def = `GROUP_CONCAT(CONCAT('"', IFNULL(${item.alias}.${def}, ''), '"') SEPARATOR '${group_concat}')`;
+				}
+				else if (!as && def.indexOf('.') === -1) {
+					def = `${item.alias}.${def}`;
+				}
+
+				as = as || (!item.root ? def : '');
+
+				if (as) {
+					as = ` AS '${as}'`;
+				}
+
+				sql_fields.push(def + as);
+			});
+
+		}
+
+		// Dont continue if this does not have a parent
+		if (!parent) {
+			return;
+		}
+
+		// Update the values with the alias of the parent
+		for (const x in item.conditions) {
+			item.conditions[x] = `${parent.alias}.${item.conditions[x]}`;
+		}
+
+		// Custom formatting of join conditions
+		this.table_handler(item);
+
+		// Prefix keys and return
+		const cond_map = prefixKeys(item.conditions, `${item.alias}.`);
+
+		// Append to the sql_join
+		sql_joins.push(`LEFT JOIN ${item.table} ${item.table === item.alias ? '' : item.alias} ON (${serialize(cond_map, '=', 'AND')})`);
+
+		// Ensure that the parent has opts.groupby
+		if (group_concat && !opts.groupby) {
+			opts.groupby = 'id';
+		}
+
+
+	});
 
 	{
 		// Count is a special field, find it ...
-		let i = opts.fields.indexOf(tableID + '._count');
+		const i = sql_fields.indexOf(`${opts.alias}._count`);
 
 		if (i > -1) {
 			// ... and replace it.
-			opts.fields[i] = 'COUNT(*) as _count';
-		}
-	}
-
-	// Join
-	let joins = [];
-	{
-		// Get join tables...
-		let a = this.join_handler(opts.join);
-		// Format the table references
-		a = this.table_handler(a);
-
-		// Prefix all the conditional keys
-		a.forEach(join => {
-			join.conditions = prefixKeys(join.conditions, join.alias + '.');
-		});
-
-		// Create the SQL JOINS
-		joins = a.map(join => `LEFT JOIN ${join.table} ${join.table === join.alias ? '' : join.alias} ON (${serialize(join.conditions, '=', 'AND')})`);
-
-		// Is group concat supported?
-		if (this.group_concat) {
-
-			// Get the joins which have a many relationship
-			let manyJoins = a.filter(join => join.many);
-
-			// Add default groupby
-			let group = false;
-
-			// Format fields which have join table with many
-			opts.fields = opts.fields.map(field => {
-				let b = field.split(' AS ');
-				let label = b[1];
-				if (!label) {
-					return field;
-				}
-				let many = manyJoins.filter(join => !!label.match(join.alias + '.'));
-				if (many.length) {
-
-					// Mark as group
-					group = true;
-
-					b[0] = `GROUP_CONCAT(CONCAT('"', IFNULL(${b[0]}, ''), '"') SEPARATOR '${this.group_concat}')`;
-					if (b[1]) {
-						many.forEach(join => {
-							b[1] = b[1].replace(join.alias + '.', () => join.alias + `[${this.group_concat}].`);
-						});
-					}
-					field = b.join(' AS ');
-				}
-				return field;
-			});
-
-			if (group && !opts.groupby) {
-				opts.groupby = 'id';
-			}
+			sql_fields[i] = 'COUNT(*) AS _count';
 		}
 	}
 
 	// Groupby
 	// If the content is grouped
+
+	let sql_groupby = '';
+
 	if (opts.groupby) {
-		// Check inject
-		checkFormat(opts.groupby);
 
 		// Find the special _group column...
-		let i = opts.fields.indexOf(tableID + '._group');
+		const i = sql_fields.indexOf(`${opts.alias}._group`);
 
 		if (i > -1) {
 			// ... and replace it.
-			opts.fields[i] = opts.groupby + ' as _group';
+			sql_fields[i] = `${opts.groupby} as _group`;
 		}
 
 		// Add the grouping
-		opts.groupby = `GROUP BY ${opts.groupby}`;
-	}
-	else {
-		opts.groupby = '';
+		sql_groupby = `GROUP BY ${opts.groupby}`;
 	}
 
 	// Orderby
 	// If the content is ordered
-	if (opts.orderby) {
 
-		let test = opts.orderby;
-
-		if (typeof test === 'string') {
-			test = test.replace(/\s*(DESC|ASC)$/, '');
-		}
-
-		// Check format
-		checkFormat(test);
-
-		// Add the grouping
-		opts.orderby = `ORDER BY ${opts.orderby}`;
-	}
-	else {
-		opts.orderby = '';
-	}
+	const sql_orderby = opts.orderby ? `ORDER BY ${opts.orderby}` : '';
 
 
 	// Put it all together
-	let sql = `SELECT ${opts.fields.toString()}
-						 FROM ${tableName} ${tableID === tableName ? '' : tableID}
-								${joins.join('\n')}
+	const sql = `SELECT ${sql_fields.toString()}
+						 FROM ${sql_table} ${sql_alias !== sql_table ? sql_alias : ''}
+								${sql_joins.join('\n')}
 						 WHERE
-							 ${conditions.join(' AND ')}
-						 ${opts.groupby}
-						 ${opts.orderby}
-						 LIMIT ${limit}`;
+							 ${sql_filter.join(' AND ')}
+						 ${sql_groupby}
+						 ${sql_orderby}
+						 LIMIT ${sql_limit}`;
 
 	return this
-	.sql(sql, values)
+	.sql(sql, sql_values)
 	.then(this.response_handler.bind(this))
 	.then(resp => {
 
 		// If limit was not defined we should return the first result only.
-		if (single_record) {
+		if (opts.single) {
 			if (resp.length) {
 				return resp[0];
 			}
@@ -198,182 +182,67 @@ module.exports = function(opts) {
 	});
 };
 
-function queryFilter(opts, filter, tableID) {
+function traverse(opts, handler, parent) {
+	handler(opts, parent);
 
-	for (let key in filter) {
-		// Capture errors in the key
-		checkKey(key);
-
-		let val = filter[key];
-		if (typeof val === 'object' && !Array.isArray(val)) {
-			// Which table is being joined
-			opts.join[key] = tableID;
-			queryFilter(opts, val, key);
-		}
-		else {
-			opts.where[tableID + '.' + key] = val;
-		}
+	if (opts.joins) {
+		opts.joins.forEach(item => traverse(item, handler, opts));
 	}
 }
 
-function queryFields(fields, tableID, depth) {
+function prepField(field) {
 
-	depth = depth || 0;
-	let a = [];
-	let table_structure = {};
-	let opts = this.options;
-
-	if (opts && opts.schema) {
-		let table = this.table_alias_handler(tableID);
-		table_structure = opts.schema[table] || {};
+	if (typeof field === 'string') {
+		return [field];
 	}
 
-	walk(fields, field => {
-		if (typeof field !== 'string') {
-			for (let x in field) {
-				// Which table is being joined
-				if (Array.isArray(field[x])) {
-					opts.join[x] = tableID;
-					a = a.concat(queryFields.call(this, field[x], x, depth + 1));
-				}
-				else {
-					// Check errors in the key field
-					checkKey(x);
+	for (const as in field) {
+		const def = field[as];
+		return [def, as];
+	}
+}
 
-					// Check the new value field
-					checkFormat(field[x]);
+function prepCondition(field, value) {
 
-					a.push(`${field[x]} AS ${x}`);
-				}
+	const a = [];
+
+	// Range
+	// A range is denoted by two dots, e.g 1..10
+	const range = (typeof value === 'string') && value.split('..');
+
+	if (range.length === 2) {
+		range.forEach((value, index) => {
+			if (value !== '') {
+				a.push([field, (index ? '<' : '>'), value]);
 			}
-		}
-		else {
+		});
+	}
 
-			// Check errors in the key field
-			checkKey(field);
+	// Is this an array match?
+	else if (typeof value === 'string' && value.match('%')) {
+		a.push([field, 'LIKE', value]);
+	}
 
-			// Does this field have a handler in the schema
-			if (table_structure[field]) {
-
-				let handler = table_structure[field];
-
-				if (typeof handler === 'function') {
-
-					let res = handler.call(this, fields);
-
-					if (typeof res === 'function') {
-						// Add this function to each row of the response
-						opts.response_handlers.push(setField.bind(this, field, tableID, depth, res));
-
-						// Do not add this field to the current list
-						return;
-					}
-				}
-			}
-
-
-			if (field.indexOf('.') === -1) {
-				field = tableID + '.' + field;
-			}
-
-
-			let as = (depth ? ` AS '${field}'` : '');
-			a.push(field + as);
-		}
-	});
+	// Add to the array of items
+	else {
+		a.push([field, '=', value]);
+	}
 
 	return a;
-}
-
-function prepareCondition(obj) {
-	let a = [];
-
-	let range_handler = (field, value, index) => {
-		if (value !== '') {
-			a.push([field, (index ? '<' : '>'), value]);
-		}
-	};
-
-	for (let field in obj) {
-
-		let value = obj[field];
-
-		// Range
-		// A range is denoted by two dots, e.g 1..10
-		let range = (typeof value === 'string') && value.split('..');
-		if (range.length === 2) {
-			range.forEach(range_handler.bind(null, field));
-		}
-
-		// Is this an array match?
-		else if (typeof value === 'string' && value.match('%')) {
-			a.push([field, 'LIKE', value]);
-		}
-
-		// Add to the array of items
-		else {
-			a.push([field, '=', value]);
-		}
-
-	}
-	return a;
-}
-
-function checkKey(x) {
-	let reg = /^([a-z\_]+\.)?([a-z\_]+|\*)+$/i;
-
-	// Capture errors in the key
-	if (!x.match(reg)) {
-		throw Object.assign(error.INVALID_REFERENCE, {
-			message: `The key '${x}' must match ${reg}`
-		});
-	}
-}
-
-function checkFormat(str) {
-
-	if (typeof str !== 'string') {
-		throw Object.assign(error.INVALID_REFERENCE, {
-			message: `The field definition '${str}' is invalid.`
-		});
-	}
-
-	let c = str;
-	let m;
-
-	// strip away the `str(`...`)`
-	while ((m = c.match(/^\s*[a-z]+\((.*?)\)\s*$/i))) {
-		// match
-		c = m[1];
-	}
-
-	// Is this a valid field
-	if (!c.match(/^(((DISTINCT)\s)?[a-z\_\.]+|\*)$/i)) {
-		throw Object.assign(error.INVALID_REFERENCE, {
-			message: `The field definition '${str}' is invalid.`
-		});
-	}
 }
 
 function serialize(obj, separator, delimiter) {
-	let r = [];
-	for (let x in obj) {
+	const r = [];
+	for (const x in obj) {
 		r.push(`${x} ${separator} ${obj[x]}`);
 	}
 	return r.join(` ${delimiter} `);
 }
 
-function walk(a, handler) {
-	// support a growing list of array items.
-	for (let i = 0; i < a.length; i++) {
-		handler(a[i]);
-	}
-}
+function setField(table, field, handler, obj) {
 
-function setField(field, tableID, depth, handler, obj) {
-
-	if (depth) {
-		obj = obj[tableID];
+	if (table) {
+		obj = obj[table];
 	}
 	if (!Array.isArray(obj)) {
 		obj = [obj];
@@ -383,8 +252,8 @@ function setField(field, tableID, depth, handler, obj) {
 }
 
 function prefixKeys(obj, prefix = '') {
-	let r = {};
-	for (var x in obj) {
+	const r = {};
+	for (const x in obj) {
 		r[prefix + x] = obj[x];
 	}
 	return r;

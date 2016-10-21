@@ -4,10 +4,10 @@
 module.exports = function table_handler(tables) {
 
 	// Convert to an array
-	let a = Array.isArray(tables) ? tables : [tables];
+	const a = Array.isArray(tables) ? tables : [tables];
 
 	// Schema table handling
-	let table_conditions = this.options && this.options.table_conditions;
+	const table_conditions = this.options && this.options.table_conditions;
 
 	if (typeof table_conditions !== 'object') {
 		return tables;
@@ -19,7 +19,7 @@ module.exports = function table_handler(tables) {
 		if (item.table in table_conditions) {
 
 			// Get the function
-			let func = table_conditions[item.table];
+			const func = table_conditions[item.table];
 
 			// Trigger the function
 			func.call(this, item);

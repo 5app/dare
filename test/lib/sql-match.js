@@ -1,7 +1,7 @@
 // SQL Match
 // Convert a SQL string into a regular expression to compare with a generated SQL string
 
-module.exports = (sql) => {
+module.exports = sql => {
 	// Replace spaces
 	sql = sql
 	// Remove multiple white spaces
@@ -15,5 +15,5 @@ module.exports = (sql) => {
 
 	;
 	// console.log(sql);
-	return new RegExp('^\\s*' + sql + '\\s*$', 'i');
+	return new RegExp(`^\\s*${  sql  }\\s*$`, 'i');
 };

@@ -1,7 +1,7 @@
 'use strict';
 
 // Test Generic DB functions
-let SQLEXP = require('../lib/sql-match');
+const SQLEXP = require('../lib/sql-match');
 
 const error = require('../../src/utils/error');
 
@@ -17,7 +17,7 @@ describe('patch', () => {
 		expect(dare.patch).to.be.a('function');
 	});
 
-	it('should generate an UPDATE statement and execute dare.execute', (done) => {
+	it('should generate an UPDATE statement and execute dare.execute', done => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -27,30 +27,28 @@ describe('patch', () => {
 
 		dare
 		.patch('test', {id: 1}, {name: 'name'})
-		.then((resp) => {
+		.then(resp => {
 			expect(resp).to.have.property('success', true);
 			done();
 		}, done);
 	});
 
-	it('should throw an exception if affectedRows: 0', (done) => {
+	it('should throw an exception if affectedRows: 0', done => {
 
-		dare.sql = () => {
-			return Promise.resolve({affectedRows: 0});
-		};
+		dare.sql = () => Promise.resolve({affectedRows: 0});
 
 		dare
 		.patch('groups', {id: 20000}, {name: 'name'})
 		.then(() => {
 			done('Should not be called');
 		})
-		.catch((err) => {
+		.catch(err => {
 			expect(err).to.eql(error.NOT_FOUND);
 			done();
 		});
 	});
 
-	it('should understand a request object', (done) => {
+	it('should understand a request object', done => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -69,7 +67,7 @@ describe('patch', () => {
 		}, done);
 	});
 
-	it('should apply the request.limit', (done) => {
+	it('should apply the request.limit', done => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -89,7 +87,7 @@ describe('patch', () => {
 		}, done);
 	});
 
-	it('should use table aliases', (done) => {
+	it('should use table aliases', done => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -115,7 +113,7 @@ describe('patch', () => {
 	});
 
 
-	it('should trigger pre handler, options.patch.[table]', (done) => {
+	it('should trigger pre handler, options.patch.[table]', done => {
 
 		dare.execute = (query, callback) => {
 			expect(query).to.match(SQLEXP('UPDATE tbl SET name = \'andrew\' WHERE id = 1 LIMIT 1'));
@@ -124,7 +122,7 @@ describe('patch', () => {
 
 		dare.options = {
 			patch: {
-				'tbl': (req) => {
+				'tbl': req => {
 					// Augment the request
 					req.body.name = 'andrew';
 				}
@@ -143,7 +141,7 @@ describe('patch', () => {
 	});
 
 
-	it('should trigger pre handler, options.patch.default, and wait for Promise to resolve', (done) => {
+	it('should trigger pre handler, options.patch.default, and wait for Promise to resolve', done => {
 
 		dare.execute = (query, callback) => {
 			expect(query).to.match(SQLEXP('UPDATE tbl SET name = \'andrew\' WHERE id = 1 LIMIT 1'));
@@ -152,12 +150,11 @@ describe('patch', () => {
 
 		dare.options = {
 			patch: {
-				'default': (req) => {
+				'default': req =>
 					// Augment the request
-					return Promise.resolve().then(() => {
+					Promise.resolve().then(() => {
 						req.body.name = 'andrew';
-					});
-				}
+					})
 			}
 		};
 
@@ -172,7 +169,7 @@ describe('patch', () => {
 		}, done);
 	});
 
-	it('should trigger pre handler, and handle errors being thrown', (done) => {
+	it('should trigger pre handler, and handle errors being thrown', done => {
 
 		// Should not be called...
 		dare.execute = done;

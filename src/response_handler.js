@@ -10,10 +10,10 @@ module.exports = function responseHandler(resp) {
 function formatHandler(item) {
 
 	// Some of the names were prefixed too ensure uniqueness, e.g., [{name: name, 'asset:name': name}]
-	for (var x in item) {
+	for (const x in item) {
 
 		// Check the key for expansion key '.'
-		let a = x.split('.');
+		const a = x.split('.');
 
 
 		if (a.length > 1) {

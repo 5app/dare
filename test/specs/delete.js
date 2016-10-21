@@ -1,7 +1,7 @@
 'use strict';
 
 // Test Generic DB functions
-let SQLEXP = require('../lib/sql-match');
+const SQLEXP = require('../lib/sql-match');
 const error = require('../../src/utils/error');
 
 describe('del', () => {
@@ -16,7 +16,7 @@ describe('del', () => {
 		expect(dare.del).to.be.a('function');
 	});
 
-	it('should generate an DELETE statement and execute dare.execute', (done) => {
+	it('should generate an DELETE statement and execute dare.execute', done => {
 
 		dare.execute = (sql, callback) => {
 			// limit: 1
@@ -26,17 +26,15 @@ describe('del', () => {
 
 		dare
 		.del('test', {id: 1})
-		.then((resp) => {
+		.then(resp => {
 			expect(resp).to.have.property('success', true);
 			done();
 		}, done);
 	});
 
-	it('should throw an exception if affectedRows: 0', (done) => {
+	it('should throw an exception if affectedRows: 0', done => {
 
-		dare.sql = () => {
-			return Promise.resolve({affectedRows: 0});
-		};
+		dare.sql = () => Promise.resolve({affectedRows: 0});
 
 		dare
 		.del('groups', {name: 'name'}, {id: 20000})
@@ -49,7 +47,7 @@ describe('del', () => {
 		});
 	});
 
-	it('should use table aliases', (done) => {
+	it('should use table aliases', done => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -73,7 +71,7 @@ describe('del', () => {
 		}, done);
 	});
 
-	it('should trigger pre handler, options.del.[table]', (done) => {
+	it('should trigger pre handler, options.del.[table]', done => {
 
 		dare.execute = (query, callback) => {
 			expect(query).to.match(SQLEXP('DELETE FROM tbl WHERE id = 1 LIMIT 1'));
@@ -82,7 +80,7 @@ describe('del', () => {
 
 		dare.options = {
 			del: {
-				'tbl': (req) => {
+				'tbl': req => {
 					// Augment the request
 					req.filter.id = 1;
 				}
@@ -100,7 +98,7 @@ describe('del', () => {
 	});
 
 
-	it('should trigger pre handler, options.del.default, and wait for Promise to resolve', (done) => {
+	it('should trigger pre handler, options.del.default, and wait for Promise to resolve', done => {
 
 		dare.execute = (query, callback) => {
 			expect(query).to.match(SQLEXP('DELETE FROM tbl WHERE id = 1 LIMIT 1'));
@@ -109,12 +107,11 @@ describe('del', () => {
 
 		dare.options = {
 			del: {
-				'default': (req) => {
-					// Augment the request
-					return Promise.resolve().then(() => {
+				// Augment the request
+				'default': req =>
+					Promise.resolve().then(() => {
 						req.filter.id = 1;
-					});
-				}
+					})
 			}
 		};
 
@@ -128,7 +125,7 @@ describe('del', () => {
 		}, done);
 	});
 
-	it('should trigger pre handler, and handle errors being thrown', (done) => {
+	it('should trigger pre handler, and handle errors being thrown', done => {
 
 		// Should not be called...
 		dare.execute = done;
@@ -152,14 +149,14 @@ describe('del', () => {
 		});
 	});
 
-	it('should return options.skip if set and not trigger further operations', (done) => {
+	it('should return options.skip if set and not trigger further operations', done => {
 
 		// Should not be called...
 		dare.execute = done;
 
 		dare.options = {
 			del: {
-				'default': (options) => {
+				'default': options => {
 					options.skip = true;
 				}
 			}
@@ -170,7 +167,7 @@ describe('del', () => {
 			table: 'tbl',
 			filter: {id: 2}
 		})
-		.then((resp) => {
+		.then(resp => {
 			expect(resp).to.eql(true);
 			done();
 		})

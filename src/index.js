@@ -1,6 +1,8 @@
 'use strict';
 
 const getHandler = require('./get');
+const format_request = require('./format_request');
+
 const error = require('./utils/error');
 
 module.exports = Dare;
@@ -31,84 +33,9 @@ Dare.prototype.get_unique_alias = function() {
 	return this.current_unique_alias;
 };
 
-Dare.prototype.format_request = function(method, options) {
-
-	return Promise.resolve()
-	.then(() => {
-
-		// Set default limit
-		limit(options);
-
-		// Use the alias to find the real table name
-		{
-			let table = options.table;
-			options.alias = table;
-			options.table = this.table_alias_handler(table);
-
-			// Reject when the table is not recognised
-			if (!options.table) {
-				throw Object.assign(error.INVALID_REFERENCE, {
-					message: `Unrecognized reference '${options.table}'`
-				});
-			}
-		}
-
-		// Call bespoke table handler
-		{
-			let table = options.table;
-			let handlers = this.options[method] || {};
-			let handler;
-
-			if (table in handlers) {
-				handler = handlers[table];
-			}
-			else if ('default' in handlers) {
-				handler = handlers['default'];
-			}
-
-			if (handler) {
-				handler(options);
-			}
-		}
-
-		// Format filters
-		{
-
-			let filter = options.filter;
-
-			if (filter) {
-
-				// filter must be an object with key=>values
-				if (typeof filter !== 'object') {
-					throw Object.assign(error.INVALID_REFERENCE, {
-						message: `The filter '${filter}' is invalid.`
-					});
-				}
-
-			}
-		}
-
-		// Format fields
-		{
-			let fields = options.fields;
-
-			if (fields) {
-
-				// Fields must be an array
-				if (!Array.isArray(fields)) {
-					throw Object.assign(error.INVALID_REFERENCE, {
-						message: `The field definition '${fields}' is invalid.`
-					});
-				}
-
-			}
-		}
-
-		return options;
-	});
-
+Dare.prototype.format_request = function (method, options) {
+	return Promise.resolve().then(() => format_request.call(this, method, options));
 };
-
 
 Dare.prototype.join_handler = require('./join_handler');
 
@@ -118,7 +45,7 @@ Dare.prototype.response_handler = require('./response_handler');
 
 // Create an instance
 Dare.prototype.use = function(options) {
-	let inst = Object.create(this);
+	const inst = Object.create(this);
 	inst.options = Object.assign({}, this.options, options);
 
 	// Set SQL level states
@@ -163,9 +90,12 @@ Dare.prototype.get = function get(table, fields, filter, opts = {}) {
 	}
 
 	// Create a new instance with options
-	let _this = this.use(opts);
+	const _this = this.use(opts);
 
-	return _this.format_request('get', opts)
+	// define method
+	opts.method = 'get';
+
+	return _this.format_request(opts)
 	.then(opts => getHandler.call(_this, opts));
 };
 
@@ -174,8 +104,11 @@ Dare.prototype.patch = function patch(table, filter, body, opts = {}) {
 	// Get Request Object
 	opts = typeof table === 'object' ? table : Object.assign(opts, {table, filter, body});
 
+	// define method
+	opts.method = 'patch';
+
 	// Augment
-	return this.format_request('patch', opts)
+	return this.format_request(opts)
 	.then(opts => {
 
 		// Skip this operation?
@@ -183,10 +116,10 @@ Dare.prototype.patch = function patch(table, filter, body, opts = {}) {
 			return opts.skip;
 		}
 
-		let table = opts.table;
+		const table = opts.table;
 		// Clone
-		let post = clone(opts.body);
-		let query = clone(opts.filter);
+		const post = clone(opts.body);
+		const query = clone(opts.filter);
 
 		// Prepare post
 		let a = prepare(post);
@@ -195,7 +128,7 @@ Dare.prototype.patch = function patch(table, filter, body, opts = {}) {
 		a = a.concat(prepare(query));
 
 		// Construct a db update
-		let sql = `UPDATE ${table}
+		const sql = `UPDATE ${table}
 					SET
 						${serialize(post, '=', ',')}
 					WHERE
@@ -219,8 +152,11 @@ Dare.prototype.post = function post(table, body, opts = {}) {
 	// Get Request Object
 	opts = typeof table === 'object' ? table : Object.assign(opts, {table, body});
 
+	// Post
+	opts.method = 'post';
+
 	// Table
-	return this.format_request('post', opts)
+	return this.format_request(opts)
 	.then(opts => {
 
 		// Skip this operation?
@@ -229,7 +165,7 @@ Dare.prototype.post = function post(table, body, opts = {}) {
 		}
 
 		// Set table
-		let table = opts.table;
+		const table = opts.table;
 		let post = opts.body;
 
 		// Clone object before formatting
@@ -244,11 +180,11 @@ Dare.prototype.post = function post(table, body, opts = {}) {
 		}
 
 		// Capture keys
-		let fields = [];
-		let prepared = [];
-		let data = post.map(item => {
-			let _data = [];
-			for (var prop in item) {
+		const fields = [];
+		const prepared = [];
+		const data = post.map(item => {
+			const _data = [];
+			for (const prop in item) {
 
 				// Get the index in the field list
 				let i = fields.indexOf(prop);
@@ -265,7 +201,7 @@ Dare.prototype.post = function post(table, body, opts = {}) {
 			return _data;
 		}).map(_data => {
 			// Create prepared values
-			return '(' + fields.map((prop, index) => {
+			const a = fields.map((prop, index) => {
 				if (_data[index] === undefined) {
 					return 'DEFAULT';
 				}
@@ -274,11 +210,13 @@ Dare.prototype.post = function post(table, body, opts = {}) {
 
 				// Return the prepared statement placeholder
 				return '?';
-			}).join(',') + ')';
+			});
+
+			return `(${a.join(',')})`;
 		});
 
 		// Construct a db update
-		let sql = `INSERT ${exec} INTO ${table}
+		const sql = `INSERT ${exec} INTO ${table}
 					(${fields.join(',')})
 					VALUES
 					${data.join(',')}`;
@@ -298,7 +236,10 @@ Dare.prototype.del = function del(table, filter, opts = {}) {
 	// Get Request Object
 	opts = typeof table === 'object' ? table : Object.assign(opts, {table, filter});
 
-	return this.format_request('del', opts)
+	// Delete
+	opts.method = 'del';
+
+	return this.format_request(opts)
 	.then(opts => {
 
 		// Skip this operation?
@@ -307,13 +248,13 @@ Dare.prototype.del = function del(table, filter, opts = {}) {
 		}
 
 		// Table
-		let table = opts.table;
+		const table = opts.table;
 
 		// Clone object before formatting
-		let query = clone(opts.filter);
+		const query = clone(opts.filter);
 
 		// Prepare post
-		let a = prepare(query);
+		const a = prepare(query);
 
 		// Construct a db update
 		return this.sql(
@@ -329,8 +270,8 @@ Dare.prototype.del = function del(table, filter, opts = {}) {
 
 
 function clone(obj) {
-	var r = {};
-	for (var x in obj) {
+	const r = {};
+	for (const x in obj) {
 		r[x] = obj[x];
 	}
 	return r;
@@ -339,15 +280,15 @@ function clone(obj) {
 
 function prepare(obj) {
 
-	let a = [];
-	let setPending = _val => {
+	const a = [];
+	const setPending = _val => {
 		a.push(_val);
 		return '?';
 	};
 
-	for (let x in obj) {
+	for (const x in obj) {
 
-		let val = obj[x];
+		const val = obj[x];
 
 		if (Array.isArray(val)) {
 			// Loop through values
@@ -366,9 +307,9 @@ function prepare(obj) {
 }
 
 function serialize(obj, separator, delimiter) {
-	let r = [];
-	for (let x in obj) {
-		let val = obj[x];
+	const r = [];
+	for (const x in obj) {
+		const val = obj[x];
 		if (Array.isArray(val) && separator === '=') {
 			r.push(`${x} IN (${val})`);
 		}
@@ -377,40 +318,6 @@ function serialize(obj, separator, delimiter) {
 		}
 	}
 	return r.join(` ${delimiter} `);
-}
-
-function limit(opts) {
-
-	if (opts.limit === undefined) {
-		opts.limit = 1;
-		opts.single = true;
-	}
-
-	else {
-		let limit = opts.limit;
-		if (typeof limit === 'string' && limit.match(/^\d+$/)) {
-			limit = +opts.limit;
-		}
-		if (isNaN(limit) || limit > 100 || limit < 1) {
-			throw Object.assign(error.INVALID_LIMIT, {
-				message: `Out of bounds limit value: '${limit}'`
-			});
-		}
-	}
-
-	let start = opts.start;
-
-	if (start !== undefined) {
-		if (typeof start === 'string' && start.match(/^\d+$/)) {
-			start = +opts.start;
-		}
-		if (typeof start !== 'number' || isNaN(start) || start < 0) {
-			throw Object.assign(error.INVALID_START, {
-				message: `Out of bounds start value: '${start}'`
-			});
-		}
-		opts.start = start;
-	}
 }
 
 function mustAffectRows(result) {

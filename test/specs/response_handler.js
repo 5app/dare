@@ -19,7 +19,7 @@ describe('response_handler', () => {
 
 	it('should expand dot delimited field into a nested object', () => {
 
-		let data = dare.response_handler([{
+		const data = dare.response_handler([{
 			'field': 'value',
 			'join.id': 1,
 			'join.name': 'value'
@@ -37,7 +37,7 @@ describe('response_handler', () => {
 
 	it('should given a seperator key expand the value field and create an array', () => {
 
-		let data = dare.response_handler([{
+		const data = dare.response_handler([{
 			'field': 'value',
 			'join[$].id': '1$2',
 			'join[$].name': 'a$b'

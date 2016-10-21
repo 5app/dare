@@ -20,9 +20,9 @@ describe('table_handler', () => {
 				}
 			},
 			table_conditions: {
-				'users': function(item) {
+				users(item) {
 					// Add the join condition domain_id
-					let cond = {
+					const cond = {
 						domain_id: this.options.meta.domain_id
 					};
 
@@ -43,7 +43,7 @@ describe('table_handler', () => {
 
 	it('should apply the table_conditions rules to a table definitions', () => {
 
-		let resp = dare.table_handler({
+		const resp = dare.table_handler({
 			table: 'users',
 			alias: 'peeps',
 			conditions: {
@@ -66,7 +66,7 @@ describe('table_handler', () => {
 
 	it('should apply the table_conditions rules to an array of table defitions', () => {
 
-		let resp = dare.table_handler([{
+		const resp = dare.table_handler([{
 			table: 'users',
 			alias: 'peeps',
 			conditions: {
@@ -100,7 +100,7 @@ describe('table_handler', () => {
 
 	});
 
-	it('should apply the rules on dare.get', (done) => {
+	it('should apply the rules on dare.get', done => {
 
 		dare.execute = (sql, callback) => {
 			// Expect the left join to include the options table_conditions

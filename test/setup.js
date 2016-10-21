@@ -1,6 +1,6 @@
 'use strict';
 
-var Dare = require('../src/');
+const Dare = require('../src/');
 
 // Set Globals
 global.Dare = Dare;
