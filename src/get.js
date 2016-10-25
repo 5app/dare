@@ -31,6 +31,12 @@ module.exports = function(opts) {
 	// Traverse the formatted opts
 	traverse(opts, (item, parent) => {
 
+		if (parent) {
+			// Adopt the parents settings
+			item.nested_query = parent.nested_query || item.nested_query;
+			item.many = parent.many || item.many;
+		}
+
 		// Should this be nested?
 		const group_concat = item.nested_query && item.many ? this.group_concat : null;
 
@@ -74,7 +80,7 @@ module.exports = function(opts) {
 
 				// Is this a GROUP_CONCAT
 				if (group_concat) {
-					as = `${item.alias}[${this.group_concat}].${as || def}`;
+					as = `${item.alias}[${group_concat}].${as || def}`;
 					def = `GROUP_CONCAT(CONCAT('"', IFNULL(${item.alias}.${def}, ''), '"') SEPARATOR '${group_concat}')`;
 				}
 				else if (!as && def.indexOf('.') === -1) {
