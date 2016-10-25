@@ -79,7 +79,8 @@ function explodeKeyValue(obj, a, value) {
 			obj[key][i] = explodeKeyValue(obj[key][i], a, value);
 		});
 
-	} else {
+	}
+	else {
 		// This is a regular object...
 		if (!(key in obj)) {
 			// Create a new object
