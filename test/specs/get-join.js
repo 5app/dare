@@ -77,7 +77,7 @@ describe('get - request object', () => {
 		dare.sql = query => {
 			expect(query.replace(/\s+/g, ' ')).to.match(SQLEXP(`
 
-				SELECT activityEvents.created_time, COUNT(*) AS _count, asset.id AS 'asset.id', asset.name AS 'asset.name'
+				SELECT activityEvents.created_time, COUNT(*) AS _count, asset.id AS 'asset.id', asset.name AS 'asset.name', DATE(asset.updated_time) AS 'last_updated'
 				FROM activityEvents
 					LEFT JOIN activitySession ON (activitySession.id = activityEvents.session_id)
 					LEFT JOIN apps asset ON (asset.id = activityEvents.ref_id)
@@ -109,7 +109,10 @@ describe('get - request object', () => {
 				{
 					asset: [
 						'id',
-						'name'
+						'name',
+						{
+							'last_updated': 'DATE(asset.updated_time)'
+						}
 					]
 				}
 			],
@@ -459,6 +462,7 @@ describe('get - request object', () => {
 			}).catch(done);
 
 		});
+
 		it('should write one to many requests with group concat, and format the response as an array', done => {
 
 			dare.sql = () =>
