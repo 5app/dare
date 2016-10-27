@@ -176,7 +176,7 @@ module.exports = function(opts) {
 	// Orderby
 	// If the content is ordered
 
-	const sql_orderby = opts.orderby ? `ORDER BY ${opts.orderby}` : '';
+	const sql_orderby = opts.orderby ? `ORDER BY ${opts.orderby.toString()}` : '';
 
 
 	// Put it all together

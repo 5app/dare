@@ -234,6 +234,9 @@ describe('format_request', () => {
 				'table.field ASC',
 				'DATE(table.created_time)',
 				'DATE(table.created_time) DESC',
+				'DATE(table.created_time) DESC, name ASC',
+				['name ASC'],
+				['DATE(table.created_time) DESC', 'name ASC'],
 			].forEach(orderby => {
 
 				it(`valid: ${  orderby  } (${  typeof orderby  })`, done => {
@@ -252,7 +255,14 @@ describe('format_request', () => {
 
 		describe('should throw an error', () => {
 
-			[-1, 101, {}, 'table.field WEST'].forEach(orderby => {
+			[
+				-1,
+				101,
+				{},
+				'table.field WEST',
+				['name', 1],
+				['name ASC', 'id WEST']
+			].forEach(orderby => {
 
 				it(`invalid: ${  orderby  } (${  typeof orderby  })`, done => {
 

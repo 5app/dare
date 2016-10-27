@@ -150,14 +150,24 @@ module.exports = function format_request(options) {
 	// If the content is ordered
 	if (options.orderby) {
 
-		let test = options.orderby;
+		let a = options.orderby;
 
-		if (typeof test === 'string') {
-			test = test.replace(/\s*(DESC|ASC)$/i, '');
+		if (typeof a === 'string') {
+			a = a.split(/\s*,\s*/);
+		}
+		else if (!Array.isArray(a)) {
+			checkFormat(a);
 		}
 
-		// Check format
-		checkFormat(test);
+		a.forEach(def => {
+
+			if (typeof def === 'string') {
+				def = def.replace(/\s*(DESC|ASC)$/i, '');
+			}
+
+			// Check format
+			checkFormat(def);
+		});
 	}
 
 	return options;
