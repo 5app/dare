@@ -23,7 +23,7 @@ describe('get', () => {
 				// Defaults
 				// Limit: 1
 				// Fields: *
-				expect(query).to.match(SQLEXP('SELECT test.* FROM test WHERE test.id = 1 LIMIT 1'));
+				expect(query).to.match(SQLEXP('SELECT * FROM test WHERE test.id = 1 LIMIT 1'));
 				callback(null, [{id: 1}]);
 			};
 
@@ -94,7 +94,7 @@ describe('get', () => {
 		it('should have an overidable limit', done => {
 
 			dare.execute = (query, callback) => {
-				expect(query).to.match(SQLEXP('SELECT test.* FROM test WHERE test.id = 1 LIMIT 5'));
+				expect(query).to.match(SQLEXP('SELECT * FROM test WHERE test.id = 1 LIMIT 5'));
 				callback(null, [{id: 1}]);
 			};
 

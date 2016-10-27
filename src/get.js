@@ -78,20 +78,39 @@ module.exports = function(opts) {
 					return;
 				}
 
-				// Is this a GROUP_CONCAT
-				if (group_concat) {
-					as = `${item.alias}[${group_concat}].${as || def}`;
-					def = `GROUP_CONCAT(CONCAT('"', IFNULL(${item.alias}.${def}, ''), '"') SEPARATOR '${group_concat}')`;
+				const m = def.match(/^([A-Z]+)\((DISTINCT\s)?(.+?)\)$/);
+				let id = def;
+
+				if (m) {
+
+					const [, fn, scope, _field] = m;
+
+					let field = _field;
+
+					// Update the inner key
+					if (field.match(/^([a-z\_]+)$/i)) {
+						id = field;
+						field = `${item.alias}.${field}`;
+					}
+
+					def = `${fn}(${scope || ''}${field})`;
+
 				}
-				else if (!as && def.indexOf('.') === -1) {
+				else if (def.match(/^([a-z\_\-]+)$/i)) {
 					def = `${item.alias}.${def}`;
 				}
 
-				as = as || (!item.root ? def : '');
-
-				if (as) {
-					as = ` AS '${as}'`;
+				// This is something we need to put into a GROUP_CONCAT
+				if (!def.match(/^(MAX|AVG|COUNT|MIN)\((.+?)\)$/) && group_concat) {
+					as = `${item.alias}[${group_concat}].${as || id}`;
+					def = `GROUP_CONCAT(CONCAT('"', IFNULL(${def}, ''), '"') SEPARATOR '${group_concat}')`;
 				}
+
+				if (!as && !item.root) {
+					as = `${item.alias}.${id}`;
+				}
+
+				as = (as ? ` AS '${as}'` : '');
 
 				sql_fields.push(def + as);
 			});

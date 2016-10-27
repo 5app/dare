@@ -498,6 +498,39 @@ describe('get - request object', () => {
 			}).catch(done);
 
 		});
+
+		it('should not wrap aggregate functions', done => {
+
+			dare.sql = sql => {
+				expect(sql).to.contain('SELECT MAX(town.population) AS \'_max\'');
+				done();
+				return Promise.resolve([]);
+			};
+
+			// Here the schema is a series of tables a street, belongs to 1 town and in return 1 country
+			dare.options = {
+				schema: {
+					town: {
+						country_id: 'country.id'
+					},
+					country: {}
+				}
+			};
+
+			dare.get({
+				table: 'country',
+				fields: [
+					{
+						town: [
+							{_max: 'MAX(population)'}
+						]
+					}
+				],
+				limit
+			})
+			.catch(done);
+
+		});
 	});
 
 });

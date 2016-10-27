@@ -153,7 +153,7 @@ module.exports = function format_request(options) {
 		let test = options.orderby;
 
 		if (typeof test === 'string') {
-			test = test.replace(/\s*(DESC|ASC)$/, '');
+			test = test.replace(/\s*(DESC|ASC)$/i, '');
 		}
 
 		// Check format
