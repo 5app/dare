@@ -43,23 +43,11 @@ module.exports = function(opts) {
 		// Build up the SQL conditions
 		// e.g. filter= {category: asset, action: open, created_time: 2016-04-12T13:29:23Z..]
 		if (item.filter) {
-			for (const key in item.filter) {
 
-				const val = item.filter[key];
-
-				prepCondition(key, val).forEach(([field, operator, value]) => {
-					if (Array.isArray(value)) {
-						sql_values = sql_values.concat(value);
-						operator = 'IN';
-						value = `(${  value.map(() => '?')  })`;
-					}
-					else {
-						sql_values.push(value);
-						value = '?';
-					}
-					sql_filter.push(`${item.alias}.${field} ${operator} ${value}`);
-				});
-			}
+			item.filter.forEach(([field, condition, values]) => {
+				sql_values = sql_values.concat(values);
+				sql_filter.push(`${item.alias}.${field} ${condition}`);
+			});
 		}
 
 		// Fields
@@ -225,35 +213,6 @@ function prepField(field) {
 		const def = field[as];
 		return [def, as];
 	}
-}
-
-function prepCondition(field, value) {
-
-	const a = [];
-
-	// Range
-	// A range is denoted by two dots, e.g 1..10
-	const range = (typeof value === 'string') && value.split('..');
-
-	if (range.length === 2) {
-		range.forEach((value, index) => {
-			if (value !== '') {
-				a.push([field, (index ? '<' : '>'), value]);
-			}
-		});
-	}
-
-	// Is this an array match?
-	else if (typeof value === 'string' && value.match('%')) {
-		a.push([field, 'LIKE', value]);
-	}
-
-	// Add to the array of items
-	else {
-		a.push([field, '=', value]);
-	}
-
-	return a;
 }
 
 function serialize(obj, separator, delimiter) {

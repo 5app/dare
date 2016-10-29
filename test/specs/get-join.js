@@ -244,7 +244,7 @@ describe('get - request object', () => {
 			}
 			].forEach(value => {
 
-				it(`valid: ${  JSON.stringify(value)}`, done => {
+				it(`valid: ${JSON.stringify(value)}`, done => {
 
 					dare.sql = (sql, prepared) => {
 						for (const x in value) {
@@ -271,46 +271,6 @@ describe('get - request object', () => {
 
 				});
 
-			});
-		});
-
-		describe('should throw error', () => {
-
-			[
-				true,
-				10,
-				'string',
-				{
-					'id OR 1': '1'
-				},
-				{
-					'DATE(field)': '1'
-				},
-				{
-					asset: {
-						'id OR 1': '1'
-					}
-				}
-			].forEach(value => {
-
-				it(`invalid: ${  JSON.stringify(value)}`, done => {
-
-					dare.sql = nosql(done);
-
-					dare.get({
-						table: 'activityEvents',
-						fields: ['id'],
-						filter: value,
-						limit
-					})
-					.then(done, err => {
-						expect(err.code).to.eql(error.INVALID_REFERENCE.code);
-						expect(err).to.have.property('message');
-						done();
-					})
-					.catch(done);
-
-				});
 			});
 		});
 	});

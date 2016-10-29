@@ -119,20 +119,22 @@ Dare.prototype.patch = function patch(table, filter, body, opts = {}) {
 		const table = opts.table;
 		// Clone
 		const post = clone(opts.body);
-		const query = clone(opts.filter);
 
 		// Prepare post
-		let a = prepare(post);
+		const a = prepare(post);
 
 		// Prepare query
-		a = a.concat(prepare(query));
+		const sql_query = opts.filter.map(([field, condition, values]) => {
+			a.push(...values);
+			return `${field} ${condition}`;
+		});
 
 		// Construct a db update
 		const sql = `UPDATE ${table}
 					SET
 						${serialize(post, '=', ',')}
 					WHERE
-						${serialize(query, '=', 'AND')}
+						${sql_query.join(' AND ')}
 					LIMIT ${opts.limit}`;
 
 		return this.sql(sql, a)
@@ -251,17 +253,18 @@ Dare.prototype.del = function del(table, filter, opts = {}) {
 		const table = opts.table;
 
 		// Clone object before formatting
-		const query = clone(opts.filter);
-
-		// Prepare post
-		const a = prepare(query);
+		const a = [];
+		const sql_query = opts.filter.map(([field, condition, values]) => {
+			a.push(...values);
+			return `${field} ${condition}`;
+		});
 
 		// Construct a db update
 		return this.sql(
 
 			`DELETE FROM ${table}
 			WHERE
-			${serialize(query, '=', 'AND')}
+			${sql_query.join(' AND ')}
 			LIMIT ${opts.limit}`,
 		a)
 		.then(mustAffectRows);

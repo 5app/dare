@@ -48,7 +48,9 @@ describe('format_request', () => {
 					fields,
 					table: actualtable,
 					alias: table,
-					filter,
+					filter: [
+						['id', '= ?', [1]]
+					],
 					limit: 1,
 					single: true
 				});
@@ -302,6 +304,45 @@ describe('format_request', () => {
 		});
 	});
 
+	describe('filter', () => {
+
+		describe('should throw error', () => {
+
+			[
+				true,
+				10,
+				'string',
+				{
+					'id OR 1': '1'
+				},
+				{
+					'DATE(field)': '1'
+				},
+				{
+					asset: {
+						'id OR 1': '1'
+					}
+				}
+			].forEach(filter => {
+
+				it(`invalid: ${JSON.stringify(filter)}`, done => {
+
+					dare.format_request({
+						table: 'activityEvents',
+						fields: ['id'],
+						filter
+					})
+					.then(done, err => {
+						expect(err.code).to.eql(error.INVALID_REFERENCE.code);
+						expect(err).to.have.property('message');
+						done();
+					})
+					.catch(done);
+
+				});
+			});
+		});
+	});
 
 	describe('table_alias_handler', () => {
 

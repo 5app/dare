@@ -2,12 +2,9 @@
 
 const error = require('./utils/error');
 
-module.exports = function format_request(options) {
+module.exports = format_request;
 
-	// Set default limit
-	limit(options);
-
-	const schema = this.options.schema || {};
+function format_request(options) {
 
 	// Use the alias to find the real table name
 	if (!options.alias) {
@@ -23,62 +20,69 @@ module.exports = function format_request(options) {
 		});
 	}
 
+
 	// Call bespoke table handler
-	{
+	const method = options.method;
+	const table = options.table;
+	const handlers = this.options[method] || {};
+	let handler;
 
-		const method = options.method;
-		const table = options.table;
-		const handlers = this.options[method] || {};
-		let handler;
-
-		if (table in handlers) {
-			handler = handlers[table];
-		}
-		else if ('default' in handlers) {
-			handler = handlers.default;
-		}
-
-		if (handler) {
-			handler(options);
-		}
+	if (table in handlers) {
+		handler = handlers[table];
+	}
+	else if ('default' in handlers) {
+		handler = handlers.default;
 	}
 
+	if (handler) {
+		return Promise.resolve(handler(options)).then(format_specs.bind(this, options));
+	}
+
+	return format_specs.call(this, options);
+}
+
+function format_specs(options) {
+
+
+	const schema = this.options.schema || {};
+	const table_schema = schema[options.table] || {};
 
 	const joined = {};
 
 	// Format filters
 	{
 
-		const filter = options.filter;
+		const filter = options.filter || {};
 
-		if (filter) {
+		// filter must be an object with key=>values
+		if (typeof filter !== 'object') {
+			throw Object.assign(error.INVALID_REFERENCE, {
+				message: `The filter '${filter}' is invalid.`
+			});
+		}
 
-			// filter must be an object with key=>values
-			if (typeof filter !== 'object') {
-				throw Object.assign(error.INVALID_REFERENCE, {
-					message: `The filter '${filter}' is invalid.`
-				});
+		const a = [];
+
+		// Explore the filter for any table joins
+		for (const key in filter) {
+
+			checkKey(key);
+
+			const value = filter[key];
+
+			if (typeof value === 'object' && !Array.isArray(value)) {
+
+				// Add it to the join table
+				joined[key] = {
+					filter: value
+				};
 			}
-
-			// Explore the filter for any table joins
-			for (const key in filter) {
-
-				checkKey(key);
-
-				const value = filter[key];
-
-				if (typeof value === 'object' && !Array.isArray(value)) {
-
-					// remove this from the filter
-					delete options.filter[key];
-
-					// Add it to the join table
-					joined[key] = {
-						filter: value
-					};
-				}
+			else {
+				a.push(prepCondition(key, value));
 			}
 		}
+
+		options.filter = a.length ? a : null;
 	}
 
 	// Format fields
@@ -95,10 +99,44 @@ module.exports = function format_request(options) {
 			}
 
 			// Filter out child fields
-			const table_schema = schema[options.table] || {};
 			options.fields = fields.reduce(fieldReducer.call(this, joined, table_schema), []);
 		}
 	}
+
+	// Groupby
+	// If the content is grouped
+	if (options.groupby) {
+		// Check inject
+		checkFormat(options.groupby);
+	}
+
+	// Orderby
+	// If the content is ordered
+	if (options.orderby) {
+
+		let a = options.orderby;
+
+		if (typeof a === 'string') {
+			a = a.split(/\s*,\s*/);
+		}
+		else if (!Array.isArray(a)) {
+			checkFormat(a);
+		}
+
+		a.forEach(def => {
+
+			if (typeof def === 'string') {
+				def = def.replace(/\s*(DESC|ASC)$/i, '');
+			}
+
+			// Check format
+			checkFormat(def);
+		});
+	}
+
+	// Set default limit
+	limit(options);
+
 
 	// Joins
 	{
@@ -135,44 +173,16 @@ module.exports = function format_request(options) {
 		// Loop through the joins array
 		if (joins.length) {
 			// Loop through the joins and pass through the formatter
-			options.joins = joins.map(join_object => format_request.call(this, join_object));
+			return Promise.all(joins.map(join_object => format_request.call(this, join_object)))
+				.then(a => {
+					options.joins = a;
+					return options;
+				});
 		}
-	}
-
-	// Groupby
-	// If the content is grouped
-	if (options.groupby) {
-		// Check inject
-		checkFormat(options.groupby);
-	}
-
-	// Orderby
-	// If the content is ordered
-	if (options.orderby) {
-
-		let a = options.orderby;
-
-		if (typeof a === 'string') {
-			a = a.split(/\s*,\s*/);
-		}
-		else if (!Array.isArray(a)) {
-			checkFormat(a);
-		}
-
-		a.forEach(def => {
-
-			if (typeof def === 'string') {
-				def = def.replace(/\s*(DESC|ASC)$/i, '');
-			}
-
-			// Check format
-			checkFormat(def);
-		});
 	}
 
 	return options;
-
-};
+}
 
 
 function limit(opts) {
@@ -299,4 +309,49 @@ function checkFormat(str) {
 			message: `The field definition '${str}' is invalid.`
 		});
 	}
+}
+
+
+function prepCondition(field, value) {
+
+	// Range
+	// A range is denoted by two dots, e.g 1..10
+	let condition;
+	let values;
+	const a = (typeof value === 'string') && value.split('..');
+
+	if (a.length === 2) {
+
+		if (a[0] && a[1]) {
+			condition = 'BETWEEN ? AND ?';
+			values = a;
+		}
+		else if (a[0]) {
+			condition = '> ?';
+			values = [a[0]];
+		}
+		else {
+			condition = '< ?';
+			values = [a[1]];
+		}
+	}
+
+	// Is this an array match?
+	else if (typeof value === 'string' && value.match('%')) {
+		condition = 'LIKE ?';
+		values = [value];
+	}
+
+	// Add to the array of items
+	else if (Array.isArray(value)) {
+		condition = `IN (${value.map(() => '?')})`;
+		values = value;
+	}
+
+	else {
+		condition = '= ?';
+		values = [value];
+	}
+
+	return [field, condition, values];
 }
