@@ -78,7 +78,8 @@ function format_specs(options) {
 				};
 			}
 			else {
-				a.push(prepCondition(key, value));
+				const type = table_schema[key] && table_schema[key].type;
+				a.push(prepCondition(key, value, type));
 			}
 		}
 
@@ -312,7 +313,11 @@ function checkFormat(str) {
 }
 
 
-function prepCondition(field, value) {
+function prepCondition(field, value, type) {
+
+	if (type === 'datetime') {
+		value = formatDateTime(value);
+	}
 
 	// Range
 	// A range is denoted by two dots, e.g 1..10
@@ -354,4 +359,37 @@ function prepCondition(field, value) {
 	}
 
 	return [field, condition, values];
+}
+
+
+function formatDateTime(values) {
+	if (typeof values === 'string') {
+
+		if (values.indexOf('..') === -1) {
+			values = `${values}..${values}`;
+		}
+
+		let i = 0;
+
+		return values.replace(/(\d{4})(-\d{1,2})?(-\d{1,2})?/g, (str, y, m, d) => {
+
+			const date = new Date(str);
+
+			if (i++) {
+				if (!m) {
+					date.setFullYear(date.getFullYear() + 1);
+				}
+				else if (!d) {
+					date.setMonth(date.getMonth() + 1);
+				}
+				else {
+					date.setDate(date.getDate() + 1);
+				}
+				date.setSeconds(date.getSeconds() - 1);
+			}
+
+			return date.toISOString().replace(/\.\d+Z/, '');
+		});
+	}
+	return values;
 }

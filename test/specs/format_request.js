@@ -342,6 +342,77 @@ describe('format_request', () => {
 				});
 			});
 		});
+
+		describe('field type=datetime', () => {
+
+			const table = 'table';
+
+			const o = {
+				'1981-12-05': [
+					'BETWEEN ? AND ?',
+					['1981-12-05T00:00:00', '1981-12-05T23:59:59']
+				],
+				'1981-1-5': [
+					'BETWEEN ? AND ?',
+					['1981-12-05T00:00:00', '1981-12-05T23:59:59']
+				],
+				'1981-12-05..1981-12-06': [
+					'BETWEEN ? AND ?',
+					['1981-12-05T00:00:00', '1981-12-06T23:59:59']
+				],
+				'1981-12-05..': [
+					'> ?',
+					['1981-12-05T00:00:00']
+				],
+				'..1981-12-05': [
+					'< ?',
+					['1981-12-05T00:00:00']
+				],
+				'1981-12': [
+					'BETWEEN ? AND ?',
+					['1981-12-01T00:00:00', '1981-12-31T23:59:59']
+				],
+				'1981-1': [
+					'BETWEEN ? AND ?',
+					['1981-01-01T00:00:00', '1981-01-31T23:59:59']
+				],
+				'2016': [
+					'BETWEEN ? AND ?',
+					['2016-01-01T00:00:00', '2016-12-31T23:59:59']
+				]
+			};
+
+			for (const date in o) {
+
+				const [condition, values] = o[date];
+
+				it(`should augment fiter values ${date}`, done => {
+
+					dare.options = {
+						schema: {
+							[table]: {
+								date: {
+									type: 'datetime'
+								}
+							}
+						}
+					};
+
+					dare.format_request({
+						table,
+						fields: ['id'],
+						filter: {
+							date
+						}
+					})
+					.then(options => {
+						expect(options.filter[0]).to.eql(['date', condition, values]);
+						done();
+					})
+					.catch(done);
+				});
+			}
+		});
 	});
 
 	describe('table_alias_handler', () => {
