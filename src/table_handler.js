@@ -1,30 +1,33 @@
 
-// deciding on how to connect two tables depends on which one holds the connection
-// The join_handler here looks columns on both tables to find one which has a reference field to the other.
-module.exports = function table_handler(tables) {
+// Execute per table handler to augment the request
+//
+module.exports = function table_handler(item) {
 
-	// Convert to an array
-	const a = Array.isArray(tables) ? tables : [tables];
-
-	// Schema table handling
+	// Get the table handlers defined in the options
 	const table_conditions = this.options && this.options.table_conditions;
 
-	if (typeof table_conditions !== 'object') {
-		return tables;
-	}
+	// Does this table have conditions?
+	if (table_conditions && item.table in table_conditions) {
 
-	// Loop through the tables... and apply any conditions from the schema
-	a.forEach(item => {
-		// Does this table have conditions?
-		if (item.table in table_conditions) {
+		// Get the function
+		const func = table_conditions[item.table];
 
-			// Get the function
-			const func = table_conditions[item.table];
+		// This table requires another to be joined to limit the query.
+		if (typeof func === 'string') {
+
+			// Require another table
+			item.joined = item.joined || {};
+			item.joined[this.get_unique_alias()] = {table: func, required_join: true};
+		}
+		else {
+
+			// Format the join conditions
+			item.conditions = item.conditions || {};
 
 			// Trigger the function
 			func.call(this, item);
 		}
-	});
+	}
 
-	return tables;
+	return item;
 };

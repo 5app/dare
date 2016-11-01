@@ -21,11 +21,11 @@ describe('table_handler', () => {
 			},
 			table_conditions: {
 				users(item) {
+
 					// Add the join condition domain_id
 					const cond = {
 						domain_id: this.options.meta.domain_id
 					};
-
 					// Update table join conditions
 					Object.assign(item.conditions, cond);
 				}
@@ -51,8 +51,6 @@ describe('table_handler', () => {
 			}
 		});
 
-		expect(resp).to.not.be.an('array');
-
 		expect(resp).to.deep.equal({
 			table: 'users',
 			alias: 'peeps',
@@ -64,37 +62,25 @@ describe('table_handler', () => {
 
 	});
 
-	it('should apply the table_conditions rules to an array of table defitions', () => {
+	it('should add joined tables when table_conditions points to another table', () => {
 
-		const resp = dare.table_handler([{
-			table: 'users',
-			alias: 'peeps',
-			conditions: {
-				id: 1000
-			}
-		}, {
+		dare.options.table_conditions.emails = 'users';
+
+		const resp = dare.table_handler({
 			table: 'emails',
-			alias: 'email',
-			conditions: {
-				id: 1000
-			}
-		}]);
-
-		expect(resp).to.be.an('array');
-
-		expect(resp[0]).to.deep.equal({
-			table: 'users',
-			alias: 'peeps',
-			conditions: {
-				'domain_id': 10,
-				'id': 1000
-			}
+			alias: 'peeps'
 		});
-		expect(resp[1]).to.deep.equal({
+
+		const unique_alias = dare.current_unique_alias;
+
+		expect(resp).to.deep.equal({
 			table: 'emails',
-			alias: 'email',
-			conditions: {
-				id: 1000
+			alias: 'peeps',
+			joined: {
+				[unique_alias]: {
+					table: 'users',
+					required_join: true
+				}
 			}
 		});
 
@@ -117,6 +103,6 @@ describe('table_handler', () => {
 		})
 		.then(() => done(), done);
 
-
 	});
+
 });

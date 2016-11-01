@@ -39,6 +39,7 @@ module.exports = function(opts) {
 
 		// Should this be nested?
 		const group_concat = item.nested_query && item.many ? this.group_concat : null;
+		let grouping = false;
 
 		// Build up the SQL conditions
 		// e.g. filter= {category: asset, action: open, created_time: 2016-04-12T13:29:23Z..]
@@ -89,7 +90,8 @@ module.exports = function(opts) {
 				}
 
 				// This is something we need to put into a GROUP_CONCAT
-				if (!def.match(/^(MAX|AVG|COUNT|MIN)\((.+?)\)$/) && group_concat) {
+				if (!as && group_concat) {
+					grouping = true;
 					as = `${item.alias}[${group_concat}].${as || id}`;
 					def = `GROUP_CONCAT(CONCAT('"', IFNULL(${def}, ''), '"') SEPARATOR '${group_concat}')`;
 				}
@@ -111,22 +113,21 @@ module.exports = function(opts) {
 		}
 
 		// Update the values with the alias of the parent
+		const cond_map = {};
 		for (const x in item.conditions) {
-			item.conditions[x] = `${parent.alias}.${item.conditions[x]}`;
+			let val = item.conditions[x];
+			if (typeof val === 'string' && val.match(/^\w+$/)) {
+				val = `${parent.alias}.${val}`;
+			}
+			cond_map[`${item.alias}.${x}`] = val;
 		}
 
-		// Custom formatting of join conditions
-		this.table_handler(item);
-
-		// Prefix keys and return
-		const cond_map = prefixKeys(item.conditions, `${item.alias}.`);
-
 		// Append to the sql_join
-		sql_joins.push(`LEFT JOIN ${item.table} ${item.table === item.alias ? '' : item.alias} ON (${serialize(cond_map, '=', 'AND')})`);
+		sql_joins.push(`${item.required_join ? '' : 'LEFT'} JOIN ${item.table} ${item.table === item.alias ? '' : item.alias} ON (${serialize(cond_map, '=', 'AND')})`);
 
 		// Ensure that the parent has opts.groupby
-		if (group_concat && !opts.groupby) {
-			opts.groupby = 'id';
+		if (group_concat && !opts.groupby && grouping) {
+			opts.groupby = `${opts.alias}.id`;
 		}
 
 
@@ -139,6 +140,14 @@ module.exports = function(opts) {
 		if (i > -1) {
 			// ... and replace it.
 			sql_fields[i] = 'COUNT(*) AS _count';
+		}
+	}
+
+	// Conditions
+	if (opts.conditions) {
+		for (const field in opts.conditions) {
+			sql_values.push(opts.conditions[field]);
+			sql_filter.push(`${opts.alias}.${field} = ?`);
 		}
 	}
 
@@ -171,7 +180,7 @@ module.exports = function(opts) {
 	const sql = `SELECT ${sql_fields.toString()}
 						 FROM ${sql_table} ${sql_alias !== sql_table ? sql_alias : ''}
 								${sql_joins.join('\n')}
-						 WHERE
+						 ${sql_filter.length ? 'WHERE' : ''}
 							 ${sql_filter.join(' AND ')}
 						 ${sql_groupby}
 						 ${sql_orderby}
@@ -233,12 +242,4 @@ function setField(table, field, handler, obj) {
 	}
 
 	obj.forEach(item => item[field] = handler.call(this, item));
-}
-
-function prefixKeys(obj, prefix = '') {
-	const r = {};
-	for (const x in obj) {
-		r[prefix + x] = obj[x];
-	}
-	return r;
 }

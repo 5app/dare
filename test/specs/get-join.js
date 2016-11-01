@@ -386,7 +386,7 @@ describe('get - request object', () => {
 
 				expect(sql).to.contain('GROUP_CONCAT(CONCAT(\'"\', IFNULL(town.id, \'\'), \'"\') SEPARATOR \'$$\') AS \'town[$$].id\'');
 				expect(sql).to.contain('GROUP_CONCAT(CONCAT(\'"\', IFNULL(town.name, \'\'), \'"\') SEPARATOR \'$$\') AS \'town[$$].name\'');
-				expect(sql).to.contain('GROUP BY id');
+				expect(sql).to.contain('GROUP BY country.id');
 
 				return Promise.resolve([{
 					'town[$$].id': '"1"$$"2"',

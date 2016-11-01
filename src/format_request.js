@@ -47,7 +47,9 @@ function format_specs(options) {
 	const schema = this.options.schema || {};
 	const table_schema = schema[options.table] || {};
 
-	const joined = {};
+	const joined = options.joined = {};
+	this.table_handler(options);
+	delete options.joined;
 
 	// Format filters
 	{
@@ -73,9 +75,8 @@ function format_specs(options) {
 			if (typeof value === 'object' && !Array.isArray(value)) {
 
 				// Add it to the join table
-				joined[key] = {
-					filter: value
-				};
+				joined[key] = joined[key] || {};
+				joined[key].filter = Object.assign(joined[key].filter || {}, value);
 			}
 			else {
 				const type = table_schema[key] && table_schema[key].type;
@@ -148,10 +149,13 @@ function format_specs(options) {
 
 			// Furnish the join table a little more...
 			const join_object = Object.assign(joined[alias], {
-				table: this.table_alias_handler(alias),
 				alias,
 				field_alias_prefix: `${alias}.`
 			});
+
+			if (!join_object.table) {
+				join_object.table = this.table_alias_handler(alias);
+			}
 
 			// Do the smart bit...
 			// Augment the join object, with additional 'conditions'
