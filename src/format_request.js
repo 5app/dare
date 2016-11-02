@@ -47,9 +47,8 @@ function format_specs(options) {
 	const schema = this.options.schema || {};
 	const table_schema = schema[options.table] || {};
 
-	const joined = options.joined = {};
-	this.table_handler(options);
-	delete options.joined;
+	const joined = {};
+	const filters = [];
 
 	// Format filters
 	{
@@ -62,8 +61,6 @@ function format_specs(options) {
 				message: `The filter '${filter}' is invalid.`
 			});
 		}
-
-		const a = [];
 
 		// Explore the filter for any table joins
 		for (const key in filter) {
@@ -80,16 +77,15 @@ function format_specs(options) {
 			}
 			else {
 				const type = table_schema[key] && table_schema[key].type;
-				a.push(prepCondition(key, value, type));
+				filters.push(prepCondition(key, value, type));
 			}
 		}
-
-		options.filter = a.length ? a : null;
 	}
 
 	// Format fields
+	let fields = [];
 	{
-		const fields = options.fields;
+		fields = options.fields;
 
 		if (fields) {
 
@@ -101,9 +97,20 @@ function format_specs(options) {
 			}
 
 			// Filter out child fields
-			options.fields = fields.reduce(fieldReducer.call(this, joined, table_schema), []);
+			fields = fields.reduce(fieldReducer.call(this, joined, table_schema), []);
 		}
 	}
+
+	// Update the joined tables
+	options.joined = joined;
+	this.table_handler(options);
+	delete options.joined;
+
+	// Update the filters to be an array
+	options.filter = filters.length ? filters : null;
+
+	// Update the fields
+	options.fields = fields;
 
 	// Groupby
 	// If the content is grouped

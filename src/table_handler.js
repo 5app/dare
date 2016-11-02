@@ -16,8 +16,19 @@ module.exports = function table_handler(item) {
 		if (typeof func === 'string') {
 
 			// Require another table
+			let done = false;
 			item.joined = item.joined || {};
-			item.joined[this.get_unique_alias()] = {table: func, required_join: true};
+			for (const key in item.joined) {
+				if (this.table_alias_handler(key) === func) {
+					item.joined[key].required_join = true;
+					done = true;
+				}
+			}
+
+			if (!done) {
+				// Add another table
+				item.joined[this.get_unique_alias()] = {table: func, required_join: true};
+			}
 		}
 		else {
 

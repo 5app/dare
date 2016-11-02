@@ -35,6 +35,7 @@ module.exports = function(opts) {
 			// Adopt the parents settings
 			item.nested_query = parent.nested_query || item.nested_query;
 			item.many = parent.many || item.many;
+
 		}
 
 		// Should this be nested?
@@ -121,6 +122,9 @@ module.exports = function(opts) {
 			}
 			cond_map[`${item.alias}.${x}`] = val;
 		}
+
+		// Required Join
+		item.required_join = item.required_join && (parent.required_join || parent.root);
 
 		// Append to the sql_join
 		sql_joins.push(`${item.required_join ? '' : 'LEFT'} JOIN ${item.table} ${item.table === item.alias ? '' : item.alias} ON (${serialize(cond_map, '=', 'AND')})`);
