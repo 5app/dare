@@ -48,7 +48,8 @@ describe('format_request', () => {
 					fields,
 					table: actualtable,
 					alias: table,
-					filter: [
+					filter,
+					_filter: [
 						['id', '= ?', [1]]
 					],
 					limit: 1,
@@ -406,7 +407,7 @@ describe('format_request', () => {
 						}
 					})
 					.then(options => {
-						expect(options.filter[0]).to.eql(['date', condition, values]);
+						expect(options._filter[0]).to.eql(['date', condition, values]);
 						done();
 					})
 					.catch(done);

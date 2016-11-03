@@ -124,7 +124,7 @@ Dare.prototype.patch = function patch(table, filter, body, opts = {}) {
 		const a = prepare(post);
 
 		// Prepare query
-		const sql_query = opts.filter.map(([field, condition, values]) => {
+		const sql_query = opts._filter.map(([field, condition, values]) => {
 			a.push(...values);
 			return `${field} ${condition}`;
 		});
@@ -244,6 +244,8 @@ Dare.prototype.del = function del(table, filter, opts = {}) {
 	return this.format_request(opts)
 	.then(opts => {
 
+		console.log('DEL', opts);
+
 		// Skip this operation?
 		if (opts.skip) {
 			return opts.skip;
@@ -254,7 +256,7 @@ Dare.prototype.del = function del(table, filter, opts = {}) {
 
 		// Clone object before formatting
 		const a = [];
-		const sql_query = opts.filter.map(([field, condition, values]) => {
+		const sql_query = opts._filter.map(([field, condition, values]) => {
 			a.push(...values);
 			return `${field} ${condition}`;
 		});

@@ -44,9 +44,9 @@ module.exports = function(opts) {
 
 		// Build up the SQL conditions
 		// e.g. filter= {category: asset, action: open, created_time: 2016-04-12T13:29:23Z..]
-		if (item.filter) {
+		if (item._filter) {
 
-			item.filter.forEach(([field, condition, values]) => {
+			item._filter.forEach(([field, condition, values]) => {
 				sql_values = sql_values.concat(values);
 				sql_filter.push(`${item.alias}.${field} ${condition}`);
 			});
@@ -211,8 +211,8 @@ module.exports = function(opts) {
 function traverse(opts, handler, parent) {
 	handler(opts, parent);
 
-	if (opts.joins) {
-		opts.joins.forEach(item => traverse(item, handler, opts));
+	if (opts._joins) {
+		opts._joins.forEach(item => traverse(item, handler, opts));
 	}
 }
 

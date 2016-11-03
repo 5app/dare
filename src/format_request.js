@@ -43,7 +43,6 @@ function format_request(options) {
 
 function format_specs(options) {
 
-
 	const schema = this.options.schema || {};
 	const table_schema = schema[options.table] || {};
 
@@ -83,10 +82,8 @@ function format_specs(options) {
 	}
 
 	// Format fields
-	let fields = [];
+	let fields = options.fields;
 	{
-		fields = options.fields;
-
 		if (fields) {
 
 			// Fields must be an array
@@ -107,7 +104,7 @@ function format_specs(options) {
 	delete options.joined;
 
 	// Update the filters to be an array
-	options.filter = filters.length ? filters : null;
+	options._filter = filters.length ? filters : null;
 
 	// Update the fields
 	options.fields = fields;
@@ -187,7 +184,7 @@ function format_specs(options) {
 			// Loop through the joins and pass through the formatter
 			return Promise.all(joins.map(join_object => format_request.call(this, join_object)))
 				.then(a => {
-					options.joins = a;
+					options._joins = a;
 					return options;
 				});
 		}
