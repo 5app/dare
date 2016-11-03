@@ -244,8 +244,6 @@ Dare.prototype.del = function del(table, filter, opts = {}) {
 	return this.format_request(opts)
 	.then(opts => {
 
-		console.log('DEL', opts);
-
 		// Skip this operation?
 		if (opts.skip) {
 			return opts.skip;
