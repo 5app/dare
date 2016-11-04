@@ -68,7 +68,7 @@ module.exports = function(opts) {
 					return;
 				}
 
-				const m = def.match(/^([A-Z]+)\((DISTINCT\s)?(.+?)\)$/);
+				const m = def.match(/^([a-z\_]+)\((DISTINCT\s)?(.+?)\)$/i);
 				let id = def;
 
 				if (m) {

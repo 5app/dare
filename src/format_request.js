@@ -307,7 +307,7 @@ function checkFormat(str) {
 	let m;
 
 	// strip away the `str(`...`)`
-	while ((m = c.match(/^\s*[a-z]+\((.*?)\)\s*$/i))) {
+	while ((m = c.match(/^\s*[a-z\_]+\((.*?)\)\s*$/i))) {
 		// match
 		c = m[1];
 	}

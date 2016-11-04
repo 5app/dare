@@ -174,6 +174,7 @@ describe('get - request object', () => {
 				['asset.field'],
 				[{'asset': 'field'}],
 				[{'asset': 'DATE(field)'}],
+				[{'asset': 'GROUP_CONCAT(DISTINCT field)'}],
 				[{'asset': ['field']}]
 			].forEach(value => {
 
