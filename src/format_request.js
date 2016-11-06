@@ -206,7 +206,7 @@ function limit(opts) {
 		if (typeof limit === 'string' && limit.match(/^\d+$/)) {
 			limit = +opts.limit;
 		}
-		if (isNaN(limit) || limit > 100 || limit < 1) {
+		if (isNaN(limit) || limit > 10000 || limit < 1) {
 			throw Object.assign(error.INVALID_LIMIT, {
 				message: `Out of bounds limit value: '${limit}'`
 			});

@@ -92,7 +92,7 @@ describe('format_request', () => {
 
 			describe('should accept', () => {
 
-				['90', 90, '99', 1].forEach(limit => {
+				['90', 90, '99', 1, 10000].forEach(limit => {
 
 					it(`valid: ${  limit  } (${  typeof limit  })`, done => {
 
@@ -107,7 +107,7 @@ describe('format_request', () => {
 
 			describe('should ignore', () => {
 
-				['nonsense', 0, -1, 101, NaN, {}, null].forEach(limit => {
+				['nonsense', 0, -1, 10001, NaN, {}, null].forEach(limit => {
 
 					it(`invalid: ${  limit  } (${  typeof limit  })`, done => {
 
