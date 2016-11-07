@@ -38,7 +38,7 @@ describe('join_handler', () => {
 
 		expect(child_table).to.deep.equal({
 			table: 'child',
-			conditions: {
+			join_conditions: {
 				'parent_id': 'id'
 			},
 			many: true
@@ -68,7 +68,7 @@ describe('join_handler', () => {
 
 		expect(parent_table).to.deep.equal({
 			table: 'parent',
-			conditions: {
+			join_conditions: {
 				'id': 'parent_id'
 			},
 			many: false
@@ -100,7 +100,7 @@ describe('join_handler', () => {
 		expect(join).to.deep.equal({
 			table: 'parent',
 			alias: 'a',
-			conditions: {
+			join_conditions: {
 				'grand_id': 'gid'
 			},
 			many: true,

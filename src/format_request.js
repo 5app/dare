@@ -51,7 +51,6 @@ function format_specs(options) {
 
 	// Format filters
 	{
-
 		const filter = options.filter || {};
 
 		// filter must be an object with key=>values
@@ -83,19 +82,52 @@ function format_specs(options) {
 
 	// Format fields
 	let fields = options.fields;
-	{
-		if (fields) {
+	if (fields) {
 
-			// Fields must be an array
-			if (!Array.isArray(fields)) {
-				throw Object.assign(error.INVALID_REFERENCE, {
-					message: `The field definition '${fields}' is invalid.`
-				});
-			}
-
-			// Filter out child fields
-			fields = fields.reduce(fieldReducer.call(this, joined, table_schema), []);
+		// Fields must be an array
+		if (!Array.isArray(fields)) {
+			throw Object.assign(error.INVALID_REFERENCE, {
+				message: `The field definition '${fields}' is invalid.`
+			});
 		}
+
+		// Filter out child fields
+		fields = fields.reduce(fieldReducer.call(this, joined, table_schema), []);
+	}
+
+	// Format conditional joins
+	if (options.join) {
+
+		const _join = {};
+		const join = options.join;
+
+		// filter must be an object with key=>values
+		if (typeof join !== 'object') {
+			throw Object.assign(error.INVALID_REFERENCE, {
+				message: `The join '${join}' is invalid.`
+			});
+		}
+
+		// Explore the filter for any table joins
+		for (const key in join) {
+
+			checkKey(key);
+
+			const value = join[key];
+
+			if (typeof value === 'object' && !Array.isArray(value)) {
+
+				// Add it to the join table
+				joined[key] = joined[key] || {};
+				joined[key].join = Object.assign(joined[key].join || {}, value);
+			}
+			else {
+				_join[key] = value;
+			}
+		}
+
+		// Set the reduced condtions
+		options.join = _join;
 	}
 
 	// Update the joined tables
@@ -108,6 +140,20 @@ function format_specs(options) {
 
 	// Update the fields
 	options.fields = fields;
+
+	// Join
+	if (options.join) {
+
+		const _join = [];
+		const join = options.join;
+
+		for (const key in join) {
+			const value = join[key];
+			const type = table_schema[key] && table_schema[key].type;
+			_join.push(prepCondition(key, value, type));
+		}
+		options._join = _join;
+	}
 
 	// Groupby
 	// If the content is grouped

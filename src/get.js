@@ -27,6 +27,7 @@ module.exports = function(opts) {
 
 	// Joins
 	const sql_joins = [];
+	const sql_join_values = [];
 
 	// Traverse the formatted opts
 	traverse(opts, (item, parent) => {
@@ -35,7 +36,6 @@ module.exports = function(opts) {
 			// Adopt the parents settings
 			item.nested_query = parent.nested_query || item.nested_query;
 			item.many = parent.many || item.many;
-
 		}
 
 		// Should this be nested?
@@ -114,20 +114,23 @@ module.exports = function(opts) {
 		}
 
 		// Update the values with the alias of the parent
-		const cond_map = {};
-		for (const x in item.conditions) {
-			let val = item.conditions[x];
-			if (typeof val === 'string' && val.match(/^\w+$/)) {
-				val = `${parent.alias}.${val}`;
-			}
-			cond_map[`${item.alias}.${x}`] = val;
+		const sql_join_condition = [];
+		if (item._join) {
+			item._join.forEach(([field, condition, values]) => {
+				sql_join_values.push(...values);
+				sql_join_condition.push(`${item.alias}.${field} ${condition}`);
+			});
+		}
+		for (const x in item.join_conditions) {
+			const val = item.join_conditions[x];
+			sql_join_condition.push(`${item.alias}.${x} = ${parent.alias}.${val}`);
 		}
 
 		// Required Join
 		item.required_join = item.required_join && (parent.required_join || parent.root);
 
 		// Append to the sql_join
-		sql_joins.push(`${item.required_join ? '' : 'LEFT'} JOIN ${item.table} ${item.table === item.alias ? '' : item.alias} ON (${serialize(cond_map, '=', 'AND')})`);
+		sql_joins.push(`${item.required_join ? '' : 'LEFT'} JOIN ${item.table} ${item.table === item.alias ? '' : item.alias} ON (${sql_join_condition.join(' AND ')})`);
 
 		// Ensure that the parent has opts.groupby
 		if (group_concat && !opts.groupby && grouping) {
@@ -148,12 +151,15 @@ module.exports = function(opts) {
 	}
 
 	// Conditions
-	if (opts.conditions) {
-		for (const field in opts.conditions) {
-			sql_values.push(opts.conditions[field]);
-			sql_filter.push(`${opts.alias}.${field} = ?`);
-		}
+	if (opts._join) {
+		opts._join.forEach(([field, condition, values]) => {
+			sql_values.push(...values);
+			sql_filter.push(`${opts.alias}.${field} ${condition}`);
+		});
 	}
+
+	// Merge values
+	const values = [].concat(sql_join_values).concat(sql_values);
 
 	// Groupby
 	// If the content is grouped
@@ -191,7 +197,7 @@ module.exports = function(opts) {
 						 LIMIT ${sql_limit}`;
 
 	return this
-	.sql(sql, sql_values)
+	.sql(sql, values)
 	.then(this.response_handler.bind(this))
 	.then(resp => {
 
@@ -226,14 +232,6 @@ function prepField(field) {
 		const def = field[as];
 		return [def, as];
 	}
-}
-
-function serialize(obj, separator, delimiter) {
-	const r = [];
-	for (const x in obj) {
-		r.push(`${x} ${separator} ${obj[x]}`);
-	}
-	return r.join(` ${delimiter} `);
 }
 
 function setField(table, field, handler, obj) {

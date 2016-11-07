@@ -27,7 +27,7 @@ describe('table_handler', () => {
 						domain_id: this.options.meta.domain_id
 					};
 					// Update table join conditions
-					Object.assign(item.conditions, cond);
+					item.join = Object.assign(item.join || {}, cond);
 				}
 			},
 			meta: {
@@ -46,7 +46,7 @@ describe('table_handler', () => {
 		const resp = dare.table_handler({
 			table: 'users',
 			alias: 'peeps',
-			conditions: {
+			join_conditions: {
 				id: 1000
 			}
 		});
@@ -54,9 +54,11 @@ describe('table_handler', () => {
 		expect(resp).to.deep.equal({
 			table: 'users',
 			alias: 'peeps',
-			conditions: {
-				'domain_id': 10,
-				'id': 1000
+			join_conditions: {
+				id: 1000
+			},
+			join: {
+				domain_id: 10
 			}
 		});
 
@@ -90,7 +92,7 @@ describe('table_handler', () => {
 
 		dare.execute = (sql, callback) => {
 			// Expect the left join to include the options table_conditions
-			expect(sql).to.match(/LEFT JOIN users\s+ON \(users\.id = emails\.user_id AND users\.domain_id = 10\)/);
+			expect(sql).to.match(/LEFT JOIN users\s+ON \(users\.domain_id = 10 AND users\.id = emails\.user_id\)/);
 			callback(null, [{}]);
 		};
 

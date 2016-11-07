@@ -5,11 +5,11 @@ module.exports = function (join_table, rootTable) {
 
 	const schema = this.options.schema;
 	const joinTable = join_table.table;
-	const conditions = links(schema[joinTable], rootTable) || invert_links(schema[rootTable], joinTable);
+	const join_conditions = links(schema[joinTable], rootTable) || invert_links(schema[rootTable], joinTable);
 
 	// Yes, no, Yeah!
-	if (conditions) {
-		return Object.assign(join_table, conditions);
+	if (join_conditions) {
+		return Object.assign(join_table, join_conditions);
 	}
 
 	// Crawl the schema for a link table, ... we're only going for a single Kevin Bacon.
@@ -21,9 +21,9 @@ module.exports = function (join_table, rootTable) {
 		}
 
 		// linkTable <> joinTable?
-		const conditions = links(schema[joinTable], linkTable) || invert_links(schema[linkTable], joinTable);
+		const join_conditions = links(schema[joinTable], linkTable) || invert_links(schema[linkTable], joinTable);
 
-		if (!conditions) {
+		if (!join_conditions) {
 			continue;
 		}
 
@@ -40,7 +40,7 @@ module.exports = function (join_table, rootTable) {
 			alias: this.get_unique_alias(),
 			table: linkTable,
 			joins: [
-				Object.assign(join_table, conditions)
+				Object.assign(join_table, join_conditions)
 			]
 		}, root_conditions);
 	}
@@ -79,7 +79,7 @@ function links(tableObj, joinTable, flipped = false) {
 	}
 
 	return Object.keys(map).length ? {
-		conditions: flipped ? invert(map) : map,
+		join_conditions: flipped ? invert(map) : map,
 		many: !flipped
 	} : null;
 }

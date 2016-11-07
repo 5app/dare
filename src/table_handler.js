@@ -33,7 +33,7 @@ module.exports = function table_handler(item) {
 		else {
 
 			// Format the join conditions
-			item.conditions = item.conditions || {};
+			item.join_conditions = item.join_conditions || {};
 
 			// Trigger the function
 			func.call(this, item);

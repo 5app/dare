@@ -276,6 +276,48 @@ describe('get - request object', () => {
 		});
 	});
 
+	describe('join conditions', () => {
+
+		describe('should accept', () => {
+
+			[
+				{
+					asset: {
+						type: 'mobile'
+					}
+				}
+			].forEach(join => {
+
+				it(`valid: ${JSON.stringify(join)}`, done => {
+
+					dare.sql = sql => {
+						expect(sql.replace(/\s+/g, ' ')).to.match(SQLEXP(`
+							SELECT activityEvents.id
+							FROM activityEvents
+							LEFT JOIN apps asset ON (asset.type = ? AND asset.id = activityEvents.ref_id)
+							LIMIT 5
+						`));
+
+						done();
+						return Promise.resolve([]);
+					};
+
+					dare.get({
+						table: 'activityEvents',
+						fields: [
+							'id'
+						],
+						join,
+						limit
+					})
+					.catch(done);
+
+				});
+
+			});
+		});
+	});
+
 	describe('generated fields', () => {
 
 		it('should allow bespoke fields to be defined in the schema', done => {
