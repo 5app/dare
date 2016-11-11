@@ -67,7 +67,7 @@ function format_specs(options) {
 
 			const value = filter[key];
 
-			if (typeof value === 'object' && !Array.isArray(value)) {
+			if (value && typeof value === 'object' && !Array.isArray(value)) {
 
 				// Add it to the join table
 				joined[key] = joined[key] || {};
@@ -399,6 +399,12 @@ function prepCondition(field, value, type) {
 	else if (typeof value === 'string' && value.match('%')) {
 		condition = 'LIKE ?';
 		values = [value];
+	}
+
+	// Null
+	else if (value === null) {
+		condition = 'IS NULL';
+		values = [];
 	}
 
 	// Add to the array of items
