@@ -174,6 +174,7 @@ describe('get - request object', () => {
 				['asset.field'],
 				[{'asset': 'field'}],
 				[{'asset': 'DATE(field)'}],
+				[{'My Fields - and &*^@:£@$ things...': 'DATE(field)'}],
 				[{'asset': 'GROUP_CONCAT(DISTINCT field)'}],
 				[{'asset': ['field']}]
 			].forEach(value => {
@@ -204,8 +205,9 @@ describe('get - request object', () => {
 				{},
 				'string',
 				['COUNT(wrong)'],
-				[{'asset(*)': 'id'}],
 				[{'asset': 'DATE(id'}],
+				[{'quote\'s': 'id'}],
+				[{'tablename with spaces and -:*...': ['id']}],
 				[{'asset': ['DATE(id)']}]
 			].forEach(value => {
 

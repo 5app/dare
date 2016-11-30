@@ -293,7 +293,7 @@ function fieldReducer(join, table_schema = {}) {
 					// i.e. latest: MAX(created_time)
 
 					// Check errors in the key field
-					checkKey(key);
+					checkLabel(key);
 
 					// Check the new value field
 					checkFormat(field[key]);
@@ -337,6 +337,18 @@ function checkKey(key) {
 	if (!key.match(reg)) {
 		throw Object.assign(error.INVALID_REFERENCE, {
 			message: `The key '${key}' must match ${reg}`
+		});
+	}
+}
+
+
+function checkLabel(label) {
+	const reg = /^[^\'\"]+$/i;
+
+	// Capture errors in the key
+	if (!label.match(reg)) {
+		throw Object.assign(error.INVALID_REFERENCE, {
+			message: `The label '${label}' must match ${reg}`
 		});
 	}
 }
