@@ -173,10 +173,11 @@ describe('get - request object', () => {
 				['_field'],
 				['asset.field'],
 				[{'asset': 'field'}],
+				{'asset': 'field'},
 				[{'asset': 'DATE(field)'}],
 				[{'My Fields - and &*^@:£@$ things...': 'DATE(field)'}],
 				[{'asset': 'GROUP_CONCAT(DISTINCT field)'}],
-				[{'asset': ['field']}]
+				{'asset': ['field']}
 			].forEach(value => {
 
 				it(`valid: ${  JSON.stringify(value)}`, done => {
@@ -202,7 +203,6 @@ describe('get - request object', () => {
 
 			[
 				10,
-				{},
 				'string',
 				['COUNT(wrong)'],
 				[{'asset': 'DATE(id'}],

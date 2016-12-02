@@ -84,11 +84,16 @@ function format_specs(options) {
 	let fields = options.fields;
 	if (fields) {
 
-		// Fields must be an array
-		if (!Array.isArray(fields)) {
+		// Fields must be an array, or a dictionary (aka object)
+		if (typeof fields !== 'object') {
 			throw Object.assign(error.INVALID_REFERENCE, {
 				message: `The field definition '${fields}' is invalid.`
 			});
+		}
+
+		// Make the fields an array
+		if (!Array.isArray(fields)) {
+			fields = [fields];
 		}
 
 		// Filter out child fields
@@ -284,9 +289,10 @@ function fieldReducer(join, table_schema = {}) {
 
 			for (const key in field) {
 
-				if (Array.isArray(field[key])) {
+				const value = field[key];
+				if (typeof value === 'object') {
 					join[key] = join[key] || {};
-					join[key].fields = field[key];
+					join[key].fields = value;
 				}
 				else {
 					// This field has an alias
@@ -296,10 +302,10 @@ function fieldReducer(join, table_schema = {}) {
 					checkLabel(key);
 
 					// Check the new value field
-					checkFormat(field[key]);
+					checkFormat(value);
 
 					a.push({
-						[key]: field[key]
+						[key]: value
 					});
 				}
 			}
