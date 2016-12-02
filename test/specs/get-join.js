@@ -1,7 +1,5 @@
 'use strict';
 
-const error = require('../../src/utils/error');
-
 // Test Generic DB functions
 const SQLEXP = require('../lib/sql-match');
 
@@ -166,74 +164,9 @@ describe('get - request object', () => {
 
 		});
 
-		describe('should accept', () => {
-
-			[
-				['field'],
-				['_field'],
-				['asset.field'],
-				[{'asset': 'field'}],
-				{'asset': 'field'},
-				[{'asset': 'DATE(field)'}],
-				[{'My Fields - and &*^@:£@$ things...': 'DATE(field)'}],
-				[{'asset': 'GROUP_CONCAT(DISTINCT field)'}],
-				{'asset': ['field']}
-			].forEach(value => {
-
-				it(`valid: ${  JSON.stringify(value)}`, done => {
-
-					dare.sql = () => {
-						done();
-						return Promise.resolve([]);
-					};
-
-					dare.get({
-						table: 'activityEvents',
-						fields: value,
-						limit
-					})
-					.catch(done);
-
-				});
-
-			});
-		});
-
-		describe('should throw error', () => {
-
-			[
-				10,
-				'string',
-				['COUNT(wrong)'],
-				[{'asset': 'DATE(id'}],
-				[{'quote\'s': 'id'}],
-				[{'tablename with spaces and -:*...': ['id']}],
-				[{'asset': ['DATE(id)']}]
-			].forEach(value => {
-
-				it(`invalid: ${  JSON.stringify(value)}`, done => {
-
-					dare.sql = nosql(done);
-
-					dare.get({
-						table: 'activityEvents',
-						fields: value,
-						limit
-					})
-					.then(done, err => {
-						expect(err.code).to.eql(error.INVALID_REFERENCE.code);
-						expect(err).to.have.property('message');
-						done();
-					})
-					.catch(done);
-
-				});
-			});
-		});
 	});
 
 	describe('filter', () => {
-
 
 		describe('should accept', () => {
 
@@ -539,7 +472,3 @@ describe('get - request object', () => {
 	});
 
 });
-
-function nosql(done) {
-	return () => done(new Error('Unexpected call dare.sql'));
-}

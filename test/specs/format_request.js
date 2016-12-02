@@ -80,6 +80,71 @@ describe('format_request', () => {
 		});
 	});
 
+	describe('fields', () => {
+
+		const options = {
+			table: 'tbl'
+		};
+
+		beforeEach(() => {
+			dare.options = {
+				schema: {
+					'asset': {tbl_id: 'tbl.id'}
+				}
+			};
+		});
+
+		describe('should accept', () => {
+
+			[
+				['field'],
+				['_field'],
+				['asset.field'],
+				[{'asset': 'field'}],
+				{'asset': 'field'},
+				[{'asset': 'DATE(field)'}],
+				[{'My Fields - and &*^@:£@$ things...': 'DATE(field)'}],
+				[{'asset': 'GROUP_CONCAT(DISTINCT field)'}],
+				{'asset': ['field']}
+			].forEach(fields => {
+
+				it(`valid: ${JSON.stringify(fields)}`, done => {
+
+					dare.format_request(Object.assign({}, options, {fields}))
+					.then(() => done())
+					.catch(done);
+
+				});
+
+			});
+		});
+
+		describe('should throw error', () => {
+
+			[
+				10,
+				'string',
+				['COUNT(wrong)'],
+				[{'asset': 'DATE(id'}],
+				[{'quote\'s': 'id'}],
+				[{'tablename with spaces and -:*...': ['id']}],
+				[{'asset': ['DATE(id)']}]
+			].forEach(fields => {
+
+				it(`invalid: ${  JSON.stringify(fields)}`, done => {
+
+					dare.format_request(Object.assign({}, options, {fields}))
+					.then(done, err => {
+						expect(err.code).to.eql(error.INVALID_REFERENCE.code);
+						expect(err).to.have.property('message');
+						done();
+					})
+					.catch(done);
+
+				});
+			});
+		});
+	});
 
 	describe('limiting', () => {
 
