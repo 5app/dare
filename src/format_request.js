@@ -20,7 +20,6 @@ function format_request(options) {
 		});
 	}
 
-
 	// Call bespoke table handler
 	const method = options.method;
 	const table = options.table;
@@ -283,7 +282,7 @@ function limit(opts) {
 function fieldReducer(scope, join, table_schema = {}) {
 
 	const addToJoin = (field, label) => {
-		const path_str = checkFormat(field)
+		const path_str = checkFormat(field);
 		const path = path_str.split('.');
 		const key = path.shift();
 		if (path.length && key !== scope) {

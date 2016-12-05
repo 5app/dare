@@ -161,7 +161,6 @@ describe('format_request', () => {
 
 					dare.format_request(Object.assign({}, options, {fields}))
 					.then(options => {
-						console.log(options._joins[0].fields);
 						expect(options._joins[0]).to.have.property('alias', 'asset');
 						done();
 					})
