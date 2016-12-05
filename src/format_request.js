@@ -97,7 +97,7 @@ function format_specs(options) {
 		}
 
 		// Filter out child fields
-		fields = fields.reduce(fieldReducer.call(this, joined, table_schema), []);
+		fields = fields.reduce(fieldReducer.call(this, options.alias, joined, table_schema), []);
 	}
 
 	// Format conditional joins
@@ -280,7 +280,22 @@ function limit(opts) {
 }
 
 // Return a reducer function
-function fieldReducer(join, table_schema = {}) {
+function fieldReducer(scope, join, table_schema = {}) {
+
+	const addToJoin = (field, label) => {
+		const path_str = checkFormat(field)
+		const path = path_str.split('.');
+		const key = path.shift();
+		if (path.length && key !== scope) {
+			const f = field.replace(path_str, path.join('.'));
+			const d = label ? {[label]: f} : f;
+			const a = join[key] || {};
+			a.fields = (a.fields || []);
+			a.fields.push(d);
+			join[key] = a;
+			return true;
+		}
+	};
 
 	// Handle each field property
 	return (a, field) => {
@@ -301,19 +316,28 @@ function fieldReducer(join, table_schema = {}) {
 					// Check errors in the key field
 					checkLabel(key);
 
-					// Check the new value field
-					checkFormat(value);
+					// Check the new value field parents, aka `parent_table.field`
+					if (addToJoin(value, key)) {
+						continue;
+					}
 
 					a.push({
 						[key]: value
 					});
 				}
 			}
-		}
-		else {
 
+		}
+
+		else {
 			// Check errors in the key field
 			checkKey(field);
+
+			// This is also a field, so check that its a valid field
+			// + If it contains a nested value: create a join.
+			if (addToJoin(field)) {
+				return a;
+			}
 
 			// Does this field have a handler in the schema
 			const def = table_schema[field];
@@ -367,21 +391,23 @@ function checkFormat(str) {
 		});
 	}
 
-	let c = str;
+	let s = str;
 	let m;
 
 	// strip away the `str(`...`)`
-	while ((m = c.match(/^\s*[a-z\_]+\((.*?)\)\s*$/i))) {
+	while ((m = s.match(/^\s*[a-z\_]+\((DISTINCT\s)?(.*?)\)\s*$/i))) {
 		// match
-		c = m[1];
+		s = m[2];
 	}
 
 	// Is this a valid field
-	if (!c.match(/^(((DISTINCT)\s)?[a-z\_\.]+|\*)$/i)) {
+	if (!s.match(/^([a-z\_\.]+|\*)$/i)) {
 		throw Object.assign(error.INVALID_REFERENCE, {
 			message: `The field definition '${str}' is invalid.`
 		});
 	}
+
+	return s;
 }
 
 

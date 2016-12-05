@@ -144,6 +144,32 @@ describe('format_request', () => {
 				});
 			});
 		});
+
+		describe('should generate joins where the field definition contains table names', () => {
+
+			[
+				['asset.field'],
+				[{
+					'Field': 'asset.field'
+				}],
+				[{
+					'Field': 'COUNT(DISTINCT asset.field)'
+				}],
+			].forEach(fields => {
+
+				it(`where ${JSON.stringify(fields)}`, done => {
+
+					dare.format_request(Object.assign({}, options, {fields}))
+					.then(options => {
+						console.log(options._joins[0].fields);
+						expect(options._joins[0]).to.have.property('alias', 'asset');
+						done();
+					})
+					.catch(done);
+
+				});
+			});
+		});
 	});
 
 	describe('limiting', () => {
