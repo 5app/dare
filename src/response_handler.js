@@ -26,8 +26,8 @@ function formatHandler(item) {
 		}
 	}
 
-	if (this.options.response_handlers) {
-		this.options.response_handlers.forEach(callback => callback(item));
+	if (this.response_handlers) {
+		this.response_handlers.forEach(callback => callback(item));
 	}
 
 	return item;

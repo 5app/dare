@@ -4,43 +4,95 @@ const error = require('./utils/error');
 
 module.exports = function(opts) {
 
-	opts = Object.assign(this.options, opts);
+	// Set the table_response_handlers
+	this.response_handlers = this.response_handlers || [];
+
+	const {sql, values} = buildQuery.call(this, opts);
+
+	// Execute the query
+	return this
+	.sql(sql, values)
+	.then(this.response_handler.bind(this))
+	.then(resp => {
+
+		// If limit was not defined we should return the first result only.
+		if (opts.single) {
+			if (resp.length) {
+				return resp[0];
+			}
+			else {
+				throw error.NOT_FOUND;
+			}
+		}
+		return resp;
+	});
+};
+
+function buildQuery(opts) {
 
 	opts.root = true;
 
 	// Limit
-	const sql_limit = (opts.start ? `${opts.start},` : '') + opts.limit;
-
-	// Set the table_response_handlers
-	opts.response_handlers = [];
-
-	// Get the root tableID
-	const sql_alias = opts.alias;
-	const sql_table = opts.table;
+	const sql_limit = opts.limit ? (`LIMIT ${opts.start ? `${opts.start},` : '' }${opts.limit}`) : null;
 
 	// Filters populate the filter and values (prepared statements)
 	const sql_filter = [];
 	let sql_values = [];
 
 	// Fields
-	const sql_fields = [];
+	const fields = [];
+
+	const sql_subquery_values = [];
 
 	// Joins
 	const sql_joins = [];
 	const sql_join_values = [];
 
-	// Traverse the formatted opts
-	traverse(opts, (item, parent) => {
+	// SubQuery
+	const is_subquery = opts.is_subquery;
 
+	// Traverse the formatted opts
+	const traverse = item => {
+
+		const parent = item.parent;
+
+		// Things to change if this isn't the root.
 		if (parent) {
+
 			// Adopt the parents settings
-			item.nested_query = parent.nested_query || item.nested_query;
-			item.many = parent.many || item.many;
+			const can_subquery = parent.can_subquery || item.can_subquery;
+			const many = parent.many || item.many;
+
+			// Should this be a sub query?
+			// The join is not required for filtering,
+			// And has a one to many relationship with its parent.
+			if (this.group_concat && !opts.is_subquery && !item.required_join && can_subquery && many) {
+
+				// Mark as subquery
+				item.is_subquery = true;
+
+				// Make the sub-query
+				const sub_query = buildQuery.call(this, item);
+
+				// Add the values
+				sql_subquery_values.push(...sub_query.values);
+
+				// Add the formatted field
+				fields.push({
+					def: `(${sub_query.sql})`,
+					as: item.alias
+				});
+
+				// Format the response
+				this.response_handlers.push(row => {
+					row[item.alias] = JSON.parse(row[item.alias]);
+				});
+
+				// The rest has been handled in the sub-query
+				return;
+			}
 		}
 
-		// Should this be nested?
-		const group_concat = item.nested_query && item.many ? this.group_concat : null;
-		let grouping = false;
 
 		// Build up the SQL conditions
 		// e.g. filter= {category: asset, action: open, created_time: 2016-04-12T13:29:23Z..]
@@ -62,7 +114,7 @@ module.exports = function(opts) {
 				// Have we got a generated field?
 				if (typeof def === 'function') {
 					// Add this to the list
-					opts.response_handlers.push(
+					this.response_handlers.push(
 						setField.bind(this, !item.root && item.alias, as, def)
 					);
 					return;
@@ -86,68 +138,79 @@ module.exports = function(opts) {
 					def = `${fn}(${scope || ''}${field})`;
 
 				}
-				else if (def.match(/^([a-z\_\-]+)$/i)) {
+				else if (def !== '*' && !def.includes('.')) {
 					def = `${item.alias}.${def}`;
-				}
-
-				// This is something we need to put into a GROUP_CONCAT
-				if (!as && group_concat) {
-					grouping = true;
-					as = `${item.alias}[${group_concat}].${as || id}`;
-					def = `GROUP_CONCAT(CONCAT('"', IFNULL(${def}, ''), '"') SEPARATOR '${group_concat}')`;
 				}
 
 				if (!as && !item.root) {
 					as = `${item.alias}.${id}`;
 				}
 
-				as = (as ? ` AS '${as}'` : '');
+				as = as || '';
 
-				sql_fields.push(def + as);
+				fields.push({def, as});
 			});
 
 		}
 
 		// Dont continue if this does not have a parent
-		if (!parent) {
-			return;
+		if (parent) {
+
+			// Update the values with the alias of the parent
+			const sql_join_condition = [];
+			if (item._join) {
+				item._join.forEach(([field, condition, values]) => {
+					sql_join_values.push(...values);
+					sql_join_condition.push(`${item.alias}.${field} ${condition}`);
+				});
+			}
+			for (const x in item.join_conditions) {
+				const val = item.join_conditions[x];
+				sql_join_condition.push(`${item.alias}.${x} = ${parent.alias}.${val}`);
+			}
+
+			// Required Join
+			item.required_join = item.required_join && (parent.required_join || parent.root);
+
+			if (!item.is_subquery) {
+				// Append to the sql_join
+				sql_joins.push(`${item.required_join ? '' : 'LEFT'} JOIN ${item.table} ${item.table === item.alias ? '' : item.alias} ON (${sql_join_condition.join(' AND ')})`);
+			}
+			else {
+				// Merge the join condition on the filter
+				sql_filter.push(...sql_join_condition);
+
+				// Offload and Reset the sql_join_values
+				sql_values.push(...sql_join_values);
+				sql_join_values.length = 0;
+			}
+
+			// Ensure that the parent has opts.groupby
+			if (!is_subquery && !opts.groupby) {
+				opts.groupby = `${opts.alias}.id`;
+			}
 		}
 
-		// Update the values with the alias of the parent
-		const sql_join_condition = [];
-		if (item._join) {
-			item._join.forEach(([field, condition, values]) => {
-				sql_join_values.push(...values);
-				sql_join_condition.push(`${item.alias}.${field} ${condition}`);
+		// Traverse the next ones...
+		if (item._joins) {
+			item._joins.forEach(child => {
+				child.parent = item;
+				traverse(child);
 			});
 		}
-		for (const x in item.join_conditions) {
-			const val = item.join_conditions[x];
-			sql_join_condition.push(`${item.alias}.${x} = ${parent.alias}.${val}`);
-		}
+	};
 
-		// Required Join
-		item.required_join = item.required_join && (parent.required_join || parent.root);
+	// Trigger traverse
+	traverse(opts);
 
-		// Append to the sql_join
-		sql_joins.push(`${item.required_join ? '' : 'LEFT'} JOIN ${item.table} ${item.table === item.alias ? '' : item.alias} ON (${sql_join_condition.join(' AND ')})`);
-
-		// Ensure that the parent has opts.groupby
-		if (group_concat && !opts.groupby && grouping) {
-			opts.groupby = `${opts.alias}.id`;
-		}
-
-
-	});
 
 	{
 		// Count is a special field, find it ...
-		const i = sql_fields.indexOf(`${opts.alias}._count`);
-
-		if (i > -1) {
-			// ... and replace it.
-			sql_fields[i] = 'COUNT(*) AS _count';
-		}
+		fields.filter(item => item.def === `${opts.alias}._count`)
+		.forEach(item => {
+			item.def = 'COUNT(*)';
+			item.as = '_count';
+		});
 	}
 
 	// Conditions
@@ -159,7 +222,7 @@ module.exports = function(opts) {
 	}
 
 	// Merge values
-	const values = [].concat(sql_join_values).concat(sql_values);
+	const values = [].concat(sql_subquery_values).concat(sql_join_values).concat(sql_values);
 
 	// Groupby
 	// If the content is grouped
@@ -169,12 +232,11 @@ module.exports = function(opts) {
 	if (opts.groupby) {
 
 		// Find the special _group column...
-		const i = sql_fields.indexOf(`${opts.alias}._group`);
-
-		if (i > -1) {
-			// ... and replace it.
-			sql_fields[i] = `${opts.groupby} as _group`;
-		}
+		fields.filter(item => item.def === `${opts.alias}._group`)
+		.forEach(item => {
+			item.def = opts.groupby;
+			item.as = '_group';
+		});
 
 		// Add the grouping
 		sql_groupby = `GROUP BY ${opts.groupby}`;
@@ -185,6 +247,19 @@ module.exports = function(opts) {
 
 	const sql_orderby = opts.orderby ? `ORDER BY ${opts.orderby.toString()}` : '';
 
+	// Get the root tableID
+	const sql_alias = opts.alias;
+	const sql_table = opts.table;
+
+	// Format Fields
+	let sql_fields;
+	if (is_subquery) {
+		// Generate a Group Concat statement of the result
+		sql_fields = group_concat(fields);
+	}
+	else {
+		sql_fields = fields.map(field => `${field.def}${field.as ? ` AS '${field.as}'` : ''}`);
+	}
 
 	// Put it all together
 	const sql = `SELECT ${sql_fields.toString()}
@@ -194,32 +269,22 @@ module.exports = function(opts) {
 							 ${sql_filter.join(' AND ')}
 						 ${sql_groupby}
 						 ${sql_orderby}
-						 LIMIT ${sql_limit}`;
+						 ${sql_limit}`;
 
-	return this
-	.sql(sql, values)
-	.then(this.response_handler.bind(this))
-	.then(resp => {
+	return {sql, values};
+}
 
-		// If limit was not defined we should return the first result only.
-		if (opts.single) {
-			if (resp.length) {
-				return resp[0];
-			}
-			else {
-				throw error.NOT_FOUND;
-			}
-		}
-		return resp;
-	});
-};
+// Wrap all the fields in a GROUP_CONCAT statement
+function group_concat(fields) {
 
-function traverse(opts, handler, parent) {
-	handler(opts, parent);
+	// convert to JSON string
+	fields = fields.map(field => `'"${escape(field.as || field.def)}":', '"', REPLACE(${field.def}, '"', '\\"'), '"'`);
 
-	if (opts._joins) {
-		opts._joins.forEach(item => traverse(item, handler, opts));
-	}
+	return `CONCAT('[', GROUP_CONCAT(CONCAT('{', ${fields.join(', ",", ')}, '}')), ']')`;
+}
+
+function escape(str) {
+	return str.replace(/\"/g, '\\"');
 }
 
 function prepField(field) {
