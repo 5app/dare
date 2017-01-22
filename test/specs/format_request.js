@@ -412,6 +412,10 @@ describe('format_request', () => {
 					'NOT LIKE ?',
 					['string']
 				],
+				'!patt%rn': [
+					'NOT LIKE ?',
+					['patt%rn']
+				],
 
 			};
 
