@@ -438,7 +438,13 @@ function prepCondition(field, value, type) {
 		}
 	}
 
-	// Is this an array match?
+	// Not match
+	else if (typeof value === 'string' && value[0] === '!') {
+		condition = 'NOT LIKE ?';
+		values = [value.slice(1)];
+	}
+
+	// String partial match
 	else if (typeof value === 'string' && value.match('%')) {
 		condition = 'LIKE ?';
 		values = [value];

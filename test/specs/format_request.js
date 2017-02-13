@@ -397,6 +397,51 @@ describe('format_request', () => {
 
 	describe('filter', () => {
 
+		describe('should accept', () => {
+
+			const o = {
+				'string': [
+					'= ?',
+					['string']
+				],
+				'%string': [
+					'LIKE ?',
+					['%string']
+				],
+				'!string': [
+					'NOT LIKE ?',
+					['string']
+				],
+				'!patt%rn': [
+					'NOT LIKE ?',
+					['patt%rn']
+				],
+
+			};
+
+			for (const date in o) {
+
+				const [condition, values] = o[date];
+
+				it(`should augment fiter values ${date}`, done => {
+
+					dare.format_request({
+						table: 'tbl',
+						fields: ['id'],
+						filter: {
+							date
+						}
+					})
+					.then(options => {
+						expect(options._filter[0]).to.eql(['date', condition, values]);
+						done();
+					})
+					.catch(done);
+				});
+			}
+
+		});
+
 		describe('should throw error', () => {
 
 			[
@@ -504,6 +549,7 @@ describe('format_request', () => {
 				});
 			}
 		});
+
 	});
 
 	describe('table_alias_handler', () => {
