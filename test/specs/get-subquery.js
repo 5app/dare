@@ -40,10 +40,12 @@ describe('get - subquery', () => {
 				(
 					SELECT COUNT(collections.id)
 					FROM assetCollections a
-					LEFT JOIN collections ON (a.collection_id = collections.id)
+					LEFT JOIN collections ON (collections.id = a.collection_id)
 					WHERE a.asset_id = assets.id
-				) AS collections
+					LIMIT 1
+				) AS 'collections'
 				FROM assets
+				GROUP BY assets.id
 				LIMIT 1
 
 			`));
