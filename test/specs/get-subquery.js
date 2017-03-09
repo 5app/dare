@@ -43,7 +43,7 @@ describe('get - subquery', () => {
 					LEFT JOIN collections ON (collections.id = a.collection_id)
 					WHERE a.asset_id = assets.id
 					LIMIT 1
-				) AS 'collections'
+				) AS 'collection_count'
 				FROM assets
 				GROUP BY assets.id
 				LIMIT 1
@@ -51,7 +51,7 @@ describe('get - subquery', () => {
 			`));
 			return Promise.resolve([{
 				asset_name: 'name',
-				collections: 42
+				collection_count: 42
 			}]);
 		};
 
@@ -59,7 +59,7 @@ describe('get - subquery', () => {
 			table: 'assets',
 			fields: {
 				'asset_name': 'name',
-				'collections': 'COUNT(collections.id)'
+				'collection_count': 'COUNT(collections.id)'
 			}
 		})
 		.then(() => {
