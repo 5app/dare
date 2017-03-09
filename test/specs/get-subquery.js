@@ -30,7 +30,7 @@ describe('get - subquery', () => {
 	});
 
 
-	it('should write one to many requests with a subquery and group_concat, and format the response as an array', done => {
+	it('should write one to many requests with a subquery', done => {
 
 		dare.sql = sql => {
 
