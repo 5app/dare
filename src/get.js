@@ -2,6 +2,7 @@
 
 const error = require('./utils/error');
 const group_concat = require('./utils/group_concat');
+const field_format = require('./utils/field_format');
 
 module.exports = function(opts) {
 
@@ -60,10 +61,10 @@ function buildQuery(opts) {
 
 	{
 		// Count is a special field, find and replace ...
-		fields.filter(item => item.def === `${opts.alias}._count`)
+		fields.filter(item => item.expression === `${opts.alias}._count`)
 		.forEach(item => {
-			item.def = 'COUNT(*)';
-			item.as = '_count';
+			item.expression = 'COUNT(*)';
+			item.label = '_count';
 			item.agg = true;
 		});
 	}
@@ -92,10 +93,10 @@ function buildQuery(opts) {
 	if (opts.groupby) {
 
 		// Find the special _group column...
-		fields.filter(item => item.def === `${opts.alias}._group`)
+		fields.filter(item => item.expression === `${opts.alias}._group`)
 		.forEach(item => {
-			item.def = opts.groupby;
-			item.as = '_group';
+			item.expression = opts.groupby;
+			item.label = '_group';
 		});
 
 		// Add the grouping
@@ -114,14 +115,17 @@ function buildQuery(opts) {
 	// Format Fields
 	let sql_fields;
 	let alias;
+	let decode;
+
 	if (is_subquery) {
 		// Generate a Group Concat statement of the result
 		const gc = group_concat(fields);
 		sql_fields = gc.field;
 		alias = gc.alias;
+		decode = gc.decode;
 	}
 	else {
-		sql_fields = fields.map(field => `${field.def}${field.as ? ` AS '${field.as}'` : ''}`);
+		sql_fields = fields.map(field => `${field.expression}${field.label ? ` AS '${field.label}'` : ''}`);
 	}
 
 	// Put it all together
@@ -134,7 +138,7 @@ function buildQuery(opts) {
 				 ${sql_orderby}
 				 ${sql_limit}`;
 
-	return {sql, values, alias};
+	return {sql, values, alias, decode};
 }
 
 
@@ -191,14 +195,14 @@ function traverse(item, is_subquery) {
 
 			// Add the formatted field
 			fields.push({
-				def: `(${sub_query.sql})`,
-				as: sub_query.alias
+				expression: `(${sub_query.sql})`,
+				label: sub_query.alias
 			});
 
 			// Format the response
-			this.response_handlers.push(row => {
-				row[sub_query.alias] = JSON.parse(row[sub_query.alias]);
-			});
+			if (sub_query.decode) {
+				this.response_handlers.push(sub_query.decode);
+			}
 
 			// The rest has been handled in the sub-query
 			return resp;
@@ -249,51 +253,19 @@ function traverse(item, is_subquery) {
 	// e.g. fields = [action, category, count, ...]
 	if (item.fields) {
 
-		// yes, believe it or not but some queries do have them....
-		item.fields.map(prepField).forEach(([def, as]) => {
+		// yes, believe it or not but some queries do have them...
+		item.fields.map(prepField).forEach(([expression, label]) => {
 
 			// Have we got a generated field?
-			if (typeof def === 'function') {
+			if (typeof expression === 'function') {
 				// Add this to the list
 				this.response_handlers.push(
-					setField.bind(this, !item.root && item.alias, as, def)
+					setField.bind(this, !item.root && item.alias, label, expression)
 				);
 				return;
 			}
 
-			const m = def.match(/^([a-z\_]+)\((DISTINCT\s)?(.+?)\)$/i);
-			let id = def;
-			let agg; // aggregate function flag
-
-			if (m) {
-
-				const [, fn, scope, _field] = m;
-
-				let field = _field;
-
-				// Update the inner key
-				if (field.match(/^([a-z\_]+)$/i)) {
-					id = field;
-					field = `${item.alias}.${field}`;
-				}
-
-				def = `${fn}(${scope || ''}${field})`;
-
-				// Is this an aggregate function
-				agg = ['SUM', 'COUNT', 'AVG', 'MAX', 'MIN', 'GROUP_CONCAT'].includes(fn.toUpperCase());
-
-			}
-			else if (def !== '*' && !def.includes('.')) {
-				def = `${item.alias}.${def}`;
-			}
-
-			if (!as && !item.root) {
-				as = `${item.alias}.${id}`;
-			}
-
-			as = as || '';
-
-			fields.push({def, as, agg});
+			fields.push(field_format(expression, label, item.alias, item.field_alias_path));
 		});
 
 	}
@@ -330,9 +302,9 @@ function prepField(field) {
 		return [field];
 	}
 
-	for (const as in field) {
-		const def = field[as];
-		return [def, as];
+	for (const label in field) {
+		const expression = field[label];
+		return [expression, label];
 	}
 }
 

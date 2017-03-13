@@ -13,11 +13,11 @@ describe('utils/group_concat', () => {
 	it('should reduce an array of fields to a GROUP_CONCAT statement', () => {
 
 		const gc = group_concat([{
-			def: 'table.a',
-			as: 'a'
+			expression: 'table.a',
+			label: 'a'
 		}, {
-			def: 'table.b',
-			as: 'b'
+			expression: 'table.b',
+			label: 'b'
 		}]);
 
 		expect(gc.field).to.eql('CONCAT(\'[\', GROUP_CONCAT(CONCAT(\'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \',\', \'"\', REPLACE(table.b, \'"\', \'\\"\'), \'"\', \']\')), \']\')');
@@ -26,12 +26,12 @@ describe('utils/group_concat', () => {
 	it('should not wrap fields which are marked as aggregating the row', () => {
 
 		const gc = group_concat([{
-			def: 'table.a',
-			as: 'a',
+			expression: 'table.a',
+			label: 'a',
 			agg: true
 		}, {
-			def: 'table.b',
-			as: 'b'
+			expression: 'table.b',
+			label: 'b'
 		}]);
 
 		expect(gc.field).to.eql('CONCAT(\'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \',\', \'"\', REPLACE(table.b, \'"\', \'\\"\'), \'"\', \']\')');

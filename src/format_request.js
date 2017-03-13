@@ -1,6 +1,9 @@
 'use strict';
 
 const error = require('./utils/error');
+const fieldReducer = require('./utils/field_reducer');
+const checkFormat = require('./utils/unwrap_field');
+const checkKey = require('./utils/validate_field');
 
 module.exports = format_request;
 
@@ -79,6 +82,9 @@ function format_specs(options) {
 		}
 	}
 
+	// Set the prefix if not already
+	options.field_alias_path = options.field_alias_path || '';
+
 	// Format fields
 	let fields = options.fields;
 	if (fields) {
@@ -96,7 +102,7 @@ function format_specs(options) {
 		}
 
 		// Filter out child fields
-		fields = fields.reduce(fieldReducer.call(this, options.alias, joined, table_schema), []);
+		fields = fields.reduce(fieldReducer.call(this, options.field_alias_path, joined, table_schema), []);
 	}
 
 	// Format conditional joins
@@ -204,7 +210,7 @@ function format_specs(options) {
 			// Furnish the join table a little more...
 			const join_object = Object.assign(joined[alias], {
 				alias,
-				field_alias_prefix: `${alias}.`
+				field_alias_path: `${options.field_alias_path + alias}.`
 			});
 
 			if (!join_object.table) {
@@ -277,138 +283,6 @@ function limit(opts) {
 		opts.start = start;
 	}
 }
-
-// Return a reducer function
-function fieldReducer(scope, join, table_schema = {}) {
-
-	const addToJoin = (field, label) => {
-		const path_str = checkFormat(field);
-		const path = path_str.split('.');
-		const key = path.shift();
-		if (path.length && key !== scope) {
-			const f = field.replace(path_str, path.join('.'));
-			const d = label ? {[label]: f} : f;
-			const a = join[key] || {};
-			a.fields = (a.fields || []);
-			a.fields.push(d);
-			join[key] = a;
-			return true;
-		}
-	};
-
-	// Handle each field property
-	return (a, field) => {
-
-		if (typeof field !== 'string') {
-
-			for (const key in field) {
-
-				const value = field[key];
-				if (typeof value === 'object') {
-					join[key] = join[key] || {};
-					join[key].fields = value;
-				}
-				else {
-					// This field has an alias
-					// i.e. latest: MAX(created_time)
-
-					// Check errors in the key field
-					checkLabel(key);
-
-					// Check the new value field parents, aka `parent_table.field`
-					if (addToJoin(value, key)) {
-						continue;
-					}
-
-					a.push({
-						[key]: value
-					});
-				}
-			}
-
-		}
-
-		else {
-			// Check errors in the key field
-			checkKey(field);
-
-			// This is also a field, so check that its a valid field
-			// + If it contains a nested value: create a join.
-			if (addToJoin(field)) {
-				return a;
-			}
-
-			// Does this field have a handler in the schema
-			const def = table_schema[field];
-
-			if (typeof def === 'function') {
-
-				// Execute the handler, add the response to the field list
-				a.push({
-					[field]: def.call(this, a)
-				});
-			}
-			else {
-				// Add the field to the array
-				a.push(field);
-			}
-		}
-
-		return a;
-	};
-}
-
-
-function checkKey(key) {
-	const reg = /^([a-z\_]+\.)?([a-z\_]+|\*)+$/i;
-
-	// Capture errors in the key
-	if (!key.match(reg)) {
-		throw Object.assign(error.INVALID_REFERENCE, {
-			message: `The key '${key}' must match ${reg}`
-		});
-	}
-}
-
-
-function checkLabel(label) {
-	const reg = /^[^\'\"]+$/i;
-
-	// Capture errors in the key
-	if (!label.match(reg)) {
-		throw Object.assign(error.INVALID_REFERENCE, {
-			message: `The label '${label}' must match ${reg}`
-		});
-	}
-}
-
-function checkFormat(str) {
-
-	if (typeof str !== 'string') {
-		throw Object.assign(error.INVALID_REFERENCE, {
-			message: `The field definition '${str}' is invalid.`
-		});
-	}
-
-	let s = str;
-	let m;
-
-	// strip away the `str(`...`)`
-	while ((m = s.match(/^\s*[a-z\_]+\((DISTINCT\s)?(.*?)\)\s*$/i))) {
-		// match
-		s = m[2];
-	}
-
-	// Is this a valid field
-	if (!s.match(/^([a-z\_\.]+|\*)$/i)) {
-		throw Object.assign(error.INVALID_REFERENCE, {
-			message: `The field definition '${str}' is invalid.`
-		});
-	}
-
-	return s;
-}
-
 
 function prepCondition(field, value, type) {
 

@@ -62,7 +62,50 @@ describe('get - subquery', () => {
 				'collection_count': 'COUNT(collections.id)'
 			}
 		})
-		.then(() => {
+		.then(resp => {
+			expect(resp).to.have.property('asset_name', 'name');
+			expect(resp).to.have.property('collection_count', 42);
+			done();
+		}).catch(done);
+
+	});
+
+	it('should export the response in the format given', done => {
+
+		dare.sql = sql => {
+
+			expect(sql.replace(/\s+/g, ' ')).to.match(SQLEXP(`
+
+				SELECT assets.name AS 'asset_name',
+				(
+					SELECT COUNT(collections.id)
+					FROM assetCollections a
+					LEFT JOIN collections ON (collections.id = a.collection_id)
+					WHERE a.asset_id = assets.id
+					LIMIT 1
+				) AS 'collections.count'
+				FROM assets
+				GROUP BY assets.id
+				LIMIT 1
+
+			`));
+			return Promise.resolve([{
+				asset_name: 'name',
+				'collections.count': 42
+			}]);
+		};
+
+		dare.get({
+			table: 'assets',
+			fields: {
+				'asset_name': 'name',
+				'collections': [{
+					'count': 'COUNT(id)'
+				}]
+			}
+		})
+		.then(resp => {
+			expect(resp.collections).to.have.property('count', 42);
 			done();
 		}).catch(done);
 
