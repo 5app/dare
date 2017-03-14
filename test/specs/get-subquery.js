@@ -154,4 +154,42 @@ describe('get - subquery', () => {
 		}).catch(done);
 
 	});
+
+	it('should *not* use a subquery when the many table is used in the filter', done => {
+
+		dare.sql = sql => {
+
+			const expected = `
+				SELECT assets.name AS 'name',
+					CONCAT('[', GROUP_CONCAT(CONCAT('[', '"', REPLACE(collections.id, '"', '\\"'), '"', ',', '"', REPLACE(collections.name, '"', '\\"'), '"', ']')), ']') AS 'collections[id,name]'
+				FROM assets
+				LEFT JOIN assetCollections a ON(a.asset_id = assets.id)
+				LEFT JOIN collections ON (collections.id = a.collection_id)
+				WHERE collections.name = ?
+				GROUP BY assets.id
+				LIMIT 1
+			`;
+
+			expectSQLEqual(sql, expected);
+
+			return Promise.resolve([{}]);
+		};
+
+		dare.get({
+			table: 'assets',
+			fields: {
+				'name': 'name',
+				'collections': ['id', 'name']
+			},
+			filter: {
+				collections: {
+					name: 'myCollection'
+				}
+			}
+		})
+		.then(() => {
+			done();
+		}).catch(done);
+
+	});
 });

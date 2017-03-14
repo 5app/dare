@@ -294,6 +294,22 @@ function traverse(item, is_subquery) {
 		});
 	}
 
+	// When the item is not within a subquery
+	// And its contains a relationship of many too one
+	// Groups all the fields into GROUP_CONCAT
+	if (item.many && !is_subquery) {
+		// Generate a Group Concat statement of the result
+		const address = item.field_alias_path || item._joins[0].field_alias_path;
+		const gc = group_concat(fields, address);
+
+		// Reset the fields array
+		fields.length = 0;
+		fields.push({
+			expression: gc.field,
+			label: gc.alias
+		});
+	}
+
 	return resp;
 }
 

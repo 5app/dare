@@ -47,6 +47,7 @@ function formatHandler(item) {
 			const m = label.match(r);
 
 			if (!m) {
+				// We do not know how to handle this response
 				// silently error, return the response as is...
 				continue;
 			}
