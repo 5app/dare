@@ -121,8 +121,8 @@ function buildQuery(opts) {
 		// Generate a Group Concat statement of the result
 		const address = opts.field_alias_path || opts._joins[0].field_alias_path;
 		const gc = group_concat(fields, address);
-		sql_fields = gc.field;
-		alias = gc.alias;
+		sql_fields = gc.expression;
+		alias = gc.label;
 		decode = gc.decode;
 	}
 	else {
@@ -304,10 +304,7 @@ function traverse(item, is_subquery) {
 
 		// Reset the fields array
 		fields.length = 0;
-		fields.push({
-			expression: gc.field,
-			label: gc.alias
-		});
+		fields.push(gc);
 	}
 
 	return resp;

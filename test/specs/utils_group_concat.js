@@ -20,8 +20,8 @@ describe('utils/group_concat', () => {
 			label: 'collection.b'
 		}], 'collection.');
 
-		expect(gc.field).to.eql('CONCAT(\'[\', GROUP_CONCAT(CONCAT(\'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \',\', \'"\', REPLACE(table.b, \'"\', \'\\"\'), \'"\', \']\')), \']\')');
-		expect(gc.alias).to.eql('collection[a,b]');
+		expect(gc.expression).to.eql('CONCAT(\'[\', GROUP_CONCAT(CONCAT(\'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \',\', \'"\', REPLACE(table.b, \'"\', \'\\"\'), \'"\', \']\')), \']\')');
+		expect(gc.label).to.eql('collection[a,b]');
 
 	});
 
@@ -36,8 +36,8 @@ describe('utils/group_concat', () => {
 			label: 'b'
 		}]);
 
-		expect(gc.field).to.eql('CONCAT(\'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \',\', \'"\', REPLACE(table.b, \'"\', \'\\"\'), \'"\', \']\')');
-		expect(gc.alias).to.eql('a,b');
+		expect(gc.expression).to.eql('CONCAT(\'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \',\', \'"\', REPLACE(table.b, \'"\', \'\\"\'), \'"\', \']\')');
+		expect(gc.label).to.eql('a,b');
 	});
 
 
@@ -49,8 +49,8 @@ describe('utils/group_concat', () => {
 			agg: true
 		}]);
 
-		expect(gc.field).to.eql('table.a');
-		expect(gc.alias).to.eql('a');
+		expect(gc.expression).to.eql('table.a');
+		expect(gc.label).to.eql('a');
 	});
 
 	it('should return an array of values for many results', () => {
@@ -60,8 +60,8 @@ describe('utils/group_concat', () => {
 			label: 'collection.a'
 		}], 'collection.');
 
-		expect(gc.field).to.eql('CONCAT(\'[\', GROUP_CONCAT(CONCAT(\'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \']\')), \']\')');
-		expect(gc.alias).to.eql('collection[a]');
+		expect(gc.expression).to.eql('CONCAT(\'[\', GROUP_CONCAT(CONCAT(\'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \']\')), \']\')');
+		expect(gc.label).to.eql('collection[a]');
 	});
 });
 

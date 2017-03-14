@@ -4,44 +4,43 @@ module.exports = function group_concat(fields, address = '') {
 
 	// Is this an aggregate list?
 	const agg = fields.reduce((prev, curr) => (prev || curr.agg), false);
-	let alias = fields.map(field => field.label || field.expression).join(',');
-	let field;
+	let label = fields.map(field => field.label || field.expression).join(',');
+	let expression;
 
 	// Return solitary value
 	if (agg && fields.length === 1) {
-		field = fields[0].expression;
+		expression = fields[0].expression;
 		return {
-			field,
-			alias,
-			decode: null
+			expression,
+			label
 		};
 	}
 
 	// convert to JSON Array
 	// fields = fields.map(field => `'"${escape(field.label || field.expression)}":', '"', REPLACE(${field.def}, '"', '\\"'), '"'`);
-	field = fields.map(field => `'"', REPLACE(${field.expression}, '"', '\\"'), '"'`);
-	field = `CONCAT('[', ${field.join(', \',\', ')}, ']')`;
+	expression = fields.map(field => `'"', REPLACE(${field.expression}, '"', '\\"'), '"'`);
+	expression = `CONCAT('[', ${expression.join(', \',\', ')}, ']')`;
 	if (agg) {
 		return {
-			field,
-			alias
+			expression,
+			label
 		};
 	}
 
 	// Multiple
-	field = `CONCAT('[', GROUP_CONCAT(${field}), ']')`;
+	expression = `CONCAT('[', GROUP_CONCAT(${expression}), ']')`;
 
-	alias = fields.map(field => {
+	label = fields.map(field => {
 		const label = (field.label || field.expression);
 		// trim the parent address from the start of the label
 		return label.indexOf(address) === 0 ? label.slice(address.length) : label;
 	}).join(',');
 
-	alias = `${address.slice(0, address.lastIndexOf('.'))}[${alias}]`;
+	label = `${address.slice(0, address.lastIndexOf('.'))}[${label}]`;
 
 	return {
-		field,
-		alias
+		expression,
+		label
 	};
 };
 
