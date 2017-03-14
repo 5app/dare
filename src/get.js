@@ -119,7 +119,8 @@ function buildQuery(opts) {
 
 	if (is_subquery) {
 		// Generate a Group Concat statement of the result
-		const gc = group_concat(fields);
+		const address = opts.field_alias_path || opts._joins[0].field_alias_path;
+		const gc = group_concat(fields, address);
 		sql_fields = gc.field;
 		alias = gc.alias;
 		decode = gc.decode;

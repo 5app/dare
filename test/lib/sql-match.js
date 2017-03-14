@@ -8,7 +8,7 @@ module.exports = sql => {
 	.replace(/\s+/g, ' ')
 
 	// Escape characters
-	.replace(/([\*\(\)\'\?])/g, '\\$1')
+	.replace(/([\*\(\)\'\?\]\[])/g, '\\$1')
 
 	// Replace spaces
 	.replace(/\s/g, '\\s*')

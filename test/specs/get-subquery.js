@@ -2,6 +2,7 @@
 
 // Test Generic DB functions
 const SQLEXP = require('../lib/sql-match');
+const expectSQLEqual = require('../lib/sql-equal');
 
 // Dare instance
 let dare;
@@ -106,6 +107,49 @@ describe('get - subquery', () => {
 		})
 		.then(resp => {
 			expect(resp.collections).to.have.property('count', 42);
+			done();
+		}).catch(done);
+
+	});
+
+	it('should concatinate many expressions into an array using GROUP_CONCAT', done => {
+
+		dare.sql = sql => {
+
+			const expected = `
+
+				SELECT assets.name AS 'name',
+				(
+					SELECT CONCAT('[', GROUP_CONCAT(CONCAT('[', '"', REPLACE(collections.id, '"', '\\"'), '"', ',', '"', REPLACE(collections.name, '"', '\\"'), '"', ']')), ']')
+					FROM assetCollections a
+					LEFT JOIN collections ON (collections.id = a.collection_id)
+					WHERE a.asset_id = assets.id
+					LIMIT 1
+				) AS 'collections[id,name]'
+				FROM assets
+				GROUP BY assets.id
+				LIMIT 1
+
+			`;
+			expectSQLEqual(sql, expected);
+
+			return Promise.resolve([{
+				asset_name: 'name',
+				'collections[id,name]': '[["1","a"],["2","b"]]'
+			}]);
+		};
+
+		dare.get({
+			table: 'assets',
+			fields: {
+				'name': 'name',
+				'collections': ['id', 'name']
+			}
+		})
+		.then(resp => {
+			expect(resp.collections).to.be.an('array');
+			expect(resp.collections[0]).to.have.property('id', '1');
+			expect(resp.collections[0]).to.have.property('name', 'a');
 			done();
 		}).catch(done);
 
