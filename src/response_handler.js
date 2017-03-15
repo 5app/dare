@@ -52,24 +52,27 @@ function formatHandler(item) {
 				continue;
 			}
 
-			// Explode the value...
-			value = JSON.parse(value);
+			if (value) {
 
-			// Create a dummy array
-			// And insert into the dataset...
-			const a = [];
-			const alabel = m[1];
-			explodeKeyValue(item, alabel.split('.'), a);
+				// Explode the value...
+				value = JSON.parse(value);
 
-			// Loop through the value entries
-			const keys = m[3].split(',');
+				// Create a dummy array
+				// And insert into the dataset...
+				const a = [];
+				const alabel = m[1];
+				explodeKeyValue(item, alabel.split('.'), a);
 
-			value.forEach(values => {
-				const obj = {};
-				keys.forEach((label, index) => obj[label] = values[index]);
-				formatHandler(obj);
-				a.push(obj);
-			});
+				// Loop through the value entries
+				const keys = m[3].split(',');
+
+				value.forEach(values => {
+					const obj = {};
+					keys.forEach((label, index) => obj[label] = values[index]);
+					formatHandler(obj);
+					a.push(obj);
+				});
+			}
 		}
 
 		delete item[label];
