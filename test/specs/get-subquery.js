@@ -1,7 +1,6 @@
 'use strict';
 
 // Test Generic DB functions
-const SQLEXP = require('../lib/sql-match');
 const expectSQLEqual = require('../lib/sql-equal');
 
 // Dare instance
@@ -35,7 +34,7 @@ describe('get - subquery', () => {
 
 		dare.sql = sql => {
 
-			expect(sql.replace(/\s+/g, ' ')).to.match(SQLEXP(`
+			const expected = `
 
 				SELECT assets.name AS 'asset_name',
 				(
@@ -49,7 +48,10 @@ describe('get - subquery', () => {
 				GROUP BY assets.id
 				LIMIT 1
 
-			`));
+			`;
+
+			expectSQLEqual(sql, expected);
+
 			return Promise.resolve([{
 				asset_name: 'name',
 				collection_count: 42
@@ -75,7 +77,7 @@ describe('get - subquery', () => {
 
 		dare.sql = sql => {
 
-			expect(sql.replace(/\s+/g, ' ')).to.match(SQLEXP(`
+			const expected = `
 
 				SELECT assets.name AS 'asset_name',
 				(
@@ -89,7 +91,10 @@ describe('get - subquery', () => {
 				GROUP BY assets.id
 				LIMIT 1
 
-			`));
+			`;
+
+			expectSQLEqual(sql, expected);
+
 			return Promise.resolve([{
 				asset_name: 'name',
 				'collections.count': 42
@@ -150,6 +155,42 @@ describe('get - subquery', () => {
 			expect(resp.collections).to.be.an('array');
 			expect(resp.collections[0]).to.have.property('id', '1');
 			expect(resp.collections[0]).to.have.property('name', 'a');
+			done();
+		}).catch(done);
+
+	});
+
+	it('should not subquery a nested object without fields', done => {
+
+		dare.sql = sql => {
+
+			const expected = `
+
+				SELECT assets.name AS 'name'
+				FROM assets
+				LIMIT 1
+
+			`;
+			expectSQLEqual(sql, expected);
+
+			return Promise.resolve([{
+				asset_name: 'name'
+			}]);
+		};
+
+		dare.get({
+			table: 'assets',
+			fields: {
+				'name': 'name'
+			},
+			join: {
+				'collections': {
+					name: 'a'
+				}
+			}
+		})
+		.then(resp => {
+			expect(resp).to.have.property('asset_name', 'name');
 			done();
 		}).catch(done);
 

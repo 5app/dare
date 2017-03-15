@@ -228,8 +228,13 @@ function format_specs(options) {
 				});
 			}
 
-			// Help the GET parser, tell it that this can be run in nested isolation, i.e. when there is no filter
-			new_join_object.can_subquery = !join_object.filter;
+			// Help the GET parser
+
+			// Does this contain a nested filter?
+			join_object.has_filter = new_join_object.has_filter = !!join_object.filter;
+
+			// Does this contain nested fields
+			join_object.has_fields = new_join_object.has_fields = join_object.fields && !!join_object.fields.length;
 
 			// Update the request with this table join
 			joins.push(new_join_object);

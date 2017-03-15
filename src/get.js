@@ -117,6 +117,12 @@ function buildQuery(opts) {
 	let alias;
 	let decode;
 
+	if (!fields.length) {
+		// This query does not contain any fields
+		// And so we should not include it
+		return null;
+	}
+
 	if (is_subquery) {
 		// Generate a Group Concat statement of the result
 		const address = opts.field_alias_path || opts._joins[0].field_alias_path;
@@ -173,8 +179,13 @@ function traverse(item, is_subquery) {
 	// Things to change if this isn't the root.
 	if (parent) {
 
+		// Is this required join table?
+		if (!item.required_join && !item.has_fields && !item.has_filter) {
+			// Prevent this join from being included.
+			return resp;
+		}
+
 		// Adopt the parents settings
-		const can_subquery = parent.can_subquery || item.can_subquery;
 		const many = parent.many || item.many;
 
 		// Does this have a many join
@@ -183,13 +194,18 @@ function traverse(item, is_subquery) {
 		// Should this be a sub query?
 		// The join is not required for filtering,
 		// And has a one to many relationship with its parent.
-		if (this.group_concat && !is_subquery && !item.required_join && can_subquery && many) {
+		if (this.group_concat && !is_subquery && !item.required_join && !item.has_filter && many) {
 
 			// Mark as subquery
 			item.is_subquery = true;
 
 			// Make the sub-query
 			const sub_query = this.buildQuery(item);
+
+			// If the sub_query is empty
+			if (!sub_query) {
+				return resp;
+			}
 
 			// Add the values
 			sql_subquery_values.push(...sub_query.values);
@@ -297,7 +313,7 @@ function traverse(item, is_subquery) {
 	// When the item is not within a subquery
 	// And its contains a relationship of many too one
 	// Groups all the fields into GROUP_CONCAT
-	if (item.many && !is_subquery) {
+	if (item.many && !is_subquery && fields.length) {
 		// Generate a Group Concat statement of the result
 		const address = item.field_alias_path || item._joins[0].field_alias_path;
 		const gc = group_concat(fields, address);

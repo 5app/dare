@@ -232,7 +232,7 @@ describe('get - request object', () => {
 					dare.sql = sql => {
 
 						const expected = `
-							SELECT activityEvents.id
+							SELECT activityEvents.id, asset.name AS 'asset.name'
 							FROM activityEvents
 							LEFT JOIN apps asset ON (asset.type = ? AND asset.id = activityEvents.ref_id)
 							LIMIT 5
@@ -240,23 +240,58 @@ describe('get - request object', () => {
 
 						expectSQLEqual(sql, expected);
 
-						done();
-						return Promise.resolve([]);
+						return Promise.resolve([{}]);
 					};
 
 					dare.get({
 						table: 'activityEvents',
 						fields: [
-							'id'
+							'id',
+							{asset: ['name']}
 						],
 						join,
 						limit
 					})
+					.then(() => done())
 					.catch(done);
 
 				});
 
 			});
+		});
+
+		it('should ignore redundant joins', done => {
+
+			dare.sql = sql => {
+
+				const expected = `
+					SELECT activityEvents.id
+					FROM activityEvents
+					LIMIT 5
+				`;
+
+				expectSQLEqual(sql, expected);
+
+				return Promise.resolve([{}]);
+			};
+
+			dare.get({
+				table: 'activityEvents',
+				fields: [
+					'id'
+				],
+				// This defines the join condition,
+				// But the table asset is redundant
+				// it's neither returning fields, part of the filter, or a required join.
+				join: {
+					asset: {
+						type: 'a'
+					}
+				},
+				limit
+			})
+			.then(() => done())
+			.catch(done);
 		});
 	});
 
