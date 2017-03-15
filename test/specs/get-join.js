@@ -1,7 +1,7 @@
 'use strict';
 
 // Test Generic DB functions
-const SQLEXP = require('../lib/sql-match');
+const expectSQLEqual = require('../lib/sql-equal');
 
 
 // Create a schema
@@ -72,10 +72,11 @@ describe('get - request object', () => {
 
 	it('should generate a SELECT statement and execute dare.sql', done => {
 
-		dare.sql = query => {
-			expect(query.replace(/\s+/g, ' ')).to.match(SQLEXP(`
+		dare.sql = sql => {
 
-				SELECT activityEvents.created_time, COUNT(*) AS _count, asset.id AS 'asset.id', asset.name AS 'asset.name', DATE(asset.updated_time) AS 'last_updated'
+			const expected = `
+
+				SELECT activityEvents.created_time, COUNT(*) AS '_count', asset.id AS 'asset.id', asset.name AS 'asset.name', DATE(asset.updated_time) AS 'asset.last_updated'
 				FROM activityEvents
 					LEFT JOIN activitySession ON (activitySession.id = activityEvents.session_id)
 					LEFT JOIN apps asset ON (asset.id = activityEvents.ref_id)
@@ -84,10 +85,13 @@ describe('get - request object', () => {
 					AND activityEvents.created_time > ?
 					AND activitySession.domain = ?
 				GROUP BY asset.id
-				ORDER BY count DESC
+				ORDER BY _count DESC
 				LIMIT 5
 
-			`));
+			`;
+
+			expectSQLEqual(sql, expected);
+
 			return Promise.resolve([]);
 		};
 
@@ -109,13 +113,13 @@ describe('get - request object', () => {
 						'id',
 						'name',
 						{
-							'last_updated': 'DATE(asset.updated_time)'
+							'last_updated': 'DATE(updated_time)'
 						}
 					]
 				}
 			],
 			groupby: 'asset.id',
-			orderby: 'count DESC',
+			orderby: '_count DESC',
 			limit
 		})
 		.then(() => {
@@ -226,30 +230,68 @@ describe('get - request object', () => {
 				it(`valid: ${JSON.stringify(join)}`, done => {
 
 					dare.sql = sql => {
-						expect(sql.replace(/\s+/g, ' ')).to.match(SQLEXP(`
-							SELECT activityEvents.id
+
+						const expected = `
+							SELECT activityEvents.id, asset.name AS 'asset.name'
 							FROM activityEvents
 							LEFT JOIN apps asset ON (asset.type = ? AND asset.id = activityEvents.ref_id)
 							LIMIT 5
-						`));
+						`;
 
-						done();
-						return Promise.resolve([]);
+						expectSQLEqual(sql, expected);
+
+						return Promise.resolve([{}]);
 					};
 
 					dare.get({
 						table: 'activityEvents',
 						fields: [
-							'id'
+							'id',
+							{asset: ['name']}
 						],
 						join,
 						limit
 					})
+					.then(() => done())
 					.catch(done);
 
 				});
 
 			});
+		});
+
+		it('should ignore redundant joins', done => {
+
+			dare.sql = sql => {
+
+				const expected = `
+					SELECT activityEvents.id
+					FROM activityEvents
+					LIMIT 5
+				`;
+
+				expectSQLEqual(sql, expected);
+
+				return Promise.resolve([{}]);
+			};
+
+			dare.get({
+				table: 'activityEvents',
+				fields: [
+					'id'
+				],
+				// This defines the join condition,
+				// But the table asset is redundant
+				// it's neither returning fields, part of the filter, or a required join.
+				join: {
+					asset: {
+						type: 'a'
+					}
+				},
+				limit
+			})
+			.then(() => done())
+			.catch(done);
 		});
 	});
 
@@ -261,7 +303,8 @@ describe('get - request object', () => {
 			dare.options = {
 				schema: {
 					'assets': {
-						thumbnail: fields => {
+						picture_id: 'picture.id',
+						thumbnail(fields) {
 
 							// Update the current fields array to include any dependencies missing
 							if (fields.indexOf('id') === -1) {
@@ -273,7 +316,6 @@ describe('get - request object', () => {
 						}
 					},
 					'picture': {
-						asset_id: 'assets.id',
 						image(fields) {
 							// Update the current fields array to include any dependencies missing
 							if (fields.indexOf('id') === -1) {
@@ -281,7 +323,7 @@ describe('get - request object', () => {
 							}
 
 							// Return either a SQL string or a function to run on the response object
-							return obj => `${this.options.meta.root  }/picture/${obj.id}/image`;
+							return obj => `${this.options.meta.root}/picture/${obj.id}/image`;
 						}
 					}
 				}
@@ -293,7 +335,7 @@ describe('get - request object', () => {
 				Promise.resolve([{
 					'id': 1,
 					'name': 'Andrew',
-					'picture[$$].id': 100
+					'picture.id': 100
 				}]);
 
 
@@ -355,120 +397,5 @@ describe('get - request object', () => {
 
 	// 	});
 	// });
-
-	describe('GROUP CONCAT', () => {
-
-		it('should write one to many requests with group concat, and format the response as an array', done => {
-
-			dare.sql = sql => {
-
-				expect(sql).to.contain('GROUP_CONCAT(CONCAT(\'"\', IFNULL(town.id, \'\'), \'"\') SEPARATOR \'$$\') AS \'town[$$].id\'');
-				expect(sql).to.contain('GROUP_CONCAT(CONCAT(\'"\', IFNULL(town.name, \'\'), \'"\') SEPARATOR \'$$\') AS \'town[$$].name\'');
-				expect(sql).to.contain('GROUP BY country.id');
-
-				return Promise.resolve([{
-					'town[$$].id': '"1"$$"2"',
-					'town[$$].name': '"a"$$"b"'
-				}]);
-			};
-
-			// Here the schema is a series of tables a street, belongs to 1 town and in return 1 country
-			dare.options = {
-				schema: {
-					town: {
-						country_id: 'country.id'
-					},
-					country: {}
-				}
-			};
-
-			dare.get({
-				table: 'country',
-				fields: [
-					{
-						town: ['id', 'name']
-					}
-				],
-				limit
-			})
-			.then(resp => {
-				const towns = resp[0].town;
-				expect(towns).to.be.an('array');
-				expect(towns[0].id).to.equal('1');
-				expect(towns[0].name).to.equal('a');
-				done();
-			}).catch(done);
-
-		});
-
-		it('should write one to many requests with group concat, and format the response as an array', done => {
-
-			dare.sql = () =>
-				Promise.resolve([{
-					'town[$$].id': '',
-					'town[$$].name': ''
-				}]);
-
-			// Here the schema is a series of tables a street, belongs to 1 town and in return 1 country
-			dare.options = {
-				schema: {
-					town: {
-						country_id: 'country.id'
-					},
-					country: {}
-				}
-			};
-
-			dare.get({
-				table: 'country',
-				fields: [
-					{
-						town: ['id', 'name']
-					}
-				],
-				limit
-			})
-			.then(resp => {
-				const towns = resp[0].town;
-				expect(towns).to.be.an('array');
-				expect(towns.length).to.equal(0);
-				done();
-			}).catch(done);
-
-		});
-
-		it('should not wrap aggregate functions', done => {
-
-			dare.sql = sql => {
-				expect(sql).to.contain('SELECT MAX(town.population) AS \'_max\'');
-				done();
-				return Promise.resolve([]);
-			};
-
-			// Here the schema is a series of tables a street, belongs to 1 town and in return 1 country
-			dare.options = {
-				schema: {
-					town: {
-						country_id: 'country.id'
-					},
-					country: {}
-				}
-			};
-
-			dare.get({
-				table: 'country',
-				fields: [
-					{
-						town: [
-							{_max: 'MAX(population)'}
-						]
-					}
-				],
-				limit
-			})
-			.catch(done);
-
-		});
-	});
 
 });

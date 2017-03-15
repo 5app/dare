@@ -48,6 +48,7 @@ describe('format_request', () => {
 					fields,
 					table: actualtable,
 					alias: table,
+					field_alias_path: '',
 					filter,
 					_filter: [
 						['id', '= ?', [1]]

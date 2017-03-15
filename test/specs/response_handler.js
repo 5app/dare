@@ -21,40 +21,62 @@ describe('response_handler', () => {
 
 		const data = dare.response_handler([{
 			'field': 'value',
-			'join.id': 1,
-			'join.name': 'value'
+			'assoc.id': 1,
+			'assoc.name': 'value'
 		}]);
 
 		expect(data).to.be.an('array');
 		expect(data[0]).to.deep.equal({
 			field: 'value',
-			join: {
+			assoc: {
 				id: 1,
 				name: 'value'
 			}
 		});
 	});
 
-	it('should given a seperator key expand the value field and create an array', () => {
+	it('should given a field with an array of fields in the title split the values', () => {
 
 		const data = dare.response_handler([{
 			'field': 'value',
-			'join[$].id': '1$2',
-			'join[$].name': 'a$b'
+			'assoc.id,assoc.name': '["1","a"]',
 		}]);
 
 		expect(data).to.be.an('array');
 		expect(data[0]).to.deep.equal({
 			field: 'value',
-			join: [{
+			assoc: {
 				id: '1',
 				name: 'a'
-			},
-			{
-				id: '2',
-				name: 'b'
-			}]
+			}
 		});
 	});
 
+	it('should given a nested dataset', () => {
+
+		const data = dare.response_handler([{
+			'field': 'value',
+			'collection[id,name,assoc.id,assoc.name]': '[["1","a","a1","aa"],["2","b","b1","ba"]]',
+		}]);
+
+		expect(data).to.be.an('array');
+		expect(data[0]).to.deep.equal({
+			field: 'value',
+			collection: [{
+				id: '1',
+				name: 'a',
+				assoc: {
+					id: 'a1',
+					name: 'aa'
+				}
+			}, {
+				id: '2',
+				name: 'b',
+				assoc: {
+					id: 'b1',
+					name: 'ba'
+				}
+			}]
+		});
+	});
 });

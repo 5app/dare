@@ -9,25 +9,77 @@ module.exports = function responseHandler(resp) {
 // Format
 function formatHandler(item) {
 
-	// Some of the names were prefixed too ensure uniqueness, e.g., [{name: name, 'asset:name': name}]
-	for (const x in item) {
+	// Some of the names were prefixed to ensure uniqueness, e.g., [{name: name, 'asset:name': name}]
+	for (const label in item) {
 
-		// Check the key for expansion key '.'
-		const a = x.split('.');
+		let value = item[label];
 
+		// Is this a simple field?
+		if (!(label.includes(',') || label.includes('['))) {
 
-		if (a.length > 1) {
+			// Is this a very simple field...
+			if (!label.includes('.')) {
+
+				continue; // Dont do anything
+			}
 
 			// Create new object
-			explodeKeyValue(item, a, item[x]);
-
-			// Delete the original key
-			delete item[x];
+			explodeKeyValue(item, label.split('.'), value);
 		}
+
+		// Does this contain multiples
+		else if (!label.includes('[')) {
+
+			// Lets split the value up
+			value = JSON.parse(value);
+
+			label.split(',').forEach((label, index) => {
+
+				explodeKeyValue(item, label.split('.'), value[index]);
+
+			});
+		}
+
+		else {
+
+			// This has multiple parts
+			const r = /([a-z0-9\s\_\-]*)(\[(.*?)\])?/i;
+			const m = label.match(r);
+
+			if (!m) {
+				// We do not know how to handle this response
+				// silently error, return the response as is...
+				continue;
+			}
+
+			if (value) {
+
+				// Explode the value...
+				value = JSON.parse(value);
+
+				// Create a dummy array
+				// And insert into the dataset...
+				const a = [];
+				const alabel = m[1];
+				explodeKeyValue(item, alabel.split('.'), a);
+
+				// Loop through the value entries
+				const keys = m[3].split(',');
+
+				value.forEach(values => {
+					const obj = {};
+					keys.forEach((label, index) => obj[label] = values[index]);
+					formatHandler(obj);
+					a.push(obj);
+				});
+			}
+		}
+
+		delete item[label];
 	}
 
-	if (this.options.response_handlers) {
-		this.options.response_handlers.forEach(callback => callback(item));
+	if (this && this.response_handlers) {
+		this.response_handlers.forEach(callback => callback(item));
 	}
 
 	return item;
