@@ -1,7 +1,7 @@
 'use strict';
 
 // Test Generic DB functions
-const SQLEXP = require('../lib/sql-match');
+const sqlEqual = require('../lib/sql-equal');
 
 describe('post', () => {
 
@@ -18,7 +18,7 @@ describe('post', () => {
 	it('should generate an INSERT statement and execute dare.execute', done => {
 
 		dare.execute = (query, callback) => {
-			expect(query).to.match(SQLEXP('INSERT INTO test (id) VALUES (1)'));
+			sqlEqual(query, 'INSERT INTO test (id) VALUES (1)');
 			callback(null, {id: 1});
 		};
 
@@ -35,7 +35,10 @@ describe('post', () => {
 	it('should accept an Array of records to insert', done => {
 
 		dare.execute = (query, callback) => {
-			expect(query).to.match(SQLEXP('INSERT INTO test (id, name, field) VALUES (1, \'1\', DEFAULT), (2, \'2\', \'extra\')'));
+			sqlEqual(query, `
+				INSERT INTO test (id, name, field)
+				VALUES (1, '1', DEFAULT), (2, '2', 'extra')
+			`);
 			callback(null, []);
 		};
 
@@ -51,7 +54,7 @@ describe('post', () => {
 	it('should accept option.duplicate_keys=ignore', done => {
 
 		dare.execute = (query, callback) => {
-			expect(query).to.match(SQLEXP('INSERT IGNORE INTO test (id) VALUES (1)'));
+			sqlEqual(query, 'INSERT IGNORE INTO test (id) VALUES (1)');
 			done();
 			callback({});
 		};
@@ -65,7 +68,7 @@ describe('post', () => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
-			expect(query).to.match(SQLEXP('INSERT INTO test (name) VALUES (\'name\')'));
+			sqlEqual(query, 'INSERT INTO test (name) VALUES (\'name\')');
 			callback(null, {success: true});
 		};
 
@@ -83,7 +86,7 @@ describe('post', () => {
 	it('should trigger pre handler, options.post.[table]', done => {
 
 		dare.execute = (query, callback) => {
-			expect(query).to.match(SQLEXP('INSERT INTO tbl (name) VALUES (\'andrew\')'));
+			sqlEqual(query, 'INSERT INTO tbl (name) VALUES (\'andrew\')');
 			callback(null, {success: true});
 		};
 
@@ -110,7 +113,7 @@ describe('post', () => {
 	it('should trigger pre handler, options.post.default, and wait for Promise to resolve', done => {
 
 		dare.execute = (query, callback) => {
-			expect(query).to.match(SQLEXP('INSERT INTO tbl (name) VALUES (\'andrew\')'));
+			sqlEqual(query, 'INSERT INTO tbl (name) VALUES (\'andrew\')');
 			callback(null, {success: true});
 		};
 

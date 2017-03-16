@@ -1,7 +1,6 @@
 'use strict';
 
 // Test Generic DB functions
-const SQLEXP = require('../lib/sql-match');
 const sqlEqual = require('../lib/sql-equal');
 
 describe('get', () => {
@@ -24,7 +23,7 @@ describe('get', () => {
 				// Defaults
 				// Limit: 1
 				// Fields: *
-				expect(query).to.match(SQLEXP('SELECT * FROM test WHERE test.id = 1 LIMIT 1'));
+				sqlEqual(query, 'SELECT * FROM test WHERE test.id = 1 LIMIT 1');
 				callback(null, [{id: 1}]);
 			};
 
@@ -39,10 +38,10 @@ describe('get', () => {
 
 		});
 
-		it('should create a query with custom fields', done => {
+		it('should create a query with fields', done => {
 
 			dare.execute = (query, callback) => {
-				expect(query).to.match(SQLEXP('SELECT test.id, test.name FROM test WHERE test.id = 1 LIMIT 1'));
+				sqlEqual(query, 'SELECT test.id, test.name FROM test WHERE test.id = 1 LIMIT 1');
 				callback(null, [{id: 1}]);
 			};
 
@@ -60,7 +59,7 @@ describe('get', () => {
 		it('should support array of value in the query condition', done => {
 
 			dare.execute = (query, callback) => {
-				expect(query).to.match(SQLEXP('SELECT test.id, test.name FROM test WHERE test.id IN (1, 2) LIMIT 2'));
+				sqlEqual(query, 'SELECT test.id, test.name FROM test WHERE test.id IN (1, 2) LIMIT 2');
 				callback(null, [{id: 1, name: '1'}, {id: 2, name: '2'}]);
 			};
 
@@ -79,7 +78,7 @@ describe('get', () => {
 		it('should support wildcard characters for pattern matching', done => {
 
 			dare.execute = (query, callback) => {
-				expect(query).to.match(SQLEXP('SELECT test.id, test.name FROM test WHERE test.name LIKE \'And%\' LIMIT 5'));
+				sqlEqual(query, 'SELECT test.id, test.name FROM test WHERE test.name LIKE \'And%\' LIMIT 5');
 				callback(null, [{id: 1, name: '1'}, {id: 2, name: '2'}]);
 			};
 
@@ -95,7 +94,7 @@ describe('get', () => {
 		it('should have an overidable limit', done => {
 
 			dare.execute = (query, callback) => {
-				expect(query).to.match(SQLEXP('SELECT * FROM test WHERE test.id = 1 LIMIT 5'));
+				sqlEqual(query, 'SELECT * FROM test WHERE test.id = 1 LIMIT 5');
 				callback(null, [{id: 1}]);
 			};
 
@@ -143,10 +142,10 @@ describe('get', () => {
 		});
 
 
-		it('should let us pass through SQL functions', done => {
+		it('should let us pass through SQL Functions', done => {
 
 			dare.execute = (query, callback) => {
-				expect(query).to.match(SQLEXP('SELECT count(*) AS \'_count\' FROM test WHERE test.id = 1 GROUP BY name LIMIT 1'));
+				sqlEqual(query, 'SELECT count(*) AS \'_count\' FROM test WHERE test.id = 1 GROUP BY name LIMIT 1');
 				callback(null, [{id: 1}]);
 			};
 
@@ -184,11 +183,6 @@ describe('get', () => {
 			.catch(done);
 
 		});
-	});
-
-
-	describe('Request Object', () => {
-
 	});
 });
 

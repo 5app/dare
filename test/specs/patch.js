@@ -1,7 +1,7 @@
 'use strict';
 
 // Test Generic DB functions
-const SQLEXP = require('../lib/sql-match');
+const sqlEqual = require('../lib/sql-equal');
 
 const error = require('../../src/utils/error');
 
@@ -21,7 +21,7 @@ describe('patch', () => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
-			expect(query).to.match(SQLEXP('UPDATE test SET name = \'name\' WHERE id = 1 LIMIT 1'));
+			sqlEqual(query, 'UPDATE test SET name = \'name\' WHERE id = 1 LIMIT 1');
 			callback(null, {success: true});
 		};
 
@@ -52,7 +52,7 @@ describe('patch', () => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
-			expect(query).to.match(SQLEXP('UPDATE test SET name = \'name\' WHERE id = 1 LIMIT 1'));
+			sqlEqual(query, 'UPDATE test SET name = \'name\' WHERE id = 1 LIMIT 1');
 			callback(null, {success: true});
 		};
 
@@ -71,7 +71,7 @@ describe('patch', () => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
-			expect(query).to.match(SQLEXP('UPDATE test SET name = \'name\' WHERE id = 1 LIMIT 11'));
+			sqlEqual(query, 'UPDATE test SET name = \'name\' WHERE id = 1 LIMIT 11');
 			callback(null, {success: true});
 		};
 
@@ -91,7 +91,7 @@ describe('patch', () => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
-			expect(query).to.match(SQLEXP('UPDATE tablename SET name = \'name\' WHERE id = 1 LIMIT 1'));
+			sqlEqual(query, 'UPDATE tablename SET name = \'name\' WHERE id = 1 LIMIT 1');
 			callback(null, {success: true});
 		};
 
@@ -116,7 +116,7 @@ describe('patch', () => {
 	it('should trigger pre handler, options.patch.[table]', done => {
 
 		dare.execute = (query, callback) => {
-			expect(query).to.match(SQLEXP('UPDATE tbl SET name = \'andrew\' WHERE id = 1 LIMIT 1'));
+			sqlEqual(query, 'UPDATE tbl SET name = \'andrew\' WHERE id = 1 LIMIT 1');
 			callback(null, {success: true});
 		};
 
@@ -144,7 +144,7 @@ describe('patch', () => {
 	it('should trigger pre handler, options.patch.default, and wait for Promise to resolve', done => {
 
 		dare.execute = (query, callback) => {
-			expect(query).to.match(SQLEXP('UPDATE tbl SET name = \'andrew\' WHERE id = 1 LIMIT 1'));
+			sqlEqual(query, 'UPDATE tbl SET name = \'andrew\' WHERE id = 1 LIMIT 1');
 			callback(null, {success: true});
 		};
 

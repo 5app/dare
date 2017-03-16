@@ -1,7 +1,7 @@
 'use strict';
 
 // Test Generic DB functions
-const SQLEXP = require('../lib/sql-match');
+const sqlEqual = require('../lib/sql-equal');
 const error = require('../../src/utils/error');
 
 describe('del', () => {
@@ -18,9 +18,9 @@ describe('del', () => {
 
 	it('should generate an DELETE statement and execute dare.execute', done => {
 
-		dare.execute = (sql, callback) => {
+		dare.execute = (query, callback) => {
 			// limit: 1
-			expect(sql).to.match(SQLEXP('DELETE FROM test WHERE id = 1 LIMIT 1'));
+			sqlEqual(query, 'DELETE FROM test WHERE id = 1 LIMIT 1');
 			callback(null, {success: true});
 		};
 
@@ -51,7 +51,7 @@ describe('del', () => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
-			expect(query).to.match(SQLEXP('DELETE FROM tablename WHERE id = 1 LIMIT 1'));
+			sqlEqual(query, 'DELETE FROM tablename WHERE id = 1 LIMIT 1');
 			callback(null, {success: true});
 		};
 
@@ -74,7 +74,7 @@ describe('del', () => {
 	it('should trigger pre handler, options.del.[table]', done => {
 
 		dare.execute = (query, callback) => {
-			expect(query).to.match(SQLEXP('DELETE FROM tbl WHERE id = 1 LIMIT 1'));
+			sqlEqual(query, 'DELETE FROM tbl WHERE id = 1 LIMIT 1');
 			callback(null, {success: true});
 		};
 
@@ -101,7 +101,7 @@ describe('del', () => {
 	it('should trigger pre handler, options.del.default, and wait for Promise to resolve', done => {
 
 		dare.execute = (query, callback) => {
-			expect(query).to.match(SQLEXP('DELETE FROM tbl WHERE id = 1 LIMIT 1'));
+			sqlEqual(query, 'DELETE FROM tbl WHERE id = 1 LIMIT 1');
 			callback(null, {success: true});
 		};
 
