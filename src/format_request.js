@@ -4,6 +4,7 @@ const error = require('./utils/error');
 const fieldReducer = require('./utils/field_reducer');
 const checkFormat = require('./utils/unwrap_field');
 const checkKey = require('./utils/validate_field');
+const formatDateTime = require('./utils/format_datetime');
 
 module.exports = format_request;
 
@@ -347,37 +348,4 @@ function prepCondition(field, value, type) {
 	}
 
 	return [field, condition, values];
-}
-
-
-function formatDateTime(values) {
-	if (typeof values === 'string') {
-
-		if (values.indexOf('..') === -1) {
-			values = `${values}..${values}`;
-		}
-
-		let i = 0;
-
-		return values.replace(/(\d{4})(-\d{1,2})?(-\d{1,2})?/g, (str, y, m, d) => {
-
-			const date = new Date(str);
-
-			if (i++) {
-				if (!m) {
-					date.setFullYear(date.getFullYear() + 1);
-				}
-				else if (!d) {
-					date.setMonth(date.getMonth() + 1);
-				}
-				else {
-					date.setDate(date.getDate() + 1);
-				}
-				date.setSeconds(date.getSeconds() - 1);
-			}
-
-			return date.toISOString().replace(/\.\d+Z/, '');
-		});
-	}
-	return values;
 }
