@@ -87,7 +87,14 @@ function buildQuery(opts) {
 
 	// Ensure that the parent has opts.groupby when we're joining tables
 	if (!is_subquery && !opts.groupby && has_many_join) {
-		opts.groupby = `${opts.alias}.id`;
+
+		// Are all the fields aggregates?
+		const all_aggs = fields.every(item => item.agg);
+
+		if (!all_aggs) {
+			// Determine whether there are non?
+			opts.groupby = `${opts.alias}.id`;
+		}
 	}
 
 	if (opts.groupby) {

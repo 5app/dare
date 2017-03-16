@@ -295,6 +295,72 @@ describe('get - request object', () => {
 		});
 	});
 
+	describe('GROUP BY inclusion', () => {
+
+		it('should automatically assign a GROUP BY on a 1:n join', done => {
+
+			dare.sql = sql => {
+
+				const expected = `
+					SELECT asset.id
+					FROM apps asset
+					LEFT JOIN activityEvents ON(activityEvents.ref_id = asset.id)
+					WHERE activityEvents.type = ?
+					GROUP BY asset.id
+					LIMIT 5
+				`;
+
+				expectSQLEqual(sql, expected);
+
+				return Promise.resolve([{}]);
+			};
+
+			dare.get({
+				table: 'asset',
+				fields: ['id'],
+				filter: {
+					activityEvents: {
+						type: 'a'
+					}
+				},
+				limit
+			})
+			.then(() => done())
+			.catch(done);
+		});
+
+		it('should not automatically assign a GROUP on an 1:n join where there are Aggregate ', done => {
+
+			dare.sql = sql => {
+
+				const expected = `
+					SELECT COUNT(*) AS '_count'
+					FROM apps asset
+					LEFT JOIN activityEvents ON(activityEvents.ref_id = asset.id)
+					WHERE activityEvents.type = ?
+					LIMIT 5
+				`;
+
+				expectSQLEqual(sql, expected);
+
+				return Promise.resolve([{}]);
+			};
+
+			dare.get({
+				table: 'asset',
+				fields: ['_count'],
+				filter: {
+					activityEvents: {
+						type: 'a'
+					}
+				},
+				limit
+			})
+			.then(() => done())
+			.catch(done);
+		});
+	});
+
 	describe('generated fields', () => {
 
 		it('should allow bespoke fields to be defined in the schema', done => {

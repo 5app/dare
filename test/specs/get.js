@@ -2,6 +2,7 @@
 
 // Test Generic DB functions
 const SQLEXP = require('../lib/sql-match');
+const sqlEqual = require('../lib/sql-equal');
 
 describe('get', () => {
 
@@ -159,6 +160,30 @@ describe('get', () => {
 
 		});
 
+		it('should interpret _count as COUNT(*)', done => {
+
+			dare.execute = (query, callback) => {
+
+				const expected = `
+					SELECT COUNT(*) AS '_count'
+					FROM test
+					LIMIT 1
+				`;
+
+				sqlEqual(query, expected);
+
+				callback(null, [{_count: 10}]);
+			};
+
+			dare
+			.get('test', ['_count'])
+			.then(resp => {
+				expect(resp).to.eql({_count: 10});
+				done();
+			})
+			.catch(done);
+
+		});
 	});
 
 
