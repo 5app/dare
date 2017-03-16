@@ -9,11 +9,15 @@ module.exports = function formatDateTime(values) {
 
 		const a = values.split('..').map(str => {
 
+			if (!str) {
+				return '';
+			}
+
 			const date = new Date(str);
 
 			if (i++) {
 
-				const [yyyy, mm, dd, hh, i, s] = str.split(/\D+/);
+				const [, mm, dd, hh, i, s] = str.split(/\D+/);
 
 				if (!mm) {
 					date.setFullYear(date.getFullYear() + 1);

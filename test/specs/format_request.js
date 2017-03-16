@@ -260,7 +260,7 @@ describe('format_request', () => {
 
 		describe('should accept', () => {
 
-			['table.field', 'DATE(table.created_time)'].forEach(groupby => {
+			['table.field', 'DATE(table.created_time)', 'EXTRACT(YEAR_MONTH FROM table.created_time)'].forEach(groupby => {
 
 				it(`valid: ${  groupby  } (${  typeof groupby  })`, done => {
 
