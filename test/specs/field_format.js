@@ -39,8 +39,8 @@ describe('utils/field_format', () => {
 
 		// If the expression defines a nested field, take that away from the prefix label address
 		[
-			['COUNT(nested.field)', 'count', 'nested', 'nested.'],
-			['COUNT(nested.field)', 'count', true]
+			['SUM(nested.field)', 'count', 'nested', 'nested.'],
+			['SUM(nested.field)', 'count', true]
 		],
 		[
 			['COUNT(deep.nested.field)', 'count', 'nested', 'deep.nested.'],

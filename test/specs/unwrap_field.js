@@ -10,16 +10,18 @@ describe('utils/unwrap_field', () => {
 		'field',
 		'DATE(field)',
 		'COUNT(DISTINCT field)',
-		'GROUP_CONCAT(DISTINCT field)'
+		'GROUP_CONCAT(DISTINCT field)',
+		'MAX(DAY(field))',
+		'EXTRACT(YEAR_MONTH FROM field)'
 	].forEach(test => {
 
 		it(`where ${JSON.stringify(test)}`, () => {
 
 			// Call the field with the
-			const actual = unwrap_field(test);
+			const unwrapped = unwrap_field(test);
 
 			// Expect the formatted list of fields to be identical to the inputted value
-			expect(actual).to.eql('field');
+			expect(unwrapped.field).to.eql('field');
 		});
 	});
 });

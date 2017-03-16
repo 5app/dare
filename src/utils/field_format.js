@@ -1,15 +1,13 @@
+const unwrap_expression = require('./unwrap_field');
 
 module.exports = function field_format(expression, label, table_prefix, label_prefix) {
 
-	const m = expression.match(/^(([a-z\_]+)\((DISTINCT\s)?)*([a-z0-9\.\_\*]+?)(\))*$/i);
+	const m = unwrap_expression(expression);
 
-	const path = m[4];
-	const fn = m[2];
-	const prefix = m[1];
-	const suffix = m[5];
+	const {field, prefix, suffix} = m;
 
 	// Split it...
-	const a = path.split('.');
+	const a = field.split('.');
 	const name = a.pop();
 	const address = a.join('.');
 
@@ -39,7 +37,7 @@ module.exports = function field_format(expression, label, table_prefix, label_pr
 	// aggregate function flag
 	let agg = false;
 
-	if (prefix && ['SUM', 'COUNT', 'AVG', 'MAX', 'MIN', 'GROUP_CONCAT'].includes(fn.toUpperCase())) {
+	if (prefix && /\b(SUM|COUNT|AVG|MAX|MIN|GROUP_CONCAT)\(/.test(prefix.toUpperCase())) {
 		agg = true;
 	}
 

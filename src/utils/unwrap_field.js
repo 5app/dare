@@ -1,28 +1,27 @@
 const error = require('./error');
 
-module.exports = function unwrap_field(str) {
+module.exports = function unwrap_field(expression) {
 
-	if (typeof str !== 'string') {
-		throw Object.assign(error.INVALID_REFERENCE, {
-			message: `The field definition '${str}' is invalid.`
-		});
-	}
+	const m = typeof expression === 'string' && expression.match(/^(([a-z\_]+)\(([a-z\_]+\s)*)*([a-z0-9\.\_\*]+?)(\))*$/i);
 
-	let s = str;
-	let m;
+	if (m) {
+		const field = m[4];
+		const prefix = m[1] || '';
+		const suffix = m[5] || '';
 
-	// strip away the `str(`...`)`
-	while ((m = s.match(/^\s*[a-z\_]+\((DISTINCT\s)?(.*?)\)\s*$/i))) {
-		// match
-		s = m[2];
+		if ((prefix.match(/\(/g) || []).length === suffix.length) {
+
+			// This passes the test
+			return {
+				field,
+				prefix,
+				suffix
+			};
+		}
 	}
 
 	// Is this a valid field
-	if (!s.match(/^([a-z\_\.]+|\*)$/i)) {
-		throw Object.assign(error.INVALID_REFERENCE, {
-			message: `The field definition '${str}' is invalid.`
-		});
-	}
-
-	return s;
+	throw Object.assign(error.INVALID_REFERENCE, {
+		message: `The field definition '${expression}' is invalid.`
+	});
 };

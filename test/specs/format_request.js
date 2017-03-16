@@ -281,7 +281,7 @@ describe('format_request', () => {
 
 		describe('should throw an error, when:', () => {
 
-			[-1, 101, {}, 'parenthisis(snap', '; ', 't(SELECT 1)'].forEach(groupby => {
+			[-1, 101, {}, 'parenthisis(snap', '; ', 'SUM(SE-LECT 1)'].forEach(groupby => {
 
 				it(`invalid: ${  groupby  } (${  typeof groupby  })`, done => {
 

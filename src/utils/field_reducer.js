@@ -8,7 +8,7 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
 	const addToJoin = (field, label) => {
 
 		// Get the full address of the field from the expression
-		const address = checkFormat(field);
+		const address = checkFormat(field).field;
 
 		// Truncate the response garner the join table to attach it too.
 		const diff = address.replace(current_address, '').split('.');
