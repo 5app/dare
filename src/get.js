@@ -193,15 +193,30 @@ function traverse(item, is_subquery) {
 		}
 
 		// Adopt the parents settings
-		const many = parent.many || item.many;
+		const many = item.many;
 
 		// Does this have a many join
 		resp.has_many_join = many;
 
+		// We're unable to filter the subquery on a set of values
+		// So, Do any of the ancestors containing one-many relationships?
+		let ancestors_many = false;
+
+		{
+			let x = item;
+			while (x.parent) {
+				if (x.parent.many) {
+					ancestors_many = true;
+					break;
+				}
+				x = x.parent;
+			}
+		}
+
 		// Should this be a sub query?
 		// The join is not required for filtering,
 		// And has a one to many relationship with its parent.
-		if (this.group_concat && !is_subquery && !item.required_join && !item.has_filter && many) {
+		if (this.group_concat && !is_subquery && !ancestors_many && !item.required_join && !item.has_filter && many) {
 
 			// Mark as subquery
 			item.is_subquery = true;

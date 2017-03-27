@@ -10,11 +10,15 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
 		// Get the full address of the field from the expression
 		const address = checkFormat(field).field;
 
-		// Truncate the response garner the join table to attach it too.
-		const diff = address.replace(current_address, '').split('.');
+		// Does the path exist at the end of the current_address
+		// e.g. Our current address might be grandparent.parent.
+		// Then we'd break down the new address "parent.tbl.field" => "parent.tbl." => "parent."
+		// And see that that actually the path is the bit we've removed... aka tbl.field
+		const a = overlap(current_address, address);
+		const relative = a[2].split('.');
 
-		if (diff.length > 1) {
-			const key = diff[0];
+		if (relative.length > 1) {
+			const key = relative[0];
 			const d = label ? {[label]: field} : field;
 			const a = join[key] || {};
 			a.fields = (a.fields || []);
@@ -85,3 +89,31 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
 		return a;
 	};
 };
+
+
+// Overlap strings
+// Given two strings, e.g. 'this.is.not' and 'is.not.over'
+// Find the over laping section in this case 'is.not'
+// Return the various parts as an array ['this', '.is.not', '.over']
+function overlap(a, b) {
+
+	let path = b;
+
+	// Remove chunks off the end of the second string and see if it matches the end of the first
+	// Continue to do this
+	while (path && !a.endsWith(path)) {
+
+		// What is the position of the separator
+		const i = path.lastIndexOf('.', path.length - 2);
+
+		if (i <= 0) {
+			// No, this is relative field
+			path = '';
+			break;
+		}
+
+		path = path.slice(0, i + 1);
+	}
+
+	return [a.slice(0, a.lastIndexOf(path)), path, b.slice(path.length)];
+}

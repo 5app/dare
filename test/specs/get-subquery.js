@@ -18,6 +18,11 @@ const options = {
 		assetCollections: {
 			asset_id: 'assets.id',
 			collection_id: 'collections.id'
+		},
+
+		// Collection children
+		collectionChildren: {
+			collection_id: 'collections.id'
 		}
 	}
 };
@@ -160,7 +165,7 @@ describe('get - subquery', () => {
 
 	});
 
-	it('should not subquery a nested object without fields', done => {
+	it('should *not* subquery a nested object without fields', done => {
 
 		dare.sql = sql => {
 
@@ -225,6 +230,48 @@ describe('get - subquery', () => {
 			filter: {
 				collections: {
 					name: 'myCollection'
+				}
+			}
+		})
+		.then(() => {
+			done();
+		}).catch(done);
+
+	});
+
+	it('should *not* subquery a table off a join with a possible set of values', done => {
+
+		dare.sql = sql => {
+
+			const expected = `
+				SELECT assets.name AS 'name', CONCAT('[',GROUP_CONCAT(CONCAT('[','"',REPLACE(COUNT(collectionChildren.id),'"','\\"'),'"',']')),']') AS 'assetCollections[collections.descendents]'
+				FROM assets
+				LEFT JOIN assetCollections ON(assetCollections.asset_id = assets.id)
+				LEFT JOIN collections ON(collections.id = assetCollections.collection_id)
+				LEFT JOIN collectionChildren ON(collectionChildren.collection_id=collections.id)
+				WHERE assetCollections.is_deleted = ?
+				GROUP BY assets.id
+				LIMIT 1
+			`;
+
+			expectSQLEqual(sql, expected);
+
+			return Promise.resolve([{}]);
+		};
+
+		dare.get({
+			table: 'assets',
+			fields: {
+				'name': 'name',
+				'assetCollections': {
+					'collections': {
+						descendents: 'COUNT(collectionChildren.id)'
+					}
+				}
+			},
+			filter: {
+				assetCollections: {
+					is_deleted: false
 				}
 			}
 		})

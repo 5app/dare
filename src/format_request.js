@@ -235,7 +235,7 @@ function format_specs(options) {
 			join_object.has_filter = new_join_object.has_filter = !!join_object.filter;
 
 			// Does this contain nested fields
-			join_object.has_fields = new_join_object.has_fields = join_object.fields && !!join_object.fields.length;
+			join_object.has_fields = new_join_object.has_fields = !!(Array.isArray(join_object.fields) ? join_object.fields.length : join_object.fields);
 
 			// Update the request with this table join
 			joins.push(new_join_object);

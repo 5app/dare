@@ -55,7 +55,18 @@ describe('Field Reducer', () => {
 				[{
 					'Another Field': 'COUNT(DISTINCT b_table.b_field)'
 				}]
-			]
+			],
+
+			// Test 6
+			[
+				[{
+					'Field': 'COUNT(DISTINCT asset.field)'
+				}],
+				[{
+					'Field': 'COUNT(DISTINCT asset.field)'
+				}]
+			],
+
 		].forEach(test => {
 
 			const input = test[0]; // Test request fields array to process
@@ -67,7 +78,7 @@ describe('Field Reducer', () => {
 			const inst = {};
 
 			// Details about the current table...
-			const alias = 'asset';
+			const alias = 'something.asset.';
 			const joined = {};
 
 			// Schema
