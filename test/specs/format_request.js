@@ -398,48 +398,83 @@ describe('format_request', () => {
 
 	describe('filter', () => {
 
-		describe('should accept', () => {
+		describe('should prep conditions', () => {
 
-			const o = {
-				'string': [
+			const a = [
+				[
+					{prop: 'string'},
+					'prop',
 					'= ?',
 					['string']
 				],
-				'%string': [
+				[
+					{prop: '%string'},
+					'prop',
 					'LIKE ?',
 					['%string']
 				],
-				'!string': [
+				[
+					{prop: '!string'},
+					'prop',
 					'NOT LIKE ?',
 					['string']
 				],
-				'!patt%rn': [
+				[
+					{prop: '!patt%rn'},
+					'prop',
 					'NOT LIKE ?',
 					['patt%rn']
 				],
+				[
+					{'-prop': 'patt%rn'},
+					'prop',
+					'NOT LIKE ?',
+					['patt%rn']
+				],
+				[
+					{prop: [1, 2, 3]},
+					'prop',
+					'IN (?,?,?)',
+					[1, 2, 3]
+				],
+				[
+					{'-prop': [1, 2, 3]},
+					'prop',
+					'NOT IN (?,?,?)',
+					[1, 2, 3]
+				],
+				[
+					{prop: null},
+					'prop',
+					'IS NULL',
+					[]
+				],
+				[
+					{'-prop': null},
+					'prop',
+					'IS NOT NULL',
+					[]
+				],
+			];
 
-			};
+			a.forEach(test => {
 
-			for (const date in o) {
+				const [filter, prop, condition, values] = test;
 
-				const [condition, values] = o[date];
-
-				it(`should augment fiter values ${date}`, done => {
+				it(`should augment filter values ${JSON.stringify(filter)}`, done => {
 
 					dare.format_request({
 						table: 'tbl',
 						fields: ['id'],
-						filter: {
-							date
-						}
+						filter
 					})
 					.then(options => {
-						expect(options._filter[0]).to.eql(['date', condition, values]);
+						expect(options._filter[0]).to.eql([prop, condition, values]);
 						done();
 					})
 					.catch(done);
 				});
-			}
+			});
 
 		});
 
@@ -523,7 +558,7 @@ describe('format_request', () => {
 
 				const [condition, values] = o[date];
 
-				it(`should augment fiter values ${date}`, done => {
+				it(`should augment filter values ${date}`, done => {
 
 					dare.options = {
 						schema: {

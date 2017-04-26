@@ -1,6 +1,6 @@
 # Database and REST (dare)
 
-Dare is an API for building SQL, it can be used within an application, or be bound to HTTP Request endpoint to expose a RESTful API.
+Dare is an API for generating SQL, it can be used internally to build and execute SQL. As well as lathered with request handlers for layering per table rules and security to expose a REST interface.
 
 # Install
 
@@ -8,10 +8,13 @@ Dare is an API for building SQL, it can be used within an application, or be bou
 npm i dare --save
 ```
 
-Then in script, create a `db.js` connection file that configures dare and returns an instance to be used throughout your application.
+# Setup
+
+This is a simple setup to get started with (later on we'll talk about some more options)
 
 ```javascript
-let dare = new require('dare');
+// Require the module
+const dare = new require('dare');
 
 // Define a module for connecting
 dare.execute = (sql, callback) => {
@@ -19,29 +22,27 @@ dare.execute = (sql, callback) => {
 	// Execute `callback(errorResponse, successResponse)`;
 };
 
-// Return the db instance
-module.exports = dare;
 ```
 
-Now in your application code, require that configured file and use it... *lavishly*
-
+Use the `dare.get` method for creating SELECT statements
 
 ```javascript
-let db = require('./db.js');
 
-// e.g.
+dare.get('users', ['name'], {id: 1}).then((resp) => {
+	console.log(`Hi ${resp.name}');
+});
+
 // SELECT id, name FROM users WHERE id = 1 LIMIT 1;
-db.get('users', ['id', 'name'], {id: 1});
 
-// For a full set of methods that dare exposes see below
 ```
 
+Has your appetite been whetted? Are you SQueaL'ing for more?
 
 # API
 
-## db.get(table[, fields][, filter][, options])
+## dare.get(table[, fields][, filter][, options])
 
-The `db.get` method is used to build and execute a `SELECT ...` SQL statement.
+The `dare.get` method is used to build and execute a `SELECT ...` SQL statement.
 
 | property | Type              | Description
 |----------|-------------------|----------------
@@ -53,18 +54,18 @@ The `db.get` method is used to build and execute a `SELECT ...` SQL statement.
 e.g.
 
 ```javascript
-db.get('table', ['name'], {id: 1});
+dare.get('table', ['name'], {id: 1});
 // SELECT name FROM table WHERE id = 1 LIMIT 1;
 ```
 
-## db.get(Request Object)
+## dare.get(Request Object)
 
 Alternatively a Request Object can be used instead.
 
 e.g.
 
 ```javascript
-db.get({
+dare.get({
 	table: 'users',
 	fields: ['name'],
 	filter: {
@@ -97,11 +98,11 @@ Define a property `schema` in Database Options i.e `dare.init(name, Database Opt
 	...
 ```
 
-Alternatively define this in Additional Options. `db.get(...[, options])`
+Alternatively define this in Additional Options. `dare.get(...[, options])`
 
 ## Fields Array
 
-The fields array is defined in `db.get(...[,fields]...)` only and says what fields from the matching resultset to return.
+The fields array is defined in `dare.get(...[,fields]...)` only and says what fields from the matching resultset to return.
 
 ### Items (strings)
 
@@ -192,16 +193,20 @@ Creates the following SQL JOIN Condition
 	... WHERE country.name = 'UK' ...
 ```
 
-### Filter Values
+### Filter Syntax
 
-Filter values also carry the condition, =, IN, NOT, etc...
+The type of value affects the choice of SQL Condition syntax to use. For instance an array will create an `IN (...)` condition, the presence of `%` will create a `LIKE` condition. If the property name is prefixed with a hyhen it will negate the filter. See examples below...
 
-| Value                     | Type           | e.g. SQL
-|---------------------------|----------------|----------------
-| 1                         | number         | `id = 1`
-| 'Andrew'                  | string         | `name = 'Andrew'`
-| [1, 'a']                  | Array values   | `tag IN (1, 'a')`
-| '2016-03-04T16:08:32Z..'  | Greater than   | `date > '2016-03-04T16:08:32Z'`
-| '2016-03-04..2016-03-05'  | Between        | `BETWEEN '2016-03-04' AND '2016-03-05'`
-| 'And%'	                | Pattern        | `name LIKE 'And%'`
+
+|Prop     | Value                     | Type           | e.g. SQL
+|---------|---------------------------|----------------|----------------
+| id      | 1                         | number         | `id = 1`
+| name    | 'Andrew'                  | string         | `name = 'Andrew'`
+| name    | 'And%'                    | Pattern        | `name LIKE 'And%'`
+| -name   | 'And%'                    | Pattern        | `name NOT LIKE 'And%'`
+| tag     | [1, 'a']                  | Array values   | `tag IN (1, 'a')`
+| -tag    | [1, 'a']                  | Array values   | `tag NOT IN (1, 'a')`
+| date    | '2016-03-04T16:08:32Z..'  | Greater than   | `date > '2016-03-04T16:08:32Z'`
+| date    | '2016-03-04..2016-03-05'  | Between        | `date BETWEEN '2016-03-04' AND '2016-03-05'`
+
 

@@ -64,21 +64,38 @@ function format_specs(options) {
 		}
 
 		// Explore the filter for any table joins
-		for (const key in filter) {
-
-			checkKey(key);
+		for (let key in filter) {
 
 			const value = filter[key];
 
 			if (value && typeof value === 'object' && !Array.isArray(value)) {
+
+				// Check this is a path
+				checkKey(key);
 
 				// Add it to the join table
 				joined[key] = joined[key] || {};
 				joined[key].filter = Object.assign(joined[key].filter || {}, value);
 			}
 			else {
+
+				let negate = false;
+
+				// Does this have a negate operator?
+				if (key.substring(0, 1) === '-') {
+
+					// Mark as negative filter
+					negate = true;
+
+					// Strip the key
+					key = key.substring(1);
+				}
+
+				// Check this is a path
+				checkKey(key);
+
 				const type = table_schema[key] && table_schema[key].type;
-				filters.push(prepCondition(key, value, type));
+				filters.push(prepCondition(key, value, type, negate));
 			}
 		}
 	}
@@ -290,11 +307,14 @@ function limit(opts) {
 	}
 }
 
-function prepCondition(field, value, type) {
+function prepCondition(field, value, type, negate = false) {
 
 	if (type === 'datetime') {
 		value = formatDateTime(value);
 	}
+
+	// Set the default negate operator, if appropriate
+	negate = negate ? 'NOT ' : '';
 
 	// Range
 	// A range is denoted by two dots, e.g 1..10
@@ -322,6 +342,7 @@ function prepCondition(field, value, type) {
 	else if (typeof value === 'string' && value[0] === '!') {
 		condition = 'NOT LIKE ?';
 		values = [value.slice(1)];
+		negate = ''; // already negated
 	}
 
 	// String partial match
@@ -332,8 +353,9 @@ function prepCondition(field, value, type) {
 
 	// Null
 	else if (value === null) {
-		condition = 'IS NULL';
+		condition = `IS ${negate}NULL`;
 		values = [];
+		negate = ''; // already negated
 	}
 
 	// Add to the array of items
@@ -345,7 +367,8 @@ function prepCondition(field, value, type) {
 	else {
 		condition = '= ?';
 		values = [value];
+		negate = negate ? '!' : '';
 	}
 
-	return [field, condition, values];
+	return [field, negate + condition, values];
 }
