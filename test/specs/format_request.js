@@ -64,12 +64,9 @@ describe('format_request', () => {
 
 		it('should throw an error if falsly on root table', done => {
 
-			// Should not call sql
-			dare.sql = done;
-
 			dare.table_alias_handler = () => (false);
 
-			dare.get({
+			dare.format_request({
 				table: 'private',
 				fields: ['id']
 			})
@@ -813,26 +810,63 @@ describe('format_request', () => {
 			.then(() => done())
 			.catch(done);
 
-
-			// // Users table
-			// users: {
-			// 	country_id: {
-			// 		references: 'country.id'
-			// 	}
-			// },
-
-			// // N:M
-			// userGroups: {
-			// 	user_id: 'users.id',
-			// 	group_id: 'group.id'
-			// },
-
-			// group: {
-			// 	id: {}
-			// }
-
-
 		});
 
 	});
+
+	describe('method table handlers', () => {
+
+		it('should pass through exceptions raised in the method handlers', done => {
+
+			dare.options = {
+				get: {
+					users() {
+						throw Error('snap');
+					}
+				}
+			};
+
+			dare.format_request({
+				table: 'users',
+				fields: [
+					'name'
+				]
+			})
+			.then(done)
+			.catch(err => {
+				expect(err.message).to.eql('snap');
+				done();
+			})
+			.catch(done);
+
+		});
+
+		it('should await the response from a promise', done => {
+
+			dare.options = {
+				get: {
+					users() {
+						return new Promise((accept, reject) => {
+							setTimeout(() => reject(Error('snap')));
+						});
+					}
+				}
+			};
+
+			dare.format_request({
+				table: 'users',
+				fields: [
+					'name'
+				]
+			})
+			.then(done)
+			.catch(err => {
+				expect(err.message).to.eql('snap');
+				done();
+			})
+			.catch(done);
+
+		});
+	});
+
 });

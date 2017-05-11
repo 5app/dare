@@ -25,7 +25,7 @@ function format_request(options) {
 	}
 
 	// Call bespoke table handler
-	const method = options.method;
+	const method = options.method || 'get';
 	const table = options.table;
 	const handlers = this.options[method] || {};
 	let handler;
@@ -36,7 +36,6 @@ function format_request(options) {
 	else if ('default' in handlers) {
 		handler = handlers.default;
 	}
-
 	if (handler) {
 		return Promise.resolve(handler(options)).then(format_specs.bind(this, options));
 	}

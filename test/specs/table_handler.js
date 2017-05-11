@@ -20,11 +20,11 @@ describe('table_handler', () => {
 				}
 			},
 			table_conditions: {
-				users(item) {
+				users(item, options) {
 
 					// Add the join condition domain_id
 					const cond = {
-						domain_id: this.options.meta.domain_id
+						domain_id: options.meta.domain_id
 					};
 					// Update table join conditions
 					item.join = Object.assign(item.join || {}, cond);

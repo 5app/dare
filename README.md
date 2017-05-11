@@ -1,6 +1,6 @@
 # Database and REST (dare)
 
-Dare is an API for generating SQL, it can be used internally to build and execute SQL. As well as lathered with request handlers for layering per table rules and security to expose a REST interface.
+Dare is an API for generating SQL, it can be used internally to build and execute SQL. As well as lathered with request handlers for layering per table rules and security, just the thing for maintaining data integrity and developing REST interfaces.
 
 # Install
 
@@ -8,13 +8,16 @@ Dare is an API for generating SQL, it can be used internally to build and execut
 npm i dare --save
 ```
 
-# Setup
+# Example usage...
 
-This is a simple setup to get started with (later on we'll talk about some more options)
+This is a simple setup to get started with, it'll make a basic SELECT query.
 
 ```javascript
 // Require the module
-const dare = new require('dare');
+const Dare = require('dare');
+
+// Initiate it
+const dare = new Dare();
 
 // Define a module for connecting
 dare.execute = (sql, callback) => {
@@ -22,23 +25,132 @@ dare.execute = (sql, callback) => {
 	// Execute `callback(errorResponse, successResponse)`;
 };
 
-```
-
-Use the `dare.get` method for creating SELECT statements
-
-```javascript
-
+// Make a request
 dare.get('users', ['name'], {id: 1}).then((resp) => {
+
+	// This would have run...
+	// SELECT id, name FROM users WHERE id = 1 LIMIT 1;
+	// And returned a single record as the response...
+
 	console.log(`Hi ${resp.name}');
 });
 
-// SELECT id, name FROM users WHERE id = 1 LIMIT 1;
-
 ```
 
-Has your appetite been whetted? Are you SQueaL'ing for more?
 
-# API
+# Setup
+
+## dare = new Dare(options)
+
+Create an instance of Dare with some options
+
+```javascript
+
+const options = {
+	schema
+}
+const dare = new Dare(options);
+```
+
+## Options
+
+The `options Object` is a set of properties to apply at the point of calling any methods. Initially it's used to define default properties. However every method creates its own instance inheritting its parent options as well as defining it's own. See `dare.use(options)` for more.
+
+The `options` themselves are a set of properties used to interpret and manipulate the request.
+
+The basic options are: 
+
+- [schema](#schema)
+
+Additional Options include:
+
+- [table_alias](#table_alias)
+- [table_conditions](#table_conditions)
+
+
+## Schema
+
+The schema is used to define the structure of your SQL database. You can refer to it as `options.schema`. It's each property in the schema pertains to a database table. And defines the fields within the table.
+
+e.g. 
+```javascript
+{
+	users: {Field Definition's,...},
+	country: {Field Definition's,...}
+}
+```
+
+### Relationships
+
+In the example below the fields `users.country_id` defines a relationship with `country.id` which is used to construct SQL JOIN Conditions.
+
+
+```javascript
+	...
+	schema : {
+		users: {
+			// table columns
+			country_id: 'country.id'
+		},
+		country: {...}
+	}
+	...
+```
+
+### Field Definition
+
+Fields dont need to be explicitly defined in the `options.schema.*tbl*`. Fields which are defined can give hints as to how to handle them. 
+
+#### field reference
+
+Fields can reference other table fields, this is used to construct relationships [as we've seen earlier](#relationships).
+
+
+#### field type
+
+Defining the `type` introduces additional features.
+
+*currently this is limited to datetime*
+
+E.g. in the example the type is defined as 'datetime', a conditional filter short hand for `created_time: 2017` would be expanded too `created_time BETWEEN '2017-01-01T00:00:00' AND '2017-12-31T23:59:59'
+
+```javascript
+    ...
+	schema : {
+		users: {
+			created_time: {
+				type: 'datetime'
+			}
+		},
+    ...
+```
+
+#### field handler
+
+When the value is a function, the function will be invoked when interpretting the request as part of a field value. The response of this function can either be a static value or it can be an additional function which is optionally run on all items in the response, to return a generated field.
+
+E.g.
+
+This will manipulate the request and response to create the property `avatar_url` on the fly.
+
+```javascript
+    ...
+	schema : {
+		users: {
+			avatar_url(fields) {
+
+				fields.push('id'); // require additional field from users table.
+
+				return (item) => `/images/avatars/${item.id}`;
+			}
+		},
+    ...
+```
+
+
+
+
+# Methods
 
 ## dare.get(table[, fields][, filter][, options])
 
@@ -58,9 +170,9 @@ dare.get('table', ['name'], {id: 1});
 // SELECT name FROM table WHERE id = 1 LIMIT 1;
 ```
 
-## dare.get(Request Object)
+## dare.get(options Object)
 
-Alternatively a Request Object can be used instead.
+Alternatively a options Object can be used instead.
 
 e.g.
 
@@ -74,37 +186,11 @@ dare.get({
 });
 ```
 
-## Relational Tables
-
-Tell *dare* about the Schema Definition, and Relational fields so it can make SQL JOIN's.
-
-Define a property `schema` in Database Options i.e `dare.init(name, Database Options)` and create a representation of your database joins.
-
-
-```javascript
-	...
-	schema : {
-		'users': {
-			// table columns
-			country_id: 'country.id'
-		},
-		'user_emails': {
-			user_id: 'users.id'
-		}
-		'country': {
-
-		}
-	}
-	...
-```
-
-Alternatively define this in Additional Options. `dare.get(...[, options])`
-
-## Fields Array
+### Fields Array
 
 The fields array is defined in `dare.get(...[,fields]...)` only and says what fields from the matching resultset to return.
 
-### Items (strings)
+#### Items (strings)
 
 In its simplest form it is an Array of Strings, e.g. `['id', 'name', 'created_date']`. This creates a very simple query.
 
@@ -114,7 +200,7 @@ SELECT id, name, created_date FROM ....
 
 The array items can also be Objects.
 
-### Aliased Items (objects)
+#### Aliased Items (objects)
 
 Object entries whose value are strings, may define SQL functions. E.g. 
 
@@ -129,7 +215,7 @@ Object entries whose value are strings, may define SQL functions. E.g.
 	// sql: SELECT name, DATE(created_date) AS _date ...
 ```
 
-### Joined Items (objects)
+#### Nesting Fields
 
 Objects entries which have Objects as value. In this case they shall attempt to get data from accross multiple tables.
 
@@ -160,7 +246,7 @@ The SQL this creates renames the fields and then recreates the structured format
 - The relationship between the tables must be defined in the scheme.
 
 
-## Filter
+### Filter
 
 The Filter Object is a Fields=>Value object literal, defining the SQL condition to attach to a statement.
 
@@ -179,6 +265,7 @@ e.g.
 
 The filter object can contain nested objects (Similar too the Fields Object). Nested objects define conditions on Relational tables.
 
+
 ```javascript
 	{
 		country: {
@@ -193,7 +280,7 @@ Creates the following SQL JOIN Condition
 	... WHERE country.name = 'UK' ...
 ```
 
-### Filter Syntax
+#### Filter Syntax
 
 The type of value affects the choice of SQL Condition syntax to use. For instance an array will create an `IN (...)` condition, the presence of `%` will create a `LIKE` condition. If the property name is prefixed with a hyhen it will negate the filter. See examples below...
 
@@ -210,3 +297,90 @@ The type of value affects the choice of SQL Condition syntax to use. For instanc
 | date    | '2016-03-04..2016-03-05'  | Between        | `date BETWEEN '2016-03-04' AND '2016-03-05'`
 
 
+
+
+
+# Additional Options
+
+## Table Alias
+
+Table can have alias's this is useful when the context changes.
+
+E.g. Define 'author' as an alternative for 'users'
+
+```javascript
+	table_alias: {
+		author: 'users'
+	}
+```
+
+Example implementation...
+
+```javascript
+dare.get({
+	table: comments,
+	fields: {
+		id,
+		text,
+		author: {
+			id,
+			name
+		}
+	}
+});
+```
+
+## Table Conditions
+
+Table conditions defines a list of handlers to trigger when the table is used in a Request. This is useful to assign additional filters on a table during access.
+
+
+### Table Handler
+
+E.g. if there is a label to hide delete records, or showing only content available to a user.
+
+```javascript
+	{
+		users(item, options) {
+			// Set the scope of the table
+			item.join = {is_deleted: 0};
+		}
+	}
+```
+
+The handler takes two parameters the `item` is the Table definition within the options Object, the second is the options object for this request.
+
+
+### Table Dependency
+
+If one table is always dependent on another, i.e. Show users only in current country
+
+```javascript
+	{
+		users: 'country',
+		country(item, options) {
+			// Here the HTTP `req` object was included as a property to options, it includes session data.
+			item.join = {
+				id: options.req.session.country_id
+			};
+		}
+	}
+```
+
+## Method Table Handlers
+
+	options[Method][table] = handler Function
+
+Essentially enables methods to intercept requests to particular tables for given methods and apply business rules.
+
+E.g. prevent a user from being deleted if they dont match the same as the passed through `req` object.
+
+```
+	del: {
+		users(options) {
+			if (options.filter.id !== options.req.session.user_id) {
+				throw "You can't delete this user"
+			}
+		}
+	}
+```

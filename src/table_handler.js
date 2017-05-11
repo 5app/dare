@@ -36,7 +36,7 @@ module.exports = function table_handler(item) {
 			item.join_conditions = item.join_conditions || {};
 
 			// Trigger the function
-			func.call(this, item);
+			func.call(this, item, this.options);
 		}
 	}
 
