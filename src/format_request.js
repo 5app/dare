@@ -25,7 +25,7 @@ function format_request(options) {
 	}
 
 	// Call bespoke table handler
-	const method = options.method || 'get';
+	const method = options.method;
 	const table = options.table;
 	const handlers = this.options[method] || {};
 	let handler;

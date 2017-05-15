@@ -8,6 +8,7 @@ const error = require('../../src/utils/error');
 describe('format_request', () => {
 
 	let dare;
+	const method = 'get';
 
 	beforeEach(() => {
 		// Create a new instance
@@ -827,6 +828,7 @@ describe('format_request', () => {
 			};
 
 			dare.format_request({
+				method,
 				table: 'users',
 				fields: [
 					'name'
@@ -854,6 +856,7 @@ describe('format_request', () => {
 			};
 
 			dare.format_request({
+				method,
 				table: 'users',
 				fields: [
 					'name'
