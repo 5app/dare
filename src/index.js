@@ -33,8 +33,8 @@ Dare.prototype.get_unique_alias = function() {
 	return this.current_unique_alias;
 };
 
-Dare.prototype.format_request = function (method, options) {
-	return Promise.resolve().then(() => format_request.call(this, method, options));
+Dare.prototype.format_request = function (options) {
+	return Promise.resolve().then(() => format_request.call(this, options));
 };
 
 Dare.prototype.join_handler = require('./join_handler');
@@ -42,6 +42,24 @@ Dare.prototype.join_handler = require('./join_handler');
 Dare.prototype.table_handler = require('./table_handler');
 
 Dare.prototype.response_handler = require('./response_handler');
+
+Dare.prototype.after = function(resp) {
+
+	// in dev, the method might not be available...
+	if (!this.options.method) return resp;
+
+	// Define the after handler
+	const handler = `after${this.options.method.replace(/^([a-z])/, (m, l) => l.toUpperCase())}`;
+	const table = this.options.table;
+
+	// Trigger after handlers following a request
+	if (handler in this.options && table in this.options[handler]) {
+		// Trigger handler
+		return this.options[handler][table].call(this, resp) || resp;
+	}
+
+	return resp;
+};
 
 // Create an instance
 Dare.prototype.use = function(options) {
@@ -89,14 +107,14 @@ Dare.prototype.get = function get(table, fields, filter, opts = {}) {
 		opts = Object.assign(opts, {table, fields, filter});
 	}
 
-	// Create a new instance with options
-	const _this = this.use(opts);
-
 	// define method
 	opts.method = 'get';
 
+	const _this = this.use(opts);
+
 	return _this.format_request(opts)
-	.then(opts => getHandler.call(_this, opts));
+	.then(opts => getHandler.call(_this, opts))
+	.then(resp => _this.after(resp));
 };
 
 Dare.prototype.patch = function patch(table, filter, body, opts = {}) {
@@ -107,8 +125,9 @@ Dare.prototype.patch = function patch(table, filter, body, opts = {}) {
 	// define method
 	opts.method = 'patch';
 
-	// Augment
-	return this.format_request(opts)
+	const _this = this.use(opts);
+
+	return _this.format_request(opts)
 	.then(opts => {
 
 		// Skip this operation?
@@ -139,7 +158,8 @@ Dare.prototype.patch = function patch(table, filter, body, opts = {}) {
 
 		return this.sql(sql, a)
 		.then(mustAffectRows);
-	});
+	})
+	.then(resp => _this.after(resp));
 };
 
 
@@ -157,8 +177,10 @@ Dare.prototype.post = function post(table, body, opts = {}) {
 	// Post
 	opts.method = 'post';
 
+	const _this = this.use(opts);
+
 	// Table
-	return this.format_request(opts)
+	return _this.format_request(opts)
 	.then(opts => {
 
 		// Skip this operation?
@@ -223,8 +245,9 @@ Dare.prototype.post = function post(table, body, opts = {}) {
 					VALUES
 					${data.join(',')}`;
 
-		return this.sql(sql, prepared);
-	});
+		return _this.sql(sql, prepared);
+	})
+	.then(resp => _this.after(resp));
 };
 
 
@@ -241,7 +264,9 @@ Dare.prototype.del = function del(table, filter, opts = {}) {
 	// Delete
 	opts.method = 'del';
 
-	return this.format_request(opts)
+	const _this = this.use(opts);
+
+	return _this.format_request(opts)
 	.then(opts => {
 
 		// Skip this operation?
@@ -260,7 +285,7 @@ Dare.prototype.del = function del(table, filter, opts = {}) {
 		});
 
 		// Construct a db update
-		return this.sql(
+		return _this.sql(
 
 			`DELETE FROM ${table}
 			WHERE
@@ -268,7 +293,8 @@ Dare.prototype.del = function del(table, filter, opts = {}) {
 			LIMIT ${opts.limit}`,
 		a)
 		.then(mustAffectRows);
-	});
+	})
+	.then(resp => _this.after(resp));
 };
 
 

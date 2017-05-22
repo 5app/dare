@@ -37,7 +37,7 @@ function format_request(options) {
 		handler = handlers.default;
 	}
 	if (handler) {
-		return Promise.resolve(handler(options)).then(format_specs.bind(this, options));
+		return Promise.resolve(handler.call(this, options)).then(format_specs.bind(this, options));
 	}
 
 	return format_specs.call(this, options);

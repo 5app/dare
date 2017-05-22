@@ -332,6 +332,8 @@ dare.get({
 
 ## Table Conditions
 
+	options.table_conditions[method] => handler|reference
+
 Table conditions defines a list of handlers to trigger when the table is used in a Request. This is useful to assign additional filters on a table during access.
 
 
@@ -369,7 +371,7 @@ If one table is always dependent on another, i.e. Show users only in current cou
 
 ## Method Table Handlers
 
-	options[Method][table] = handler Function
+	options[method][table] = handler Function
 
 Essentially enables methods to intercept requests to particular tables for given methods and apply business rules.
 
@@ -383,4 +385,67 @@ E.g. prevent a user from being deleted if they dont match the same as the passed
 			}
 		}
 	}
+```
+
+## After Handlers
+
+	options.after*Method*[table] = handler(resp)
+
+This handler is executed after the request and is useful for logging or manipulating the response. If this returns undefined statically or via a Promise then the original response is not altered. Anything else will alter the response.
+
+E.g. log an update to the users table
+
+```javascript
+afterPatch: {
+	users(resp) {
+		// Get the original request filter...
+		const ref_id = this.options.filter.id;
+
+		// Post to changelog...
+		date.post('changelog', {
+			message: 'User updated',
+			type: 'users',
+			ref_id
+		});
+		// do not return anything...
+	}
+}
+```
+
+### Catch in the *before* handler and overwrite *after* method
+
+Of course there are scenarios where you want to capture a previous existing value. For that you might like to define the after handler before the patch operation is complete.
+
+E.g. here is an example using the before handlers to capture the original value of a field and redefine define the after handler on this instance....
+
+```javascript
+...
+patch: {
+	users(options) {
+
+		// Clone the request, and add fields to query
+		const opts = Object.assign(
+			{},
+			options,
+			{fields: ['id', 'name']}
+		);
+
+		return dare.get(opts).then(resp => {
+
+			const previous_name = resp.name;
+			const ref_id = resp.id;
+
+			// Set the after handler
+			this.after = () => {
+				dare.post('changelog', {
+					message: 'User updated',
+					type: 'users',
+					ref_id,
+					previous_name
+				})
+			};
+		});
+	}
+}
+...
 ```
