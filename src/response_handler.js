@@ -54,8 +54,8 @@ function formatHandler(item) {
 
 			if (value) {
 
-				// Explode the value...
-				value = JSON.parse(value);
+				// Remove tabs then parse the value
+				value = JSON.parse(value.replace(/\t/g, ''));
 
 				// Create a dummy array
 				// And insert into the dataset...
