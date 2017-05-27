@@ -1,5 +1,7 @@
 'use strict';
 
+const JSONparse = require('./utils/JSONparse');
+
 // Response
 module.exports = function responseHandler(resp) {
 	// Iterate over the response array and trigger formatting
@@ -31,7 +33,7 @@ function formatHandler(item) {
 		else if (!label.includes('[')) {
 
 			// Lets split the value up
-			value = JSON.parse(value);
+			value = JSONparse(value);
 
 			label.split(',').forEach((label, index) => {
 
@@ -54,8 +56,8 @@ function formatHandler(item) {
 
 			if (value) {
 
-				// Explode the value...
-				value = JSON.parse(value);
+				// Remove tabs then parse the value
+				value = JSONparse(value);
 
 				// Create a dummy array
 				// And insert into the dataset...
@@ -66,7 +68,7 @@ function formatHandler(item) {
 				// Loop through the value entries
 				const keys = m[3].split(',');
 
-				value.forEach(values => {
+				value && value.forEach(values => {
 					const obj = {};
 					keys.forEach((label, index) => obj[label] = values[index]);
 					formatHandler(obj);
