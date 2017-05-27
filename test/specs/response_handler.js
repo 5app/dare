@@ -79,4 +79,20 @@ describe('response_handler', () => {
 			}]
 		});
 	});
+
+	it('should return empty value if it cannot be interpretted', () => {
+
+		// Return a response field which is invalid
+		// this could be because of GROUP_CONCAT_MAX_LENGTH or bad characters which have not been escaped by dare
+		const data = dare.response_handler([{
+			'field': 'value',
+			'collection[id,name,assoc.id,assoc.name]': '[["1","a","a1","aa"],["2","b","b1","ba"... broken json...',
+		}]);
+
+		expect(data).to.be.an('array');
+		expect(data[0]).to.deep.equal({
+			field: 'value',
+			collection: []
+		});
+	});
 });
