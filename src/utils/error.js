@@ -2,6 +2,7 @@
 
 const SQL_ERROR_DICTIONARY = {
 	ER_DUP_ENTRY: 'Duplicate entry',
+	ER_NO_DEFAULT_FOR_FIELD: 'Missing field',
 	NOT_FOUND: 'Could not find any results matching the query'
 };
 
@@ -10,6 +11,7 @@ const SQL_ERROR_STATUSCODES = {
 	INVALID_LIMIT: 0,
 	INVALID_REFERENCE: 0,
 	ER_DUP_ENTRY: 409,
+	ER_NO_DEFAULT_FOR_FIELD: 400,
 	NOT_FOUND: 404
 };
 
