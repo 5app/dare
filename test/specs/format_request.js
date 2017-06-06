@@ -824,7 +824,8 @@ describe('format_request', () => {
 					users() {
 						throw Error('snap');
 					}
-				}
+				},
+				method: 'get'
 			};
 
 			dare.format_request({
@@ -852,7 +853,8 @@ describe('format_request', () => {
 							setTimeout(() => reject(Error('snap')));
 						});
 					}
-				}
+				},
+				method: 'get'
 			};
 
 			dare.format_request({
