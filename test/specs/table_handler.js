@@ -103,7 +103,7 @@ describe('table_handler', () => {
 				{'users': ['id', 'name']}
 			]
 		})
-		.then(() => done(), done);
+			.then(() => done(), done);
 
 	});
 

@@ -122,9 +122,9 @@ describe('get - request object', () => {
 			orderby: '_count DESC',
 			limit
 		})
-		.then(() => {
-			done();
-		}).catch(done);
+			.then(() => {
+				done();
+			}).catch(done);
 
 	});
 
@@ -157,14 +157,14 @@ describe('get - request object', () => {
 				],
 				limit
 			})
-			.then(resp => {
-				expect(resp).to.be.an('array');
-				expect(resp.length).to.eql(1);
-				const item = resp[0];
-				expect(item).to.have.property('name');
-				expect(item.asset).to.have.property('name', 2001);
-				done();
-			}).catch(done);
+				.then(resp => {
+					expect(resp).to.be.an('array');
+					expect(resp.length).to.eql(1);
+					const item = resp[0];
+					expect(item).to.have.property('name');
+					expect(item.asset).to.have.property('name', 2001);
+					done();
+				}).catch(done);
 
 		});
 
@@ -207,7 +207,7 @@ describe('get - request object', () => {
 						filter: value,
 						limit
 					})
-					.catch(done);
+						.catch(done);
 
 				});
 
@@ -252,8 +252,8 @@ describe('get - request object', () => {
 						join,
 						limit
 					})
-					.then(() => done())
-					.catch(done);
+						.then(() => done())
+						.catch(done);
 
 				});
 
@@ -290,8 +290,8 @@ describe('get - request object', () => {
 				},
 				limit
 			})
-			.then(() => done())
-			.catch(done);
+				.then(() => done())
+				.catch(done);
 		});
 	});
 
@@ -325,8 +325,8 @@ describe('get - request object', () => {
 				},
 				limit
 			})
-			.then(() => done())
-			.catch(done);
+				.then(() => done())
+				.catch(done);
 		});
 
 		it('should not automatically assign a GROUP on an 1:n join where there are Aggregate ', done => {
@@ -356,8 +356,8 @@ describe('get - request object', () => {
 				},
 				limit
 			})
-			.then(() => done())
-			.catch(done);
+				.then(() => done())
+				.catch(done);
 		});
 	});
 
@@ -418,18 +418,18 @@ describe('get - request object', () => {
 					root: 'http://example.com'
 				}
 			})
-			.then(resp => {
-				expect(resp).to.deep.equal({
-					id: 1,
-					name: 'Andrew',
-					thumbnail: '/asset/1/thumbnail',
-					picture: {
-						id: 100,
-						image: 'http://example.com/picture/100/image'
-					}
-				});
-				done();
-			}).catch(done);
+				.then(resp => {
+					expect(resp).to.deep.equal({
+						id: 1,
+						name: 'Andrew',
+						thumbnail: '/asset/1/thumbnail',
+						picture: {
+							id: 100,
+							image: 'http://example.com/picture/100/image'
+						}
+					});
+					done();
+				}).catch(done);
 
 
 		});

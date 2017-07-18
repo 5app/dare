@@ -21,21 +21,21 @@ module.exports = function(opts) {
 
 	// Execute the query
 	return this
-	.sql(sql, values)
-	.then(this.response_handler.bind(this))
-	.then(resp => {
+		.sql(sql, values)
+		.then(this.response_handler.bind(this))
+		.then(resp => {
 
 		// If limit was not defined we should return the first result only.
-		if (opts.single) {
-			if (resp.length) {
-				return resp[0];
+			if (opts.single) {
+				if (resp.length) {
+					return resp[0];
+				}
+				else {
+					throw error.NOT_FOUND;
+				}
 			}
-			else {
-				throw error.NOT_FOUND;
-			}
-		}
-		return resp;
-	});
+			return resp;
+		});
 };
 
 function buildQuery(opts) {
@@ -62,11 +62,11 @@ function buildQuery(opts) {
 	{
 		// Count is a special field, find and replace ...
 		fields.filter(item => item.expression === `${opts.alias}._count`)
-		.forEach(item => {
-			item.expression = 'COUNT(*)';
-			item.label = '_count';
-			item.agg = true;
-		});
+			.forEach(item => {
+				item.expression = 'COUNT(*)';
+				item.label = '_count';
+				item.agg = true;
+			});
 	}
 
 	// Conditions
@@ -101,10 +101,10 @@ function buildQuery(opts) {
 
 		// Find the special _group column...
 		fields.filter(item => item.expression === `${opts.alias}._group`)
-		.forEach(item => {
-			item.expression = opts.groupby;
-			item.label = '_group';
-		});
+			.forEach(item => {
+				item.expression = opts.groupby;
+				item.label = '_group';
+			});
 
 		// Add the grouping
 		sql_groupby = `GROUP BY ${opts.groupby}`;

@@ -2,7 +2,7 @@ const error = require('./error');
 
 module.exports = function unwrap_field(expression) {
 
-	const m = typeof expression === 'string' && expression.match(/^(([a-z\_]+)\(([a-z\_]+\s)*)*([a-z0-9\.\_\*]+?)(\))*$/i);
+	const m = typeof expression === 'string' && expression.match(/^(([a-z_]+)\(([a-z_]+\s)*)*([a-z0-9._*]+?)(\))*$/i);
 
 	if (m) {
 		const field = m[4];

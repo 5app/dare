@@ -23,11 +23,11 @@ describe('post', () => {
 		};
 
 		dare
-		.post('test', {id: 1})
-		.then(resp => {
-			expect(resp).to.have.property('id', 1);
-			done();
-		}, done);
+			.post('test', {id: 1})
+			.then(resp => {
+				expect(resp).to.have.property('id', 1);
+				done();
+			}, done);
 
 	});
 
@@ -43,10 +43,10 @@ describe('post', () => {
 		};
 
 		dare
-		.post('test', [{id: 1, name: '1'}, {name: '2', id: 2, field: 'extra'}])
-		.then(() => {
-			done();
-		}, done);
+			.post('test', [{id: 1, name: '1'}, {name: '2', id: 2, field: 'extra'}])
+			.then(() => {
+				done();
+			}, done);
 
 	});
 
@@ -60,7 +60,7 @@ describe('post', () => {
 		};
 
 		dare
-		.post('test', {id: 1}, {duplicate_keys: 'ignore'});
+			.post('test', {id: 1}, {duplicate_keys: 'ignore'});
 
 	});
 
@@ -73,13 +73,13 @@ describe('post', () => {
 		};
 
 		dare
-		.post({
-			table: 'test',
-			body: {name: 'name'}
-		})
-		.then(() => {
-			done();
-		}, done);
+			.post({
+				table: 'test',
+				body: {name: 'name'}
+			})
+			.then(() => {
+				done();
+			}, done);
 	});
 
 
@@ -100,13 +100,13 @@ describe('post', () => {
 		};
 
 		dare
-		.post({
-			table: 'tbl',
-			body: {name: 'name'}
-		})
-		.then(() => {
-			done();
-		}, done);
+			.post({
+				table: 'tbl',
+				body: {name: 'name'}
+			})
+			.then(() => {
+				done();
+			}, done);
 	});
 
 
@@ -128,13 +128,13 @@ describe('post', () => {
 		};
 
 		dare
-		.post({
-			table: 'tbl',
-			body: {name: 'name'}
-		})
-		.then(() => {
-			done();
-		}, done);
+			.post({
+				table: 'tbl',
+				body: {name: 'name'}
+			})
+			.then(() => {
+				done();
+			}, done);
 	});
 
 	it('should trigger pre handler, and handle errors being thrown', done => {
@@ -152,13 +152,13 @@ describe('post', () => {
 		};
 
 		dare
-		.post({
-			table: 'tbl',
-			body: {name: 'name'}
-		})
-		.then(done, () => {
-			done();
-		});
+			.post({
+				table: 'tbl',
+				body: {name: 'name'}
+			})
+			.then(done, () => {
+				done();
+			});
 	});
 
 });

@@ -24,9 +24,9 @@
   },
   "homepage": "https://github.com/5app/dare#readme",
   "devDependencies": {
-    "chai": "^3.5.0",
-    "eslint": "^3.8.1",
-    "mocha": "^2.5.2"
+    "chai": "^4.1.0",
+    "eslint": "^4.2.0",
+    "mocha": "^3.4.2"
   },
   "dependencies": {}
 }

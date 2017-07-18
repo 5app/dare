@@ -59,7 +59,7 @@ describe('format_request', () => {
 				});
 				done();
 			})
-			.catch(done);
+				.catch(done);
 
 		});
 
@@ -71,11 +71,11 @@ describe('format_request', () => {
 				table: 'private',
 				fields: ['id']
 			})
-			.then(done, err => {
-				expect(err.code).to.eql(error.INVALID_REFERENCE.code);
-				expect(err).to.have.property('message');
-				done();
-			}).catch(done);
+				.then(done, err => {
+					expect(err.code).to.eql(error.INVALID_REFERENCE.code);
+					expect(err).to.have.property('message');
+					done();
+				}).catch(done);
 		});
 	});
 
@@ -110,8 +110,8 @@ describe('format_request', () => {
 				it(`valid: ${JSON.stringify(fields)}`, done => {
 
 					dare.format_request(Object.assign({}, options, {fields}))
-					.then(() => done())
-					.catch(done);
+						.then(() => done())
+						.catch(done);
 
 				});
 
@@ -133,12 +133,12 @@ describe('format_request', () => {
 				it(`invalid: ${  JSON.stringify(fields)}`, done => {
 
 					dare.format_request(Object.assign({}, options, {fields}))
-					.then(done, err => {
-						expect(err.code).to.eql(error.INVALID_REFERENCE.code);
-						expect(err).to.have.property('message');
-						done();
-					})
-					.catch(done);
+						.then(done, err => {
+							expect(err.code).to.eql(error.INVALID_REFERENCE.code);
+							expect(err).to.have.property('message');
+							done();
+						})
+						.catch(done);
 
 				});
 			});
@@ -159,11 +159,11 @@ describe('format_request', () => {
 				it(`where ${JSON.stringify(fields)}`, done => {
 
 					dare.format_request(Object.assign({}, options, {fields}))
-					.then(options => {
-						expect(options._joins[0]).to.have.property('alias', 'asset');
-						done();
-					})
-					.catch(done);
+						.then(options => {
+							expect(options._joins[0]).to.have.property('alias', 'asset');
+							done();
+						})
+						.catch(done);
 
 				});
 			});
@@ -186,8 +186,8 @@ describe('format_request', () => {
 					it(`valid: ${  limit  } (${  typeof limit  })`, done => {
 
 						dare.format_request(Object.assign({}, options, {limit}))
-						.then(() => done())
-						.catch(done);
+							.then(() => done())
+							.catch(done);
 
 					});
 
@@ -201,12 +201,12 @@ describe('format_request', () => {
 					it(`invalid: ${  limit  } (${  typeof limit  })`, done => {
 
 						dare.format_request(Object.assign({}, options, {limit}))
-						.then(done, err => {
-							expect(err.code).to.eql(error.INVALID_LIMIT.code);
-							expect(err).to.have.property('message');
-							done();
-						})
-						.catch(done);
+							.then(done, err => {
+								expect(err.code).to.eql(error.INVALID_LIMIT.code);
+								expect(err).to.have.property('message');
+								done();
+							})
+							.catch(done);
 
 					});
 
@@ -223,8 +223,8 @@ describe('format_request', () => {
 					it(`valid: ${  start  } (${  typeof start  })`, done => {
 
 						dare.format_request(Object.assign({}, options, {start}))
-						.then(() => done())
-						.catch(done);
+							.then(() => done())
+							.catch(done);
 
 					});
 
@@ -238,12 +238,12 @@ describe('format_request', () => {
 					it(`invalid: ${  start  } (${  typeof start  })`, done => {
 
 						dare.format_request(Object.assign({}, options, {start}))
-						.then(done, err => {
-							expect(err.code).to.eql(error.INVALID_START.code);
-							expect(err).to.have.property('message');
-							done();
-						})
-						.catch(done);
+							.then(done, err => {
+								expect(err.code).to.eql(error.INVALID_START.code);
+								expect(err).to.have.property('message');
+								done();
+							})
+							.catch(done);
 
 					});
 
@@ -267,11 +267,11 @@ describe('format_request', () => {
 						fields: ['id'],
 						groupby
 					})
-					.then(opts => {
-						expect(opts.groupby).to.eql(groupby);
-						done();
-					}, done)
-					.catch(done);
+						.then(opts => {
+							expect(opts.groupby).to.eql(groupby);
+							done();
+						}, done)
+						.catch(done);
 				});
 
 			});
@@ -288,12 +288,12 @@ describe('format_request', () => {
 						fields: ['id'],
 						groupby
 					})
-					.then(done, err => {
-						expect(err.code).to.eql(error.INVALID_REFERENCE.code);
-						expect(err).to.have.property('message');
-						done();
-					})
-					.catch(done);
+						.then(done, err => {
+							expect(err.code).to.eql(error.INVALID_REFERENCE.code);
+							expect(err).to.have.property('message');
+							done();
+						})
+						.catch(done);
 				});
 			});
 		});
@@ -309,8 +309,8 @@ describe('format_request', () => {
 						fields: ['id'],
 						groupby
 					})
-					.then(() => done())
-					.catch(done);
+						.then(() => done())
+						.catch(done);
 				});
 			});
 		});
@@ -338,8 +338,8 @@ describe('format_request', () => {
 						fields: ['id'],
 						orderby
 					})
-					.then(() => done())
-					.catch(done);
+						.then(() => done())
+						.catch(done);
 				});
 
 			});
@@ -363,12 +363,12 @@ describe('format_request', () => {
 						fields: ['id'],
 						orderby
 					})
-					.then(done, err => {
-						expect(err.code).to.eql(error.INVALID_REFERENCE.code);
-						expect(err).to.have.property('message');
-						done();
-					})
-					.catch(done);
+						.then(done, err => {
+							expect(err.code).to.eql(error.INVALID_REFERENCE.code);
+							expect(err).to.have.property('message');
+							done();
+						})
+						.catch(done);
 				});
 
 			});
@@ -387,8 +387,8 @@ describe('format_request', () => {
 						fields: ['id'],
 						orderby
 					})
-					.then(() => done())
-					.catch(done);
+						.then(() => done())
+						.catch(done);
 				});
 			});
 		});
@@ -466,11 +466,11 @@ describe('format_request', () => {
 						fields: ['id'],
 						filter
 					})
-					.then(options => {
-						expect(options._filter[0]).to.eql([prop, condition, values]);
-						done();
-					})
-					.catch(done);
+						.then(options => {
+							expect(options._filter[0]).to.eql([prop, condition, values]);
+							done();
+						})
+						.catch(done);
 				});
 			});
 
@@ -502,12 +502,12 @@ describe('format_request', () => {
 						fields: ['id'],
 						filter
 					})
-					.then(done, err => {
-						expect(err.code).to.eql(error.INVALID_REFERENCE.code);
-						expect(err).to.have.property('message');
-						done();
-					})
-					.catch(done);
+						.then(done, err => {
+							expect(err.code).to.eql(error.INVALID_REFERENCE.code);
+							expect(err).to.have.property('message');
+							done();
+						})
+						.catch(done);
 
 				});
 			});
@@ -575,11 +575,11 @@ describe('format_request', () => {
 							date
 						}
 					})
-					.then(options => {
-						expect(options._filter[0]).to.eql(['date', condition, values]);
-						done();
-					})
-					.catch(done);
+						.then(options => {
+							expect(options._filter[0]).to.eql(['date', condition, values]);
+							done();
+						})
+						.catch(done);
 				});
 			}
 		});
@@ -619,8 +619,8 @@ describe('format_request', () => {
 					}
 				]
 			})
-			.then(() => done())
-			.catch(done);
+				.then(() => done())
+				.catch(done);
 
 		});
 
@@ -647,9 +647,9 @@ describe('format_request', () => {
 					}
 				]
 			})
-			.then(() => {
-				done();
-			}).catch(done);
+				.then(() => {
+					done();
+				}).catch(done);
 
 		});
 
@@ -671,11 +671,11 @@ describe('format_request', () => {
 						}
 					]
 				})
-				.then(done, err => {
-					expect(err.code).to.eql(error.INVALID_REFERENCE.code);
-					expect(err).to.have.property('message');
-					done();
-				}).catch(done);
+					.then(done, err => {
+						expect(err.code).to.eql(error.INVALID_REFERENCE.code);
+						expect(err).to.have.property('message');
+						done();
+					}).catch(done);
 			});
 		});
 	});
@@ -703,12 +703,12 @@ describe('format_request', () => {
 					}
 				]
 			})
-			.then(done, err => {
-				expect(err.code).to.eql(error.INVALID_REFERENCE.code);
-				expect(err).to.have.property('message', 'Could not understand field \'comments\'');
-				done();
-			})
-			.catch(done);
+				.then(done, err => {
+					expect(err.code).to.eql(error.INVALID_REFERENCE.code);
+					expect(err).to.have.property('message', 'Could not understand field \'comments\'');
+					done();
+				})
+				.catch(done);
 
 		});
 
@@ -737,8 +737,8 @@ describe('format_request', () => {
 					}
 				]
 			})
-			.then(() => done())
-			.catch(done);
+				.then(() => done())
+				.catch(done);
 
 		});
 
@@ -775,8 +775,8 @@ describe('format_request', () => {
 					}
 				]
 			})
-			.then(() => done())
-			.catch(done);
+				.then(() => done())
+				.catch(done);
 
 		});
 
@@ -808,8 +808,8 @@ describe('format_request', () => {
 					}
 				]
 			})
-			.then(() => done())
-			.catch(done);
+				.then(() => done())
+				.catch(done);
 
 		});
 
@@ -835,12 +835,12 @@ describe('format_request', () => {
 					'name'
 				]
 			})
-			.then(done)
-			.catch(err => {
-				expect(err.message).to.eql('snap');
-				done();
-			})
-			.catch(done);
+				.then(done)
+				.catch(err => {
+					expect(err.message).to.eql('snap');
+					done();
+				})
+				.catch(done);
 
 		});
 
@@ -864,12 +864,12 @@ describe('format_request', () => {
 					'name'
 				]
 			})
-			.then(done)
-			.catch(err => {
-				expect(err.message).to.eql('snap');
-				done();
-			})
-			.catch(done);
+				.then(done)
+				.catch(err => {
+					expect(err.message).to.eql('snap');
+					done();
+				})
+				.catch(done);
 
 		});
 	});

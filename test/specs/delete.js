@@ -25,11 +25,11 @@ describe('del', () => {
 		};
 
 		dare
-		.del('test', {id: 1})
-		.then(resp => {
-			expect(resp).to.have.property('success', true);
-			done();
-		}, done);
+			.del('test', {id: 1})
+			.then(resp => {
+				expect(resp).to.have.property('success', true);
+				done();
+			}, done);
 	});
 
 	it('should throw an exception if affectedRows: 0', done => {
@@ -37,14 +37,14 @@ describe('del', () => {
 		dare.sql = () => Promise.resolve({affectedRows: 0});
 
 		dare
-		.del('groups', {name: 'name'}, {id: 20000})
-		.then(() => {
-			done('Should not be called');
-		})
-		.catch(err => {
-			expect(err).to.eql(error.NOT_FOUND);
-			done();
-		});
+			.del('groups', {name: 'name'}, {id: 20000})
+			.then(() => {
+				done('Should not be called');
+			})
+			.catch(err => {
+				expect(err).to.eql(error.NOT_FOUND);
+				done();
+			});
 	});
 
 	it('should use table aliases', done => {
@@ -62,13 +62,13 @@ describe('del', () => {
 		};
 
 		dare
-		.del({
-			table: 'test',
-			filter: {id: 1},
-		})
-		.then(() => {
-			done();
-		}, done);
+			.del({
+				table: 'test',
+				filter: {id: 1},
+			})
+			.then(() => {
+				done();
+			}, done);
 	});
 
 	it('should trigger pre handler, options.del.[table]', done => {
@@ -88,13 +88,13 @@ describe('del', () => {
 		};
 
 		dare
-		.del({
-			table: 'tbl',
-			filter: {id: 2}
-		})
-		.then(() => {
-			done();
-		}, done);
+			.del({
+				table: 'tbl',
+				filter: {id: 2}
+			})
+			.then(() => {
+				done();
+			}, done);
 	});
 
 
@@ -116,13 +116,13 @@ describe('del', () => {
 		};
 
 		dare
-		.del({
-			table: 'tbl',
-			filter: {id: 2}
-		})
-		.then(() => {
-			done();
-		}, done);
+			.del({
+				table: 'tbl',
+				filter: {id: 2}
+			})
+			.then(() => {
+				done();
+			}, done);
 	});
 
 	it('should trigger pre handler, and handle errors being thrown', done => {
@@ -140,13 +140,13 @@ describe('del', () => {
 		};
 
 		dare
-		.del({
-			table: 'tbl',
-			filter: {id: 2}
-		})
-		.then(done, () => {
-			done();
-		});
+			.del({
+				table: 'tbl',
+				filter: {id: 2}
+			})
+			.then(done, () => {
+				done();
+			});
 	});
 
 	it('should return options.skip if set and not trigger further operations', done => {
@@ -163,14 +163,14 @@ describe('del', () => {
 		};
 
 		dare
-		.del({
-			table: 'tbl',
-			filter: {id: 2}
-		})
-		.then(resp => {
-			expect(resp).to.eql(true);
-			done();
-		})
-		.catch(done);
+			.del({
+				table: 'tbl',
+				filter: {id: 2}
+			})
+			.then(resp => {
+				expect(resp).to.eql(true);
+				done();
+			})
+			.catch(done);
 	});
 });

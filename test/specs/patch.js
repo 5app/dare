@@ -26,11 +26,11 @@ describe('patch', () => {
 		};
 
 		dare
-		.patch('test', {id: 1}, {name: 'name'})
-		.then(resp => {
-			expect(resp).to.have.property('success', true);
-			done();
-		}, done);
+			.patch('test', {id: 1}, {name: 'name'})
+			.then(resp => {
+				expect(resp).to.have.property('success', true);
+				done();
+			}, done);
 	});
 
 	it('should throw an exception if affectedRows: 0', done => {
@@ -38,14 +38,14 @@ describe('patch', () => {
 		dare.sql = () => Promise.resolve({affectedRows: 0});
 
 		dare
-		.patch('groups', {id: 20000}, {name: 'name'})
-		.then(() => {
-			done('Should not be called');
-		})
-		.catch(err => {
-			expect(err).to.eql(error.NOT_FOUND);
-			done();
-		});
+			.patch('groups', {id: 20000}, {name: 'name'})
+			.then(() => {
+				done('Should not be called');
+			})
+			.catch(err => {
+				expect(err).to.eql(error.NOT_FOUND);
+				done();
+			});
 	});
 
 	it('should understand a request object', done => {
@@ -57,14 +57,14 @@ describe('patch', () => {
 		};
 
 		dare
-		.patch({
-			table: 'test',
-			filter: {id: 1},
-			body: {name: 'name'}
-		})
-		.then(() => {
-			done();
-		}, done);
+			.patch({
+				table: 'test',
+				filter: {id: 1},
+				body: {name: 'name'}
+			})
+			.then(() => {
+				done();
+			}, done);
 	});
 
 	it('should apply the request.limit', done => {
@@ -76,15 +76,15 @@ describe('patch', () => {
 		};
 
 		dare
-		.patch({
-			table: 'test',
-			filter: {id: 1},
-			body: {name: 'name'},
-			limit: 11
-		})
-		.then(() => {
-			done();
-		}, done);
+			.patch({
+				table: 'test',
+				filter: {id: 1},
+				body: {name: 'name'},
+				limit: 11
+			})
+			.then(() => {
+				done();
+			}, done);
 	});
 
 	it('should use table aliases', done => {
@@ -102,14 +102,14 @@ describe('patch', () => {
 		};
 
 		dare
-		.patch({
-			table: 'test',
-			filter: {id: 1},
-			body: {name: 'name'}
-		})
-		.then(() => {
-			done();
-		}, done);
+			.patch({
+				table: 'test',
+				filter: {id: 1},
+				body: {name: 'name'}
+			})
+			.then(() => {
+				done();
+			}, done);
 	});
 
 
@@ -130,14 +130,14 @@ describe('patch', () => {
 		};
 
 		dare
-		.patch({
-			table: 'tbl',
-			filter: {id: 1},
-			body: {name: 'name'}
-		})
-		.then(() => {
-			done();
-		}, done);
+			.patch({
+				table: 'tbl',
+				filter: {id: 1},
+				body: {name: 'name'}
+			})
+			.then(() => {
+				done();
+			}, done);
 	});
 
 
@@ -159,14 +159,14 @@ describe('patch', () => {
 		};
 
 		dare
-		.patch({
-			table: 'tbl',
-			filter: {id: 1},
-			body: {name: 'name'}
-		})
-		.then(() => {
-			done();
-		}, done);
+			.patch({
+				table: 'tbl',
+				filter: {id: 1},
+				body: {name: 'name'}
+			})
+			.then(() => {
+				done();
+			}, done);
 	});
 
 	it('should trigger pre handler, and handle errors being thrown', done => {
@@ -184,13 +184,13 @@ describe('patch', () => {
 		};
 
 		dare
-		.patch({
-			table: 'tbl',
-			filter: {id: 1},
-			body: {name: 'name'}
-		})
-		.then(done, () => {
-			done();
-		});
+			.patch({
+				table: 'tbl',
+				filter: {id: 1},
+				body: {name: 'name'}
+			})
+			.then(done, () => {
+				done();
+			});
 	});
 });

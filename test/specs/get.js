@@ -28,13 +28,13 @@ describe('get', () => {
 			};
 
 			dare
-			.get('test', {id: 1})
-			.then(resp => {
-				expect(resp).to.be.a('object');
-				expect(resp).to.have.property('id', 1);
-				done();
-			})
-			.catch(done);
+				.get('test', {id: 1})
+				.then(resp => {
+					expect(resp).to.be.a('object');
+					expect(resp).to.have.property('id', 1);
+					done();
+				})
+				.catch(done);
 
 		});
 
@@ -46,12 +46,12 @@ describe('get', () => {
 			};
 
 			dare
-			.get('test', ['id', 'name'], {id: 1})
-			.then(resp => {
-				expect(resp).to.have.property('id', 1);
-				done();
-			})
-			.catch(done);
+				.get('test', ['id', 'name'], {id: 1})
+				.then(resp => {
+					expect(resp).to.have.property('id', 1);
+					done();
+				})
+				.catch(done);
 
 		});
 
@@ -64,14 +64,14 @@ describe('get', () => {
 			};
 
 			dare
-			.get('test', ['id', 'name'], {id: [1, 2]}, {limit: 2})
-			.then(resp => {
-				expect(resp).to.be.a('array');
-				expect(resp.length).to.eql(2);
-				expect(resp[0]).to.eql({id: 1, name: '1'});
-				done();
-			})
-			.catch(done);
+				.get('test', ['id', 'name'], {id: [1, 2]}, {limit: 2})
+				.then(resp => {
+					expect(resp).to.be.a('array');
+					expect(resp.length).to.eql(2);
+					expect(resp[0]).to.eql({id: 1, name: '1'});
+					done();
+				})
+				.catch(done);
 
 		});
 
@@ -83,12 +83,12 @@ describe('get', () => {
 			};
 
 			dare
-			.get('test', ['id', 'name'], {name: 'And%'}, {limit: 5})
-			.then(resp => {
-				expect(resp).to.be.a('array');
-				done();
-			})
-			.catch(done);
+				.get('test', ['id', 'name'], {name: 'And%'}, {limit: 5})
+				.then(resp => {
+					expect(resp).to.be.a('array');
+					done();
+				})
+				.catch(done);
 
 		});
 		it('should have an overidable limit', done => {
@@ -99,13 +99,13 @@ describe('get', () => {
 			};
 
 			dare
-			.get('test', {id: 1}, {limit: 5})
-			.then(resp => {
-				expect(resp).to.be.a('array');
-				expect(resp).to.eql([{id: 1}]);
-				done();
-			})
-			.catch(done);
+				.get('test', {id: 1}, {limit: 5})
+				.then(resp => {
+					expect(resp).to.be.a('array');
+					expect(resp).to.eql([{id: 1}]);
+					done();
+				})
+				.catch(done);
 
 		});
 
@@ -117,12 +117,12 @@ describe('get', () => {
 			};
 
 			dare
-			.get('test', {id: 1}, {limit: null})
-			.then(done, err => {
-				expect(err).to.have.property('message');
-				done();
-			})
-			.catch(done);
+				.get('test', {id: 1}, {limit: null})
+				.then(done, err => {
+					expect(err).to.have.property('message');
+					done();
+				})
+				.catch(done);
 
 		});
 
@@ -132,12 +132,12 @@ describe('get', () => {
 			dare.execute = (query, callback) => callback(null, []);
 
 			dare
-			.get('test', {id: 1})
-			.then(done, err => {
-				expect(err).to.have.property('code', 'NOT_FOUND');
-				done();
-			})
-			.catch(done);
+				.get('test', {id: 1})
+				.then(done, err => {
+					expect(err).to.have.property('code', 'NOT_FOUND');
+					done();
+				})
+				.catch(done);
 
 		});
 
@@ -150,12 +150,12 @@ describe('get', () => {
 			};
 
 			dare
-			.get('test', [{'_count': 'count(*)'}], {id: 1}, {groupby: 'name'})
-			.then(resp => {
-				expect(resp).to.eql({id: 1});
-				done();
-			})
-			.catch(done);
+				.get('test', [{'_count': 'count(*)'}], {id: 1}, {groupby: 'name'})
+				.then(resp => {
+					expect(resp).to.eql({id: 1});
+					done();
+				})
+				.catch(done);
 
 		});
 
@@ -175,12 +175,12 @@ describe('get', () => {
 			};
 
 			dare
-			.get('test', ['_count'])
-			.then(resp => {
-				expect(resp).to.eql({_count: 10});
-				done();
-			})
-			.catch(done);
+				.get('test', ['_count'])
+				.then(resp => {
+					expect(resp).to.eql({_count: 10});
+					done();
+				})
+				.catch(done);
 
 		});
 	});

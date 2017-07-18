@@ -20,11 +20,11 @@ describe('Dare', () => {
 		const dare = new Dare();
 
 		dare
-		.sql('SELECT 1=1')
-		.then(done, err => {
-			expect(err).to.be.an('object');
-			done();
-		});
+			.sql('SELECT 1=1')
+			.then(done, err => {
+				expect(err).to.be.an('object');
+				done();
+			});
 	});
 
 	it('should define dare.use to create an instance from another', () => {

@@ -50,7 +50,7 @@ describe('after Handler', () => {
 					expect(resp).to.eql('called');
 					done();
 				})
-				.catch(done);
+					.catch(done);
 			});
 		}
 	});
@@ -134,9 +134,9 @@ describe('after Handler', () => {
 					fields: ['id'],
 					limit: 1
 				})
-				.then(expected.bind(null, null), expected.bind(null))
-				.then(() => done())
-				.catch(done);
+					.then(expected.bind(null, null), expected.bind(null))
+					.then(() => done())
+					.catch(done);
 
 			});
 		});
@@ -182,7 +182,7 @@ describe('after Handler', () => {
 					expect(dare.after).to.not.eql(new_after_handler);
 					done();
 				})
-				.catch(done);
+					.catch(done);
 			});
 		}
 	});

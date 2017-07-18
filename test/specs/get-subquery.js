@@ -70,11 +70,11 @@ describe('get - subquery', () => {
 				'collection_count': 'COUNT(collections.id)'
 			}
 		})
-		.then(resp => {
-			expect(resp).to.have.property('asset_name', 'name');
-			expect(resp).to.have.property('collection_count', 42);
-			done();
-		}).catch(done);
+			.then(resp => {
+				expect(resp).to.have.property('asset_name', 'name');
+				expect(resp).to.have.property('collection_count', 42);
+				done();
+			}).catch(done);
 
 	});
 
@@ -115,10 +115,10 @@ describe('get - subquery', () => {
 				}]
 			}
 		})
-		.then(resp => {
-			expect(resp.collections).to.have.property('count', 42);
-			done();
-		}).catch(done);
+			.then(resp => {
+				expect(resp.collections).to.have.property('count', 42);
+				done();
+			}).catch(done);
 
 	});
 
@@ -156,12 +156,12 @@ describe('get - subquery', () => {
 				'collections': ['id', 'name']
 			}
 		})
-		.then(resp => {
-			expect(resp.collections).to.be.an('array');
-			expect(resp.collections[0]).to.have.property('id', '1');
-			expect(resp.collections[0]).to.have.property('name', 'a');
-			done();
-		}).catch(done);
+			.then(resp => {
+				expect(resp.collections).to.be.an('array');
+				expect(resp.collections[0]).to.have.property('id', '1');
+				expect(resp.collections[0]).to.have.property('name', 'a');
+				done();
+			}).catch(done);
 
 	});
 
@@ -194,10 +194,10 @@ describe('get - subquery', () => {
 				}
 			}
 		})
-		.then(resp => {
-			expect(resp).to.have.property('asset_name', 'name');
-			done();
-		}).catch(done);
+			.then(resp => {
+				expect(resp).to.have.property('asset_name', 'name');
+				done();
+			}).catch(done);
 
 	});
 
@@ -233,9 +233,9 @@ describe('get - subquery', () => {
 				}
 			}
 		})
-		.then(() => {
-			done();
-		}).catch(done);
+			.then(() => {
+				done();
+			}).catch(done);
 
 	});
 
@@ -275,9 +275,9 @@ describe('get - subquery', () => {
 				}
 			}
 		})
-		.then(() => {
-			done();
-		}).catch(done);
+			.then(() => {
+				done();
+			}).catch(done);
 
 	});
 });
