@@ -2,7 +2,7 @@
 
 // Test Generic DB functions
 const sqlEqual = require('../lib/sql-equal');
-const error = require('../../src/utils/error');
+const DareError = require('../../src/utils/error');
 
 describe('del', () => {
 
@@ -42,7 +42,7 @@ describe('del', () => {
 				done('Should not be called');
 			})
 			.catch(err => {
-				expect(err).to.eql(error.NOT_FOUND);
+				expect(err.code).to.eql(DareError.NOT_FOUND);
 				done();
 			});
 	});
@@ -134,7 +134,7 @@ describe('del', () => {
 			del: {
 				'default': () => {
 					// Augment the request
-					throw 'Can\'t touch this';
+					throw new Error('Can\'t touch this');
 				}
 			}
 		};

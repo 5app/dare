@@ -1,4 +1,4 @@
-const error = require('./error');
+const DareError = require('./error');
 
 module.exports = function unwrap_field(expression) {
 
@@ -21,7 +21,5 @@ module.exports = function unwrap_field(expression) {
 	}
 
 	// Is this a valid field
-	throw Object.assign(error.INVALID_REFERENCE, {
-		message: `The field definition '${expression}' is invalid.`
-	});
+	throw new DareError(DareError.INVALID_REFERENCE, `The field definition '${expression}' is invalid.`);
 };

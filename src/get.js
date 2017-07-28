@@ -1,6 +1,6 @@
 'use strict';
 
-const error = require('./utils/error');
+const DareError = require('./utils/error');
 const group_concat = require('./utils/group_concat');
 const field_format = require('./utils/field_format');
 
@@ -31,7 +31,7 @@ module.exports = function(opts) {
 					return resp[0];
 				}
 				else {
-					throw error.NOT_FOUND;
+					throw new DareError(DareError.NOT_FOUND);
 				}
 			}
 			return resp;

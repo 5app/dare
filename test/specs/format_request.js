@@ -25,7 +25,7 @@ describe('format_request', () => {
 	});
 
 	it('should return a promise', () => {
-		expect(dare.format_request()).to.have.property('then');
+		dare.format_request().then(() => {}, () => {});
 	});
 
 	describe('aliasing', () => {
@@ -72,7 +72,7 @@ describe('format_request', () => {
 				fields: ['id']
 			})
 				.then(done, err => {
-					expect(err.code).to.eql(error.INVALID_REFERENCE.code);
+					expect(err.code).to.eql(error.INVALID_REFERENCE);
 					expect(err).to.have.property('message');
 					done();
 				}).catch(done);
@@ -134,7 +134,7 @@ describe('format_request', () => {
 
 					dare.format_request(Object.assign({}, options, {fields}))
 						.then(done, err => {
-							expect(err.code).to.eql(error.INVALID_REFERENCE.code);
+							expect(err.code).to.eql(error.INVALID_REFERENCE);
 							expect(err).to.have.property('message');
 							done();
 						})
@@ -202,7 +202,7 @@ describe('format_request', () => {
 
 						dare.format_request(Object.assign({}, options, {limit}))
 							.then(done, err => {
-								expect(err.code).to.eql(error.INVALID_LIMIT.code);
+								expect(err.code).to.eql(error.INVALID_LIMIT);
 								expect(err).to.have.property('message');
 								done();
 							})
@@ -239,7 +239,7 @@ describe('format_request', () => {
 
 						dare.format_request(Object.assign({}, options, {start}))
 							.then(done, err => {
-								expect(err.code).to.eql(error.INVALID_START.code);
+								expect(err.code).to.eql(error.INVALID_START);
 								expect(err).to.have.property('message');
 								done();
 							})
@@ -289,7 +289,7 @@ describe('format_request', () => {
 						groupby
 					})
 						.then(done, err => {
-							expect(err.code).to.eql(error.INVALID_REFERENCE.code);
+							expect(err.code).to.eql(error.INVALID_REFERENCE);
 							expect(err).to.have.property('message');
 							done();
 						})
@@ -364,7 +364,7 @@ describe('format_request', () => {
 						orderby
 					})
 						.then(done, err => {
-							expect(err.code).to.eql(error.INVALID_REFERENCE.code);
+							expect(err.code).to.eql(error.INVALID_REFERENCE);
 							expect(err).to.have.property('message');
 							done();
 						})
@@ -503,7 +503,7 @@ describe('format_request', () => {
 						filter
 					})
 						.then(done, err => {
-							expect(err.code).to.eql(error.INVALID_REFERENCE.code);
+							expect(err.code).to.eql(error.INVALID_REFERENCE);
 							expect(err).to.have.property('message');
 							done();
 						})
@@ -672,7 +672,7 @@ describe('format_request', () => {
 					]
 				})
 					.then(done, err => {
-						expect(err.code).to.eql(error.INVALID_REFERENCE.code);
+						expect(err.code).to.eql(error.INVALID_REFERENCE);
 						expect(err).to.have.property('message');
 						done();
 					}).catch(done);
@@ -704,7 +704,7 @@ describe('format_request', () => {
 				]
 			})
 				.then(done, err => {
-					expect(err.code).to.eql(error.INVALID_REFERENCE.code);
+					expect(err.code).to.eql(error.INVALID_REFERENCE);
 					expect(err).to.have.property('message', 'Could not understand field \'comments\'');
 					done();
 				})

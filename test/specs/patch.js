@@ -43,7 +43,7 @@ describe('patch', () => {
 				done('Should not be called');
 			})
 			.catch(err => {
-				expect(err).to.eql(error.NOT_FOUND);
+				expect(err.code).to.eql(error.NOT_FOUND);
 				done();
 			});
 	});
@@ -178,7 +178,7 @@ describe('patch', () => {
 			patch: {
 				'default': () => {
 					// Augment the request
-					throw 'Can\'t touch this';
+					throw new Error('Can\'t touch this');
 				}
 			}
 		};
