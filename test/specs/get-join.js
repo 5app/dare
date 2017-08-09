@@ -3,6 +3,18 @@
 // Test Generic DB functions
 const expectSQLEqual = require('../lib/sql-equal');
 
+// Walk
+function walk(obj, handler, key = null) {
+
+	if (typeof obj !== 'object') {
+		handler(obj, key);
+	}
+	else {
+		for (const x in obj) {
+			walk(obj[x], handler, x);
+		}
+	}
+}
 
 // Create a schema
 const options = {
@@ -76,15 +88,15 @@ describe('get - request object', () => {
 
 			const expected = `
 
-				SELECT activityEvents.created_time, COUNT(*) AS '_count', asset.id AS 'asset.id', asset.name AS 'asset.name', DATE(asset.updated_time) AS 'asset.last_updated'
-				FROM activityEvents
-					LEFT JOIN activitySession ON (activitySession.id = activityEvents.session_id)
-					LEFT JOIN apps asset ON (asset.id = activityEvents.ref_id)
-				WHERE activityEvents.category = ?
-					AND activityEvents.action = ?
-					AND activityEvents.created_time > ?
-					AND activitySession.domain = ?
-				GROUP BY asset.id
+				SELECT a.created_time, COUNT(*) AS '_count', c.id AS 'asset.id', c.name AS 'asset.name', DATE(c.updated_time) AS 'asset.last_updated'
+				FROM activityEvents a
+					LEFT JOIN activitySession b ON (b.id = a.session_id)
+					LEFT JOIN apps c ON (c.id = a.ref_id)
+				WHERE a.category = ?
+					AND a.action = ?
+					AND a.created_time > ?
+					AND b.domain = ?
+				GROUP BY a.ref_id
 				ORDER BY _count DESC
 				LIMIT 5
 
@@ -118,7 +130,7 @@ describe('get - request object', () => {
 					]
 				}
 			],
-			groupby: 'asset.id',
+			groupby: 'ref_id',
 			orderby: '_count DESC',
 			limit
 		})
@@ -168,6 +180,39 @@ describe('get - request object', () => {
 
 		});
 
+		it('should respond with the same structure as the request.fields', done => {
+
+			dare.sql = () =>
+				Promise.resolve([{
+					name: 'Name',
+					'users_email.name': 2001
+				}]);
+
+			dare.get({
+				table: 'users',
+				fields: [
+					'name',
+					{
+						users_email: [
+							'email'
+						]
+					}
+				],
+				filter: {
+					users_email: {
+						users: {
+							name: 1
+						}
+					}
+				},
+				limit
+			})
+				.then(resp => {
+					expect(resp).to.be.an('array');
+					done();
+				}).catch(done);
+
+		});
 	});
 
 	describe('filter', () => {
@@ -187,14 +232,12 @@ describe('get - request object', () => {
 				it(`valid: ${JSON.stringify(value)}`, done => {
 
 					dare.sql = (sql, prepared) => {
-						for (const x in value) {
-							expect(sql).to.contain(x);
 
-							// we could iterate through the object, but the main thing was that it was passed through.
-							if (typeof value[x] !== 'object') {
-								expect(prepared).to.contain(value[x]);
-							}
-						}
+						walk(value, (value, key) => {
+							expect(sql).to.contain(key);
+							expect(prepared).to.contain(value);
+						});
+
 						done();
 						return Promise.resolve([]);
 					};
@@ -232,9 +275,9 @@ describe('get - request object', () => {
 					dare.sql = sql => {
 
 						const expected = `
-							SELECT activityEvents.id, asset.name AS 'asset.name'
-							FROM activityEvents
-							LEFT JOIN apps asset ON (asset.type = ? AND asset.id = activityEvents.ref_id)
+							SELECT a.id, b.name AS 'asset.name'
+							FROM activityEvents a
+							LEFT JOIN apps b ON (b.type = ? AND b.id = a.ref_id)
 							LIMIT 5
 						`;
 
@@ -265,8 +308,8 @@ describe('get - request object', () => {
 			dare.sql = sql => {
 
 				const expected = `
-					SELECT activityEvents.id
-					FROM activityEvents
+					SELECT a.id
+					FROM activityEvents a
 					LIMIT 5
 				`;
 
@@ -302,11 +345,11 @@ describe('get - request object', () => {
 			dare.sql = sql => {
 
 				const expected = `
-					SELECT asset.id
-					FROM apps asset
-					LEFT JOIN activityEvents ON(activityEvents.ref_id = asset.id)
-					WHERE activityEvents.type = ?
-					GROUP BY asset.id
+					SELECT a.id
+					FROM apps a
+					LEFT JOIN activityEvents b ON(b.ref_id = a.id)
+					WHERE b.type = ?
+					GROUP BY a.id
 					LIMIT 5
 				`;
 
@@ -335,9 +378,9 @@ describe('get - request object', () => {
 
 				const expected = `
 					SELECT COUNT(*) AS '_count'
-					FROM apps asset
-					LEFT JOIN activityEvents ON(activityEvents.ref_id = asset.id)
-					WHERE activityEvents.type = ?
+					FROM apps a
+					LEFT JOIN activityEvents b ON(b.ref_id = a.id)
+					WHERE b.type = ?
 					LIMIT 5
 				`;
 

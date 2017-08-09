@@ -41,16 +41,16 @@ describe('get - subquery', () => {
 
 			const expected = `
 
-				SELECT assets.name AS 'asset_name',
+				SELECT a.name AS 'asset_name',
 				(
-					SELECT COUNT(collections.id)
-					FROM assetCollections a
-					LEFT JOIN collections ON (collections.id = a.collection_id)
-					WHERE a.asset_id = assets.id
+					SELECT COUNT(c.id)
+					FROM assetCollections b
+					LEFT JOIN collections c ON (c.id = b.collection_id)
+					WHERE b.asset_id = a.id
 					LIMIT 1
 				) AS 'collection_count'
-				FROM assets
-				GROUP BY assets.id
+				FROM assets a
+				GROUP BY a.id
 				LIMIT 1
 
 			`;
@@ -84,16 +84,16 @@ describe('get - subquery', () => {
 
 			const expected = `
 
-				SELECT assets.name AS 'asset_name',
+				SELECT a.name AS 'asset_name',
 				(
-					SELECT COUNT(collections.id)
-					FROM assetCollections a
-					LEFT JOIN collections ON (collections.id = a.collection_id)
-					WHERE a.asset_id = assets.id
+					SELECT COUNT(c.id)
+					FROM assetCollections b
+					LEFT JOIN collections c ON (c.id = b.collection_id)
+					WHERE b.asset_id = a.id
 					LIMIT 1
 				) AS 'collections.count'
-				FROM assets
-				GROUP BY assets.id
+				FROM assets a
+				GROUP BY a.id
 				LIMIT 1
 
 			`;
@@ -128,16 +128,16 @@ describe('get - subquery', () => {
 
 			const expected = `
 
-				SELECT assets.name AS 'name',
+				SELECT a.name AS 'name',
 				(
-					SELECT CONCAT('[', GROUP_CONCAT(CONCAT('[', '"', REPLACE(collections.id, '"', '\\"'), '"', ',', '"', REPLACE(collections.name, '"', '\\"'), '"', ']')), ']')
-					FROM assetCollections a
-					LEFT JOIN collections ON (collections.id = a.collection_id)
-					WHERE a.asset_id = assets.id
+					SELECT CONCAT('[', GROUP_CONCAT(CONCAT('[', '"', REPLACE(c.id, '"', '\\"'), '"', ',', '"', REPLACE(c.name, '"', '\\"'), '"', ']')), ']')
+					FROM assetCollections b
+					LEFT JOIN collections c ON (c.id = b.collection_id)
+					WHERE b.asset_id = a.id
 					LIMIT 1
 				) AS 'collections[id,name]'
-				FROM assets
-				GROUP BY assets.id
+				FROM assets a
+				GROUP BY a.id
 				LIMIT 1
 
 			`;
@@ -171,8 +171,8 @@ describe('get - subquery', () => {
 
 			const expected = `
 
-				SELECT assets.name AS 'name'
-				FROM assets
+				SELECT a.name AS 'name'
+				FROM assets a
 				LIMIT 1
 
 			`;
@@ -206,13 +206,13 @@ describe('get - subquery', () => {
 		dare.sql = sql => {
 
 			const expected = `
-				SELECT assets.name AS 'name',
-					CONCAT('[', GROUP_CONCAT(CONCAT('[', '"', REPLACE(collections.id, '"', '\\"'), '"', ',', '"', REPLACE(collections.name, '"', '\\"'), '"', ']')), ']') AS 'collections[id,name]'
-				FROM assets
-				LEFT JOIN assetCollections a ON(a.asset_id = assets.id)
-				LEFT JOIN collections ON (collections.id = a.collection_id)
-				WHERE collections.name = ?
-				GROUP BY assets.id
+				SELECT a.name AS 'name',
+					CONCAT('[', GROUP_CONCAT(CONCAT('[', '"', REPLACE(c.id, '"', '\\"'), '"', ',', '"', REPLACE(c.name, '"', '\\"'), '"', ']')), ']') AS 'collections[id,name]'
+				FROM assets a
+				LEFT JOIN assetCollections b ON(b.asset_id = a.id)
+				LEFT JOIN collections c ON (c.id = b.collection_id)
+				WHERE c.name = ?
+				GROUP BY a.id
 				LIMIT 1
 			`;
 
@@ -244,13 +244,13 @@ describe('get - subquery', () => {
 		dare.sql = sql => {
 
 			const expected = `
-				SELECT assets.name AS 'name', CONCAT('[',GROUP_CONCAT(CONCAT('[','"',REPLACE(COUNT(collectionChildren.id),'"','\\"'),'"',']')),']') AS 'assetCollections[collections.descendents]'
-				FROM assets
-				LEFT JOIN assetCollections ON(assetCollections.asset_id = assets.id)
-				LEFT JOIN collections ON(collections.id = assetCollections.collection_id)
-				LEFT JOIN collectionChildren ON(collectionChildren.collection_id=collections.id)
-				WHERE assetCollections.is_deleted = ?
-				GROUP BY assets.id
+				SELECT a.name AS 'name', CONCAT('[',GROUP_CONCAT(CONCAT('[','"',REPLACE(COUNT(d.id),'"','\\"'),'"',']')),']') AS 'assetCollections[collections.descendents]'
+				FROM assets a
+				LEFT JOIN assetCollections b ON(b.asset_id = a.id)
+				LEFT JOIN collections c ON(c.id = b.collection_id)
+				LEFT JOIN collectionChildren d ON(d.collection_id = c.id)
+				WHERE b.is_deleted = ?
+				GROUP BY a.id
 				LIMIT 1
 			`;
 

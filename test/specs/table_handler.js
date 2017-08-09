@@ -73,7 +73,7 @@ describe('table_handler', () => {
 			alias: 'peeps'
 		});
 
-		const unique_alias = dare.current_unique_alias;
+		const unique_alias = dare.get_unique_alias(0);
 
 		expect(resp).to.deep.equal({
 			table: 'emails',
@@ -92,7 +92,7 @@ describe('table_handler', () => {
 
 		dare.execute = (sql, callback) => {
 			// Expect the left join to include the options table_conditions
-			expect(sql).to.match(/LEFT JOIN users\s+ON \(users\.domain_id = 10 AND users\.id = emails\.user_id\)/);
+			expect(sql).to.match(/LEFT JOIN users b ON \(b\.domain_id = 10 AND b\.id = a\.user_id\)/);
 			callback(null, [{}]);
 		};
 

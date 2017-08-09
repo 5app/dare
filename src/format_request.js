@@ -188,7 +188,7 @@ function format_specs(options) {
 	// Groupby
 	// If the content is grouped
 	if (options.groupby) {
-		// Check inject
+		// Explode the group formatter... 
 		checkFormat(options.groupby);
 	}
 
@@ -202,7 +202,7 @@ function format_specs(options) {
 			a = a.split(/\s*,\s*/);
 		}
 		else if (!Array.isArray(a)) {
-			checkFormat(a);
+			a = [a];
 		}
 
 		a.forEach(def => {
@@ -214,6 +214,8 @@ function format_specs(options) {
 			// Check format
 			checkFormat(def);
 		});
+
+		options.orderby = a;
 	}
 
 	// Set default limit

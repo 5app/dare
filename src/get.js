@@ -3,8 +3,12 @@
 const DareError = require('./utils/error');
 const group_concat = require('./utils/group_concat');
 const field_format = require('./utils/field_format');
+const unwrap_field = require('./utils/unwrap_field');
+
 
 module.exports = function(opts) {
+	// Reset the alias
+	this.unique_alias_index = 0;
 
 	// Set the table_response_handlers
 	this.response_handlers = this.response_handlers || [];
@@ -54,14 +58,19 @@ function buildQuery(opts) {
 		has_many_join,
 		sql_subquery_values,
 		sql_joins,
+		list,
 		sql_join_values,
 		sql_filter,
 		sql_values,
 	} = this.traverse(opts, is_subquery);
 
+	// Get the root tableID
+	const sql_table = opts.table;
+	const sql_alias = opts.sql_alias;
+
 	{
 		// Count is a special field, find and replace ...
-		fields.filter(item => item.expression === `${opts.alias}._count`)
+		fields.filter(item => item.expression === `${sql_alias}._count`)
 			.forEach(item => {
 				item.expression = 'COUNT(*)';
 				item.label = '_count';
@@ -73,7 +82,7 @@ function buildQuery(opts) {
 	if (opts._join) {
 		opts._join.forEach(([field, condition, values]) => {
 			sql_values.push(...values);
-			sql_filter.push(`${opts.alias}.${field} ${condition}`);
+			sql_filter.push(`${sql_alias}.${field} ${condition}`);
 		});
 	}
 
@@ -99,8 +108,11 @@ function buildQuery(opts) {
 
 	if (opts.groupby) {
 
+		// Replace the attribute path reference in the groupby statement
+		opts.groupby = unwrap_field(opts.groupby, replaceFieldPath(list, fields));
+
 		// Find the special _group column...
-		fields.filter(item => item.expression === `${opts.alias}._group`)
+		fields.filter(item => item.expression === `${sql_alias}._group`)
 			.forEach(item => {
 				item.expression = opts.groupby;
 				item.label = '_group';
@@ -113,11 +125,14 @@ function buildQuery(opts) {
 	// Orderby
 	// If the content is ordered
 
-	const sql_orderby = opts.orderby ? `ORDER BY ${opts.orderby.toString()}` : '';
+	if (opts.orderby) {
+		opts.orderby = opts.orderby.map(rule => {
+			const def = rule.split(/\s*(DESC|ASC)?$/i);
+			return unwrap_field(def[0], replaceFieldPath(list, fields)) + (def[1] ? ` ${def[1]}` : '');
+		});
+	}
 
-	// Get the root tableID
-	const sql_alias = opts.alias;
-	const sql_table = opts.table;
+	const sql_orderby = opts.orderby ? `ORDER BY ${opts.orderby.toString()}` : '';
 
 	// Format Fields
 	let sql_fields;
@@ -144,7 +159,7 @@ function buildQuery(opts) {
 
 	// Put it all together
 	const sql = `SELECT ${sql_fields.toString()}
-				 FROM ${sql_table} ${sql_alias !== sql_table ? sql_alias : ''}
+				 FROM ${sql_table} ${sql_alias}
 						${sql_joins.join('\n')}
 				 ${sql_filter.length ? 'WHERE' : ''}
 					 ${sql_filter.join(' AND ')}
@@ -167,6 +182,10 @@ function traverse(item, is_subquery) {
 
 	const sql_subquery_values = [];
 
+	// List
+	// Store each item in a list
+	const list = [];
+
 	// Joins
 	const sql_joins = [];
 	const sql_join_values = [];
@@ -177,6 +196,7 @@ function traverse(item, is_subquery) {
 		sql_filter,
 		sql_values,
 		fields,
+		list,
 		sql_subquery_values,
 		sql_joins,
 		sql_join_values,
@@ -247,17 +267,24 @@ function traverse(item, is_subquery) {
 			return resp;
 		}
 
+	}
+
+	const sql_alias = this.get_unique_alias();
+	item.sql_alias = sql_alias;
+
+	if (parent) {
+
 		// Update the values with the alias of the parent
 		const sql_join_condition = [];
 		if (item._join) {
 			item._join.forEach(([field, condition, values]) => {
 				sql_join_values.push(...values);
-				sql_join_condition.push(`${item.alias}.${field} ${condition}`);
+				sql_join_condition.push(`${sql_alias}.${field} ${condition}`);
 			});
 		}
 		for (const x in item.join_conditions) {
 			const val = item.join_conditions[x];
-			sql_join_condition.push(`${item.alias}.${x} = ${parent.alias}.${val}`);
+			sql_join_condition.push(`${sql_alias}.${x} = ${parent.sql_alias}.${val}`);
 		}
 
 		// Required Join
@@ -265,7 +292,7 @@ function traverse(item, is_subquery) {
 
 		if (!item.is_subquery) {
 			// Append to the sql_join
-			sql_joins.push(`${item.required_join ? '' : 'LEFT'} JOIN ${item.table} ${item.table === item.alias ? '' : item.alias} ON (${sql_join_condition.join(' AND ')})`);
+			sql_joins.push(`${item.required_join ? '' : 'LEFT'} JOIN ${item.table} ${sql_alias} ON (${sql_join_condition.join(' AND ')})`);
 		}
 		else {
 			// Merge the join condition on the filter
@@ -284,7 +311,7 @@ function traverse(item, is_subquery) {
 
 		item._filter.forEach(([field, condition, values]) => {
 			sql_values.push(...values);
-			sql_filter.push(`${item.alias}.${field} ${condition}`);
+			sql_filter.push(`${sql_alias}.${field} ${condition}`);
 		});
 	}
 
@@ -304,7 +331,7 @@ function traverse(item, is_subquery) {
 				return;
 			}
 
-			fields.push(field_format(expression, label, item.alias, item.field_alias_path));
+			fields.push(field_format(expression, label, sql_alias, item.field_alias_path));
 		});
 
 	}
@@ -345,6 +372,9 @@ function traverse(item, is_subquery) {
 		fields.push(gc);
 	}
 
+	// Add this resource to the internal list
+	list.push(item);
+
 	return resp;
 }
 
@@ -370,4 +400,27 @@ function setField(table, field, handler, obj) {
 	}
 
 	obj.forEach(item => item[field] = handler.call(this, item));
+}
+
+function replaceFieldPath(list, fields) {
+	return ({field_path, field_name, prefix, suffix}) => {
+		// Address
+		let address = '';
+
+		// Does the path exist?
+		if (field_path) {
+			// Find the new sql_alias for the address
+			const item = list.find(item => item.alias === field_path);
+			address = (item ? item.sql_alias : field_path);
+		}
+		else if (!fields.find(item => item.label === field_name)) {
+			address = 'a';
+		}
+
+		if (address) {
+			address += '.';
+		}
+
+		return prefix + address + field_name + suffix;
+	};
 }

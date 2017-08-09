@@ -27,9 +27,11 @@ Dare.prototype.table_alias_handler = function(name) {
 	return (this.options.table_alias ? this.options.table_alias[name] : null) || name;
 };
 
-Dare.prototype.get_unique_alias = function() {
-	this.current_unique_alias += 'a';
-	return this.current_unique_alias;
+Dare.prototype.get_unique_alias = function(iterate = 1) {
+	if (iterate) {
+		this.unique_alias_index += iterate;
+	}
+	return String.fromCharCode(96 + this.unique_alias_index);
 };
 
 Dare.prototype.format_request = require('./format_request');
@@ -64,7 +66,7 @@ Dare.prototype.use = function(options) {
 	inst.options = Object.assign({}, this.options, options);
 
 	// Set SQL level states
-	inst.current_unique_alias = '';
+	inst.unique_alias_index = 0;
 	return inst;
 };
 
