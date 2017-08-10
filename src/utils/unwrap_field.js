@@ -1,6 +1,6 @@
-const error = require('./error');
+const DareError = require('./error');
 
-module.exports = function unwrap_field(expression) {
+module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 
 	const m = typeof expression === 'string' && expression.match(/^(([a-z_]+)\(([a-z_]+\s)*)*([a-z0-9._*]+?)(\))*$/i);
 
@@ -11,17 +11,21 @@ module.exports = function unwrap_field(expression) {
 
 		if ((prefix.match(/\(/g) || []).length === suffix.length) {
 
+			const a = field.split('.');
+			const field_name = a.pop();
+			const field_path = a.join('.');
+
 			// This passes the test
-			return {
+			return formatter({
 				field,
+				field_name,
+				field_path,
 				prefix,
 				suffix
-			};
+			});
 		}
 	}
 
 	// Is this a valid field
-	throw Object.assign(error.INVALID_REFERENCE, {
-		message: `The field definition '${expression}' is invalid.`
-	});
+	throw new DareError(DareError.INVALID_REFERENCE, `The field definition '${expression}' is invalid.`);
 };

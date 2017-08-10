@@ -42,6 +42,7 @@
 		"no-redeclare": 2,
 		"no-self-assign": 2,
 		"no-spaced-func": 2,
+		"no-throw-literal": 2,
 		"no-trailing-spaces": 2,
 		"no-undef": 2,
 		"no-unexpected-multiline": 2,

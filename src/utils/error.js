@@ -15,19 +15,17 @@ const SQL_ERROR_STATUSCODES = {
 	NOT_FOUND: 404
 };
 
-module.exports = function error(err) {
-	const message = SQL_ERROR_DICTIONARY[err.code] || 'request failed';
-	return {
-		status: err.status || SQL_ERROR_STATUSCODES[err.code] || 500,
-		code: err.code,
-		message
-	};
-};
+class DareError extends Error {
+	constructor(code, message) {
+		super();
+		this.code = code;
+		this.status = SQL_ERROR_STATUSCODES[code] || 500;
+		this.message = message || SQL_ERROR_DICTIONARY[code] || 'request failed';
+	}
+}
+
+module.exports = DareError;
 
 for (const x in SQL_ERROR_STATUSCODES) {
-	module.exports[x] = {
-		status: SQL_ERROR_STATUSCODES[x] || 500,
-		code: x,
-		message: SQL_ERROR_DICTIONARY[x]
-	};
+	DareError[x] = x;
 }

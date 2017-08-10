@@ -1,14 +1,22 @@
 'use strict';
 
-const error = require('./utils/error');
+const DareError = require('./utils/error');
 const fieldReducer = require('./utils/field_reducer');
 const checkFormat = require('./utils/unwrap_field');
 const checkKey = require('./utils/validate_field');
 const formatDateTime = require('./utils/format_datetime');
 
-module.exports = format_request;
+module.exports = function(options) {
+	return new Promise((accept, reject) => {
+		const fn = format_request.call(this, options);
+		if (fn && fn.then) {
+			fn.then(accept, reject);
+		}
+		accept(fn);
+	});
+};
 
-function format_request(options) {
+function format_request(options = {}) {
 
 	// Use the alias to find the real table name
 	if (!options.alias) {
@@ -19,9 +27,7 @@ function format_request(options) {
 
 	// Reject when the table is not recognised
 	if (!options.table) {
-		throw Object.assign(error.INVALID_REFERENCE, {
-			message: `Unrecognized reference '${options.table}'`
-		});
+		throw new DareError(DareError.INVALID_REFERENCE, `Unrecognized reference '${options.table}'`);
 	}
 
 	// Call bespoke table handler
@@ -37,7 +43,10 @@ function format_request(options) {
 		handler = handlers.default;
 	}
 	if (handler) {
-		return Promise.resolve(handler.call(this, options)).then(format_specs.bind(this, options));
+		const fn = handler.call(this, options);
+		if (fn && fn.then) {
+			return fn.then(format_specs.bind(this, options));
+		}
 	}
 
 	return format_specs.call(this, options);
@@ -57,9 +66,7 @@ function format_specs(options) {
 
 		// filter must be an object with key=>values
 		if (typeof filter !== 'object') {
-			throw Object.assign(error.INVALID_REFERENCE, {
-				message: `The filter '${filter}' is invalid.`
-			});
+			throw new DareError(DareError.INVALID_REFERENCE, `The filter '${filter}' is invalid.`);
 		}
 
 		// Explore the filter for any table joins
@@ -108,9 +115,7 @@ function format_specs(options) {
 
 		// Fields must be an array, or a dictionary (aka object)
 		if (typeof fields !== 'object') {
-			throw Object.assign(error.INVALID_REFERENCE, {
-				message: `The field definition '${fields}' is invalid.`
-			});
+			throw new DareError(DareError.INVALID_REFERENCE, `The field definition '${fields}' is invalid.`);
 		}
 
 		// Make the fields an array
@@ -130,9 +135,7 @@ function format_specs(options) {
 
 		// filter must be an object with key=>values
 		if (typeof join !== 'object') {
-			throw Object.assign(error.INVALID_REFERENCE, {
-				message: `The join '${join}' is invalid.`
-			});
+			throw new DareError(DareError.INVALID_REFERENCE, `The join '${join}' is invalid.`);
 		}
 
 		// Explore the filter for any table joins
@@ -185,7 +188,7 @@ function format_specs(options) {
 	// Groupby
 	// If the content is grouped
 	if (options.groupby) {
-		// Check inject
+		// Explode the group formatter... 
 		checkFormat(options.groupby);
 	}
 
@@ -199,7 +202,7 @@ function format_specs(options) {
 			a = a.split(/\s*,\s*/);
 		}
 		else if (!Array.isArray(a)) {
-			checkFormat(a);
+			a = [a];
 		}
 
 		a.forEach(def => {
@@ -211,6 +214,8 @@ function format_specs(options) {
 			// Check format
 			checkFormat(def);
 		});
+
+		options.orderby = a;
 	}
 
 	// Set default limit
@@ -240,9 +245,7 @@ function format_specs(options) {
 
 			// Reject if the join handler returned a falsy value
 			if (!new_join_object) {
-				throw Object.assign(error.INVALID_REFERENCE, {
-					message: `Could not understand field '${alias}'`
-				});
+				throw new DareError(DareError.INVALID_REFERENCE, `Could not understand field '${alias}'`);
 			}
 
 			// Help the GET parser
@@ -285,9 +288,7 @@ function limit(opts) {
 			limit = +opts.limit;
 		}
 		if (isNaN(limit) || limit > 10000 || limit < 1) {
-			throw Object.assign(error.INVALID_LIMIT, {
-				message: `Out of bounds limit value: '${limit}'`
-			});
+			throw new DareError(DareError.INVALID_LIMIT, `Out of bounds limit value: '${limit}'`);
 		}
 	}
 
@@ -298,9 +299,7 @@ function limit(opts) {
 			start = +opts.start;
 		}
 		if (typeof start !== 'number' || isNaN(start) || start < 0) {
-			throw Object.assign(error.INVALID_START, {
-				message: `Out of bounds start value: '${start}'`
-			});
+			throw new DareError(DareError.INVALID_START, `Out of bounds start value: '${start}'`);
 		}
 		opts.start = start;
 	}

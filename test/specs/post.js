@@ -53,14 +53,21 @@ describe('post', () => {
 
 	it('should accept option.duplicate_keys=ignore', done => {
 
+		let called;
+
 		dare.execute = (query, callback) => {
+			called = 1;
 			sqlEqual(query, 'INSERT IGNORE INTO test (id) VALUES (1)');
-			done();
-			callback({});
+			callback(null, {});
 		};
 
 		dare
-			.post('test', {id: 1}, {duplicate_keys: 'ignore'});
+			.post('test', {id: 1}, {duplicate_keys: 'ignore'})
+			.then(() => {
+				expect(called).to.eql(1);
+				done();
+			})
+			.catch(done);
 
 	});
 
@@ -146,7 +153,7 @@ describe('post', () => {
 			post: {
 				'default': () => {
 					// Augment the request
-					throw 'Can\'t touch this';
+					throw new Error('Can\'t touch this');
 				}
 			}
 		};

@@ -23,7 +23,7 @@ describe('get', () => {
 				// Defaults
 				// Limit: 1
 				// Fields: *
-				sqlEqual(query, 'SELECT * FROM test WHERE test.id = 1 LIMIT 1');
+				sqlEqual(query, 'SELECT * FROM test a WHERE a.id = 1 LIMIT 1');
 				callback(null, [{id: 1}]);
 			};
 
@@ -41,7 +41,7 @@ describe('get', () => {
 		it('should create a query with fields', done => {
 
 			dare.execute = (query, callback) => {
-				sqlEqual(query, 'SELECT test.id, test.name FROM test WHERE test.id = 1 LIMIT 1');
+				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.id = 1 LIMIT 1');
 				callback(null, [{id: 1}]);
 			};
 
@@ -59,7 +59,7 @@ describe('get', () => {
 		it('should support array of value in the query condition', done => {
 
 			dare.execute = (query, callback) => {
-				sqlEqual(query, 'SELECT test.id, test.name FROM test WHERE test.id IN (1, 2) LIMIT 2');
+				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.id IN (1, 2) LIMIT 2');
 				callback(null, [{id: 1, name: '1'}, {id: 2, name: '2'}]);
 			};
 
@@ -78,7 +78,7 @@ describe('get', () => {
 		it('should support wildcard characters for pattern matching', done => {
 
 			dare.execute = (query, callback) => {
-				sqlEqual(query, 'SELECT test.id, test.name FROM test WHERE test.name LIKE \'And%\' LIMIT 5');
+				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.name LIKE \'And%\' LIMIT 5');
 				callback(null, [{id: 1, name: '1'}, {id: 2, name: '2'}]);
 			};
 
@@ -94,7 +94,7 @@ describe('get', () => {
 		it('should have an overidable limit', done => {
 
 			dare.execute = (query, callback) => {
-				sqlEqual(query, 'SELECT * FROM test WHERE test.id = 1 LIMIT 5');
+				sqlEqual(query, 'SELECT * FROM test a WHERE a.id = 1 LIMIT 5');
 				callback(null, [{id: 1}]);
 			};
 
@@ -145,7 +145,7 @@ describe('get', () => {
 		it('should let us pass through SQL Functions', done => {
 
 			dare.execute = (query, callback) => {
-				sqlEqual(query, 'SELECT count(*) AS \'_count\' FROM test WHERE test.id = 1 GROUP BY name LIMIT 1');
+				sqlEqual(query, 'SELECT count(*) AS \'_count\' FROM test a WHERE a.id = 1 GROUP BY a.name LIMIT 1');
 				callback(null, [{id: 1}]);
 			};
 
@@ -165,7 +165,7 @@ describe('get', () => {
 
 				const expected = `
 					SELECT COUNT(*) AS '_count'
-					FROM test
+					FROM test a
 					LIMIT 1
 				`;
 
@@ -176,6 +176,36 @@ describe('get', () => {
 
 			dare
 				.get('test', ['_count'])
+				.then(resp => {
+					expect(resp).to.eql({_count: 10});
+					done();
+				})
+				.catch(done);
+
+		});
+
+		it('should interpret _group as a shortcut to the groupby', done => {
+
+			dare.execute = (query, callback) => {
+
+				const expected = `
+					SELECT DATE(a.created_time) AS '_group'
+					FROM test a
+					GROUP BY DATE(a.created_time)
+					LIMIT 1
+				`;
+
+				sqlEqual(query, expected);
+
+				callback(null, [{_count: 10}]);
+			};
+
+			dare
+				.get({
+					table: 'test',
+					fields: ['_group'],
+					groupby: 'DATE(created_time)'
+				})
 				.then(resp => {
 					expect(resp).to.eql({_count: 10});
 					done();
