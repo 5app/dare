@@ -285,7 +285,7 @@ Creates the following SQL JOIN Condition
 The type of value affects the choice of SQL Condition syntax to use. For instance an array will create an `IN (...)` condition, the presence of `%` will create a `LIKE` condition. If the property name is prefixed with a hyhen it will negate the filter. See examples below...
 
 
-|Prop     | Value                     | Type           | e.g. SQL
+| Key     | Value                     | Type           | = SQL Condition
 |---------|---------------------------|----------------|----------------
 | id      | 1                         | number         | `id = 1`
 | name    | 'Andrew'                  | string         | `name = 'Andrew'`
