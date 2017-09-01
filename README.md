@@ -299,7 +299,46 @@ The type of value affects the choice of SQL Condition syntax to use. For instanc
 | -flag   | null                      | null           | `flag IS NOT NULL`
 
 
+### Join
 
+The Join Object is a Fields=>Value object literal. It accepts similar syntax to the Filter Object, and defines those conditions on the SQL JOIN Condition.
+
+e.g.
+
+```javascript
+
+	join: {
+		county: {
+			is_hidden: 0
+		}
+	}
+
+	// ... LEFT JOIN county b ON (b.id = a.country_id AND b.is_hidden = 0)
+```
+
+The JOIN object is useful when restricting results in the join table without affecting the results returned in the primary table.
+
+To facilitate scenarios where the optional JOIN tables records are dependent on another relationship we can define this also in the JOIN Object, by passing though an special prop `_required: true` (key=>value)
+
+The following statement includes all results from the main table, but does not append the country data unless it is within the continent of 'Europe'
+
+```javascript
+
+	join: {
+		county: {
+			continent: {
+				_required: true,
+				name: 'Europe'
+			}
+		}
+	}
+
+	// ...
+	// LEFT JOIN county b ON (b.id = a.country_id)
+	// LEFT JOIN continent c ON (c.id = b.continent_id)
+	// WHERE (c.id = b.continent_id OR b.continent_id IS NULL)
+	// ...
+```
 
 
 # Additional Options

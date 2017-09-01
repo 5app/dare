@@ -206,6 +206,20 @@ function traverse(item, is_subquery) {
 	// Things to change if this isn't the root.
 	if (parent) {
 
+		if (item._join) {
+
+			item._join = item._join.filter(([field]) => {
+				// Special join condition
+				if (field === '_required') {
+					// Dont include this filter
+					item.required_join = true;
+					return false;
+				}
+
+				return true;
+			});
+		}
+
 		// Is this required join table?
 		if (!item.required_join && !item.has_fields && !item.has_filter) {
 			// Prevent this join from being included.
@@ -278,6 +292,7 @@ function traverse(item, is_subquery) {
 		const sql_join_condition = [];
 		if (item._join) {
 			item._join.forEach(([field, condition, values]) => {
+
 				sql_join_values.push(...values);
 				sql_join_condition.push(`${sql_alias}.${field} ${condition}`);
 			});
@@ -287,10 +302,26 @@ function traverse(item, is_subquery) {
 			sql_join_condition.push(`${sql_alias}.${x} = ${parent.sql_alias}.${val}`);
 		}
 
+		const required_join = item.required_join;
+
 		// Required Join
-		item.required_join = item.required_join && (parent.required_join || parent.root);
+		item.required_join = required_join && (parent.required_join || parent.root);
 
 		if (!item.is_subquery) {
+
+			// Required JOIN is used to lock table records together
+			// This ensures that authorisation in can be handled by another
+
+			// If the parent is not required or the root
+			if (required_join && !(parent.required_join || parent.root)) {
+
+				// Enforce a join by adding filters based on the table relationships
+				for (const x in item.join_conditions) {
+					const val = item.join_conditions[x];
+					sql_filter.push(`(${sql_alias}.${x} = ${parent.sql_alias}.${val} OR ${parent.sql_alias}.${val} IS NULL)`);
+				}
+			}
+
 			// Append to the sql_join
 			sql_joins.push(`${item.required_join ? '' : 'LEFT'} JOIN ${item.table} ${sql_alias} ON (${sql_join_condition.join(' AND ')})`);
 		}

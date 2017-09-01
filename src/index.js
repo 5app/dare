@@ -111,7 +111,7 @@ Dare.prototype.get = function get(table, fields, filter, opts = {}) {
 
 	const _this = this.use(opts);
 
-	return _this.format_request(opts)
+	return _this.format_request(_this.options)
 		.then(opts => getHandler.call(_this, opts))
 		.then(resp => _this.after(resp));
 };

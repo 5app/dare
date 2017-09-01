@@ -57,6 +57,10 @@ const options = {
 
 		apps: {
 
+		},
+
+		assetDomains: {
+			asset_id: 'apps.id'
 		}
 
 	},
@@ -336,6 +340,82 @@ describe('get - request object', () => {
 				.then(() => done())
 				.catch(done);
 		});
+
+		it('should enforce required table joins', done => {
+
+			dare.sql = sql => {
+
+				const expected = `
+					SELECT a.id, b.name AS 'asset.name'
+					FROM activityEvents a
+					JOIN apps b ON (b.type = ? AND b.id = a.ref_id)
+					LIMIT 5
+				`;
+
+				expectSQLEqual(sql, expected);
+
+				return Promise.resolve([{}]);
+			};
+
+			dare.get({
+				table: 'activityEvents',
+				fields: [
+					'id',
+					{asset: ['name']}
+				],
+				join: {
+					asset: {
+						_required: true,
+						type: 'a'
+					}
+				},
+				limit
+			})
+				.then(() => done())
+				.catch(done);
+
+		});
+
+		it('should enforce required table joins between deep nested tables', done => {
+
+			dare.sql = sql => {
+
+				const expected = `
+					SELECT a.id, b.name AS 'asset.name'
+					FROM activityEvents a
+					LEFT JOIN apps b ON (b.type = ? AND b.id = a.ref_id)
+					LEFT JOIN assetDomains c ON (c.asset_id = b.id)
+					WHERE (c.asset_id = b.id OR b.id IS NULL)
+					GROUP BY a.id
+					LIMIT 5
+				`;
+
+				expectSQLEqual(sql, expected);
+
+				return Promise.resolve([{}]);
+			};
+
+			dare.get({
+				table: 'activityEvents',
+				fields: [
+					'id',
+					{asset: ['name']}
+				],
+				join: {
+					asset: {
+						type: 'a',
+						assetDomains: {
+							_required: true
+						}
+					}
+				},
+				limit
+			})
+				.then(() => done())
+				.catch(done);
+
+		});
+
 	});
 
 	describe('GROUP BY inclusion', () => {
