@@ -27,11 +27,18 @@ Dare.prototype.table_alias_handler = function(name) {
 	return (this.options.table_alias ? this.options.table_alias[name] : null) || name;
 };
 
+Dare.prototype.unique_alias_index = 0;
+
 Dare.prototype.get_unique_alias = function(iterate = 1) {
 	if (iterate) {
 		this.unique_alias_index += iterate;
 	}
-	return String.fromCharCode(96 + this.unique_alias_index);
+	const i = this.unique_alias_index;
+	const str = String.fromCharCode(96 + i);
+	if (i <= 26) {
+		return str;
+	}
+	return `\`${str}\``;
 };
 
 Dare.prototype.format_request = require('./format_request');
