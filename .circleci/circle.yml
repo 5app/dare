@@ -1,0 +1,36 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:8.4.0
+    steps:
+      - checkout
+      - run:
+          name: Update npm
+          command: 'sudo npm install -g npm@latest'
+      - restore_cache:
+        keys:
+          - dependency-cache
+      - run:
+          name: Install npm packages
+          command: npm install
+      - save_cache:
+        key: dependency-cache
+        paths:
+          - "node_modules"
+  test:
+    docker:
+      - image: circleci/node:8.4.0
+    steps:
+      - checkout
+      - run:
+        name: Test
+        command: npm test
+
+  workflows:
+    version: 2
+    steps: 
+      - build
+      - test:
+        requires:
+          - build
