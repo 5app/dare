@@ -1,8 +1,9 @@
 version: 2
 jobs:
   build:
+    working_directory: ~/repo
     docker:
-      - image: circleci/node:8.4.0
+      - image: circleci/node:latest
     steps:
       - run:
           name: update-npm
