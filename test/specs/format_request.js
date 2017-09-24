@@ -394,194 +394,198 @@ describe('format_request', () => {
 		});
 	});
 
-	describe('filter', () => {
+	['filter', 'join'].forEach(condition_type => {
 
-		describe('should prep conditions', () => {
+		describe(condition_type, () => {
 
-			const a = [
-				[
-					{prop: 'string'},
-					'prop',
-					'= ?',
-					['string']
-				],
-				[
-					{prop: '%string'},
-					'prop',
-					'LIKE ?',
-					['%string']
-				],
-				[
-					{prop: '!string'},
-					'prop',
-					'NOT LIKE ?',
-					['string']
-				],
-				[
-					{prop: '!patt%rn'},
-					'prop',
-					'NOT LIKE ?',
-					['patt%rn']
-				],
-				[
-					{'-prop': 'patt%rn'},
-					'prop',
-					'NOT LIKE ?',
-					['patt%rn']
-				],
-				[
-					{prop: [1, 2, 3]},
-					'prop',
-					'IN (?,?,?)',
-					[1, 2, 3]
-				],
-				[
-					{'-prop': [1, 2, 3]},
-					'prop',
-					'NOT IN (?,?,?)',
-					[1, 2, 3]
-				],
-				[
-					{prop: null},
-					'prop',
-					'IS NULL',
-					[]
-				],
-				[
-					{'-prop': null},
-					'prop',
-					'IS NOT NULL',
-					[]
-				],
-			];
+			describe('should prep conditions', () => {
 
-			a.forEach(test => {
+				const a = [
+					[
+						{prop: 'string'},
+						'prop',
+						'= ?',
+						['string']
+					],
+					[
+						{prop: '%string'},
+						'prop',
+						'LIKE ?',
+						['%string']
+					],
+					[
+						{prop: '!string'},
+						'prop',
+						'NOT LIKE ?',
+						['string']
+					],
+					[
+						{prop: '!patt%rn'},
+						'prop',
+						'NOT LIKE ?',
+						['patt%rn']
+					],
+					[
+						{'-prop': 'patt%rn'},
+						'prop',
+						'NOT LIKE ?',
+						['patt%rn']
+					],
+					[
+						{prop: [1, 2, 3]},
+						'prop',
+						'IN (?,?,?)',
+						[1, 2, 3]
+					],
+					[
+						{'-prop': [1, 2, 3]},
+						'prop',
+						'NOT IN (?,?,?)',
+						[1, 2, 3]
+					],
+					[
+						{prop: null},
+						'prop',
+						'IS NULL',
+						[]
+					],
+					[
+						{'-prop': null},
+						'prop',
+						'IS NOT NULL',
+						[]
+					],
+				];
 
-				const [filter, prop, condition, values] = test;
+				a.forEach(test => {
 
-				it(`should augment filter values ${JSON.stringify(filter)}`, done => {
+					const [filter, prop, condition, values] = test;
 
-					dare.format_request({
-						table: 'tbl',
-						fields: ['id'],
-						filter
-					})
-						.then(options => {
-							expect(options._filter[0]).to.eql([prop, condition, values]);
-							done();
+					it(`should augment condition values ${JSON.stringify(filter)}`, done => {
+
+						dare.format_request({
+							table: 'tbl',
+							fields: ['id'],
+							[condition_type]: filter
 						})
-						.catch(done);
+							.then(options => {
+								expect(options[`_${condition_type}`][0]).to.eql([prop, condition, values]);
+								done();
+							})
+							.catch(done);
+					});
 				});
+
 			});
 
-		});
+			describe('should throw error', () => {
 
-		describe('should throw error', () => {
-
-			[
-				true,
-				10,
-				'string',
-				{
-					'id OR 1': '1'
-				},
-				{
-					'DATE(field)': '1'
-				},
-				{
-					asset: {
+				[
+					true,
+					10,
+					'string',
+					{
 						'id OR 1': '1'
+					},
+					{
+						'DATE(field)': '1'
+					},
+					{
+						asset: {
+							'id OR 1': '1'
+						}
 					}
-				}
-			].forEach(filter => {
+				].forEach(filter => {
 
-				it(`invalid: ${JSON.stringify(filter)}`, done => {
+					it(`invalid: ${JSON.stringify(filter)}`, done => {
 
-					dare.format_request({
-						table: 'activityEvents',
-						fields: ['id'],
-						filter
-					})
-						.then(done, err => {
-							expect(err.code).to.eql(error.INVALID_REFERENCE);
-							expect(err).to.have.property('message');
-							done();
+						dare.format_request({
+							table: 'activityEvents',
+							fields: ['id'],
+							[condition_type]: filter
 						})
-						.catch(done);
+							.then(done, err => {
+								expect(err.code).to.eql(error.INVALID_REFERENCE);
+								expect(err).to.have.property('message');
+								done();
+							})
+							.catch(done);
 
+					});
 				});
 			});
-		});
 
-		describe('field type=datetime', () => {
+			describe('field type=datetime', () => {
 
-			const table = 'table';
+				const table = 'table';
 
-			const o = {
-				'1981-12-05': [
-					'BETWEEN ? AND ?',
-					['1981-12-05T00:00:00', '1981-12-05T23:59:59']
-				],
-				'1981-1-5': [
-					'BETWEEN ? AND ?',
-					['1981-01-05T00:00:00', '1981-01-05T23:59:59']
-				],
-				'1981-12-05..1981-12-06': [
-					'BETWEEN ? AND ?',
-					['1981-12-05T00:00:00', '1981-12-06T23:59:59']
-				],
-				'1981-12-05..': [
-					'> ?',
-					['1981-12-05T00:00:00']
-				],
-				'..1981-12-05': [
-					'< ?',
-					['1981-12-05T00:00:00']
-				],
-				'1981-12': [
-					'BETWEEN ? AND ?',
-					['1981-12-01T00:00:00', '1981-12-31T23:59:59']
-				],
-				'1981-1': [
-					'BETWEEN ? AND ?',
-					['1981-01-01T00:00:00', '1981-01-31T23:59:59']
-				],
-				'2016': [
-					'BETWEEN ? AND ?',
-					['2016-01-01T00:00:00', '2016-12-31T23:59:59']
-				]
-			};
+				const o = {
+					'1981-12-05': [
+						'BETWEEN ? AND ?',
+						['1981-12-05T00:00:00', '1981-12-05T23:59:59']
+					],
+					'1981-1-5': [
+						'BETWEEN ? AND ?',
+						['1981-01-05T00:00:00', '1981-01-05T23:59:59']
+					],
+					'1981-12-05..1981-12-06': [
+						'BETWEEN ? AND ?',
+						['1981-12-05T00:00:00', '1981-12-06T23:59:59']
+					],
+					'1981-12-05..': [
+						'> ?',
+						['1981-12-05T00:00:00']
+					],
+					'..1981-12-05': [
+						'< ?',
+						['1981-12-05T00:00:00']
+					],
+					'1981-12': [
+						'BETWEEN ? AND ?',
+						['1981-12-01T00:00:00', '1981-12-31T23:59:59']
+					],
+					'1981-1': [
+						'BETWEEN ? AND ?',
+						['1981-01-01T00:00:00', '1981-01-31T23:59:59']
+					],
+					'2016': [
+						'BETWEEN ? AND ?',
+						['2016-01-01T00:00:00', '2016-12-31T23:59:59']
+					]
+				};
 
-			for (const date in o) {
+				for (const date in o) {
 
-				const [condition, values] = o[date];
+					const [condition, values] = o[date];
 
-				it(`should augment filter values ${date}`, done => {
+					it(`should augment filter values ${date}`, done => {
 
-					dare.options = {
-						schema: {
-							[table]: {
-								date: {
-									type: 'datetime'
+						dare.options = {
+							schema: {
+								[table]: {
+									date: {
+										type: 'datetime'
+									}
 								}
 							}
-						}
-					};
+						};
 
-					dare.format_request({
-						table,
-						fields: ['id'],
-						filter: {
-							date
-						}
-					})
-						.then(options => {
-							expect(options._filter[0]).to.eql(['date', condition, values]);
-							done();
+						dare.format_request({
+							table,
+							fields: ['id'],
+							[condition_type]: {
+								date
+							}
 						})
-						.catch(done);
-				});
-			}
+							.then(options => {
+								expect(options[`_${condition_type}`][0]).to.eql(['date', condition, values]);
+								done();
+							})
+							.catch(done);
+					});
+				}
+			});
+
 		});
 
 	});
