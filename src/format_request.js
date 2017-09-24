@@ -141,11 +141,12 @@ function format_specs(options) {
 		// Explore the filter for any table joins
 		for (const key in join) {
 
-			checkKey(key);
-
 			const value = join[key];
 
-			if (typeof value === 'object' && !Array.isArray(value)) {
+			if (value && typeof value === 'object' && !Array.isArray(value)) {
+
+				// Check this is a path
+				checkKey(key);
 
 				// Add it to the join table
 				joined[key] = joined[key] || {};
@@ -177,10 +178,27 @@ function format_specs(options) {
 		const _join = [];
 		const join = options.join;
 
-		for (const key in join) {
+		for (let key in join) {
+
 			const value = join[key];
+
+			let negate = false;
+
+			// Does this have a negate operator?
+			if (key.substring(0, 1) === '-') {
+
+				// Mark as negative filter
+				negate = true;
+
+				// Strip the key
+				key = key.substring(1);
+			}
+
+			// Check this is a path
+			checkKey(key);
+
 			const type = table_schema[key] && table_schema[key].type;
-			_join.push(prepCondition(key, value, type));
+			_join.push(prepCondition(key, value, type, negate));
 		}
 		options._join = _join;
 	}
