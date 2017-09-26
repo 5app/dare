@@ -268,22 +268,54 @@ describe('get - request object', () => {
 
 			[
 				{
-					asset: {
-						type: 'mobile'
-					}
+					fields: ['id', {asset: ['name']}],
+					join: {
+						asset: {
+							type: 'mobile'
+						}
+					},
+					expected: `
+						SELECT a.id, b.name AS 'asset.name'
+						FROM activityEvents a
+						LEFT JOIN apps b ON (b.type = ? AND b.id = a.ref_id)
+						LIMIT 5
+					`
+				},
+				{
+					fields: ['id', {'asset$1': ['name']}],
+					join: {
+						'asset$1': {
+							type: 'mobile'
+						}
+					},
+					expected: `
+						SELECT a.id, b.name AS 'asset$1.name'
+						FROM activityEvents a
+						LEFT JOIN apps b ON (b.type = ? AND b.id = a.ref_id)
+						LIMIT 5
+					`
+				},
+				{
+					fields: ['id', {'Count': 'COUNT(DISTINCT asset$1.id)'}],
+					join: {
+						'asset$1': {
+							type: 'mobile'
+						}
+					},
+					expected: `
+						SELECT a.id, COUNT(DISTINCT b.id) AS 'Count'
+						FROM activityEvents a
+						LEFT JOIN apps b ON (b.type = ? AND b.id = a.ref_id)
+						LIMIT 5
+					`
 				}
-			].forEach(join => {
+			].forEach(test => {
 
-				it(`valid: ${JSON.stringify(join)}`, done => {
+				const {join, fields, expected} = test;
+
+				it(`valid: ${JSON.stringify(test.join)}`, done => {
 
 					dare.sql = sql => {
-
-						const expected = `
-							SELECT a.id, b.name AS 'asset.name'
-							FROM activityEvents a
-							LEFT JOIN apps b ON (b.type = ? AND b.id = a.ref_id)
-							LIMIT 5
-						`;
 
 						expectSQLEqual(sql, expected);
 
@@ -292,10 +324,7 @@ describe('get - request object', () => {
 
 					dare.get({
 						table: 'activityEvents',
-						fields: [
-							'id',
-							{asset: ['name']}
-						],
+						fields,
 						join,
 						limit
 					})

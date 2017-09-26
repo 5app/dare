@@ -371,6 +371,28 @@ dare.get({
 });
 ```
 
+## Multiple joins/filters on the same table
+
+In order to both: show all relationship on the join table AND filter the main results by the joined table. One can either create separate table aliases (as described above) using one for the field name, and one for the filter. Or alternatively append an arbitary label, a `$` sign followed by an string. E.g. 
+
+E.g. Include all the tags associated with users AND only show users whom include the tag "Andrew"
+
+
+```javascript
+dare.get({
+	table: 'users',
+	fields: ['name', {'tags': ['name']}],
+	filter: {
+		tags$a: {
+			name: 'Andrew'
+		}
+	}
+});
+```
+
+This will get all users who contain atleast the tags 'Andrew', as well as returning all the other tags.
+
+
 ## Table Conditions
 
 	options.table_conditions[method] => handler|reference

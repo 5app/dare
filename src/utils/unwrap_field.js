@@ -2,7 +2,7 @@ const DareError = require('./error');
 
 module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 
-	const m = typeof expression === 'string' && expression.match(/^(([a-z_]+)\(([a-z_]+\s)*)*([a-z0-9._*]+?)(\))*$/i);
+	const m = typeof expression === 'string' && expression.match(/^(([a-z_]+)\(([a-z_]+\s)*)*([a-z0-9$._*]+?)(\))*$/i);
 
 	if (m) {
 		const field = m[4];

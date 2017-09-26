@@ -1,10 +1,22 @@
 const DareError = require('./error');
+const validate_alias = require('./validate_alias');
 
 module.exports = function validate_field(key) {
-	const reg = /^([a-z_]+\.)?([a-z_]+|\*)+$/i;
+
+	const a = key.split('.');
+	const field = a.pop();
+
+	const reg = /^([a-z_]+|\*)+$/i;
 
 	// Capture errors in the key
-	if (!key.match(reg)) {
+	if (!field.match(reg)) {
 		throw new DareError(DareError.INVALID_REFERENCE, `The key '${key}' must match ${reg}`);
+	}
+
+	// Validate the path
+	const path = a.join('.');
+
+	if (path) {
+		validate_alias(path);
 	}
 };

@@ -4,6 +4,7 @@ const DareError = require('./utils/error');
 const fieldReducer = require('./utils/field_reducer');
 const checkFormat = require('./utils/unwrap_field');
 const checkKey = require('./utils/validate_field');
+const checkTableAlias = require('./utils/validate_alias');
 const formatDateTime = require('./utils/format_datetime');
 
 module.exports = function(options) {
@@ -77,7 +78,7 @@ function format_specs(options) {
 			if (value && typeof value === 'object' && !Array.isArray(value)) {
 
 				// Check this is a path
-				checkKey(key);
+				checkTableAlias(key);
 
 				// Add it to the join table
 				joined[key] = joined[key] || {};
@@ -146,7 +147,7 @@ function format_specs(options) {
 			if (value && typeof value === 'object' && !Array.isArray(value)) {
 
 				// Check this is a path
-				checkKey(key);
+				checkTableAlias(key);
 
 				// Add it to the join table
 				joined[key] = joined[key] || {};
