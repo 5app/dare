@@ -13,7 +13,10 @@ module.exports = function formatDateTime(values) {
 				return '';
 			}
 
-			const date = new Date(str);
+			// Tidy up the ISO string
+			const _str = str.replace(/(T\d+)$/, '$1:00'); // Requires minutes with hours
+
+			const date = new Date(_str);
 
 			if (i++) {
 
@@ -29,8 +32,13 @@ module.exports = function formatDateTime(values) {
 					date.setDate(date.getDate() + 1);
 				}
 				else if (!i) {
-					date.setHour(date.getHour() + 1);
+					date.setHours(date.getHours() + 1);
 				}
+				else if (!s) {
+					date.setMinutes(date.getMinutes() + 1);
+				}
+
+				// Wind back a second
 				if (!s) {
 					date.setSeconds(date.getSeconds() - 1);
 				}
