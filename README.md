@@ -2,6 +2,8 @@
 
 Dare is an API for generating SQL, it can be used internally to build and execute SQL. As well as lathered with request handlers for layering per table rules and security, just the thing for maintaining data integrity and developing REST interfaces.
 
+[![Coverage Status](https://coveralls.io/repos/github/5app/dare/badge.svg)](https://coveralls.io/github/5app/dare)
+
 # Install
 
 ```bash
