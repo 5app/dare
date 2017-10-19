@@ -1,10 +1,11 @@
-
+// Generate GROUP_CONCAT statement given an array of fields definitions
+// Label the GROUP CONCAT(..) AS 'address[fields,...]'
 // Wrap all the fields in a GROUP_CONCAT statement
 module.exports = function group_concat(fields, address = '') {
 
 	// Is this an aggregate list?
 	const agg = fields.reduce((prev, curr) => (prev || curr.agg), false);
-	let label = fields.map(field => field.label || field.expression).join(',');
+	let label = fields.map(field => field.label).join(',');
 	let expression;
 
 	// Return solitary value
@@ -31,9 +32,9 @@ module.exports = function group_concat(fields, address = '') {
 	expression = `CONCAT('[', GROUP_CONCAT(${expression}), ']')`;
 
 	label = fields.map(field => {
-		const label = (field.label || field.expression);
+		const label = field.label;
 		// trim the parent address from the start of the label
-		return label.indexOf(address) === 0 ? label.slice(address.length) : label;
+		return label.slice(address.length);
 	}).join(',');
 
 	label = `${address.slice(0, address.lastIndexOf('.'))}[${label}]`;
