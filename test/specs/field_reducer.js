@@ -5,6 +5,7 @@ const field_reducer = require('../../src/utils/field_reducer');
 
 describe('Field Reducer', () => {
 
+
 	describe('should split the current fields belonging to the current and joined tables', () => {
 
 		// These are all related to the current item
@@ -81,13 +82,8 @@ describe('Field Reducer', () => {
 			const alias = 'something.asset.';
 			const joined = {};
 
-			// Schema
-			const schema = {
-				'asset': {}
-			};
-
 			// Curry the field_reducer
-			const fr = field_reducer.call(inst, alias, joined, schema);
+			const fr = field_reducer.call(inst, alias, joined);
 
 
 			it(`where ${JSON.stringify(input)}`, () => {
@@ -104,5 +100,24 @@ describe('Field Reducer', () => {
 			});
 		});
 	});
+
+	it(`should return generated fields`, () => {
+
+		const table_schema = {
+			generated_field() {
+				return 'another_field';
+			}
+		}
+
+		// Curry the field_reducer
+		const fr = field_reducer.call({}, 'alias', {}, table_schema);
+
+		// Call the field with the
+		const f = ['generated_field'].reduce(fr, []);
+
+		// Expect the formatted list of fields to be identical to the inputted value
+		expect(f[0]).to.have.property('generated_field', 'another_field');
+	});
+
 });
 
