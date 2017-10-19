@@ -6,7 +6,7 @@ const DareError = require('../../src/utils/error');
 describe('utils/error', () => {
 
 
-	it(`should return instance of DareError with code and message property`, () => {
+	it('should return instance of DareError with code and message property', () => {
 
 		// Call the field with the
 		const error = new DareError(DareError.INVALID_REFERENCE);

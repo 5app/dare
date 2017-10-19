@@ -101,13 +101,13 @@ describe('Field Reducer', () => {
 		});
 	});
 
-	it(`should return generated fields`, () => {
+	it('should return generated fields', () => {
 
 		const table_schema = {
 			generated_field() {
 				return 'another_field';
 			}
-		}
+		};
 
 		// Curry the field_reducer
 		const fr = field_reducer.call({}, 'alias', {}, table_schema);
