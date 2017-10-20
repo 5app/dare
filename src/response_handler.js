@@ -45,7 +45,7 @@ function formatHandler(item) {
 		else {
 
 			// This has multiple parts
-			const r = /([a-z0-9\s_-]*)(\[(.*?)\])?/i;
+			const r = /^([a-z0-9\s_-]*)\[(.*?)\]$/i;
 			const m = label.match(r);
 
 			if (!m) {
@@ -66,7 +66,7 @@ function formatHandler(item) {
 				explodeKeyValue(item, alabel.split('.'), a);
 
 				// Loop through the value entries
-				const keys = m[3].split(',');
+				const keys = m[2].split(',');
 
 				value && value.forEach(values => {
 					const obj = {};
@@ -97,54 +97,17 @@ function explodeKeyValue(obj, a, value) {
 	// Clone
 	a = a.slice(0);
 
-	// Remove the last one from the iteration
+	// Remove the first element of the array
 	let key = a.shift();
-
-	// Does the key contain a value delimiter
-	let delimiter;
-	key = key.replace(/\[(.*?)\]$/, (m, d) => {
-		delimiter = d;
-		return '';
-	});
-
-	// Should we expand the values and create mulitples
-	if (delimiter && typeof value === 'string') {
-
-		if (!(key in obj)) {
-			// Create a new object
-			obj[key] = [];
-		}
-
-		// Is there no results
-		if (value === '') {
-			return obj;
-		}
-
-		value.split(delimiter).forEach((value, i) => {
-
-			if (!obj[key][i]) {
-				// Create a new object
-				obj[key][i] = {};
-			}
-
-			// Remove quotes
-			value = value.replace(/^"(.*)"$/, '$1');
-
-			obj[key][i] = explodeKeyValue(obj[key][i], a, value);
-		});
-
-	}
-	else {
-		// This is a regular object...
-		if (!(key in obj)) {
-			// Create a new object
-			obj[key] = {};
-		}
-
-		// Update key value
-		obj[key] = explodeKeyValue(obj[key], a, value);
+	
+	// This is a regular object...
+	if (!(key in obj)) {
+		// Create a new object
+		obj[key] = {};
 	}
 
+	// Traverse and Update key value
+	obj[key] = explodeKeyValue(obj[key], a, value);
 
 	return obj;
 }

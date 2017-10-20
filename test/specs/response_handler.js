@@ -95,4 +95,32 @@ describe('response_handler', () => {
 			collection: []
 		});
 	});
+
+	it('should remove prop if value is empty', () => {
+
+		// Return a response field which is invalid
+		// this could be because of GROUP_CONCAT_MAX_LENGTH or bad characters which have not been escaped by dare
+		const data = dare.response_handler([{
+			'field': 'value',
+			'collection[id,name,assoc.id,assoc.name]': '',
+		}]);
+
+		expect(data).to.be.an('array');
+		expect(data[0]).to.deep.equal({
+			field: 'value'
+		});
+	});
+
+	it('should return the field as is if the label is not consistant', () => {
+
+		const item = {
+			'field': 'value',
+			'collection[id,name,assoc.id,assoc.name': '[["1","a","a1","aa"]]',
+		};
+
+		const data = dare.response_handler([item]);
+
+		expect(data).to.be.an('array');
+		expect(data[0]).to.deep.equal(item);
+	});
 });
