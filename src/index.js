@@ -137,7 +137,7 @@ Dare.prototype.patch = function patch(table, filter, body, opts = {}) {
 	return _this.format_request(opts)
 		.then(opts => {
 
-		// Skip this operation?
+			// Skip this operation?
 			if (opts.skip) {
 				return opts.skip;
 			}
@@ -190,7 +190,7 @@ Dare.prototype.post = function post(table, body, opts = {}) {
 	return _this.format_request(opts)
 		.then(opts => {
 
-		// Skip this operation?
+			// Skip this operation?
 			if (opts.skip) {
 				return opts.skip;
 			}
@@ -217,7 +217,7 @@ Dare.prototype.post = function post(table, body, opts = {}) {
 				const _data = [];
 				for (const prop in item) {
 
-				// Get the index in the field list
+					// Get the index in the field list
 					let i = fields.indexOf(prop);
 
 					if (i === -1) {
@@ -231,7 +231,7 @@ Dare.prototype.post = function post(table, body, opts = {}) {
 
 				return _data;
 			}).map(_data => {
-			// Create prepared values
+				// Create prepared values
 				const a = fields.map((prop, index) => {
 					if (_data[index] === undefined) {
 						return 'DEFAULT';
@@ -276,7 +276,7 @@ Dare.prototype.del = function del(table, filter, opts = {}) {
 	return _this.format_request(opts)
 		.then(opts => {
 
-		// Skip this operation?
+			// Skip this operation?
 			if (opts.skip) {
 				return opts.skip;
 			}

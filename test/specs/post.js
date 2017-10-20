@@ -168,4 +168,29 @@ describe('post', () => {
 			});
 	});
 
+	it('should not exectute if the opts.skip request is marked', done => {
+
+		// Should not be called...
+		dare.execute = done;
+
+		const skip = 'true';
+
+		dare.options = {
+			post: {
+				default(opts) {
+					opts.skip = skip;
+				}
+			}
+		};
+
+		dare
+			.post({
+				table: 'tbl',
+				body: {name: 'name'}
+			})
+			.then(resp => {
+				expect(resp).to.eql(skip);
+				done();
+			});
+	});
 });
