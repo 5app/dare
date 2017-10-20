@@ -37,6 +37,13 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
 
 				const value = field[key];
 				if (typeof value === 'object') {
+
+					// Ensure this isn't empty
+					if (isEmpty(value)) {
+						// Skip these empty objects
+						continue;
+					}
+
 					join[key] = join[key] || {};
 					join[key].fields = value;
 				}
@@ -116,4 +123,10 @@ function overlap(a, b) {
 	}
 
 	return [a.slice(0, a.lastIndexOf(path)), path, b.slice(path.length)];
+}
+
+
+// Is Empty
+function isEmpty(value) {
+	return !value || (Array.isArray(value) ? value : Object.keys(value)).length === 0;
 }

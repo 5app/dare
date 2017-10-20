@@ -67,6 +67,26 @@ describe('Field Reducer', () => {
 					'Field': 'COUNT(DISTINCT asset.field)'
 				}]
 			],
+			// Test 7
+			[
+				[{
+					'Field': 'asset.field',
+					'b_table': {}
+				}],
+				[{
+					'Field': 'asset.field'
+				}]
+			],
+			// Test 8
+			[
+				[{
+					'Field': 'asset.field',
+					'b_table': []
+				}],
+				[{
+					'Field': 'asset.field'
+				}]
+			],
 
 		].forEach(test => {
 
@@ -96,6 +116,9 @@ describe('Field Reducer', () => {
 
 				if (expect_join_fields) {
 					expect(joined.b_table.fields).to.eql(expect_join_fields);
+				}
+				else {
+					expect(joined).to.not.have.property('b_table');
 				}
 			});
 		});
