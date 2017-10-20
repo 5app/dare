@@ -420,17 +420,11 @@ The handler takes two parameters the `item` is the Table definition within the o
 
 ### Table Dependency
 
-If one table is always dependent on another, i.e. Show users only in current country
+If one table is always dependent on being joined by another, this will create a required join to lock the two tables together.
 
 ```javascript
-	{
-		users: 'country',
-		country(item, options) {
-			// Here the HTTP `req` object was included as a property to options, it includes session data.
-			item.join = {
-				id: options.req.session.country_id
-			};
-		}
+	table_conditions: {
+		users: 'country'
 	}
 ```
 

@@ -1,3 +1,4 @@
+const DareError = require('./utils/error');
 
 // Execute per table handler to augment the request
 //
@@ -13,30 +14,23 @@ module.exports = function table_handler(item) {
 		const func = table_conditions[item.table];
 
 		// This table requires another to be joined to limit the query.
-		if (typeof func === 'string') {
+		if (typeof func !== 'string') {
+			throw new DareError(DareError.INVALID_IMPLEMENTATION, `Table condition must be a string: table_conditions[${item.table}] is not`);
+		}
 
-			// Require another table
-			let done = false;
-			item.joined = item.joined || {};
-			for (const key in item.joined) {
-				if (this.table_alias_handler(key) === func) {
-					item.joined[key].required_join = true;
-					done = true;
-				}
-			}
-
-			if (!done) {
-				// Add another table
-				item.joined[this.get_unique_alias()] = {table: func, required_join: true};
+		// Require another table
+		let done = false;
+		item.joined = item.joined || {};
+		for (const key in item.joined) {
+			if (this.table_alias_handler(key) === func) {
+				item.joined[key].required_join = true;
+				done = true;
 			}
 		}
-		else {
 
-			// Format the join conditions
-			item.join_conditions = item.join_conditions || {};
-
-			// Trigger the function
-			func.call(this, item, this.options);
+		if (!done) {
+			// Add another table
+			item.joined[this.get_unique_alias()] = {table: func, required_join: true};
 		}
 	}
 
