@@ -47,7 +47,7 @@ function buildQuery(opts) {
 	opts.root = true;
 
 	// Limit
-	const sql_limit = opts.limit ? (`LIMIT ${opts.start ? `${opts.start},` : '' }${opts.limit}`) : null;
+	const sql_limit = `LIMIT ${opts.start ? `${opts.start},` : '' }${opts.limit}`;
 
 	// SubQuery
 	const is_subquery = opts.is_subquery;
@@ -137,12 +137,11 @@ function buildQuery(opts) {
 	// Format Fields
 	let sql_fields;
 	let alias;
-	let decode;
 
 	if (!fields.length) {
 		// This query does not contain any fields
 		// And so we should not include it
-		return null;
+		throw new DareError(DareError.INVALID_REQUEST, 'Missing fields');
 	}
 
 	if (is_subquery) {
@@ -151,7 +150,6 @@ function buildQuery(opts) {
 		const gc = group_concat(fields, address);
 		sql_fields = gc.expression;
 		alias = gc.label;
-		decode = gc.decode;
 	}
 	else {
 		sql_fields = fields.map(field => `${field.expression}${field.label ? ` AS '${field.label}'` : ''}`);
@@ -167,7 +165,7 @@ function buildQuery(opts) {
 				 ${sql_orderby}
 				 ${sql_limit}`;
 
-	return {sql, values, alias, decode};
+	return {sql, values, alias};
 }
 
 
@@ -258,11 +256,6 @@ function traverse(item, is_subquery) {
 			// Make the sub-query
 			const sub_query = this.buildQuery(item);
 
-			// If the sub_query is empty
-			if (!sub_query) {
-				return resp;
-			}
-
 			// Add the values
 			sql_subquery_values.push(...sub_query.values);
 
@@ -271,11 +264,6 @@ function traverse(item, is_subquery) {
 				expression: `(${sub_query.sql})`,
 				label: sub_query.alias
 			});
-
-			// Format the response
-			if (sub_query.decode) {
-				this.response_handlers.push(sub_query.decode);
-			}
 
 			// The rest has been handled in the sub-query
 			return resp;
@@ -426,11 +414,8 @@ function setField(table, field, handler, obj) {
 	if (table) {
 		obj = obj[table];
 	}
-	if (!Array.isArray(obj)) {
-		obj = [obj];
-	}
 
-	obj.forEach(item => item[field] = handler.call(this, item));
+	obj[field] = handler.call(this, obj);
 }
 
 function replaceFieldPath(list, fields) {
@@ -442,7 +427,7 @@ function replaceFieldPath(list, fields) {
 		if (field_path) {
 			// Find the new sql_alias for the address
 			const item = list.find(item => item.alias === field_path);
-			address = (item ? item.sql_alias : field_path);
+			address = item.sql_alias;
 		}
 		else if (!fields.find(item => item.label === field_name)) {
 			address = 'a';
