@@ -93,10 +93,6 @@ function invert_links(...args) {
 }
 
 function invert(o) {
-	if (!o) {
-		return o;
-	}
-
 	const r = {};
 	for (const x in o) {
 		r[o[x]] = x;
