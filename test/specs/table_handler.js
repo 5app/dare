@@ -98,13 +98,12 @@ describe('table_handler', () => {
 		dare.options.table_conditions.emails = () => {};
 
 		try {
-			const resp = dare.table_handler({
+			dare.table_handler({
 				table: 'emails',
 				alias: 'peeps'
 			});
-		} 
+		}
 		catch (e) {
-			console.log(e);
 			expect(e).to.be.instanceof(DareError);
 			expect(e).to.have.property('code', DareError.INVALID_IMPLEMENTATION);
 			return;

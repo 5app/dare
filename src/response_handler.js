@@ -98,8 +98,8 @@ function explodeKeyValue(obj, a, value) {
 	a = a.slice(0);
 
 	// Remove the first element of the array
-	let key = a.shift();
-	
+	const key = a.shift();
+
 	// This is a regular object...
 	if (!(key in obj)) {
 		// Create a new object
