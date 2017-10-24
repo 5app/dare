@@ -5,8 +5,14 @@ module.exports = function (join_table, rootTable) {
 
 	const schema = this.options.schema;
 	const joinTable = join_table.table;
-	const sjt = schema[join_table.alias] || schema[joinTable];
-	const jt = schema[join_table.alias] ? join_table.alias : joinTable;
+
+	let joinAlias = join_table.alias;
+	if (joinAlias) {
+		joinAlias = joinAlias.split('$')[0];
+	}
+
+	const sjt = schema[joinAlias] || schema[joinTable];
+	const jt = schema[joinAlias] ? joinAlias : joinTable;
 	const join_conditions = links(sjt, rootTable) || invert_links(schema[rootTable], jt);
 
 	// Yes, no, Yeah!
@@ -23,8 +29,8 @@ module.exports = function (join_table, rootTable) {
 		}
 
 		// linkTable <> joinTable?
-		const sjt = schema[join_table.alias] || schema[joinTable];
-		const jt = schema[join_table.alias] ? join_table.alias : joinTable;
+		const sjt = schema[joinAlias] || schema[joinTable];
+		const jt = schema[joinAlias] ? joinAlias : joinTable;
 		const join_conditions = links(sjt, linkTable) || invert_links(schema[linkTable], jt);
 
 		if (!join_conditions) {

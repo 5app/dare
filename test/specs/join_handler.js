@@ -111,72 +111,77 @@ describe('join_handler', () => {
 
 	});
 
-	it('should prefer an alternative schema definition if one exists for the alias used', () => {
+	describe('using alternative schema', () => {
 
-		// One table can have multiple joins with another table
-		// In this example below the message descibes to links
-		// Table
-		dare.options = {
-			schema: {
+		beforeEach(() => {
 
-				message: {
-					from_id: 'author.id',
-					to_id: 'recipient.id'
+			// One table can have multiple joins with another table
+			// In this example below the message descibes to links
+			// Table
+			dare.options = {
+				schema: {
+
+					message: {
+						from_id: 'author.id',
+						to_id: 'recipient.id'
+					},
+
+					person: {},
+
+					// Aliases of the person table...
+
+					// An Author (person) is referenced via messages.from_id field
+					author: {},
+
+					// A Recipient (person) is referenced via messages.to_id field.
+					recipient: {}
 				},
 
-				person: {},
-
-				// Aliases of the person table...
-
-				// An Author (person) is referenced via messages.from_id field
-				author: {},
-
-				// A Recipient (person) is referenced via messages.to_id field.
-				recipient: {}
-			},
-
-			table_aliases: {
-				author: 'person',
-				recipient: 'person'
-			}
-		};
-
-
-		const recipient = {
-			table: 'person',
-			alias: 'recipient'
-		};
-
-		// Join the recipient table based upon the
-		const recipient_join = dare.join_handler(recipient, 'message');
-
-		expect(recipient_join).to.deep.equal({
-			table: 'person',
-			alias: 'recipient',
-			join_conditions: {
-				'id': 'to_id'
-			},
-			many: false
+				table_aliases: {
+					author: 'person',
+					recipient: 'person'
+				}
+			};
 		});
 
 
-		const author = {
-			table: 'person',
-			alias: 'author'
-		};
+		it('should prefer an alternative schema definition if one exists for the alias used', () => {
 
-		// Join the recipient table based upon the
-		const author_join = dare.join_handler(author, 'message');
 
-		expect(author_join).to.deep.equal({
-			table: 'person',
-			alias: 'author',
-			join_conditions: {
-				'id': 'from_id'
-			},
-			many: false
+			const recipient = {
+				table: 'person',
+				alias: 'recipient'
+			};
+
+			// Join the recipient table based upon the
+			const recipient_join = dare.join_handler(recipient, 'message');
+
+			expect(recipient_join).to.deep.equal({
+				table: 'person',
+				alias: 'recipient',
+				join_conditions: {
+					'id': 'to_id'
+				},
+				many: false
+			});
+
+
+			const author = {
+				table: 'person',
+				alias: 'author$label'
+			};
+
+			// Join the recipient table based upon the
+			const author_join = dare.join_handler(author, 'message');
+
+			expect(author_join).to.deep.equal({
+				table: 'person',
+				alias: 'author$label',
+				join_conditions: {
+					'id': 'from_id'
+				},
+				many: false
+			});
 		});
-
 	});
-
 });
