@@ -60,15 +60,6 @@ The `options Object` is a set of properties to apply at the point of calling any
 
 The `options` themselves are a set of properties used to interpret and manipulate the request.
 
-The basic options are: 
-
-- [schema](#schema)
-
-Additional Options include:
-
-- [table_alias](#table_alias)
-- [table_conditions](#table_conditions)
-
 
 ## Schema
 
@@ -397,30 +388,9 @@ This will get all users who contain atleast the tags 'Andrew', as well as return
 
 ## Table Conditions
 
-	options.table_conditions[method] => handler|reference
+	options.table_conditions[table] => reference
 
-Table conditions defines a list of handlers to trigger when the table is used in a Request. This is useful to assign additional filters on a table during access.
-
-
-### Table Handler
-
-E.g. if there is a label to hide delete records, or showing only content available to a user.
-
-```javascript
-	{
-		users(item, options) {
-			// Set the scope of the table
-			item.join = {is_deleted: 0};
-		}
-	}
-```
-
-The handler takes two parameters the `item` is the Table definition within the options Object, the second is the options object for this request.
-
-
-### Table Dependency
-
-If one table is always dependent on being joined by another, this will create a required join to lock the two tables together.
+This will create a required join to include another table as a dependency.
 
 ```javascript
 	table_conditions: {
