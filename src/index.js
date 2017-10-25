@@ -52,9 +52,6 @@ Dare.prototype.response_handler = require('./response_handler');
 
 Dare.prototype.after = function(resp) {
 
-	// in dev, the method might not be available...
-	if (!this.options.method) return resp;
-
 	// Define the after handler
 	const handler = `after${this.options.method.replace(/^([a-z])/, (m, l) => l.toUpperCase())}`;
 	const table = this.options.table;
@@ -137,7 +134,7 @@ Dare.prototype.patch = function patch(table, filter, body, opts = {}) {
 	return _this.format_request(opts)
 		.then(opts => {
 
-		// Skip this operation?
+			// Skip this operation?
 			if (opts.skip) {
 				return opts.skip;
 			}
@@ -190,7 +187,7 @@ Dare.prototype.post = function post(table, body, opts = {}) {
 	return _this.format_request(opts)
 		.then(opts => {
 
-		// Skip this operation?
+			// Skip this operation?
 			if (opts.skip) {
 				return opts.skip;
 			}
@@ -217,7 +214,7 @@ Dare.prototype.post = function post(table, body, opts = {}) {
 				const _data = [];
 				for (const prop in item) {
 
-				// Get the index in the field list
+					// Get the index in the field list
 					let i = fields.indexOf(prop);
 
 					if (i === -1) {
@@ -231,7 +228,7 @@ Dare.prototype.post = function post(table, body, opts = {}) {
 
 				return _data;
 			}).map(_data => {
-			// Create prepared values
+				// Create prepared values
 				const a = fields.map((prop, index) => {
 					if (_data[index] === undefined) {
 						return 'DEFAULT';
@@ -276,7 +273,7 @@ Dare.prototype.del = function del(table, filter, opts = {}) {
 	return _this.format_request(opts)
 		.then(opts => {
 
-		// Skip this operation?
+			// Skip this operation?
 			if (opts.skip) {
 				return opts.skip;
 			}
@@ -317,26 +314,14 @@ function clone(obj) {
 function prepare(obj) {
 
 	const a = [];
-	const setPending = _val => {
-		a.push(_val);
-		return '?';
-	};
 
 	for (const x in obj) {
 
-		const val = obj[x];
+		// Add to the array of items
+		a.push(obj[x]);
 
-		if (Array.isArray(val)) {
-			// Loop through values
-			obj[x] = val.map(setPending);
-		}
-		else {
-			// Add to the array of items
-			a.push(obj[x]);
-
-			// Replace with the question
-			obj[x] = '?';
-		}
+		// Replace with the question
+		obj[x] = '?';
 	}
 
 	return a;
@@ -346,12 +331,7 @@ function serialize(obj, separator, delimiter) {
 	const r = [];
 	for (const x in obj) {
 		const val = obj[x];
-		if (Array.isArray(val) && separator === '=') {
-			r.push(`${x} IN (${val})`);
-		}
-		else {
-			r.push(`${x} ${separator} ${val}`);
-		}
+		r.push(`${x} ${separator} ${val}`);
 	}
 	return r.join(` ${delimiter} `);
 }

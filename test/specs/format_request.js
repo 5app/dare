@@ -408,6 +408,12 @@ describe('format_request', () => {
 						['string']
 					],
 					[
+						{'-prop': 'string'},
+						'prop',
+						'!= ?',
+						['string']
+					],
+					[
 						{prop: '%string'},
 						'prop',
 						'LIKE ?',
@@ -813,6 +819,41 @@ describe('format_request', () => {
 				]
 			})
 				.then(() => done())
+				.catch(done);
+
+		});
+
+	});
+
+	describe('table conditional dependencies', () => {
+
+		it('should automatically require join another table', done => {
+
+			dare.options = {
+				schema: {
+					userDomain: {
+						// Define a relationship
+						user_id: 'users.id'
+					}
+				},
+				table_conditions: {
+					users: 'userDomain'
+				}
+			};
+
+			dare.format_request({
+				method,
+				table: 'users',
+				fields: [
+					'name'
+				]
+			})
+				.then(resp => {
+					const join = resp._joins[0];
+					expect(join).to.have.property('table', 'userDomain');
+					expect(join).to.have.property('required_join', true);
+					done();
+				})
 				.catch(done);
 
 		});

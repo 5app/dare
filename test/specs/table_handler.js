@@ -1,5 +1,8 @@
 'use strict';
 
+const DareError = require('../../src/utils/error');
+
+
 describe('table_handler', () => {
 
 	let dare;
@@ -19,17 +22,7 @@ describe('table_handler', () => {
 					user_id: 'users.id'
 				}
 			},
-			table_conditions: {
-				users(item, options) {
-
-					// Add the join condition domain_id
-					const cond = {
-						domain_id: options.meta.domain_id
-					};
-					// Update table join conditions
-					item.join = Object.assign(item.join || {}, cond);
-				}
-			},
+			table_conditions: {},
 			meta: {
 				domain_id: 10
 			}
@@ -41,28 +34,6 @@ describe('table_handler', () => {
 		expect(dare).to.have.property('table_handler');
 	});
 
-	it('should apply the table_conditions rules to a table definitions', () => {
-
-		const resp = dare.table_handler({
-			table: 'users',
-			alias: 'peeps',
-			join_conditions: {
-				id: 1000
-			}
-		});
-
-		expect(resp).to.deep.equal({
-			table: 'users',
-			alias: 'peeps',
-			join_conditions: {
-				id: 1000
-			},
-			join: {
-				domain_id: 10
-			}
-		});
-
-	});
 
 	it('should add joined tables when table_conditions points to another table', () => {
 
@@ -88,22 +59,57 @@ describe('table_handler', () => {
 
 	});
 
-	it('should apply the rules on dare.get', done => {
+	it('should reuse joined tables when table_conditions points to an existing join table, and add required_join flag', () => {
 
-		dare.execute = (sql, callback) => {
-			// Expect the left join to include the options table_conditions
-			expect(sql).to.match(/LEFT JOIN users b ON \(b\.domain_id = 10 AND b\.id = a\.user_id\)/);
-			callback(null, [{}]);
-		};
+		dare.options.table_conditions.emails = 'users';
 
-		dare.get({
+		const resp = dare.table_handler({
 			table: 'emails',
-			fields: [
-				'email',
-				{'users': ['id', 'name']}
-			]
-		})
-			.then(() => done(), done);
+			alias: 'peeps',
+			joined: {
+				users: {
+					alias: 'users'
+				},
+				somethingElse: {
+					alias: 'pass through'
+				}
+			}
+
+		});
+
+		expect(resp).to.deep.equal({
+			table: 'emails',
+			alias: 'peeps',
+			joined: {
+				somethingElse: {
+					alias: 'pass through'
+				},
+				users: {
+					alias: 'users',
+					required_join: true
+				}
+			}
+		});
+
+	});
+
+	it('should throw an error if the table_condition is not a string', () => {
+
+		dare.options.table_conditions.emails = () => {};
+
+		try {
+			dare.table_handler({
+				table: 'emails',
+				alias: 'peeps'
+			});
+		}
+		catch (e) {
+			expect(e).to.be.instanceof(DareError);
+			expect(e).to.have.property('code', DareError.INVALID_IMPLEMENTATION);
+			return;
+		}
+
+		throw new Error('Should have thrown an exception');
 
 	});
 

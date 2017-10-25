@@ -2,6 +2,8 @@
 
 Dare is an API for generating SQL, it can be used internally to build and execute SQL. As well as lathered with request handlers for layering per table rules and security, just the thing for maintaining data integrity and developing REST interfaces.
 
+[![Coverage Status](https://coveralls.io/repos/github/5app/dare/badge.svg)](https://coveralls.io/github/5app/dare)
+
 # Install
 
 ```bash
@@ -57,15 +59,6 @@ const dare = new Dare(options);
 The `options Object` is a set of properties to apply at the point of calling any methods. Initially it's used to define default properties. However every method creates its own instance inheritting its parent options as well as defining it's own. See `dare.use(options)` for more.
 
 The `options` themselves are a set of properties used to interpret and manipulate the request.
-
-The basic options are: 
-
-- [schema](#schema)
-
-Additional Options include:
-
-- [table_alias](#table_alias)
-- [table_conditions](#table_conditions)
 
 
 ## Schema
@@ -395,40 +388,13 @@ This will get all users who contain atleast the tags 'Andrew', as well as return
 
 ## Table Conditions
 
-	options.table_conditions[method] => handler|reference
+	options.table_conditions[table] => reference
 
-Table conditions defines a list of handlers to trigger when the table is used in a Request. This is useful to assign additional filters on a table during access.
-
-
-### Table Handler
-
-E.g. if there is a label to hide delete records, or showing only content available to a user.
+This will create a required join to include another table as a dependency.
 
 ```javascript
-	{
-		users(item, options) {
-			// Set the scope of the table
-			item.join = {is_deleted: 0};
-		}
-	}
-```
-
-The handler takes two parameters the `item` is the Table definition within the options Object, the second is the options object for this request.
-
-
-### Table Dependency
-
-If one table is always dependent on another, i.e. Show users only in current country
-
-```javascript
-	{
-		users: 'country',
-		country(item, options) {
-			// Here the HTTP `req` object was included as a property to options, it includes session data.
-			item.join = {
-				id: options.req.session.country_id
-			};
-		}
+	table_conditions: {
+		users: 'country'
 	}
 ```
 

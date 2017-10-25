@@ -308,7 +308,20 @@ describe('get - request object', () => {
 						LEFT JOIN apps b ON (b.type = ? AND b.id = a.ref_id)
 						LIMIT 5
 					`
-				}
+				},
+				{
+					fields: ['id'],
+					join: {
+						type: 'mobile'
+					},
+					expected: `
+						SELECT a.id
+						FROM activityEvents a
+						WHERE a.type = ?
+						LIMIT 5
+					`
+				},
+
 			].forEach(test => {
 
 				const {join, fields, expected} = test;

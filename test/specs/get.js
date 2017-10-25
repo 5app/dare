@@ -3,6 +3,8 @@
 // Test Generic DB functions
 const sqlEqual = require('../lib/sql-equal');
 
+const DareError = require('../../src/utils/error');
+
 describe('get', () => {
 
 	let dare;
@@ -109,6 +111,39 @@ describe('get', () => {
 
 		});
 
+		it('should have an overidable limit and start', done => {
+
+			dare.execute = (query, callback) => {
+				sqlEqual(query, 'SELECT * FROM test a WHERE a.id = 1 LIMIT 4, 5');
+				callback(null, [{id: 1}]);
+			};
+
+			dare
+				.get('test', {id: 1}, {limit: 5, start: 4})
+				.then(resp => {
+					expect(resp).to.be.a('array');
+					expect(resp).to.eql([{id: 1}]);
+					done();
+				})
+				.catch(done);
+
+		});
+
+		it('should throw an error if limit is invalid', done => {
+
+			dare.execute = () => {
+				done('Should not execute');
+			};
+
+			dare
+				.get('test', {id: 1}, {limit: 0})
+				.then(done, err => {
+					expect(err).to.have.property('message');
+					done();
+				})
+				.catch(done);
+
+		});
 
 		it('should throw an error if limit is invalid', done => {
 
@@ -141,6 +176,68 @@ describe('get', () => {
 
 		});
 
+
+		it('should passthrough an orderby', done => {
+
+			dare.execute = (query, callback) => {
+				sqlEqual(query, 'SELECT * FROM test a WHERE a.id = 1 ORDER BY a.id LIMIT 1');
+				callback(null, [{id: 1}]);
+			};
+
+			dare
+				.get('test', {id: 1}, {orderby: 'id'})
+				.then(() => {
+					done();
+				})
+				.catch(done);
+
+		});
+
+		it('should re-alias orderby', done => {
+
+			dare.execute = (query, callback) => {
+				sqlEqual(query, 'SELECT * FROM test a WHERE a.id = 1 ORDER BY a.id LIMIT 1');
+				callback(null, [{id: 1}]);
+			};
+
+			dare
+				.get('test', {id: 1}, {orderby: 'test.id'})
+				.then(() => {
+					done();
+				})
+				.catch(done);
+
+		});
+
+		it('should passthrough an orderby with direction', done => {
+
+			dare.execute = (query, callback) => {
+				sqlEqual(query, 'SELECT * FROM test a WHERE a.id = 1 ORDER BY a.id DESC LIMIT 1');
+				callback(null, [{id: 1}]);
+			};
+
+			dare
+				.get('test', {id: 1}, {orderby: 'id DESC'})
+				.then(() => {
+					done();
+				})
+				.catch(done);
+
+		});
+
+		it('should throw an error if missing fields', done => {
+
+			dare.execute = done;
+
+			dare
+				.get('test', [], {id: 1}, {groupby: 'id'})
+				.then(done, err => {
+					expect(err).to.have.property('code', DareError.INVALID_REQUEST);
+					done();
+				})
+				.catch(done);
+
+		});
 
 		it('should let us pass through SQL Functions', done => {
 

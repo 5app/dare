@@ -193,4 +193,31 @@ describe('patch', () => {
 				done();
 			});
 	});
+
+	it('should not exectute if the opts.skip request is marked', done => {
+
+		// Should not be called...
+		dare.execute = done;
+
+		const skip = 'true';
+
+		dare.options = {
+			patch: {
+				default(opts) {
+					opts.skip = skip;
+				}
+			}
+		};
+
+		dare
+			.patch({
+				table: 'tbl',
+				filter: {id: 1},
+				body: {name: 'name'}
+			})
+			.then(resp => {
+				expect(resp).to.eql(skip);
+				done();
+			});
+	});
 });

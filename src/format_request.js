@@ -324,7 +324,7 @@ function limit(opts) {
 	}
 }
 
-function prepCondition(field, value, type, negate = false) {
+function prepCondition(field, value, type, negate) {
 
 	if (type === 'datetime') {
 		value = formatDateTime(value);
