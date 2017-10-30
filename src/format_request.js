@@ -346,20 +346,20 @@ function prepCondition(field, value, type, negate) {
 			values = a;
 		}
 		else if (a[0]) {
-			condition = '> ?';
+			condition = '?? > ?';
 			values = [a[0]];
 		}
 		else {
-			condition = '< ?';
+			condition = '?? < ?';
 			values = [a[1]];
 		}
 	}
 
 	// Not match
 	else if (typeof value === 'string' && value[0] === '!') {
-		condition = 'NOT LIKE ?';
+		condition = 'LIKE ?';
 		values = [value.slice(1)];
-		negate = ''; // already negated
+		negate = 'NOT ';
 	}
 
 	// String partial match

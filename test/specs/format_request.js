@@ -400,6 +400,20 @@ describe('format_request', () => {
 
 			describe('should prep conditions', () => {
 
+				const table = 'table';
+
+				beforeEach(() => {
+					dare.options = {
+						schema: {
+							[table]: {
+								date: {
+									type: 'datetime'
+								}
+							}
+						}
+					};
+				});
+
 				const a = [
 					[
 						{prop: 'string'},
@@ -450,6 +464,12 @@ describe('format_request', () => {
 						[1, 2, 3]
 					],
 					[
+						{'-prop': [1, 2, 3]},
+						'prop',
+						'NOT IN (?,?,?)',
+						[1, 2, 3]
+					],
+					[
 						{prop: null},
 						'prop',
 						'IS NULL',
@@ -461,6 +481,12 @@ describe('format_request', () => {
 						'IS NOT NULL',
 						[]
 					],
+					[
+						{'-date': '1981-12-05..'},
+						'date',
+						'NOT ?? > ?',
+						['1981-12-05T00:00:00']
+					]
 				];
 
 				a.forEach(test => {
@@ -470,7 +496,7 @@ describe('format_request', () => {
 					it(`should augment condition values ${JSON.stringify(filter)}`, done => {
 
 						dare.format_request({
-							table: 'tbl',
+							table,
 							fields: ['id'],
 							[condition_type]: filter
 						})
@@ -539,11 +565,11 @@ describe('format_request', () => {
 						['1981-12-05T00:00:00', '1981-12-06T23:59:59']
 					],
 					'1981-12-05..': [
-						'> ?',
+						'?? > ?',
 						['1981-12-05T00:00:00']
 					],
 					'..1981-12-05': [
-						'< ?',
+						'?? < ?',
 						['1981-12-05T00:00:00']
 					],
 					'1981-12': [

@@ -288,6 +288,7 @@ The type of value affects the choice of SQL Condition syntax to use. For instanc
 | -tag    | [1, 'a']                  | Array values   | `tag NOT IN (1, 'a')`
 | date    | '2016-03-04T16:08:32Z..'  | Greater than   | `date > '2016-03-04T16:08:32Z'`
 | date    | '2016-03-04..2016-03-05'  | Between        | `date BETWEEN '2016-03-04' AND '2016-03-05'`
+| -date   | '2016-03-04..'            | !Greater than  | `NOT date > '2016-03-04T00:00:00'`
 | flag    | null                      | null           | `flag IS NULL`
 | -flag   | null                      | null           | `flag IS NOT NULL`
 

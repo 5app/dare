@@ -82,7 +82,7 @@ function buildQuery(opts) {
 	if (opts._join) {
 		opts._join.forEach(([field, condition, values]) => {
 			sql_values.push(...values);
-			sql_filter.push(`${sql_alias}.${field} ${condition}`);
+			sql_filter.push(formCondition(sql_alias, field, condition));
 		});
 	}
 
@@ -282,7 +282,7 @@ function traverse(item, is_subquery) {
 			item._join.forEach(([field, condition, values]) => {
 
 				sql_join_values.push(...values);
-				sql_join_condition.push(`${sql_alias}.${field} ${condition}`);
+				sql_join_condition.push(formCondition(sql_alias, field, condition));
 			});
 		}
 		for (const x in item.join_conditions) {
@@ -330,7 +330,7 @@ function traverse(item, is_subquery) {
 
 		item._filter.forEach(([field, condition, values]) => {
 			sql_values.push(...values);
-			sql_filter.push(`${sql_alias}.${field} ${condition}`);
+			sql_filter.push(formCondition(sql_alias, field, condition));
 		});
 	}
 
@@ -439,4 +439,12 @@ function replaceFieldPath(list, fields) {
 
 		return prefix + address + field_name + suffix;
 	};
+}
+
+function formCondition(tbl_alias, field, condition) {
+
+	const field_definition = `${tbl_alias}.${field}`;
+
+	// Insert the field name in place
+	return condition.includes('??') ? condition.replace(/\?\?/g, field_definition) : `${field_definition} ${condition}`;
 }
