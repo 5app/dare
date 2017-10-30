@@ -207,7 +207,7 @@ function format_specs(options) {
 	// Groupby
 	// If the content is grouped
 	if (options.groupby) {
-		// Explode the group formatter... 
+		// Explode the group formatter...
 		checkFormat(options.groupby);
 	}
 
