@@ -484,7 +484,7 @@ describe('format_request', () => {
 					[
 						{'-date': '1981-12-05..'},
 						'date',
-						'NOT ?? > ?',
+						'(NOT ?? > ? OR ?? IS NULL)',
 						['1981-12-05T00:00:00']
 					]
 				];

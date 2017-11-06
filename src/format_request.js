@@ -353,6 +353,11 @@ function prepCondition(field, value, type, negate) {
 			condition = '?? < ?';
 			values = [a[1]];
 		}
+
+		if (negate) {
+			condition = `(NOT ${condition} OR ?? IS NULL)`;
+			negate = '';
+		}
 	}
 
 	// Not match
