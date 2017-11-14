@@ -4,6 +4,8 @@
 [![Coverage Status](https://coveralls.io/repos/github/5app/dare/badge.svg)](https://coveralls.io/github/5app/dare)
 [![CircleCI](https://circleci.com/gh/5app/dare.svg?style=shield)](https://circleci.com/gh/5app/dare)
 [![NPM Version](https://img.shields.io/npm/v/dare.svg)](https://www.npmjs.com/package/dare)
+[![Known Vulnerabilities](https://snyk.io/test/github/5app/dare/badge.svg)](https://snyk.io/test/github/5app/dare)
+
 
 Dare is an API for generating SQL, it can be used internally to build and execute SQL. As well as lathered with request handlers for layering per table rules and security, just the thing for maintaining data integrity and developing REST interfaces.
 
