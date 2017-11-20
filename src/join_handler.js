@@ -1,7 +1,7 @@
 // deciding on how to connect two tables depends on which one holds the connection
 // The join_handler here looks at the schema of both tables to find one which has a reference field to the other.
 
-module.exports = function (join_table, rootTable) {
+module.exports = function(join_table, rootTable) {
 
 	const schema = this.options.schema;
 	const joinTable = join_table.table;

@@ -9,6 +9,6 @@ module.exports = value => {
 		);
 	}
 	catch (e) {
-		return;
+		// Continue
 	}
 };
