@@ -339,6 +339,41 @@ The following statement includes all results from the main table, but does not a
 	// ...
 ```
 
+## dare.post(table, body[, options])
+
+The `dare.post` method is used to build and execute an `INSERT ...` SQL statement.
+
+| property | Type              | Description
+|----------|-------------------|----------------
+| table    | string            | Name of the table to insert into
+| body     | Object            | Post Object or Array of Post Objects
+| options  | Hash (key=>Value) | Additional Options
+
+e.g.
+
+```javascript
+dare.post('user', {name: 'Andrew', preofession: 'Mad scientist'});
+// INSERT INTO table (name, profession) VALUES('Andrew', 'Mad scientist')
+```
+
+## dare.post(options Object)
+
+Alternatively a options Object can be used instead.
+
+e.g.
+
+```javascript
+dare.get({
+	table: 'users',
+	body: {name: 'Andrew', preofession: 'Mad scientist'}
+});
+```
+
+### Post options
+
+| Prop          | Type             | Description
+|---------------|------------------|----------------
+| duplicate_key | 'ignore'         | Inserts SQL 'IGNORE' option
 
 # Additional Options
 
