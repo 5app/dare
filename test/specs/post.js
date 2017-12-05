@@ -9,30 +9,32 @@ describe('post', () => {
 
 	beforeEach(() => {
 		dare = new Dare();
+
+		// Should not be called...
+		dare.execute = () => {
+			throw new Error('execute called');
+		};
 	});
 
 	it('should contain the function dare.post', () => {
 		expect(dare.post).to.be.a('function');
 	});
 
-	it('should generate an INSERT statement and execute dare.execute', done => {
+	it('should generate an INSERT statement and execute dare.execute', async() => {
 
 		dare.execute = (query, callback) => {
 			sqlEqual(query, 'INSERT INTO test (id) VALUES (1)');
 			callback(null, {id: 1});
 		};
 
-		dare
-			.post('test', {id: 1})
-			.then(resp => {
-				expect(resp).to.have.property('id', 1);
-				done();
-			}, done);
+		const resp = await dare
+			.post('test', {id: 1});
+		expect(resp).to.have.property('id', 1);
 
 	});
 
 
-	it('should accept an Array of records to insert', done => {
+	it('should accept an Array of records to insert', async() => {
 
 		dare.execute = (query, callback) => {
 			sqlEqual(query, `
@@ -42,16 +44,13 @@ describe('post', () => {
 			callback(null, []);
 		};
 
-		dare
-			.post('test', [{id: 1, name: '1'}, {name: '2', id: 2, field: 'extra'}])
-			.then(() => {
-				done();
-			}, done);
+		return dare
+			.post('test', [{id: 1, name: '1'}, {name: '2', id: 2, field: 'extra'}]);
 
 	});
 
 
-	it('should accept option.duplicate_keys=ignore', done => {
+	it('should accept option.duplicate_keys=ignore', async() => {
 
 		let called;
 
@@ -61,17 +60,14 @@ describe('post', () => {
 			callback(null, {});
 		};
 
-		dare
-			.post('test', {id: 1}, {duplicate_keys: 'ignore'})
-			.then(() => {
-				expect(called).to.eql(1);
-				done();
-			})
-			.catch(done);
+		await dare
+			.post('test', {id: 1}, {duplicate_keys: 'ignore'});
+
+		expect(called).to.eql(1);
 
 	});
 
-	it('should understand a request object', done => {
+	it('should understand a request object', async() => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -79,18 +75,15 @@ describe('post', () => {
 			callback(null, {success: true});
 		};
 
-		dare
+		return dare
 			.post({
 				table: 'test',
 				body: {name: 'name'}
-			})
-			.then(() => {
-				done();
-			}, done);
+			});
 	});
 
 
-	it('should trigger pre handler, options.post.[table]', done => {
+	it('should trigger pre handler, options.post.[table]', async() => {
 
 		dare.execute = (query, callback) => {
 			sqlEqual(query, 'INSERT INTO tbl (name) VALUES (\'andrew\')');
@@ -106,18 +99,15 @@ describe('post', () => {
 			}
 		};
 
-		dare
+		return dare
 			.post({
 				table: 'tbl',
 				body: {name: 'name'}
-			})
-			.then(() => {
-				done();
-			}, done);
+			});
 	});
 
 
-	it('should trigger pre handler, options.post.default, and wait for Promise to resolve', done => {
+	it('should trigger pre handler, options.post.default, and wait for Promise to resolve', async() => {
 
 		dare.execute = (query, callback) => {
 			sqlEqual(query, 'INSERT INTO tbl (name) VALUES (\'andrew\')');
@@ -126,52 +116,48 @@ describe('post', () => {
 
 		dare.options = {
 			post: {
-				'default': req =>
+				'default': async req => {
 					// Augment the request
-					Promise.resolve().then(() => {
-						req.body.name = 'andrew';
-					})
+					req.body.name = 'andrew';
+				}
 			}
 		};
 
-		dare
+		return dare
 			.post({
 				table: 'tbl',
 				body: {name: 'name'}
-			})
-			.then(() => {
-				done();
-			}, done);
+			});
 	});
 
-	it('should trigger pre handler, and handle errors being thrown', done => {
+	it('should trigger pre handler, and handle errors being thrown', async() => {
 
-		// Should not be called...
-		dare.execute = done;
+		const msg = 'snap';
 
 		dare.options = {
 			post: {
 				'default': () => {
 					// Augment the request
-					throw new Error('Can\'t touch this');
+					throw new Error(msg);
 				}
 			}
 		};
 
-		dare
-			.post({
-				table: 'tbl',
-				body: {name: 'name'}
-			})
-			.then(done, () => {
-				done();
-			});
+		try {
+			await dare
+				.post({
+					table: 'tbl',
+					body: {name: 'name'}
+				});
+
+			throw new Error('expected failure');
+		}
+		catch (err) {
+			expect(err.message).to.eql(msg);
+		}
 	});
 
-	it('should not exectute if the opts.skip request is marked', done => {
-
-		// Should not be called...
-		dare.execute = done;
+	it('should not exectute if the opts.skip request is marked', async() => {
 
 		const skip = 'true';
 
@@ -183,14 +169,12 @@ describe('post', () => {
 			}
 		};
 
-		dare
+		const resp = await dare
 			.post({
 				table: 'tbl',
 				body: {name: 'name'}
-			})
-			.then(resp => {
-				expect(resp).to.eql(skip);
-				done();
 			});
+
+		expect(resp).to.eql(skip);
 	});
 });

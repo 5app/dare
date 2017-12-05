@@ -45,12 +45,10 @@ describe('after Handler', () => {
 		};
 
 		for (const method in env) {
-			it(method, done => {
-				env[method]().then(resp => {
-					expect(resp).to.eql('called');
-					done();
-				})
-					.catch(done);
+
+			it(method, async() => {
+				const resp = await env[method]();
+				expect(resp).to.eql('called');
 			});
 		}
 	});
@@ -117,7 +115,7 @@ describe('after Handler', () => {
 
 		].forEach(({label, handler: users, expected}) => {
 
-			it(`and ${label}`, done => {
+			it(`and ${label}`, async() => {
 
 				const d = dare.use({
 					afterGet: {
@@ -129,15 +127,18 @@ describe('after Handler', () => {
 					callback(null, [{id: 1}]);
 				};
 
-				d.get({
-					table: 'users',
-					fields: ['id'],
-					limit: 1
-				})
-					.then(expected.bind(null, null), expected.bind(null))
-					.then(() => done())
-					.catch(done);
+				try {
+					const resp = await d.get({
+						table: 'users',
+						fields: ['id'],
+						limit: 1
+					});
 
+					expected(null, resp);
+				}
+				catch (e) {
+					expected(e);
+				}
 			});
 		});
 
@@ -176,13 +177,10 @@ describe('after Handler', () => {
 		};
 
 		for (const method in env) {
-			it(method, done => {
-				env[method]().then(resp => {
-					expect(resp).to.eql('overriden');
-					expect(dare.after).to.not.eql(new_after_handler);
-					done();
-				})
-					.catch(done);
+			it(method, async() => {
+				const resp = await env[method]();
+				expect(resp).to.eql('overriden');
+				expect(dare.after).to.not.eql(new_after_handler);
 			});
 		}
 	});

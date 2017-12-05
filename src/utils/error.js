@@ -5,7 +5,8 @@ const SQL_ERROR_DICTIONARY = {
 	ER_NO_DEFAULT_FOR_FIELD: 'Missing field',
 	NOT_FOUND: 'Could not find any results matching the query',
 	INVALID_REQUEST: 'Invalid request',
-	INVALID_IMPLEMENTATION: 'Invalid implementation'
+	INVALID_IMPLEMENTATION: 'Invalid implementation',
+	INVALID_SETUP: 'Invalid setup'
 };
 
 const SQL_ERROR_STATUSCODES = {

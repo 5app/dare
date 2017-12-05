@@ -3,6 +3,9 @@
   "version": "0.14.2",
   "description": "Database to REST, REST to Database",
   "main": "src/index.js",
+  "engines": {
+    "node": ">=8.0.0"
+  },
   "scripts": {
     "test": "npm run lint && npm run spec && (nyc report --reporter=text-lcov | coveralls)",
     "spec": "nyc mocha test/specs/**/*.js",
@@ -28,6 +31,7 @@
     "coveralls": "^3.0.0",
     "eslint": "^4.11.0",
     "eslint-config-5app": "^0.1.0",
+    "eslint-plugin-promise": "^3.6.0",
     "mocha": "^4.0.1",
     "nyc": "^11.2.1"
   },

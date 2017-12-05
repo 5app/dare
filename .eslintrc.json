@@ -1,4 +1,10 @@
 {
 	"root": true,
-	"extends": "5app"
+	"extends": "5app",
+	"plugins": [
+        "promise"
+    ],
+	"rules": {
+		"promise/prefer-await-to-then": 2
+	}
 }

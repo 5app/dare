@@ -1,5 +1,7 @@
 'use strict';
 
+const DareError = require('../../src/utils/error');
+
 describe('Dare', () => {
 
 	it('should be a constructor', () => {
@@ -15,16 +17,19 @@ describe('Dare', () => {
 		expect(dare.options).to.have.property('schema', schema);
 	});
 
-	it('should throw errors if dare.execute is not defined', done => {
+	it('should throw errors if dare.execute is not defined', async() => {
 
 		const dare = new Dare();
 
-		dare
-			.sql('SELECT 1=1')
-			.then(done, err => {
-				expect(err).to.be.instanceof(Error);
-				done();
-			});
+		try {
+			await dare
+				.sql('SELECT 1=1');
+
+			throw new Error('expected failure');
+		}
+		catch (err) {
+			expect(err).to.be.instanceof(DareError);
+		}
 	});
 
 	it('should define dare.use to create an instance from another', () => {
