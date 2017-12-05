@@ -25,7 +25,7 @@ describe('format_request', () => {
 	});
 
 	it('should return a promise', () => {
-		const fn = dare.format_request();
+		const fn = dare.format_request().catch(() => {});
 		expect(fn).to.have.property('then');
 	});
 
