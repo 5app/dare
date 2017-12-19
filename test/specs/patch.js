@@ -3,7 +3,7 @@
 // Test Generic DB functions
 const sqlEqual = require('../lib/sql-equal');
 
-const error = require('../../src/utils/error');
+const DareError = require('../../src/utils/error');
 
 describe('patch', () => {
 
@@ -11,13 +11,18 @@ describe('patch', () => {
 
 	beforeEach(() => {
 		dare = new Dare();
+
+		// Should not be called...
+		dare.execute = () => {
+			throw new Error('execute called');
+		};
 	});
 
 	it('should contain the function dare.patch', () => {
 		expect(dare.patch).to.be.a('function');
 	});
 
-	it('should generate an UPDATE statement and execute dare.execute', done => {
+	it('should generate an UPDATE statement and execute dare.execute', async() => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -25,30 +30,27 @@ describe('patch', () => {
 			callback(null, {success: true});
 		};
 
-		dare
-			.patch('test', {id: 1}, {name: 'name'})
-			.then(resp => {
-				expect(resp).to.have.property('success', true);
-				done();
-			}, done);
+		const resp = await dare
+			.patch('test', {id: 1}, {name: 'name'});
+		expect(resp).to.have.property('success', true);
 	});
 
-	it('should throw an exception if affectedRows: 0', done => {
+	it('should throw an exception if affectedRows: 0', async() => {
 
 		dare.sql = () => Promise.resolve({affectedRows: 0});
 
-		dare
-			.patch('groups', {id: 20000}, {name: 'name'})
-			.then(() => {
-				done('Should not be called');
-			})
-			.catch(err => {
-				expect(err.code).to.eql(error.NOT_FOUND);
-				done();
-			});
+		try {
+			await dare
+				.patch('groups', {id: 20000}, {name: 'name'});
+
+			throw new Error('expected failure');
+		}
+		catch (err) {
+			expect(err.code).to.eql(DareError.NOT_FOUND);
+		}
 	});
 
-	it('should understand a request object', done => {
+	it('should understand a request object', async() => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -56,18 +58,15 @@ describe('patch', () => {
 			callback(null, {success: true});
 		};
 
-		dare
+		return dare
 			.patch({
 				table: 'test',
 				filter: {id: 1},
 				body: {name: 'name'}
-			})
-			.then(() => {
-				done();
-			}, done);
+			});
 	});
 
-	it('should apply the request.limit', done => {
+	it('should apply the request.limit', async() => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -75,19 +74,16 @@ describe('patch', () => {
 			callback(null, {success: true});
 		};
 
-		dare
+		return dare
 			.patch({
 				table: 'test',
 				filter: {id: 1},
 				body: {name: 'name'},
 				limit: 11
-			})
-			.then(() => {
-				done();
-			}, done);
+			});
 	});
 
-	it('should use table aliases', done => {
+	it('should use table aliases', async() => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -101,19 +97,16 @@ describe('patch', () => {
 			}
 		};
 
-		dare
+		return dare
 			.patch({
 				table: 'test',
 				filter: {id: 1},
 				body: {name: 'name'}
-			})
-			.then(() => {
-				done();
-			}, done);
+			});
 	});
 
 
-	it('should trigger pre handler, options.patch.[table]', done => {
+	it('should trigger pre handler, options.patch.[table]', async() => {
 
 		dare.execute = (query, callback) => {
 			sqlEqual(query, 'UPDATE tbl SET name = \'andrew\' WHERE id = 1 LIMIT 1');
@@ -129,19 +122,16 @@ describe('patch', () => {
 			}
 		};
 
-		dare
+		return dare
 			.patch({
 				table: 'tbl',
 				filter: {id: 1},
 				body: {name: 'name'}
-			})
-			.then(() => {
-				done();
-			}, done);
+			});
 	});
 
 
-	it('should trigger pre handler, options.patch.default, and wait for Promise to resolve', done => {
+	it('should trigger pre handler, options.patch.default, and wait for Promise to resolve', async() => {
 
 		dare.execute = (query, callback) => {
 			sqlEqual(query, 'UPDATE tbl SET name = \'andrew\' WHERE id = 1 LIMIT 1');
@@ -150,54 +140,47 @@ describe('patch', () => {
 
 		dare.options = {
 			patch: {
-				'default': req =>
-					// Augment the request
-					Promise.resolve().then(() => {
-						req.body.name = 'andrew';
-					})
+				'default': async req => {
+					req.body.name = 'andrew';
+				}
 			}
 		};
 
-		dare
+		return dare
 			.patch({
 				table: 'tbl',
 				filter: {id: 1},
 				body: {name: 'name'}
-			})
-			.then(() => {
-				done();
-			}, done);
+			});
 	});
 
-	it('should trigger pre handler, and handle errors being thrown', done => {
+	it('should trigger pre handler, and handle errors being thrown', async() => {
 
-		// Should not be called...
-		dare.execute = done;
+		const msg = 'snap';
 
 		dare.options = {
 			patch: {
 				'default': () => {
 					// Augment the request
-					throw new Error('Can\'t touch this');
+					throw new Error(msg);
 				}
 			}
 		};
 
-		dare
-			.patch({
-				table: 'tbl',
-				filter: {id: 1},
-				body: {name: 'name'}
-			})
-			.then(done, () => {
-				done();
-			});
+		try {
+			await dare
+				.patch({
+					table: 'tbl',
+					filter: {id: 1},
+					body: {name: 'name'}
+				});
+		}
+		catch (err) {
+			expect(err).to.have.property('message', msg);
+		}
 	});
 
-	it('should not exectute if the opts.skip request is marked', done => {
-
-		// Should not be called...
-		dare.execute = done;
+	it('should not exectute if the opts.skip request is marked', async() => {
 
 		const skip = 'true';
 
@@ -209,15 +192,14 @@ describe('patch', () => {
 			}
 		};
 
-		dare
+		const resp = await dare
 			.patch({
 				table: 'tbl',
 				filter: {id: 1},
 				body: {name: 'name'}
-			})
-			.then(resp => {
-				expect(resp).to.eql(skip);
-				done();
 			});
+
+
+		expect(resp).to.eql(skip);
 	});
 });

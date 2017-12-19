@@ -8,16 +8,10 @@ const checkTableAlias = require('./utils/validate_alias');
 const formatDateTime = require('./utils/format_datetime');
 
 module.exports = function(options) {
-	return new Promise((accept, reject) => {
-		const fn = format_request.call(this, options);
-		if (fn && fn.then) {
-			fn.then(accept, reject);
-		}
-		accept(fn);
-	});
+	return format_request.call(this, options);
 };
 
-function format_request(options = {}) {
+async function format_request(options = {}) {
 
 	// Use the alias to find the real table name
 	if (!options.alias) {
@@ -44,16 +38,15 @@ function format_request(options = {}) {
 		handler = handlers.default;
 	}
 	if (handler) {
-		const fn = handler.call(this, options);
-		if (fn && fn.then) {
-			return fn.then(format_specs.bind(this, options));
-		}
+
+		// Trigger the handler which alters the options...
+		await handler.call(this, options);
 	}
 
 	return format_specs.call(this, options);
 }
 
-function format_specs(options) {
+async function format_specs(options) {
 
 	const schema = this.options.schema || {};
 	const table_schema = schema[options.table] || {};
@@ -282,11 +275,10 @@ function format_specs(options) {
 		// Loop through the joins array
 		if (joins.length) {
 			// Loop through the joins and pass through the formatter
-			return Promise.all(joins.map(join_object => format_request.call(this, join_object)))
-				.then(a => {
-					options._joins = a;
-					return options;
-				});
+			const all = await Promise.all(joins.map(join_object => format_request.call(this, join_object)));
+
+			// Add Joins
+			options._joins = all;
 		}
 	}
 

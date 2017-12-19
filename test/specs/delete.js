@@ -10,13 +10,18 @@ describe('del', () => {
 
 	beforeEach(() => {
 		dare = new Dare();
+
+		// Should not be called...
+		dare.execute = () => {
+			throw new Error('execute called');
+		};
 	});
 
 	it('should contain the function dare.del', () => {
 		expect(dare.del).to.be.a('function');
 	});
 
-	it('should generate an DELETE statement and execute dare.execute', done => {
+	it('should generate an DELETE statement and execute dare.execute', async() => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -24,30 +29,28 @@ describe('del', () => {
 			callback(null, {success: true});
 		};
 
-		dare
-			.del('test', {id: 1})
-			.then(resp => {
-				expect(resp).to.have.property('success', true);
-				done();
-			}, done);
+		const resp = await dare.del('test', {id: 1});
+
+		expect(resp).to.have.property('success', true);
 	});
 
-	it('should throw an exception if affectedRows: 0', done => {
+	it('should throw an exception if affectedRows: 0', async() => {
 
-		dare.sql = () => Promise.resolve({affectedRows: 0});
+		dare.sql = async() => ({affectedRows: 0});
 
-		dare
-			.del('groups', {name: 'name'}, {id: 20000})
-			.then(() => {
-				done('Should not be called');
-			})
-			.catch(err => {
-				expect(err.code).to.eql(DareError.NOT_FOUND);
-				done();
-			});
+		try {
+			await dare
+				.del('groups', {name: 'name'}, {id: 20000});
+
+			throw new Error('Should not be called');
+
+		}
+		catch (err) {
+			expect(err.code).to.eql(DareError.NOT_FOUND);
+		}
 	});
 
-	it('should use table aliases', done => {
+	it('should use table aliases', async() => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -61,17 +64,14 @@ describe('del', () => {
 			}
 		};
 
-		dare
+		return dare
 			.del({
 				table: 'test',
 				filter: {id: 1},
-			})
-			.then(() => {
-				done();
-			}, done);
+			});
 	});
 
-	it('should trigger pre handler, options.del.[table]', done => {
+	it('should trigger pre handler, options.del.[table]', async() => {
 
 		dare.execute = (query, callback) => {
 			sqlEqual(query, 'DELETE FROM tbl WHERE id = 1 LIMIT 1');
@@ -87,18 +87,15 @@ describe('del', () => {
 			}
 		};
 
-		dare
+		return dare
 			.del({
 				table: 'tbl',
 				filter: {id: 2}
-			})
-			.then(() => {
-				done();
-			}, done);
+			});
 	});
 
 
-	it('should trigger pre handler, options.del.default, and wait for Promise to resolve', done => {
+	it('should trigger pre handler, options.del.default, and wait for Promise to resolve', async() => {
 
 		dare.execute = (query, callback) => {
 			sqlEqual(query, 'DELETE FROM tbl WHERE id = 1 LIMIT 1');
@@ -108,51 +105,43 @@ describe('del', () => {
 		dare.options = {
 			del: {
 				// Augment the request
-				'default': req =>
-					Promise.resolve().then(() => {
-						req.filter.id = 1;
-					})
+				'default': async req => req.filter.id = 1
 			}
 		};
 
-		dare
+		return dare
 			.del({
 				table: 'tbl',
 				filter: {id: 2}
-			})
-			.then(() => {
-				done();
-			}, done);
+			});
 	});
 
-	it('should trigger pre handler, and handle errors being thrown', done => {
+	it('should trigger pre handler, and handle errors being thrown', async() => {
 
-		// Should not be called...
-		dare.execute = done;
+		const msg = 'test';
 
 		dare.options = {
 			del: {
 				'default': () => {
 					// Augment the request
-					throw new Error('Can\'t touch this');
+					throw new Error(msg);
 				}
 			}
 		};
 
-		dare
-			.del({
+		try {
+			await dare.del({
 				table: 'tbl',
 				filter: {id: 2}
-			})
-			.then(done, () => {
-				done();
 			});
+			throw new Error('should not be called');
+		}
+		catch (e) {
+			expect(e.message).to.eql(msg);
+		}
 	});
 
-	it('should return options.skip if set and not trigger further operations', done => {
-
-		// Should not be called...
-		dare.execute = done;
+	it('should return options.skip if set and not trigger further operations', async() => {
 
 		dare.options = {
 			del: {
@@ -162,15 +151,12 @@ describe('del', () => {
 			}
 		};
 
-		dare
+		const resp = await dare
 			.del({
 				table: 'tbl',
 				filter: {id: 2}
-			})
-			.then(resp => {
-				expect(resp).to.eql(true);
-				done();
-			})
-			.catch(done);
+			});
+
+		expect(resp).to.eql(true);
 	});
 });

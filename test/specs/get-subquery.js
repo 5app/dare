@@ -35,7 +35,7 @@ describe('get - subquery', () => {
 	});
 
 
-	it('should write one to many requests with a subquery', done => {
+	it('should write one to many requests with a subquery', async() => {
 
 		dare.sql = sql => {
 
@@ -63,22 +63,19 @@ describe('get - subquery', () => {
 			}]);
 		};
 
-		dare.get({
+		const resp = await dare.get({
 			table: 'assets',
 			fields: {
 				'asset_name': 'name',
 				'collection_count': 'COUNT(collections.id)'
 			}
-		})
-			.then(resp => {
-				expect(resp).to.have.property('asset_name', 'name');
-				expect(resp).to.have.property('collection_count', 42);
-				done();
-			}).catch(done);
+		});
 
+		expect(resp).to.have.property('asset_name', 'name');
+		expect(resp).to.have.property('collection_count', 42);
 	});
 
-	it('should export the response in the format given', done => {
+	it('should export the response in the format given', async() => {
 
 		dare.sql = sql => {
 
@@ -106,7 +103,7 @@ describe('get - subquery', () => {
 			}]);
 		};
 
-		dare.get({
+		const resp = await dare.get({
 			table: 'assets',
 			fields: {
 				'asset_name': 'name',
@@ -114,15 +111,12 @@ describe('get - subquery', () => {
 					'count': 'COUNT(id)'
 				}]
 			}
-		})
-			.then(resp => {
-				expect(resp.collections).to.have.property('count', 42);
-				done();
-			}).catch(done);
+		});
 
+		expect(resp.collections).to.have.property('count', 42);
 	});
 
-	it('should concatinate many expressions into an array using GROUP_CONCAT', done => {
+	it('should concatinate many expressions into an array using GROUP_CONCAT', async() => {
 
 		dare.sql = sql => {
 
@@ -149,23 +143,20 @@ describe('get - subquery', () => {
 			}]);
 		};
 
-		dare.get({
+		const resp = await dare.get({
 			table: 'assets',
 			fields: {
 				'name': 'name',
 				'collections': ['id', 'name']
 			}
-		})
-			.then(resp => {
-				expect(resp.collections).to.be.an('array');
-				expect(resp.collections[0]).to.have.property('id', '1');
-				expect(resp.collections[0]).to.have.property('name', 'a');
-				done();
-			}).catch(done);
+		});
 
+		expect(resp.collections).to.be.an('array');
+		expect(resp.collections[0]).to.have.property('id', '1');
+		expect(resp.collections[0]).to.have.property('name', 'a');
 	});
 
-	it('should *not* subquery a nested object without fields', done => {
+	it('should *not* subquery a nested object without fields', async() => {
 
 		dare.sql = sql => {
 
@@ -183,7 +174,7 @@ describe('get - subquery', () => {
 			}]);
 		};
 
-		dare.get({
+		const resp = await dare.get({
 			table: 'assets',
 			fields: {
 				'name': 'name'
@@ -193,15 +184,13 @@ describe('get - subquery', () => {
 					name: 'a'
 				}
 			}
-		})
-			.then(resp => {
-				expect(resp).to.have.property('asset_name', 'name');
-				done();
-			}).catch(done);
+		});
+
+		expect(resp).to.have.property('asset_name', 'name');
 
 	});
 
-	it('should *not* use a subquery when the many table is used in the filter', done => {
+	it('should *not* use a subquery when the many table is used in the filter', async() => {
 
 		dare.sql = sql => {
 
@@ -221,7 +210,7 @@ describe('get - subquery', () => {
 			return Promise.resolve([{}]);
 		};
 
-		dare.get({
+		return dare.get({
 			table: 'assets',
 			fields: {
 				'name': 'name',
@@ -232,14 +221,11 @@ describe('get - subquery', () => {
 					name: 'myCollection'
 				}
 			}
-		})
-			.then(() => {
-				done();
-			}).catch(done);
+		});
 
 	});
 
-	it('should *not* subquery a table off a join with a possible set of values', done => {
+	it('should *not* subquery a table off a join with a possible set of values', async() => {
 
 		dare.sql = sql => {
 
@@ -259,7 +245,7 @@ describe('get - subquery', () => {
 			return Promise.resolve([{}]);
 		};
 
-		dare.get({
+		return dare.get({
 			table: 'assets',
 			fields: {
 				'name': 'name',
@@ -274,10 +260,7 @@ describe('get - subquery', () => {
 					is_deleted: false
 				}
 			}
-		})
-			.then(() => {
-				done();
-			}).catch(done);
+		});
 
 	});
 });

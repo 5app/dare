@@ -86,7 +86,7 @@ describe('get - request object', () => {
 		expect(dare.get).to.be.a('function');
 	});
 
-	it('should generate a SELECT statement and execute dare.sql', done => {
+	it('should generate a SELECT statement and execute dare.sql', async() => {
 
 		dare.sql = sql => {
 
@@ -111,7 +111,7 @@ describe('get - request object', () => {
 			return Promise.resolve([]);
 		};
 
-		dare.get({
+		return dare.get({
 			table: 'activityEvents',
 			filter: {
 				category: 'asset',
@@ -137,17 +137,14 @@ describe('get - request object', () => {
 			groupby: 'ref_id',
 			orderby: '_count DESC',
 			limit
-		})
-			.then(() => {
-				done();
-			}).catch(done);
+		});
 
 	});
 
 
 	describe('fields', () => {
 
-		it('should respond with the same structure as the request.fields', done => {
+		it('should respond with the same structure as the request.fields', async() => {
 
 			dare.sql = () =>
 				Promise.resolve([{
@@ -156,7 +153,7 @@ describe('get - request object', () => {
 				}]);
 
 
-			dare.get({
+			const resp = await dare.get({
 				table: 'activityEvents',
 				filter: {
 					asset: {
@@ -172,19 +169,16 @@ describe('get - request object', () => {
 					}
 				],
 				limit
-			})
-				.then(resp => {
-					expect(resp).to.be.an('array');
-					expect(resp.length).to.eql(1);
-					const item = resp[0];
-					expect(item).to.have.property('name');
-					expect(item.asset).to.have.property('name', 2001);
-					done();
-				}).catch(done);
+			});
 
+			expect(resp).to.be.an('array');
+			expect(resp.length).to.eql(1);
+			const item = resp[0];
+			expect(item).to.have.property('name');
+			expect(item.asset).to.have.property('name', 2001);
 		});
 
-		it('should respond with the same structure as the request.fields', done => {
+		it('should respond with the same structure as the request.fields', async() => {
 
 			dare.sql = () =>
 				Promise.resolve([{
@@ -192,7 +186,7 @@ describe('get - request object', () => {
 					'users_email.name': 2001
 				}]);
 
-			dare.get({
+			const resp = await dare.get({
 				table: 'users',
 				fields: [
 					'name',
@@ -210,11 +204,9 @@ describe('get - request object', () => {
 					}
 				},
 				limit
-			})
-				.then(resp => {
-					expect(resp).to.be.an('array');
-					done();
-				}).catch(done);
+			});
+
+			expect(resp).to.be.an('array');
 
 		});
 	});
@@ -233,7 +225,7 @@ describe('get - request object', () => {
 			}
 			].forEach(value => {
 
-				it(`valid: ${JSON.stringify(value)}`, done => {
+				it(`valid: ${JSON.stringify(value)}`, async() => {
 
 					dare.sql = (sql, prepared) => {
 
@@ -242,19 +234,17 @@ describe('get - request object', () => {
 							expect(prepared).to.contain(value);
 						});
 
-						done();
 						return Promise.resolve([]);
 					};
 
-					dare.get({
+					return dare.get({
 						table: 'activityEvents',
 						fields: [
 							'id'
 						],
 						filter: value,
 						limit
-					})
-						.catch(done);
+					});
 
 				});
 
@@ -326,7 +316,7 @@ describe('get - request object', () => {
 
 				const {join, fields, expected} = test;
 
-				it(`valid: ${JSON.stringify(test.join)}`, done => {
+				it(`valid: ${JSON.stringify(test.join)}`, async() => {
 
 					dare.sql = sql => {
 
@@ -335,21 +325,18 @@ describe('get - request object', () => {
 						return Promise.resolve([{}]);
 					};
 
-					dare.get({
+					return dare.get({
 						table: 'activityEvents',
 						fields,
 						join,
 						limit
-					})
-						.then(() => done())
-						.catch(done);
-
+					});
 				});
 
 			});
 		});
 
-		it('should ignore redundant joins', done => {
+		it('should ignore redundant joins', async() => {
 
 			dare.sql = sql => {
 
@@ -364,7 +351,7 @@ describe('get - request object', () => {
 				return Promise.resolve([{}]);
 			};
 
-			dare.get({
+			return dare.get({
 				table: 'activityEvents',
 				fields: [
 					'id'
@@ -378,12 +365,10 @@ describe('get - request object', () => {
 					}
 				},
 				limit
-			})
-				.then(() => done())
-				.catch(done);
+			});
 		});
 
-		it('should enforce required table joins', done => {
+		it('should enforce required table joins', async() => {
 
 			dare.sql = sql => {
 
@@ -399,7 +384,7 @@ describe('get - request object', () => {
 				return Promise.resolve([{}]);
 			};
 
-			dare.get({
+			return dare.get({
 				table: 'activityEvents',
 				fields: [
 					'id',
@@ -412,13 +397,11 @@ describe('get - request object', () => {
 					}
 				},
 				limit
-			})
-				.then(() => done())
-				.catch(done);
+			});
 
 		});
 
-		it('should enforce required table joins between deep nested tables', done => {
+		it('should enforce required table joins between deep nested tables', async() => {
 
 			dare.sql = sql => {
 
@@ -437,7 +420,7 @@ describe('get - request object', () => {
 				return Promise.resolve([{}]);
 			};
 
-			dare.get({
+			return dare.get({
 				table: 'activityEvents',
 				fields: [
 					'id',
@@ -452,9 +435,7 @@ describe('get - request object', () => {
 					}
 				},
 				limit
-			})
-				.then(() => done())
-				.catch(done);
+			});
 
 		});
 
@@ -462,7 +443,7 @@ describe('get - request object', () => {
 
 	describe('GROUP BY inclusion', () => {
 
-		it('should automatically assign a GROUP BY on a 1:n join', done => {
+		it('should automatically assign a GROUP BY on a 1:n join', async() => {
 
 			dare.sql = sql => {
 
@@ -480,7 +461,7 @@ describe('get - request object', () => {
 				return Promise.resolve([{}]);
 			};
 
-			dare.get({
+			return dare.get({
 				table: 'asset',
 				fields: ['id'],
 				filter: {
@@ -489,12 +470,10 @@ describe('get - request object', () => {
 					}
 				},
 				limit
-			})
-				.then(() => done())
-				.catch(done);
+			});
 		});
 
-		it('should not automatically assign a GROUP on an 1:n join where there are Aggregate ', done => {
+		it('should not automatically assign a GROUP on an 1:n join where there are Aggregate ', async() => {
 
 			dare.sql = sql => {
 
@@ -511,7 +490,7 @@ describe('get - request object', () => {
 				return Promise.resolve([{}]);
 			};
 
-			dare.get({
+			return dare.get({
 				table: 'asset',
 				fields: ['_count'],
 				filter: {
@@ -520,15 +499,13 @@ describe('get - request object', () => {
 					}
 				},
 				limit
-			})
-				.then(() => done())
-				.catch(done);
+			});
 		});
 	});
 
 	describe('generated fields', () => {
 
-		it('should allow bespoke fields to be defined in the schema', done => {
+		it('should allow bespoke fields to be defined in the schema', async() => {
 
 			// Create handler for 'asset.thumbnail'
 			dare.options = {
@@ -570,7 +547,7 @@ describe('get - request object', () => {
 				}]);
 
 
-			dare.get({
+			const resp = await dare.get({
 				table: 'assets',
 				fields: [
 					'name',
@@ -582,20 +559,17 @@ describe('get - request object', () => {
 				meta: {
 					root: 'http://example.com'
 				}
-			})
-				.then(resp => {
-					expect(resp).to.deep.equal({
-						id: 1,
-						name: 'Andrew',
-						thumbnail: '/asset/1/thumbnail',
-						picture: {
-							id: 100,
-							image: 'http://example.com/picture/100/image'
-						}
-					});
-					done();
-				}).catch(done);
+			});
 
+			expect(resp).to.deep.equal({
+				id: 1,
+				name: 'Andrew',
+				thumbnail: '/asset/1/thumbnail',
+				picture: {
+					id: 100,
+					image: 'http://example.com/picture/100/image'
+				}
+			});
 
 		});
 	});

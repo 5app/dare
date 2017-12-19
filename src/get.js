@@ -6,7 +6,7 @@ const field_format = require('./utils/field_format');
 const unwrap_field = require('./utils/unwrap_field');
 
 
-module.exports = function(opts) {
+module.exports = async function(opts) {
 	// Reset the alias
 	this.unique_alias_index = 0;
 
@@ -20,26 +20,26 @@ module.exports = function(opts) {
 	// This is triggered by the build query to create the SQL
 	this.traverse = traverse;
 
-	// Execture the Build
+	// Execute the Build
 	const {sql, values} = this.buildQuery(opts);
 
 	// Execute the query
-	return this
-		.sql(sql, values)
-		.then(this.response_handler.bind(this))
-		.then(resp => {
+	const sql_response = await this.sql(sql, values);
 
-		// If limit was not defined we should return the first result only.
-			if (opts.single) {
-				if (resp.length) {
-					return resp[0];
-				}
-				else {
-					throw new DareError(DareError.NOT_FOUND);
-				}
-			}
-			return resp;
-		});
+	// Format the response
+	const resp = await this.response_handler(sql_response);
+
+	// If limit was not defined we should return the first result only.
+	if (opts.single) {
+		if (resp.length) {
+			return resp[0];
+		}
+		else {
+			throw new DareError(DareError.NOT_FOUND);
+		}
+	}
+
+	return resp;
 };
 
 function buildQuery(opts) {
@@ -97,7 +97,7 @@ function buildQuery(opts) {
 	// Ensure that the parent has opts.groupby when we're joining tables
 	if (!is_subquery && !opts.groupby && has_many_join) {
 
-		// Are all the fields aggregates?
+		// Are all the fields aggregates?npm
 		const all_aggs = fields.every(item => item.agg);
 
 		if (!all_aggs) {
