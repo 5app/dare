@@ -11,9 +11,23 @@ module.exports = function(join_table, rootTable) {
 		joinAlias = joinAlias.split('$')[0];
 	}
 
-	const sjt = schema[joinAlias] || schema[joinTable];
-	const jt = schema[joinAlias] ? joinAlias : joinTable;
-	const join_conditions = links(sjt, rootTable) || invert_links(schema[rootTable], jt);
+	// Get the Join Conditions...
+	let join_conditions;
+
+	// Does the alias exist...
+	if (schema[joinAlias]) {
+		join_conditions = links(schema[joinAlias], rootTable);
+	}
+
+	// Try inverting...
+	if (!join_conditions) {
+		join_conditions = invert_links(schema[rootTable], joinAlias);
+	}
+
+	// If the alias didn't match, try the table name...
+	if (!join_conditions) {
+		join_conditions = links(schema[joinTable], rootTable) || invert_links(schema[rootTable], joinTable);
+	}
 
 	// Yes, no, Yeah!
 	if (join_conditions) {
@@ -32,6 +46,7 @@ module.exports = function(join_table, rootTable) {
 		const sjt = schema[joinAlias] || schema[joinTable];
 		const jt = schema[joinAlias] ? joinAlias : joinTable;
 		const join_conditions = links(sjt, linkTable) || invert_links(schema[linkTable], jt);
+
 
 		if (!join_conditions) {
 			continue;

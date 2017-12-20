@@ -183,5 +183,58 @@ describe('join_handler', () => {
 				many: false
 			});
 		});
+
+		it('should join based on the table name if the alias does not match', () => {
+
+			dare.options.schema.messageB = {
+				to_id: 'person.id',
+				from_id: 'author.id'
+			};
+
+			const recipient = {
+				table: 'person',
+				alias: 'recipient'
+			};
+
+			// Join the recipient table based upon the
+			const recipient_join = dare.join_handler(recipient, 'messageB');
+
+			expect(recipient_join).to.deep.equal({
+				table: 'person',
+				alias: 'recipient',
+				join_conditions: {
+					'id': 'to_id'
+				},
+				many: false
+			});
+
+		});
+
+		it('should join based upon the an alias which doesn\'t have a schema', () => {
+
+			// We already know from options.table_alias this is the same as a person
+			// Redefine
+			delete dare.options.schema.recipient;
+
+
+			const recipient = {
+				table: 'person',
+				alias: 'recipient'
+			};
+
+			// Join the recipient table based upon the
+			const recipient_join = dare.join_handler(recipient, 'message');
+
+			expect(recipient_join).to.deep.equal({
+				table: 'person',
+				alias: 'recipient',
+				join_conditions: {
+					'id': 'to_id'
+				},
+				many: false
+			});
+
+		});
+
 	});
 });
