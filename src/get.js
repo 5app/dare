@@ -87,7 +87,10 @@ function buildQuery(opts) {
 	}
 
 	// Merge values
-	const values = [].concat(sql_subquery_values).concat(sql_join_values).concat(sql_values);
+	const values = []
+		.concat(sql_subquery_values)
+		.concat(sql_join_values)
+		.concat(sql_values);
 
 	// Groupby
 	// If the content is grouped

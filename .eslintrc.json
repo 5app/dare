@@ -5,6 +5,7 @@
 		"promise"
 	],
 	"rules": {
+		"newline-per-chained-call": 2,
 		"prefer-promise-reject-errors": 2,
 		"promise/prefer-await-to-then": 2
 	}

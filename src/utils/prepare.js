@@ -4,7 +4,10 @@ const s = '\'';
 
 module.exports = (sql, prepared) => {
 	let i = 0;
-	return sql.split(/\B\?\B/).map(pre => pre + value(prepared[i++])).join('');
+	return sql
+		.split(/\B\?\B/)
+		.map(pre => pre + value(prepared[i++]))
+		.join('');
 };
 
 function value(v) {

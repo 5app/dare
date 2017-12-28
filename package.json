@@ -9,7 +9,8 @@
   "scripts": {
     "test": "npm run lint && npm run spec && (nyc report --reporter=text-lcov | coveralls)",
     "spec": "nyc mocha test/specs/**/*.js",
-    "lint": "eslint ./"
+    "lint": "eslint ./",
+    "lint-fix": "eslint --fix ./"
   },
   "repository": {
     "type": "git",
