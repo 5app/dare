@@ -6,7 +6,7 @@ module.exports = function validate_field(key) {
 	const a = key.split('.');
 	const field = a.pop();
 
-	const reg = /^([a-z_]+|\*)+$/i;
+	const reg = /^([a-z_]+)$/i;
 
 	// Capture errors in the key
 	if (!field.match(reg)) {

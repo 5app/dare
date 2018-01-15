@@ -29,11 +29,6 @@ module.exports = function field_format(expression, label, table_prefix, label_pr
 	// Expression
 	expression = `${prefix || ''}${table_prefix}.${name}${suffix || ''}`;
 
-	// Else if this is a *
-	if (name === '*') {
-		expression = `${prefix || ''}*${suffix || ''}`;
-	}
-
 	// aggregate function flag
 	let agg = false;
 

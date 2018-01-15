@@ -22,21 +22,28 @@ describe('get', () => {
 
 	describe('Simple arguments', () => {
 
+		const basic_record = {
+			id: 1,
+			name: 'andrew'
+		};
+
+		const basic_fields = ['id', 'name'];
+
 		it('should generate a SELECT statement and execute dare.execute', async() => {
 
 			dare.execute = (query, callback) => {
 				// Defaults
 				// Limit: 1
 				// Fields: *
-				sqlEqual(query, 'SELECT * FROM test a WHERE a.id = 1 LIMIT 1');
-				callback(null, [{id: 1}]);
+				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.id = 1 LIMIT 1');
+				callback(null, [basic_record]);
 			};
 
 			const resp = await dare
-				.get('test', {id: 1});
+				.get('test', basic_fields, {id: 1});
 
 			expect(resp).to.be.a('object');
-			expect(resp).to.have.property('id', 1);
+			expect(resp).to.eql(basic_record);
 
 		});
 
@@ -44,13 +51,13 @@ describe('get', () => {
 
 			dare.execute = (query, callback) => {
 				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.id = 1 LIMIT 1');
-				callback(null, [{id: 1}]);
+				callback(null, [basic_record]);
 			};
 
 			const resp = await dare
-				.get('test', ['id', 'name'], {id: 1});
+				.get('test', basic_fields, {id: 1});
 
-			expect(resp).to.have.property('id', 1);
+			expect(resp).to.eql(basic_record);
 
 		});
 
@@ -59,15 +66,15 @@ describe('get', () => {
 
 			dare.execute = (query, callback) => {
 				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.id IN (1, 2) LIMIT 2');
-				callback(null, [{id: 1, name: '1'}, {id: 2, name: '2'}]);
+				callback(null, [basic_record, basic_record]);
 			};
 
 			const resp = await dare
-				.get('test', ['id', 'name'], {id: [1, 2]}, {limit: 2});
+				.get('test', basic_fields, {id: [1, 2]}, {limit: 2});
 
 			expect(resp).to.be.a('array');
 			expect(resp.length).to.eql(2);
-			expect(resp[0]).to.eql({id: 1, name: '1'});
+			expect(resp[0]).to.eql(basic_record);
 
 		});
 
@@ -75,41 +82,42 @@ describe('get', () => {
 
 			dare.execute = (query, callback) => {
 				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.name LIKE \'And%\' LIMIT 5');
-				callback(null, [{id: 1, name: '1'}, {id: 2, name: '2'}]);
+				callback(null, [basic_record, basic_record]);
 			};
 
 			const resp = await dare
-				.get('test', ['id', 'name'], {name: 'And%'}, {limit: 5});
+				.get('test', basic_fields, {name: 'And%'}, {limit: 5});
 
 			expect(resp).to.be.a('array');
 
 		});
+
 		it('should have an overidable limit', async() => {
 
 			dare.execute = (query, callback) => {
-				sqlEqual(query, 'SELECT * FROM test a WHERE a.id = 1 LIMIT 5');
-				callback(null, [{id: 1}]);
+				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.id = 1 LIMIT 5');
+				callback(null, [basic_record]);
 			};
 
 			const resp = await dare
-				.get('test', {id: 1}, {limit: 5});
+				.get('test', basic_fields, {id: 1}, {limit: 5});
 
 			expect(resp).to.be.a('array');
-			expect(resp).to.eql([{id: 1}]);
+			expect(resp).to.eql([basic_record]);
 
 		});
 
 		it('should have an overidable limit and start', async() => {
 
 			dare.execute = (query, callback) => {
-				sqlEqual(query, 'SELECT * FROM test a WHERE a.id = 1 LIMIT 4, 5');
-				callback(null, [{id: 1}]);
+				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.id = 1 LIMIT 4, 5');
+				callback(null, [basic_record]);
 			};
 
 			const resp = await dare
-				.get('test', {id: 1}, {limit: 5, start: 4});
+				.get('test', basic_fields, {id: 1}, {limit: 5, start: 4});
 			expect(resp).to.be.a('array');
-			expect(resp).to.eql([{id: 1}]);
+			expect(resp).to.eql([basic_record]);
 
 		});
 
@@ -117,7 +125,7 @@ describe('get', () => {
 
 
 			try {
-				await dare.get('test', {id: 1}, {limit: 0});
+				await dare.get('test', basic_fields, {id: 1}, {limit: 0});
 				throw new Error('expected failure');
 			}
 			catch (err) {
@@ -129,7 +137,7 @@ describe('get', () => {
 		it('should throw an error if limit is invalid', async() => {
 
 			try {
-				await dare.get('test', {id: 1}, {limit: null});
+				await dare.get('test', basic_fields, {id: 1}, {limit: null});
 				throw new Error('expected failure');
 			}
 			catch (err) {
@@ -144,7 +152,7 @@ describe('get', () => {
 			dare.execute = (query, callback) => callback(null, []);
 
 			try {
-				await dare.get('test', {id: 1});
+				await dare.get('test', basic_fields, {id: 1});
 				throw new Error('expected failure');
 			}
 			catch (err) {
@@ -157,24 +165,24 @@ describe('get', () => {
 		it('should passthrough an orderby', async() => {
 
 			dare.execute = (query, callback) => {
-				sqlEqual(query, 'SELECT * FROM test a WHERE a.id = 1 ORDER BY a.id LIMIT 1');
-				callback(null, [{id: 1}]);
+				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.id = 1 ORDER BY a.id LIMIT 1');
+				callback(null, [basic_record]);
 			};
 
 			return dare
-				.get('test', {id: 1}, {orderby: 'id'});
+				.get('test', basic_fields, {id: 1}, {orderby: 'id'});
 
 		});
 
 		it('should re-alias orderby', async() => {
 
 			dare.execute = (query, callback) => {
-				sqlEqual(query, 'SELECT * FROM test a WHERE a.id = 1 ORDER BY a.id LIMIT 1');
-				callback(null, [{id: 1}]);
+				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.id = 1 ORDER BY a.id LIMIT 1');
+				callback(null, [basic_record]);
 			};
 
 			return dare
-				.get('test', {id: 1}, {orderby: 'test.id'});
+				.get('test', basic_fields, {id: 1}, {orderby: 'test.id'});
 
 
 		});
@@ -182,16 +190,16 @@ describe('get', () => {
 		it('should passthrough an orderby with direction', async() => {
 
 			dare.execute = (query, callback) => {
-				sqlEqual(query, 'SELECT * FROM test a WHERE a.id = 1 ORDER BY a.id DESC LIMIT 1');
-				callback(null, [{id: 1}]);
+				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.id = 1 ORDER BY a.id DESC LIMIT 1');
+				callback(null, [basic_record]);
 			};
 
 			return dare
-				.get('test', {id: 1}, {orderby: 'id DESC'});
+				.get('test', basic_fields, {id: 1}, {orderby: 'id DESC'});
 
 		});
 
-		it('should throw an error if missing fields', async() => {
+		it('should throw an error if fields is an empty array', async() => {
 
 			try {
 				await dare.get('test', [], {id: 1}, {groupby: 'id'});
@@ -203,10 +211,22 @@ describe('get', () => {
 
 		});
 
+		it('should throw an error if missing fields on an unknown schema', async() => {
+
+			try {
+				await dare.get('test', {id: 1}, {groupby: 'id'});
+				throw new Error('expected failure');
+			}
+			catch (err) {
+				expect(err).to.have.property('code', DareError.INVALID_REQUEST);
+			}
+
+		});
+
 		it('should let us pass through SQL Functions', async() => {
 
 			dare.execute = (query, callback) => {
-				sqlEqual(query, 'SELECT count(*) AS \'_count\' FROM test a WHERE a.id = 1 GROUP BY a.name LIMIT 1');
+				sqlEqual(query, 'SELECT count(a.*) AS \'_count\' FROM test a WHERE a.id = 1 GROUP BY a.name LIMIT 1');
 				callback(null, [{id: 1}]);
 			};
 

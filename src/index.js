@@ -103,9 +103,9 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 
 		// Shuffle
 		if (typeof fields === 'object' && !Array.isArray(fields)) {
-			opts = filter || {};
-			filter = fields;
-			fields = ['*'];
+
+			// Fields must be defined
+			throw new DareError(DareError.INVALID_REQUEST);
 		}
 
 		opts = Object.assign(opts, {table, fields, filter});

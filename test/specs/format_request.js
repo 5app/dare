@@ -123,6 +123,7 @@ describe('format_request', () => {
 			[
 				10,
 				'string',
+				['*'],
 				['COUNT(wrong)'],
 				[{'asset': 'DATE(id'}],
 				[{'quote\'s': 'id'}],
