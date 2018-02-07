@@ -1,12 +1,16 @@
 {
 	"root": true,
-	"extends": "5app",
+	"extends": [
+		"5app"
+	],
 	"plugins": [
-		"promise"
+		"promise",
+		"security"
 	],
 	"rules": {
 		"newline-per-chained-call": 2,
 		"prefer-promise-reject-errors": 2,
-		"promise/prefer-await-to-then": 2
+		"promise/prefer-await-to-then": 2,
+		"security/detect-unsafe-regex": 2
 	}
 }

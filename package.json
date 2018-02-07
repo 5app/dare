@@ -33,6 +33,7 @@
     "eslint": "^4.11.0",
     "eslint-config-5app": "^0.1.0",
     "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-security": "^1.4.0",
     "mocha": "^4.0.1",
     "nyc": "^11.2.1"
   },
