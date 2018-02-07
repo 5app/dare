@@ -2,7 +2,7 @@ const DareError = require('./error');
 
 module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 
-	const reg = /^(([a-z_]+)\(([a-z_]+\s){,5}){,5}([a-z0-9$._*]+?)(\)){,5}$/i;
+	const reg = /^(([a-z_]+)\(([a-z_]+\s){0,5}){0,5}([a-z0-9$._*]*)(\)){0,5}$/i; // eslint-disable-line security/detect-unsafe-regex
 	const m = typeof expression === 'string' && expression.match(reg);
 
 	if (m) {
