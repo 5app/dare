@@ -2,17 +2,33 @@ const DareError = require('./error');
 
 module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 
-	const reg = /^(([a-z_]+)\(([a-z_]+\s){0,5}){0,5}([a-z0-9$._*]*)(\)){0,5}$/i; // eslint-disable-line security/detect-unsafe-regex
-	const m = typeof expression === 'string' && expression.match(reg);
+	if (typeof expression === 'string') {
 
-	if (m) {
-		const field = m[4];
-		const prefix = m[1] || '';
-		const suffix = m[5] || '';
+		let m;
+		let str = expression;
+		let suffix = '';
+		let prefix = '';
 
-		if ((prefix.match(/\(/g) || []).length === suffix.length) {
+		while ((m = str.match(/^([a-z_]+\()(.*)(\))$/i))) {
+			// Change the string to match the inner string...
+			str = m[2];
 
-			const a = field.split('.');
+			// Capture the suffix,prefix
+			prefix += m[1];
+			suffix += m[3];
+		}
+
+		// Remove any additional prefix in a function.. i.e. "YEAR_MONTH FROM " from "EXTRACT(YEAR_MONTH FROM field)"
+		if (prefix && str && (m = str.match(/^[a-z_\s]+\s/i))) {
+			prefix += m[0];
+			str = str.slice(m[0].length);
+		}
+
+		// Finally check that the str is a match
+		if (str.match(/^[a-z0-9$._*]*$/i)) {
+
+			const field = str;
+			const a = str.split('.');
 			const field_name = a.pop();
 			const field_path = a.join('.');
 
@@ -25,6 +41,7 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 				suffix
 			});
 		}
+
 	}
 
 	// Is this a valid field
