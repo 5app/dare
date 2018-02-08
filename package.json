@@ -10,8 +10,15 @@
     "test": "npm run lint && npm run spec && (nyc report --reporter=text-lcov | coveralls)",
     "spec": "nyc mocha test/specs/**/*.js",
     "lint": "eslint ./",
-    "lint-fix": "eslint --fix ./"
+    "lint-fix": "eslint --fix ./",
+    "lint-diff": "LIST=`git diff-index --name-only HEAD | grep '.*\\.js$';`; if [ \"$LIST\" ]; then eslint $LIST; fi",
+    "precommit-msg": "echo 'Running pre-commit checks... (skip using --no-verify)' && exit 0"
   },
+  "pre-commit": [
+    "precommit-msg",
+    "lint-diff",
+    "spec"
+  ],
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/5app/dare.git"
@@ -35,7 +42,8 @@
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-security": "^1.4.0",
     "mocha": "^5.0.0",
-    "nyc": "^11.2.1"
+    "nyc": "^11.2.1",
+    "pre-commit": "^1.2.2"
   },
   "dependencies": {}
 }
