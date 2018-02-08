@@ -888,6 +888,34 @@ describe('format_request', () => {
 			}
 		});
 
+		it('should pass through the table scoped request', async() => {
+
+			dare.options = {
+				get: {
+					users(options) {
+
+						// Add something to the filter...
+						options.filter = {
+							is_deleted: false
+						};
+
+					}
+				},
+				method: 'get'
+			};
+
+			const options = await dare.format_request({
+				method,
+				table: 'users',
+				fields: [
+					'name'
+				]
+			});
+
+			expect(options.filter).to.eql({is_deleted: false});
+
+		});
+
 		it('should await the response from a promise', async() => {
 
 			dare.options = {
