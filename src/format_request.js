@@ -274,11 +274,19 @@ async function format_specs(options) {
 
 		// Loop through the joins array
 		if (joins.length) {
+
 			// Loop through the joins and pass through the formatter
-			const all = await Promise.all(joins.map(join_object => format_request.call(this, join_object)));
+			const a = joins.map(join_object => {
+
+				// Set the parent
+				join_object.parent = options;
+
+				// Format join...
+				return format_request.call(this, join_object);
+			});
 
 			// Add Joins
-			options._joins = all;
+			options._joins = await Promise.all(a);
 		}
 	}
 

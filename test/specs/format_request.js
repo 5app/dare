@@ -916,6 +916,68 @@ describe('format_request', () => {
 
 		});
 
+		it('should append parent through the table scoped request', async() => {
+
+			const removed = {removed: false};
+
+			dare.options = {
+				schema: {
+					users: {},
+					comments: {
+						'user_id': 'users.id'
+					}
+				},
+				get: {
+					users(options) {
+						// Add a filter to users to only show user who haven't been removed
+						options.filter = removed;
+					},
+					comments(options) {
+
+						// We show comments if the user hasn't been deleted
+						// But if the parent table is users this sould be superfluous
+						// So let's check the parent table name...
+						if (!options.parent || options.parent.table !== 'users') {
+							// Enforce join on the User,
+							options.filter = {
+								users: removed
+							};
+						}
+					}
+				},
+				method
+			};
+
+			// Test 1
+			// Enforcing user table join
+			const comments = await dare.format_request({
+				method,
+				table: 'comments',
+				fields: [
+					'name'
+				]
+			});
+
+			expect(comments.filter).to.eql({users: removed});
+
+			// Test 2
+			// Adding comments
+			const users = await dare.format_request({
+				method,
+				table: 'users',
+				fields: [
+					{
+						comments: ['name']
+					}
+				]
+			});
+
+			const commentsJoin = users._joins[0];
+
+			expect(commentsJoin).to.not.have.property('filter');
+
+		});
+
 		it('should await the response from a promise', async() => {
 
 			dare.options = {
