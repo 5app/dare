@@ -291,6 +291,7 @@ The type of value affects the choice of SQL Condition syntax to use. For example
 | -name   | 'And%'                    | Pattern        | `name NOT LIKE 'And%'`
 | tag     | [1, 'a']                  | Array values   | `tag IN (1, 'a')`
 | -tag    | [1, 'a']                  | Array values   | `tag NOT IN (1, 'a')`
+| -status | ['deleted', null]         | Array values   | `(status NOT IN ('deleted') AND status IS NOT NULL)` Mixed type including `null`
 | date    | '2016-03-04T16:08:32Z..'  | Greater than   | `date > '2016-03-04T16:08:32Z'`
 | date    | '2016-03-04..2016-03-05'  | Between        | `date BETWEEN '2016-03-04' AND '2016-03-05'`
 | -date   | '2016-03-04..'            | !Greater than  | `(NOT date > '2016-03-04T00:00:00' OR date IS NULL)`

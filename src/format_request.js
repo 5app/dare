@@ -382,7 +382,59 @@ function prepCondition(field, value, type, negate) {
 
 	// Add to the array of items
 	else if (Array.isArray(value)) {
-		condition = `IN (${value.map(() => '?')})`;
+
+		// Sub
+		const sub_values = [];
+		const conds = [];
+
+		// Format empty
+		if (value.length === 0) {
+			value.push(null);
+		}
+
+		// Filter the results of the array...
+		value = value.filter(item => {
+			// Remove the items which can't in group statement...
+			if (item !== null) {
+				return true;
+			}
+
+			// Put into a separate list...
+			sub_values.push(item);
+
+			return false;
+		});
+
+		// Use the `IN(...)` for items which can be grouped...
+		if (value.length) {
+			conds.push(`${negate}IN (${value.map(() => '?')})`);
+		}
+
+		// Other Values which can't be grouped ...
+		if (sub_values.length) {
+
+			// Cond
+			sub_values.forEach(item => {
+				const [, cond, values] = prepCondition(null, item, type, negate);
+
+				// Add to condition
+				conds.push(cond);
+
+				// Add Values
+				value.push(...values);
+			});
+		}
+
+		if (conds.length === 1) {
+			condition = conds[0];
+		}
+		else {
+			// Join...
+			condition = `(${conds.map(cond => `?? ${cond}`).join(negate ? ' AND ' : ' OR ')})`;
+		}
+
+		negate = ''; // Already negated
+
 		values = value;
 	}
 

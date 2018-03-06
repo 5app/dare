@@ -454,10 +454,52 @@ describe('format_request', () => {
 						[1, 2, 3]
 					],
 					[
-						{'-prop': [1, 2, 3]},
+						{prop: [1]},
 						'prop',
-						'NOT IN (?,?,?)',
-						[1, 2, 3]
+						'IN (?)',
+						[1]
+					],
+					[
+						{'-prop': [1]},
+						'prop',
+						'NOT IN (?)',
+						[1]
+					],
+					[
+						{prop: [1, null, 2]},
+						'prop',
+						'(?? IN (?,?) OR ?? IS NULL)',
+						[1, 2]
+					],
+					[
+						{'-prop': [1, null, 2]},
+						'prop',
+						'(?? NOT IN (?,?) AND ?? IS NOT NULL)',
+						[1, 2]
+					],
+					[
+						{prop: [null]},
+						'prop',
+						'IS NULL',
+						[]
+					],
+					[
+						{'-prop': [null]},
+						'prop',
+						'IS NOT NULL',
+						[]
+					],
+					[
+						{prop: []},
+						'prop',
+						'IS NULL',
+						[]
+					],
+					[
+						{'-prop': []},
+						'prop',
+						'IS NOT NULL',
+						[]
 					],
 					[
 						{prop: null},
@@ -483,7 +525,7 @@ describe('format_request', () => {
 
 					const [filter, prop, condition, values] = test;
 
-					it(`should augment condition values ${JSON.stringify(filter)}`, async() => {
+					it(`should transform condition ${JSON.stringify(filter)} -> ${JSON.stringify(condition)}`, async() => {
 
 						const resp = await dare.format_request({
 							table,
