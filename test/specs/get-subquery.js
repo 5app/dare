@@ -263,4 +263,55 @@ describe('get - subquery', () => {
 		});
 
 	});
+
+	it('should aggregate single field requests in a subquery, aka without group_concat', async() => {
+
+
+		dare.sql = sql => {
+
+			const expected = `
+				SELECT a.id,a.name,a.created_time,
+				(
+					SELECT CONCAT('[', '"', REPLACE(b.id, '"', '\\"'), '"', ',', '"', REPLACE(b.email, '"', '\\"'), '"', ']')
+					FROM userEmails b
+					WHERE
+						b.user_id = a.id
+					LIMIT 1
+				) AS 'email_id,email'
+				FROM users a
+				GROUP BY a.id
+				ORDER BY a.name
+				LIMIT 1`;
+
+			expectSQLEqual(sql, expected);
+
+			return Promise.resolve([{}]);
+		};
+
+		dare.options.schema = {
+			userEmails: {
+				user_id: 'users.id'
+			}
+		};
+
+		return dare.get({
+			table: 'users',
+			fields: [
+				'id',
+				'name',
+				{
+					email_id: 'userEmails.id',
+					email: 'userEmails.email'
+				},
+				'created_time'
+			],
+			filter: {},
+			join: {},
+			groupby: 'id',
+			orderby: 'name',
+		});
+
+	});
+
+
 });

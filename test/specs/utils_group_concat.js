@@ -63,5 +63,30 @@ describe('utils/group_concat', () => {
 		expect(gc.expression).to.eql('CONCAT(\'[\', GROUP_CONCAT(CONCAT(\'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \']\')), \']\')');
 		expect(gc.label).to.eql('collection[a]');
 	});
+
+	it('should infer from the label whether results are implicitly aggregated', () => {
+
+		const gc = group_concat([{
+			expression: 'table.a',
+			label: 'a'
+		}], 'collection.');
+
+		expect(gc.expression).to.eql('table.a');
+		expect(gc.label).to.eql('a');
+
+
+		const gc_many = group_concat([{
+			expression: 'table.a',
+			label: 'a'
+		}, {
+			expression: 'table.b',
+			label: 'b'
+		}], 'collection.');
+
+		expect(gc_many.expression).to.eql('CONCAT(\'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \',\', \'"\', REPLACE(table.b, \'"\', \'\\"\'), \'"\', \']\')');
+		expect(gc_many.label).to.eql('a,b');
+
+	});
+
 });
 
