@@ -59,29 +59,29 @@ function formatHandler(item) {
 				// Remove tabs then parse the value
 				value = JSONparse(value);
 
-				// Is there only one value and all the content is empty
-				if (value && value.length === 1 && !value[0].find(val => val !== '')) {
-					// The only row there is contains no results, this is left over from a GROUP_CONCAT
-					// Return no results...
-				}
-				else {
+				// Create a dummy array
+				// And insert into the dataset...
+				const a = [];
+				const alabel = m[1];
+				explodeKeyValue(item, alabel.split('.'), a);
 
-					// Create a dummy array
-					// And insert into the dataset...
-					const a = [];
-					const alabel = m[1];
-					explodeKeyValue(item, alabel.split('.'), a);
+				// Loop through the value entries
+				const keys = m[2].split(',');
 
-					// Loop through the value entries
-					const keys = m[2].split(',');
+				value && value.forEach(values => {
 
-					value && value.forEach(values => {
-						const obj = {};
-						keys.forEach((label, index) => obj[label] = values[index]);
-						formatHandler(obj);
-						a.push(obj);
-					});
-				}
+					// This is a workaround/tidy up for GROUP_CONCAT/CONCAT_WS
+					// If we can't find a non-empty value...
+					if (!values.find(val => val !== '')) {
+						// Continue
+						return;
+					}
+
+					const obj = {};
+					keys.forEach((label, index) => obj[label] = values[index]);
+					formatHandler(obj);
+					a.push(obj);
+				});
 			}
 		}
 

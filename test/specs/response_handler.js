@@ -116,11 +116,12 @@ describe('response_handler', () => {
 		// Return a response field which is invalid
 		const data = dare.response_handler([{
 			'field': 'value',
-			'collection[id,name,assoc.id,assoc.name]': '[["","","",""]]',
+			'collection[id,name,assoc.id,assoc.name]': '[["","","",""], ["","","",""]]',
 		}]);
 
 		expect(data).to.be.an('array');
 		expect(data[0]).to.deep.equal({
+			collection: [],
 			field: 'value'
 		});
 	});
