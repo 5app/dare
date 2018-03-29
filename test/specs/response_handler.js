@@ -111,6 +111,20 @@ describe('response_handler', () => {
 		});
 	});
 
+	it('should exclude a series of empty strings, a side-effect of inline GROUP_CONCAT', () => {
+
+		// Return a response field which is invalid
+		const data = dare.response_handler([{
+			'field': 'value',
+			'collection[id,name,assoc.id,assoc.name]': '[["","","",""]]',
+		}]);
+
+		expect(data).to.be.an('array');
+		expect(data[0]).to.deep.equal({
+			field: 'value'
+		});
+	});
+
 	it('should return the field as is if the label is not consistant', () => {
 
 		const item = {

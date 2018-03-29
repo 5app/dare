@@ -59,21 +59,29 @@ function formatHandler(item) {
 				// Remove tabs then parse the value
 				value = JSONparse(value);
 
-				// Create a dummy array
-				// And insert into the dataset...
-				const a = [];
-				const alabel = m[1];
-				explodeKeyValue(item, alabel.split('.'), a);
+				// Is there only one value and all the content is empty
+				if (value && value.length === 1 && !value[0].find(val => val !== '')) {
+					// The only row there is contains no results, this is left over from a GROUP_CONCAT
+					// Return no results...
+				}
+				else {
 
-				// Loop through the value entries
-				const keys = m[2].split(',');
+					// Create a dummy array
+					// And insert into the dataset...
+					const a = [];
+					const alabel = m[1];
+					explodeKeyValue(item, alabel.split('.'), a);
 
-				value && value.forEach(values => {
-					const obj = {};
-					keys.forEach((label, index) => obj[label] = values[index]);
-					formatHandler(obj);
-					a.push(obj);
-				});
+					// Loop through the value entries
+					const keys = m[2].split(',');
+
+					value && value.forEach(values => {
+						const obj = {};
+						keys.forEach((label, index) => obj[label] = values[index]);
+						formatHandler(obj);
+						a.push(obj);
+					});
+				}
 			}
 		}
 
