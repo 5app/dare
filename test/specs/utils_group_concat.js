@@ -20,7 +20,7 @@ describe('utils/group_concat', () => {
 			label: 'collection.b'
 		}], 'collection.');
 
-		expect(gc.expression).to.eql('CONCAT(\'[\', GROUP_CONCAT(CONCAT(\'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \',\', \'"\', REPLACE(table.b, \'"\', \'\\"\'), \'"\', \']\')), \']\')');
+		expect(gc.expression).to.eql('CONCAT(\'[\', GROUP_CONCAT(CONCAT_WS(\'\', \'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \',\', \'"\', REPLACE(table.b, \'"\', \'\\"\'), \'"\', \']\')), \']\')');
 		expect(gc.label).to.eql('collection[a,b]');
 
 	});
@@ -36,7 +36,7 @@ describe('utils/group_concat', () => {
 			label: 'b'
 		}]);
 
-		expect(gc.expression).to.eql('CONCAT(\'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \',\', \'"\', REPLACE(table.b, \'"\', \'\\"\'), \'"\', \']\')');
+		expect(gc.expression).to.eql('CONCAT_WS(\'\', \'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \',\', \'"\', REPLACE(table.b, \'"\', \'\\"\'), \'"\', \']\')');
 		expect(gc.label).to.eql('a,b');
 	});
 
@@ -60,7 +60,7 @@ describe('utils/group_concat', () => {
 			label: 'collection.a'
 		}], 'collection.');
 
-		expect(gc.expression).to.eql('CONCAT(\'[\', GROUP_CONCAT(CONCAT(\'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \']\')), \']\')');
+		expect(gc.expression).to.eql('CONCAT(\'[\', GROUP_CONCAT(CONCAT_WS(\'\', \'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \']\')), \']\')');
 		expect(gc.label).to.eql('collection[a]');
 	});
 
@@ -83,7 +83,7 @@ describe('utils/group_concat', () => {
 			label: 'b'
 		}], 'collection.');
 
-		expect(gc_many.expression).to.eql('CONCAT(\'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \',\', \'"\', REPLACE(table.b, \'"\', \'\\"\'), \'"\', \']\')');
+		expect(gc_many.expression).to.eql('CONCAT_WS(\'\', \'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \',\', \'"\', REPLACE(table.b, \'"\', \'\\"\'), \'"\', \']\')');
 		expect(gc_many.label).to.eql('a,b');
 
 	});

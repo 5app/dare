@@ -21,7 +21,7 @@ module.exports = function group_concat(fields, address = '') {
 	// convert to JSON Array
 	// fields = fields.map(field => `'"${escape(field.label || field.expression)}":', '"', REPLACE(${field.def}, '"', '\\"'), '"'`);
 	expression = fields.map(field => `'"', REPLACE(${field.expression}, '"', '\\"'), '"'`);
-	expression = `CONCAT('[', ${expression.join(', \',\', ')}, ']')`;
+	expression = `CONCAT_WS('', '[', ${expression.join(', \',\', ')}, ']')`;
 
 	if (agg) {
 		return {
