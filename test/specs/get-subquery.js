@@ -313,5 +313,27 @@ describe('get - subquery', () => {
 
 	});
 
+	it('should allow multiple, groupby and orderby of nested table', async() => {
+
+		return dare.get({
+			'table': 'assets',
+			'fields': {
+				'AssetID': 'id',
+				'CollectionID': 'assetCollections.collection.id',
+				'Collection': 'assetCollections.collection.name'
+			},
+			'orderby': 'id, assetCollections.collection.id',
+			'groupby': 'id, assetCollections.collection.id',
+			'filter': {
+				'assetCollections': {
+					'collection': {
+						'created_time': '2018-03',
+					}
+				}
+			}
+		});
+
+	});
+
 
 });
