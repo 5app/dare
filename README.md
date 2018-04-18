@@ -184,7 +184,7 @@ dare.get({
 });
 ```
 
-### Fields Array
+### Fields Array `fields`
 
 The fields array is defined in `dare.get(...[,fields]...)` only and says what fields from the matching resultset to return.
 
@@ -244,7 +244,7 @@ The SQL this creates renames the fields and then recreates the structured format
 - The relationship between the tables must be defined in the scheme.
 
 
-### Filter
+### Filter `filter`
 
 The Filter Object is a Fields=>Value object literal, defining the SQL condition to attach to a statement.
 
@@ -298,6 +298,22 @@ The type of value affects the choice of SQL Condition syntax to use. For example
 | flag    | null                      | null           | `flag IS NULL`
 | -flag   | null                      | null           | `flag IS NOT NULL`
 
+
+### Groupby `groupby`
+
+Groupby accepts the same format as a single `field` expression. It can be a single value or an array of multiple expressions. I.e.
+
+```js
+groupby: [
+	'type',
+	'YEAR_MONTH(created_date)'
+]
+```
+
+Generates
+```sql
+	GROUP BY type, YEAR_MONTH(created_date)
+```
 
 ### Join
 

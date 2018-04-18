@@ -1,6 +1,7 @@
 const checkFormat = require('./unwrap_field');
 const checkLabel = require('./validate_label');
 const checkKey = require('./validate_field');
+const fieldRelativePath = require('./field_relative');
 
 // Return a reducer function
 module.exports = function fieldReducer(current_address, join, table_schema = {}) {
@@ -14,8 +15,8 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
 		// e.g. Our current address might be grandparent.parent.
 		// Then we'd break down the new address "parent.tbl.field" => "parent.tbl." => "parent."
 		// And see that that actually the path is the bit we've removed... aka tbl.field
-		const a = overlap(current_address, address);
-		const relative = a[2].split('.');
+		const path = fieldRelativePath(current_address, address);
+		const relative = path.split('.');
 
 		if (relative.length > 1) {
 			const key = relative[0];
@@ -96,35 +97,6 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
 		return a;
 	};
 };
-
-
-// Overlap strings
-// Given two strings, e.g. 'this.is.not' and 'is.not.over'
-// Find the over laping section in this case 'is.not'
-// Return the various parts as an array ['this', '.is.not', '.over']
-function overlap(a, b) {
-
-	let path = b;
-
-	// Remove chunks off the end of the second string and see if it matches the end of the first
-	// Continue to do this
-	while (path && !a.endsWith(path)) {
-
-		// What is the position of the separator
-		const i = path.lastIndexOf('.', path.length - 2);
-
-		if (i <= 0) {
-			// No, this is relative field
-			path = '';
-			break;
-		}
-
-		path = path.slice(0, i + 1);
-	}
-
-	return [a.slice(0, a.lastIndexOf(path)), path, b.slice(path.length)];
-}
-
 
 // Is Empty
 function isEmpty(value) {

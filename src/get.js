@@ -61,6 +61,7 @@ function buildQuery(opts) {
 		list,
 		sql_join_values,
 		sql_filter,
+		sql_groupby,
 		sql_values,
 	} = this.traverse(opts, is_subquery);
 
@@ -95,35 +96,18 @@ function buildQuery(opts) {
 	// Groupby
 	// If the content is grouped
 
-	let sql_groupby = '';
-
 	// Ensure that the parent has opts.groupby when we're joining tables
-	if (!is_subquery && !opts.groupby && has_many_join) {
+	if (!is_subquery && !sql_groupby.length && has_many_join) {
 
-		// Are all the fields aggregates?npm
+		// Are all the fields aggregates?
 		const all_aggs = fields.every(item => item.agg);
 
 		if (!all_aggs) {
 			// Determine whether there are non?
-			opts.groupby = `${opts.alias}.id`;
+			sql_groupby.push(`${opts.sql_alias}.id`);
 		}
 	}
 
-	if (opts.groupby) {
-
-		// Replace the attribute path reference in the groupby statement
-		opts.groupby = unwrap_field(opts.groupby, replaceFieldPath(list, fields));
-
-		// Find the special _group column...
-		fields.filter(item => item.expression === `${sql_alias}._group`)
-			.forEach(item => {
-				item.expression = opts.groupby;
-				item.label = '_group';
-			});
-
-		// Add the grouping
-		sql_groupby = `GROUP BY ${opts.groupby}`;
-	}
 
 	// Orderby
 	// If the content is ordered
@@ -164,7 +148,7 @@ function buildQuery(opts) {
 						${sql_joins.join('\n')}
 				 ${sql_filter.length ? 'WHERE' : ''}
 					 ${sql_filter.join(' AND ')}
-				 ${sql_groupby}
+				 ${sql_groupby.length ? `GROUP BY ${sql_groupby}` : ''}
 				 ${sql_orderby}
 				 ${sql_limit}`;
 
@@ -191,11 +175,15 @@ function traverse(item, is_subquery) {
 	const sql_joins = [];
 	const sql_join_values = [];
 
+	// SQL GroupBy
+	const sql_groupby = [];
+
 	const parent = item.parent;
 
 	const resp = {
 		sql_filter,
 		sql_values,
+		sql_groupby,
 		fields,
 		list,
 		sql_subquery_values,
@@ -251,7 +239,7 @@ function traverse(item, is_subquery) {
 		// Should this be a sub query?
 		// The join is not required for filtering,
 		// And has a one to many relationship with its parent.
-		if (this.group_concat && !is_subquery && !ancestors_many && !item.required_join && !item.has_filter && many) {
+		if (this.group_concat && !is_subquery && !ancestors_many && !item.required_join && !item.has_filter && many && !item.groupby) {
 
 			// Mark as subquery
 			item.is_subquery = true;
@@ -381,6 +369,21 @@ function traverse(item, is_subquery) {
 		});
 	}
 
+	// Groupby
+	if (item.groupby) {
+
+		// Either an empty groupby
+		sql_groupby.push(...item.groupby.map(field => field_format(field, null, sql_alias).expression));
+
+		// Find the special _group column...
+		fields
+			.filter(item => item.expression === `${sql_alias}._group`)
+			.forEach(item => {
+				item.expression = sql_groupby[0];
+				item.label = '_group';
+			});
+	}
+
 	// When the item is not within a subquery
 	// And its contains a relationship of many too one
 	// Groups all the fields into GROUP_CONCAT
@@ -430,6 +433,7 @@ function replaceFieldPath(list, fields) {
 		if (field_path) {
 			// Find the new sql_alias for the address
 			const item = list.find(item => item.alias === field_path);
+
 			address = item.sql_alias;
 		}
 		else if (!fields.find(item => item.label === field_name)) {
@@ -451,3 +455,5 @@ function formCondition(tbl_alias, field, condition) {
 	// Insert the field name in place
 	return condition.includes('??') ? condition.replace(/\?\?/g, field_definition) : `${field_definition} ${condition}`;
 }
+
+

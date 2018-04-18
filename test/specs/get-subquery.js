@@ -288,9 +288,11 @@ describe('get - subquery', () => {
 			return Promise.resolve([{}]);
 		};
 
-		dare.options.schema = {
-			userEmails: {
-				user_id: 'users.id'
+		dare.options = {
+			schema: {
+				userEmails: {
+					user_id: 'users.id'
+				}
 			}
 		};
 
@@ -313,27 +315,34 @@ describe('get - subquery', () => {
 
 	});
 
-	it('should allow multiple, groupby and orderby of nested table', async() => {
+	describe('with groupby', () => {
 
-		return dare.get({
-			'table': 'assets',
-			'fields': {
-				'AssetID': 'id',
-				'CollectionID': 'assetCollections.collection.id',
-				'Collection': 'assetCollections.collection.name'
-			},
-			'orderby': 'id, assetCollections.collection.id',
-			'groupby': 'id, assetCollections.collection.id',
-			'filter': {
-				'assetCollections': {
-					'collection': {
-						'created_time': '2018-03',
-					}
-				}
-			}
+		it('should allow multiple groupby on nested tables', async() => {
+
+			dare.sql = async sql => {
+
+				expect(sql).to.contain('GROUP BY c.id,a.id');
+
+				return [{
+					'AssetID': 1,
+					'CollectionID': 2,
+					'Collection': 'b'
+				}];
+			};
+
+			return dare.get({
+				'table': 'assets',
+				'fields': {
+					'AssetID': 'id',
+					'CollectionID': 'assetCollections.collections.id',
+					'Collection': 'assetCollections.collections.name'
+				},
+				'groupby': [
+					'id',
+					'assetCollections.collections.id'
+				]
+			});
+
 		});
-
 	});
-
-
 });
