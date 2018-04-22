@@ -3,7 +3,7 @@
 const DareError = require('./utils/error');
 const fieldReducer = require('./utils/field_reducer');
 const groupbyReducer = require('./utils/groupby_reducer');
-const checkFormat = require('./utils/unwrap_field');
+const orderbyReducer = require('./utils/orderby_reducer');
 const checkKey = require('./utils/validate_field');
 const checkTableAlias = require('./utils/validate_alias');
 const formatDateTime = require('./utils/format_datetime');
@@ -160,7 +160,15 @@ async function format_specs(options) {
 	// If the content is grouped
 	if (options.groupby) {
 		// Explode the group formatter...
-		options.groupby = toArray(options.groupby).reduce(groupbyReducer(options.field_alias_path || (`${options.alias }.`), joined), []);
+		options.groupby = toArray(options.groupby).reduce(groupbyReducer(options.field_alias_path || `${options.alias }.`, joined), []);
+	}
+
+	// Orderby
+	// If the content is ordered
+	if (options.orderby) {
+
+		options.orderby = toArray(options.orderby).reduce(orderbyReducer(options.field_alias_path || `${options.alias }.`, joined), []);
+
 	}
 
 	// Update the joined tables
@@ -203,25 +211,6 @@ async function format_specs(options) {
 			_join.push(prepCondition(key, value, type, negate));
 		}
 		options._join = _join;
-	}
-
-	// Orderby
-	// If the content is ordered
-	if (options.orderby) {
-
-		const a = toArray(options.orderby);
-
-		a.forEach(def => {
-
-			if (typeof def === 'string') {
-				def = def.replace(/\s*(DESC|ASC)$/i, '');
-			}
-
-			// Check format
-			checkFormat(def);
-		});
-
-		options.orderby = a;
 	}
 
 	// Set default limit

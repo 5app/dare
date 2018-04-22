@@ -1,11 +1,19 @@
-
 const fieldUnwrap = require('./unwrap_field');
 const fieldRelativePath = require('./field_relative');
 const mapReduce = require('./map_reduce');
+const orderbyUnwrap = require('./orderby_unwrap');
 
-module.exports = function groupbyReducer(current_path, join) {
+module.exports = (current_path, join) => {
 
-	return mapReduce(field => {
+	return mapReduce(entry => {
+
+		let field = entry;
+		let direction = '';
+		if (typeof field === 'string') {
+			const obj = orderbyUnwrap(entry);
+			field = obj.field;
+			direction = obj.direction;
+		}
 
 		// Get the field address
 		const item = fieldUnwrap(field);
@@ -17,7 +25,7 @@ module.exports = function groupbyReducer(current_path, join) {
 		if (address_split.length <= 1) {
 
 			// Persist the field...
-			return field;
+			return entry;
 		}
 
 		// Create a groupby in the associate model
@@ -29,17 +37,16 @@ module.exports = function groupbyReducer(current_path, join) {
 		}
 
 		// Get/Set groupby
-		const a = (join[key].groupby || []);
+		const a = (join[key].orderby || []);
 
 		// Replace the field
-		item.field = address_split.join('.');
+		item.field = address_split.join('.') + direction;
 
 		// Add to groupby
 		a.push(fieldWrap(item));
 
 		// Update groupby
-		join[key].groupby = a;
-
+		join[key].orderby = a;
 		// Dont return anything
 		// So it wont be included in the reduce list...
 	});

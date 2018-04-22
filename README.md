@@ -299,9 +299,9 @@ The type of value affects the choice of SQL Condition syntax to use. For example
 | -flag   | null                      | null           | `flag IS NOT NULL`
 
 
-### Groupby `groupby`
+### Group by `groupby`
 
-Groupby accepts the same format as a single `field` expression. It can be a single value or an array of multiple expressions. I.e.
+`groupby` accepts the same format as a single `field` expression. It can be a single value or an array of multiple expressions. I.e.
 
 ```js
 groupby: [
@@ -313,6 +313,22 @@ groupby: [
 Generates
 ```sql
 	GROUP BY type, YEAR_MONTH(created_date)
+```
+
+### Order By `orderby`
+
+`orderby` accepts the same format as a single `field` expression. It can be a single value or an array of multiple expressions. I.e.
+
+```js
+orderby: [
+	'type',
+	'YEAR_MONTH(created_date)'
+]
+```
+
+Generates
+```sql
+	ORDER BY type, YEAR_MONTH(created_date)
 ```
 
 ### Join

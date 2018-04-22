@@ -88,6 +88,18 @@ describe('Field Reducer', () => {
 				}]
 			],
 
+			// Test 8
+			[
+				[{
+					'Field': 'asset.field',
+					'b_table': []
+				}],
+				[{
+					'Field': 'asset.field'
+				}]
+			],
+
+
 		].forEach(test => {
 
 			const input = test[0]; // Test request fields array to process

@@ -21,10 +21,19 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
 		if (relative.length > 1) {
 			const key = relative[0];
 			const d = label ? {[label]: field} : field;
-			const a = join[key] || {};
-			a.fields = (a.fields || []);
-			a.fields.push(d);
-			join[key] = a;
+
+			if (!join[key]) {
+				join[key] = {};
+			}
+
+			if (!join[key].fields) {
+				join[key].fields = [];
+			}
+			else if (!Array.isArray(join[key].fields)) {
+				join[key].fields = [join[key].fields];
+			}
+
+			join[key].fields.push(d);
 			return true;
 		}
 	};
