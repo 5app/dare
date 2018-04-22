@@ -199,6 +199,46 @@ describe('get', () => {
 
 		});
 
+		it('should use field labels in the orderby', async() => {
+
+			dare.execute = (query, callback) => {
+				const expected = `
+					SELECT DATE(a.created) AS 'date'
+					FROM test a
+					ORDER BY \`date\`
+					LIMIT 1
+				`;
+
+				sqlEqual(query, expected);
+
+				callback(null, [{_count: 10}]);
+			};
+
+			const resp = await dare.get('test', [{'date': 'DATE(created)'}], null, {orderby: 'date'});
+
+			expect(resp).to.eql({_count: 10});
+		});
+
+		it('should use functions in the orderby', async() => {
+
+			dare.execute = (query, callback) => {
+				const expected = `
+					SELECT DATE(a.created) AS 'date'
+					FROM test a
+					ORDER BY DATE(a.created)
+					LIMIT 1
+				`;
+
+				sqlEqual(query, expected);
+
+				callback(null, [{_count: 10}]);
+			};
+
+			const resp = await dare.get('test', [{'date': 'DATE(created)'}], null, {orderby: 'DATE(created)'});
+
+			expect(resp).to.eql({_count: 10});
+		});
+
 		it('should throw an error if fields is an empty array', async() => {
 
 			try {
@@ -256,6 +296,26 @@ describe('get', () => {
 
 			expect(resp).to.eql({_count: 10});
 
+		});
+
+		it('should use the special field _count as a label for orderby reference', async() => {
+
+			dare.execute = (query, callback) => {
+				const expected = `
+					SELECT COUNT(*) AS '_count'
+					FROM test a
+					ORDER BY \`_count\`
+					LIMIT 1
+				`;
+
+				sqlEqual(query, expected);
+
+				callback(null, [{_count: 10}]);
+			};
+
+			const resp = await dare.get('test', ['_count'], null, {orderby: '_count'});
+
+			expect(resp).to.eql({_count: 10});
 		});
 
 		it('should interpret _group as a shortcut to the groupby', async() => {

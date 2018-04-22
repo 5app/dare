@@ -288,9 +288,11 @@ describe('get - subquery', () => {
 			return Promise.resolve([{}]);
 		};
 
-		dare.options.schema = {
-			userEmails: {
-				user_id: 'users.id'
+		dare.options = {
+			schema: {
+				userEmails: {
+					user_id: 'users.id'
+				}
 			}
 		};
 
@@ -313,5 +315,34 @@ describe('get - subquery', () => {
 
 	});
 
+	describe('with groupby', () => {
 
+		it('should allow multiple groupby on nested tables', async() => {
+
+			dare.sql = async sql => {
+
+				expect(sql).to.contain('GROUP BY c.id,a.id');
+
+				return [{
+					'AssetID': 1,
+					'CollectionID': 2,
+					'Collection': 'b'
+				}];
+			};
+
+			return dare.get({
+				'table': 'assets',
+				'fields': {
+					'AssetID': 'id',
+					'CollectionID': 'assetCollections.collections.id',
+					'Collection': 'assetCollections.collections.name'
+				},
+				'groupby': [
+					'id',
+					'assetCollections.collections.id'
+				]
+			});
+
+		});
+	});
 });

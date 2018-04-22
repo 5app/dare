@@ -265,7 +265,7 @@ describe('format_request', () => {
 						groupby
 					});
 
-					expect(resp.groupby).to.eql(groupby);
+					expect(resp.groupby).to.eql([groupby]);
 				});
 
 			});

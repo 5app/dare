@@ -2,7 +2,8 @@
 
 const DareError = require('./utils/error');
 const fieldReducer = require('./utils/field_reducer');
-const checkFormat = require('./utils/unwrap_field');
+const groupbyReducer = require('./utils/groupby_reducer');
+const orderbyReducer = require('./utils/orderby_reducer');
 const checkKey = require('./utils/validate_field');
 const checkTableAlias = require('./utils/validate_alias');
 const formatDateTime = require('./utils/format_datetime');
@@ -155,6 +156,21 @@ async function format_specs(options) {
 		options.join = _join;
 	}
 
+	// Groupby
+	// If the content is grouped
+	if (options.groupby) {
+		// Explode the group formatter...
+		options.groupby = toArray(options.groupby).reduce(groupbyReducer(options.field_alias_path || `${options.alias }.`, joined), []);
+	}
+
+	// Orderby
+	// If the content is ordered
+	if (options.orderby) {
+
+		options.orderby = toArray(options.orderby).reduce(orderbyReducer(options.field_alias_path || `${options.alias }.`, joined), []);
+
+	}
+
 	// Update the joined tables
 	options.joined = joined;
 	this.table_handler(options);
@@ -195,39 +211,6 @@ async function format_specs(options) {
 			_join.push(prepCondition(key, value, type, negate));
 		}
 		options._join = _join;
-	}
-
-	// Groupby
-	// If the content is grouped
-	if (options.groupby) {
-		// Explode the group formatter...
-		checkFormat(options.groupby);
-	}
-
-	// Orderby
-	// If the content is ordered
-	if (options.orderby) {
-
-		let a = options.orderby;
-
-		if (typeof a === 'string') {
-			a = a.split(/\s*,\s*/);
-		}
-		else if (!Array.isArray(a)) {
-			a = [a];
-		}
-
-		a.forEach(def => {
-
-			if (typeof def === 'string') {
-				def = def.replace(/\s*(DESC|ASC)$/i, '');
-			}
-
-			// Check format
-			checkFormat(def);
-		});
-
-		options.orderby = a;
 	}
 
 	// Set default limit
@@ -445,4 +428,14 @@ function prepCondition(field, value, type, negate) {
 	}
 
 	return [field, negate + condition, values];
+}
+
+function toArray(a) {
+	if (typeof a === 'string') {
+		a = a.split(',').map(s => s.trim());
+	}
+	else if (!Array.isArray(a)) {
+		a = [a];
+	}
+	return a;
 }
