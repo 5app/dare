@@ -42,7 +42,7 @@
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-security": "^1.4.0",
     "mocha": "^5.0.0",
-    "nyc": "^11.2.1",
+    "nyc": "^12.0.1",
     "pre-commit": "^1.2.2"
   },
   "dependencies": {}
