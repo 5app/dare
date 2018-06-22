@@ -7,11 +7,26 @@ module.exports = function formatDateTime(values) {
 
 		let i = 0;
 
-		const a = values.split('..').map(str => {
+		//Out-of-scope cache for constructing correct format - CB
+		let strCache = '';
+
+		const a = values.split('..').map((str, index) => {
 
 			if (!str) {
 				return '';
 			}
+
+			// Pad the start of each subvalue - CB
+			const padded = str.split('-').map(el => {
+				return el.padStart(2, '0');
+			});
+			str = padded.join('-');
+
+			// Allow the format yyyy-mm-dd..dd by constructing the second timestamp - CB
+			if (index === 1 && str.length === 2) {
+				str = strCache.slice(0, 8) + str;
+			}
+			strCache = str;
 
 			// Tidy up the ISO string
 			const _str = str.replace(/(T\d+)$/, '$1:00'); // Requires minutes with hours
