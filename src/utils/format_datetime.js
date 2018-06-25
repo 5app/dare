@@ -23,10 +23,8 @@ module.exports = function formatDateTime(values) {
 			str = padded.join('-');
 
 			// Allow the format yyyy-mm-dd..dd by constructing the second timestamp - CB
-			if (index === 1 && str.length === 2 && strCache.length) {
-				if (strCache.length === 10 && strCache.split('-').length === 3) {
-					str = strCache.slice(0, 8) + str;
-				}
+			if (index === 1 && str.length === 2 && strCache.length && strCache.length === 10) {
+				str = strCache.slice(0, 8) + str;
 			}
 			strCache = str;
 
