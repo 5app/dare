@@ -70,7 +70,7 @@ The `options` themselves are a set of properties used to interpret and manipulat
 
 The schema is used to define the structure of your SQL database. You can refer to it as `options.schema`. It's each property in the schema pertains to a database table. And defines the fields within the table.
 
-e.g. 
+e.g.
 ```javascript
 {
 	users: {Field Definition's,...},
@@ -97,7 +97,7 @@ In the example below the fields `users.country_id` defines a relationship with `
 
 ### Field Definition
 
-Fields dont need to be explicitly defined in the `options.schema.*tbl*`. Fields which are defined can give hints as to how to handle them. 
+Fields dont need to be explicitly defined in the `options.schema.*tbl*`. Fields which are defined can give hints as to how to handle them.
 
 #### field reference
 
@@ -200,7 +200,7 @@ The array items can also be Objects.
 
 #### Aliased Items (objects)
 
-Object entries whose value are strings, may define SQL functions. E.g. 
+Object entries whose value are strings, may define SQL functions. E.g.
 
 ```javascript
 	[
@@ -352,7 +352,7 @@ The `dare.post` method is used to build and execute an `INSERT ...` SQL statemen
 e.g.
 
 ```javascript
-dare.post('user', {name: 'Andrew', preofession: 'Mad scientist'});
+dare.post('user', {name: 'Andrew', profession: 'Mad scientist'});
 // INSERT INTO table (name, profession) VALUES('Andrew', 'Mad scientist')
 ```
 
@@ -365,7 +365,7 @@ e.g.
 ```javascript
 dare.get({
 	table: 'users',
-	body: {name: 'Andrew', preofession: 'Mad scientist'}
+	body: {name: 'Andrew', profession: 'Mad scientist'}
 });
 ```
 
@@ -407,7 +407,7 @@ dare.get({
 
 ## Multiple joins/filters on the same table
 
-In order to both: show all relationship on the join table AND filter the main results by the joined table. One can either create separate table aliases (as described above) using one for the field name, and one for the filter. Or alternatively append an arbitary label, a `$` sign followed by an string. E.g. 
+In order to both: show all relationship on the join table AND filter the main results by the joined table. One can either create separate table aliases (as described above) using one for the field name, and one for the filter. Or alternatively append an arbitary label, a `$` sign followed by an string. E.g.
 
 E.g. Include all the tags associated with users AND only show users whom include the tag "Andrew"
 
@@ -518,4 +518,20 @@ patch: {
 	}
 }
 ...
+```
+
+### Handling dates and date ranges
+
+The library supports a number of user friendly ways of passing in dates and date ranges by constructing the formal timestamp implied in the data passed to Dare.
+
+E.g. here is a list of supported syntaxes and the resulting timestamp.
+
+```
+2018-01-01..2018-01-02,
+2018-01-01..02,
+2018-1-1..2
+
+=== 2018-01-01T00:00:00..2018-01-02T23:59:59
+
+etc...
 ```
