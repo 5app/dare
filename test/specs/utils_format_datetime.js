@@ -16,8 +16,8 @@ describe('utils/format_datetime', () => {
 
 		// Should construct ranges from shorthand, and backfill single digit dates.
 
-		['2018-01-01..02', '2018-01-02T00:00:00..2018-01-02T23:59:59'],
-		['2018-1-1..2', '2018-01-02T00:00:00..2018-01-02T23:59:59']
+		['2018-01-01..02', '2018-01-01T00:00:00..2018-01-02T23:59:59'],
+		['2018-1-1..2', '2018-01-01T00:00:00..2018-01-02T23:59:59']
 	].forEach(test => {
 
 		const [input, expected] = test;
