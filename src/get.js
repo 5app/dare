@@ -61,7 +61,7 @@ function buildQuery(opts) {
 		sql_join_values,
 		sql_filter,
 		sql_groupby,
-		sql_orderby,
+		orderby,
 		sql_values,
 	} = this.traverse(opts, is_subquery);
 
@@ -128,6 +128,41 @@ function buildQuery(opts) {
 		sql_fields = fields.map(field => `${field.expression}${field.label ? ` AS '${field.label}'` : ''}`);
 	}
 
+	// Clean up sql_orderby
+	let sql_orderby = [];
+
+	if (orderby && orderby.length) {
+
+		sql_orderby = orderby.map(entry => {
+
+			// Split the entry into field and direction
+			const {field, direction} = orderbyUnwrap(entry);
+
+			console.log('ORDERBY haystack', field, fields);
+
+			// _count, etc...
+			// Is the value a shortcut to a labelled field?
+			fields.find(_field => {
+				if (_field.label && _field.label === field) {
+					return entry;
+				}
+			});
+
+			for (const {expression, label} of fields) {
+
+				if ((label === field)) {
+					const ref = field_format(expression, label, sql_alias, item.field_alias_path).label;
+					return `\`${ref || expression}\` ${direction || ''}`;
+				}
+			}
+
+			return entry;
+		});
+
+		console.log(sql_orderby);
+	}
+
+
 	// Put it all together
 	const sql = `SELECT ${sql_fields.toString()}
 				 FROM ${sql_table} ${sql_alias}
@@ -165,7 +200,7 @@ function traverse(item, is_subquery) {
 	const sql_groupby = [];
 
 	// SQL GroupBy
-	const sql_orderby = [];
+	const orderby = [];
 
 
 	const parent = item.parent;
@@ -174,7 +209,7 @@ function traverse(item, is_subquery) {
 		sql_filter,
 		sql_values,
 		sql_groupby,
-		sql_orderby,
+		orderby,
 		fields,
 		list,
 		sql_subquery_values,
@@ -378,25 +413,18 @@ function traverse(item, is_subquery) {
 	// Orderby
 	if (item.orderby) {
 
+		console.log('TRAVERSE', typeof item.orderby, item.orderby);
+
 		// Either an empty groupby
 		const a = item.orderby.map(entry => {
+
 			// Split the entry into field and direction
 			const {field, direction} = orderbyUnwrap(entry);
-
-			// _count, etc...
-			// Is the value a shortcut to a labelled field?
-			const a = item.fields.map(prepField);
-			for (const [expression, label] of a) {
-				if ((label === field) || (!label && expression === '_count')) {
-					const ref = field_format(expression, label, sql_alias, item.field_alias_path).label;
-					return `\`${ref || expression}\` ${direction || ''}`;
-				}
-			}
 
 			return field_format(field, null, sql_alias).expression + (direction || '');
 		});
 
-		sql_orderby.push(...a);
+		orderby.push(...a);
 
 	}
 

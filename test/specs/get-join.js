@@ -565,7 +565,7 @@ describe('get - request object', () => {
 				],
 				orderby: [
 					'users.country.date DESC',
-					'users.country.name ASC'
+					'CountryName ASC'
 				],
 				limit
 			});
