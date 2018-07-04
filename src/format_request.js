@@ -171,8 +171,6 @@ async function format_specs(options) {
 		// Enforce Array
 		let a = toArray(options.orderby);
 
-		console.log(a);
-
 		// Replace any label references with field definition
 		if (options.fields) {
 			const fields = toArray(options.fields);

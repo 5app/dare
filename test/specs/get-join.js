@@ -17,60 +17,7 @@ function walk(obj, handler, key = null) {
 }
 
 // Create a schema
-const options = {
-	schema: {
-		// Users table
-		users: {
-			country_id: {
-				references: 'country.id'
-			}
-		},
-
-		// Users have multiple emails
-		users_email: {
-
-			// User_id defines a field which references the users table
-			user_id: {
-				references: ['users.id']
-			}
-
-		},
-
-		country: {
-
-		},
-
-		comments: {
-			author_id: {
-				references: 'users.id'
-			}
-		},
-
-		activityEvents: {
-			session_id: {
-				references: 'activitySession.id'
-			},
-			ref_id: {
-				references: 'apps.id'
-			}
-		},
-
-		apps: {
-
-		},
-
-		assetDomains: {
-			asset_id: 'apps.id'
-		}
-
-	},
-
-	table_alias: {
-		'author': 'users',
-		'events': 'activityEvents',
-		'asset': 'apps'
-	}
-};
+const options = require('../data/options');
 
 
 describe('get - request object', () => {
@@ -498,75 +445,6 @@ describe('get - request object', () => {
 						type: 'a'
 					}
 				},
-				limit
-			});
-		});
-	});
-
-	describe('Orderby', () => {
-
-		it('should add orderby using nested tables', async() => {
-
-			dare.sql = async sql => {
-
-				const expected = `
-					SELECT a.email, b.name AS 'name'
-					FROM users_email a
-					LEFT JOIN users b ON(b.id = a.user_id)
-					ORDER BY b.name
-					LIMIT 5
-				`;
-
-				expectSQLEqual(sql, expected);
-				return [{}];
-			};
-
-			return dare.get({
-				table: 'users_email',
-				fields: ['users.name', 'email'],
-				orderby: [
-					'users.name'
-				],
-				limit
-			});
-		});
-
-		it('should use the field label', async() => {
-
-			dare.sql = async sql => {
-
-				const expected = `
-					SELECT a.email, DATE(c.created) AS 'users.country.date', c.name AS 'CountryName'
-					FROM users_email a
-					LEFT JOIN users b ON(b.id = a.user_id)
-					LEFT JOIN country c ON(c.id = b.country_id)
-					ORDER BY \`users.country.date\` DESC, c.name ASC
-					LIMIT 5
-				`;
-
-				expectSQLEqual(sql, expected);
-				return [{}];
-			};
-
-			return dare.get({
-				table: 'users_email',
-				fields: [
-					'email',
-					{
-						users: {
-							country: {
-								'date': 'DATE(created)'
-							}
-						}
-					},
-					{
-						'CountryName': 'users.country.name'
-					}
-				],
-				orderby: [
-					'users.country.date DESC',
-					'CountryName ASC'
-				],
 				limit
 			});
 		});
