@@ -168,17 +168,8 @@ async function format_specs(options) {
 	// If the content is ordered
 	if (options.orderby) {
 
-		// Enforce Array
-		let a = toArray(options.orderby);
-
-		// Replace any label references with field definition
-		if (options.fields) {
-			const fields = toArray(options.fields);
-			a = a.map(entry => replaceAlias(entry, fields));
-		}
-
 		// Reduce
-		options.orderby = a.reduce(orderbyReducer(options.field_alias_path || `${options.alias }.`, joined), []);
+		options.orderby = toArray(options.orderby).reduce(orderbyReducer(options.field_alias_path, joined), []);
 
 	}
 

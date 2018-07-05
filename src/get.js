@@ -133,30 +133,30 @@ function buildQuery(opts) {
 
 	if (orderby && orderby.length) {
 
-		sql_orderby = orderby.map(entry => {
+		console.log('ORDERBY haystack', orderby, fields);
 
-			// Split the entry into field and direction
-			const {field, direction} = orderbyUnwrap(entry);
-
-			console.log('ORDERBY haystack', field, fields);
+		sql_orderby = orderby.map(({expression, label, direction}) => {
 
 			// _count, etc...
 			// Is the value a shortcut to a labelled field?
-			fields.find(_field => {
-				if (_field.label && _field.label === field) {
-					return entry;
+			// fields.find(_field => {
+			// 	if (_field.label && _field.label === expression) {
+			// 		return entry;
+			// 	}
+			// });
+
+			for (const field of fields) {
+
+				// Does the expression belong to something in the fields?
+				if (label && (field.label === label)) {
+					return [`\`${field.label}\``, direction].join(' ');
 				}
-			});
-
-			for (const {expression, label} of fields) {
-
-				if ((label === field)) {
-					const ref = field_format(expression, label, sql_alias, item.field_alias_path).label;
-					return `\`${ref || expression}\` ${direction || ''}`;
+				if (field.label && field.expression === expression) {
+					return [`\`${field.label}\``, direction].join(' ');
 				}
 			}
 
-			return entry;
+			return [expression, direction].join(' ');
 		});
 
 		console.log(sql_orderby);
@@ -413,15 +413,16 @@ function traverse(item, is_subquery) {
 	// Orderby
 	if (item.orderby) {
 
-		console.log('TRAVERSE', typeof item.orderby, item.orderby);
-
 		// Either an empty groupby
 		const a = item.orderby.map(entry => {
 
 			// Split the entry into field and direction
 			const {field, direction} = orderbyUnwrap(entry);
 
-			return field_format(field, null, sql_alias).expression + (direction || '');
+			// Create a Field object
+			// Extend object with direction
+			// Return the object
+			return Object.assign(field_format(field, null, sql_alias, item.field_alias_path), {direction});
 		});
 
 		orderby.push(...a);
@@ -429,7 +430,7 @@ function traverse(item, is_subquery) {
 	}
 
 	// When the item is not within a subquery
-	// And its contains a relationship of many too one
+	// And its contains a relationship of many to one
 	// Groups all the fields into GROUP_CONCAT
 	if (item.many && !is_subquery && fields.length) {
 		// Generate a Group Concat statement of the result
