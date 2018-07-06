@@ -68,7 +68,8 @@ describe('utils/field_format', () => {
 			expect(actual).to.eql({
 				expression: expected[0],
 				label: expected[1] || undefined,
-				agg: expected[2] || false
+				agg: expected[2] || false,
+				original: input[0]
 			});
 		});
 	});

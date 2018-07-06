@@ -60,7 +60,7 @@ function buildQuery(opts) {
 		sql_joins,
 		sql_join_values,
 		sql_filter,
-		sql_groupby,
+		groupby,
 		orderby,
 		sql_values,
 	} = this.traverse(opts, is_subquery);
@@ -76,6 +76,15 @@ function buildQuery(opts) {
 				item.expression = 'COUNT(*)';
 				item.label = '_count';
 				item.agg = true;
+			});
+
+		// Find the special _group column...
+		fields
+			.filter(item => item.expression === `${sql_alias}._group`)
+			.forEach(item => {
+				// Pick the first_groupby statement
+				item.expression = groupby[0].expression;
+				item.label = '_group';
 			});
 	}
 
@@ -96,14 +105,14 @@ function buildQuery(opts) {
 	// Groupby
 	// If the content is grouped
 	// Ensure that the parent has opts.groupby when we're joining tables
-	if (!is_subquery && !sql_groupby.length && has_many_join) {
+	if (!is_subquery && !groupby.length && has_many_join) {
 
 		// Are all the fields aggregates?
 		const all_aggs = fields.every(item => item.agg);
 
 		if (!all_aggs) {
 			// Determine whether there are non?
-			sql_groupby.push(`${opts.sql_alias}.id`);
+			groupby.push({expression: `${opts.sql_alias}.id`});
 		}
 	}
 
@@ -129,38 +138,10 @@ function buildQuery(opts) {
 	}
 
 	// Clean up sql_orderby
-	let sql_orderby = [];
+	const sql_orderby = aliasOrderAndGroupFields(orderby, fields);
 
-	if (orderby && orderby.length) {
-
-		console.log('ORDERBY haystack', orderby, fields);
-
-		sql_orderby = orderby.map(({expression, label, direction}) => {
-
-			// _count, etc...
-			// Is the value a shortcut to a labelled field?
-			// fields.find(_field => {
-			// 	if (_field.label && _field.label === expression) {
-			// 		return entry;
-			// 	}
-			// });
-
-			for (const field of fields) {
-
-				// Does the expression belong to something in the fields?
-				if (label && (field.label === label)) {
-					return [`\`${field.label}\``, direction].join(' ');
-				}
-				if (field.label && field.expression === expression) {
-					return [`\`${field.label}\``, direction].join(' ');
-				}
-			}
-
-			return [expression, direction].join(' ');
-		});
-
-		console.log(sql_orderby);
-	}
+	// Clean up sql_orderby
+	const sql_groupby = aliasOrderAndGroupFields(groupby, fields);
 
 
 	// Put it all together
@@ -197,7 +178,7 @@ function traverse(item, is_subquery) {
 	const sql_join_values = [];
 
 	// SQL GroupBy
-	const sql_groupby = [];
+	const groupby = [];
 
 	// SQL GroupBy
 	const orderby = [];
@@ -208,7 +189,7 @@ function traverse(item, is_subquery) {
 	const resp = {
 		sql_filter,
 		sql_values,
-		sql_groupby,
+		groupby,
 		orderby,
 		fields,
 		list,
@@ -399,15 +380,7 @@ function traverse(item, is_subquery) {
 	if (item.groupby) {
 
 		// Either an empty groupby
-		sql_groupby.push(...item.groupby.map(field => field_format(field, null, sql_alias).expression));
-
-		// Find the special _group column...
-		fields
-			.filter(item => item.expression === `${sql_alias}._group`)
-			.forEach(item => {
-				item.expression = sql_groupby[0];
-				item.label = '_group';
-			});
+		groupby.push(...item.groupby.map(field => field_format(field, null, sql_alias, item.field_alias_path)));
 	}
 
 	// Orderby
@@ -477,4 +450,36 @@ function formCondition(tbl_alias, field, condition) {
 	return condition.includes('??') ? condition.replace(/\?\?/g, field_definition) : `${field_definition} ${condition}`;
 }
 
+function aliasOrderAndGroupFields(arr, fields) {
 
+	if (arr && arr.length) {
+
+		return arr.map(({expression, label, direction, original}) => {
+
+			// _count, etc...
+			// Is the value a shortcut to a labelled field?
+			// fields.find(_field => {
+			// 	if (_field.label && _field.label === expression) {
+			// 		return entry;
+			// 	}
+			// });
+
+			for (const field of fields) {
+
+				// Does the expression belong to something in the fields?
+				if (field.label && (field.label === label)) {
+					expression = `\`${field.label}\``;
+					break;
+				}
+				if (field.label && field.label === original) {
+					expression = `\`${field.label}\``;
+					break;
+				}
+			}
+
+			return [expression, direction].filter(v => !!v).join(' ');
+		});
+	}
+
+	return [];
+}

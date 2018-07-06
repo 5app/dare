@@ -4,7 +4,6 @@ const DareError = require('./utils/error');
 const fieldReducer = require('./utils/field_reducer');
 const groupbyReducer = require('./utils/groupby_reducer');
 const orderbyReducer = require('./utils/orderby_reducer');
-const orderbyUnwrap = require('./utils/orderby_unwrap');
 const checkKey = require('./utils/validate_field');
 const checkTableAlias = require('./utils/validate_alias');
 const formatDateTime = require('./utils/format_datetime');
@@ -167,10 +166,8 @@ async function format_specs(options) {
 	// Orderby
 	// If the content is ordered
 	if (options.orderby) {
-
 		// Reduce
-		options.orderby = toArray(options.orderby).reduce(orderbyReducer(options.field_alias_path, joined), []);
-
+		options.orderby = toArray(options.orderby).reduce(orderbyReducer(options.field_alias_path || `${options.alias }.`, joined), []);
 	}
 
 	// Update the joined tables
@@ -440,26 +437,4 @@ function toArray(a) {
 		a = [a];
 	}
 	return a;
-}
-
-
-// Find a field alias which matches the orderby definition
-function replaceAlias(entry, fields) {
-
-	// If this isn't a string the error will get handled elsewhere anyway
-	if (typeof entry === 'string') {
-
-		// Split into field_definition and directions
-		const {field} = orderbyUnwrap(entry);
-
-		// Loop through the local fields and match content which contains a matching reference key
-		for (const _field of fields) {
-			if (typeof _field === 'object' && _field.hasOwnProperty(field)) {
-				return _field[field];
-			}
-		}
-	}
-
-	// There is no alias for this, just return.
-	return entry;
 }

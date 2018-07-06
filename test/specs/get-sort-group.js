@@ -32,7 +32,7 @@ const limit = 5;
 					SELECT a.email, b.name AS 'name'
 					FROM users_email a
 					LEFT JOIN users b ON(b.id = a.user_id)
-					${SQL_EXPR} b.name
+					${SQL_EXPR} \`name\`
 					LIMIT 5
 				`;
 
@@ -59,7 +59,7 @@ const limit = 5;
 					FROM users_email a
 					LEFT JOIN users b ON(b.id = a.user_id)
 					LEFT JOIN country c ON(c.id = b.country_id)
-					${SQL_EXPR} \`users.country.date\`${DESC}, c.name${ASC}
+					${SQL_EXPR} \`users.country.date\`${DESC}, \`CountryName\`${ASC}
 					LIMIT 5
 				`;
 
