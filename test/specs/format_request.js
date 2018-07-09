@@ -315,13 +315,16 @@ describe('format_request', () => {
 		describe('should accept', () => {
 
 			[
-				'table.field',
-				'table.field ASC',
-				'DATE(table.created_time)',
-				'DATE(table.created_time) DESC',
-				'DATE(table.created_time) DESC, name ASC',
+				'field',
+				'field ASC',
+				'DATE(created_time)',
+				'DATE(created_time) DESC',
+				'DATE(created_time) DESC, name ASC',
+				'DATE(table.created_time) DESC, table.name ASC',
 				['name ASC'],
-				['DATE(table.created_time) DESC', 'name ASC'],
+				['table.name ASC'],
+				['DATE(created_time) DESC', 'name ASC'],
+				['DATE(table.created_time) DESC', 'table.name ASC'],
 			].forEach(orderby => {
 
 				it(`valid: ${ orderby } (${ typeof orderby })`, async() => {

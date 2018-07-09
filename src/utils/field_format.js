@@ -1,8 +1,8 @@
 const unwrap_expression = require('./unwrap_field');
 
-module.exports = function field_format(expression, label, table_prefix, label_prefix) {
+module.exports = function field_format(original, label, table_prefix, label_prefix) {
 
-	const m = unwrap_expression(expression);
+	const m = unwrap_expression(original);
 
 	const {field, prefix, suffix} = m;
 
@@ -27,7 +27,7 @@ module.exports = function field_format(expression, label, table_prefix, label_pr
 	label = label || undefined;
 
 	// Expression
-	expression = `${prefix || ''}${table_prefix}.${name}${suffix || ''}`;
+	const expression = `${prefix || ''}${table_prefix}.${name}${suffix || ''}`;
 
 	// aggregate function flag
 	let agg = false;
@@ -36,5 +36,10 @@ module.exports = function field_format(expression, label, table_prefix, label_pr
 		agg = true;
 	}
 
-	return {expression, label, agg};
+	return {
+		original,
+		expression,
+		label,
+		agg
+	};
 };

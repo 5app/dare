@@ -166,9 +166,8 @@ async function format_specs(options) {
 	// Orderby
 	// If the content is ordered
 	if (options.orderby) {
-
+		// Reduce
 		options.orderby = toArray(options.orderby).reduce(orderbyReducer(options.field_alias_path || `${options.alias }.`, joined), []);
-
 	}
 
 	// Update the joined tables
