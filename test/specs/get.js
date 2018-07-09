@@ -344,6 +344,34 @@ describe('get', () => {
 			expect(resp).to.eql({_count: 10});
 
 		});
+
+		it('should return found_rows when defined in request options', async() => {
+
+			const data = [{name: 'hello'}];
+			dare.execute = (query, callback) => {
+
+				const expected = `
+					SELECT SQL_CALC_FOUND_ROWS a.name
+					FROM test a
+					LIMIT 10
+				`;
+
+				sqlEqual(query, expected);
+
+				callback(null, data);
+			};
+
+			const resp = await dare
+				.get({
+					table: 'test',
+					fields: ['name'],
+					limit: 10,
+					found_rows: true
+				});
+
+			expect(resp).to.eql(data);
+
+		});
 	});
 });
 
