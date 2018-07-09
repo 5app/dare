@@ -320,8 +320,11 @@ describe('format_request', () => {
 				'DATE(created_time)',
 				'DATE(created_time) DESC',
 				'DATE(created_time) DESC, name ASC',
+				'DATE(table.created_time) DESC, table.name ASC',
 				['name ASC'],
+				['table.name ASC'],
 				['DATE(created_time) DESC', 'name ASC'],
+				['DATE(table.created_time) DESC', 'table.name ASC'],
 			].forEach(orderby => {
 
 				it(`valid: ${ orderby } (${ typeof orderby })`, async() => {

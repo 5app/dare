@@ -170,7 +170,7 @@ describe('get', () => {
 			};
 
 			return dare
-				.get('test', basic_fields, {id: 1}, {orderby: 'id'});
+				.get('test', basic_fields, {id: 1}, {orderby: 'test.id'});
 
 		});
 
