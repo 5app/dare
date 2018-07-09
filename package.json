@@ -34,6 +34,9 @@
     "url": "https://github.com/5app/dare/issues"
   },
   "homepage": "https://github.com/5app/dare#readme",
+  "files": [
+    "src/"
+  ],
   "devDependencies": {
     "chai": "^4.1.0",
     "coveralls": "^3.0.0",
