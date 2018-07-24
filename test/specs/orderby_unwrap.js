@@ -24,6 +24,10 @@ describe('utils/orderby_unwrap', () => {
 			{field: 'COUNT(DISTINCT field)', direction: ' DESC'}
 		],
 		[
+			'COUNT(DISTINCT events.field) desc',
+			{field: 'COUNT(DISTINCT events.field)', direction: ' DESC'}
+		],
+		[
 			'EXTRACT(YEAR_MONTH FROM field) ASC',
 			{field: 'EXTRACT(YEAR_MONTH FROM field)', direction: ' ASC'}
 		]

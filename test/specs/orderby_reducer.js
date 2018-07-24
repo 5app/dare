@@ -28,6 +28,11 @@ describe('Orderby Reducer', () => {
 				['DATE(b_table.b_field)', 'b_table.b_field2'],
 				[],
 				['DATE(b_field)', 'b_field2']
+			],
+			[
+				['DATE(b_table.b_field) desc'],
+				[],
+				['DATE(b_field) DESC']
 			]
 
 		].forEach(test => {

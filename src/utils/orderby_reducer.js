@@ -40,12 +40,12 @@ module.exports = (current_path, join) => {
 		const a = (join[key].orderby || []);
 
 		// Replace the field
-		item.field = address_split.join('.') + direction;
+		item.field = address_split.join('.');
 
-		// Add to groupby
-		a.push(fieldWrap(item));
+		// Add to orderby
+		a.push(fieldWrap(item) + direction);
 
-		// Update groupby
+		// Update orderby
 		join[key].orderby = a;
 		// Dont return anything
 		// So it wont be included in the reduce list...
