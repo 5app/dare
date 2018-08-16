@@ -521,6 +521,24 @@ describe('format_request', () => {
 						'date',
 						'(NOT ?? > ? OR ?? IS NULL)',
 						['1981-12-05T00:00:00']
+					],
+					[
+						{'prop': '..date_sub(1981-12-05T00:00:00, interval 30 day)'},
+						'prop',
+						'?? < date_sub( ? , interval 30 day)',
+						['1981-12-05T00:00:00']
+					],
+					[
+						{'prop': 'date_sub(1981-12-05T00:00:00, interval 30 day)..'},
+						'prop',
+						'?? > date_sub( ? , interval 30 day)',
+						['1981-12-05T00:00:00']
+					],
+					[
+						{'prop': 'date_sub(1981-12-05T00:00:00, interval 30 day)..date_sub(1981-12-05T00:00:00, interval 90 day)'},
+						'prop',
+						'BETWEEN date_sub( ? , interval 30 day) AND date_sub( ? , interval 90 day)',
+						['1981-12-05T00:00:00', '1981-12-05T00:00:00']
 					]
 				];
 
