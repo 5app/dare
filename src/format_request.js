@@ -326,40 +326,34 @@ function prepCondition(field, value, type, negate) {
 		if (a[0] && a[1]) {
 			condition = 'BETWEEN ? AND ?';
 			values = a;
-
-			//deal with date_sub
-			if (/^date_sub\(.*,.*\)/i.test(a[0])) {
-				const m = a[0].match(/^(date_sub\()(.*)(,.*)/i);
-				condition = condition.replace(' ? ', ` ${m[1]} ? ${m[3]} `);
-				values[0] = m[2];
-			}
-
-			if (/^date_sub\(.*,.*\)/i.test(a[1])) {
-				const m = a[1].match(/^(date_sub\()(.*)(,.*)/i);
-				condition = condition.replace('AND ?', `AND ${m[1]} ? ${m[3]}`);
-				values[1] = m[2];
-			}
 		}
 		else if (a[0]) {
 			condition = '?? > ?';
 			values = [a[0]];
-
-			//deal with date_sub
-			if (/^date_sub\(.*,.*\)/i.test(a[0])) {
-				const m = a[0].match(/^(date_sub\()(.*)(,.*)/i);
-				condition = condition.replace(' ?', ` ${m[1]} ? ${m[3]}`);
-				values = [m[2]];
-			}
 		}
 		else {
 			condition = '?? < ?';
 			values = [a[1]];
+		}
 
-			//deal with date_sub
-			if (/^date_sub\(.*,.*\)/i.test(a[1])) {
-				const m = a[1].match(/^(date_sub\()(.*)(,.*)/i);
-				condition = condition.replace(' ?', ` ${m[1]} ? ${m[3]}`);
-				values = [m[2]];
+		//deal with date_sub
+		const date_sub_regex = new RegExp(/^(date_sub\()(.*)(,.*)/i);
+		if (values.length === 1 && date_sub_regex.test(values[0])) {
+			const m = values[0].match(date_sub_regex);
+			condition = condition.replace(' ?', ` ${m[1]} ? ${m[3]}`);
+			values = [m[2]];
+		}
+		else {
+			if (date_sub_regex.test(values[0])) {
+				const m = values[0].match(date_sub_regex);
+				condition = condition.replace(' ? ', ` ${m[1]} ? ${m[3]} `);
+				values[0] = m[2];
+			}
+
+			if (date_sub_regex.test(values[1])) {
+				const m = values[1].match(date_sub_regex);
+				condition = condition.replace('AND ?', `AND ${m[1]} ? ${m[3]}`);
+				values[1] = m[2];
 			}
 		}
 

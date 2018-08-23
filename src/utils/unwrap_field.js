@@ -17,14 +17,11 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 			prefix += m[1];
 			suffix = m[3] + suffix;
 
-			//TEST FOR SQL IF OR SQL ROUND, can be removed but 100% sure how this might affect other queries
-			if (/^if\(/i.test(prefix) || /^round\(/i.test(prefix)) {
-				//split out commas
-				let int_m;
-				while ((int_m = str.match(/(.*)(,.*)/i))) {
-					str = int_m[1];
-					suffix = int_m[2] + suffix;
-				}
+			//split out commas
+			let int_m;
+			while ((int_m = str.match(/(.*)(,[a-z0-9,\s]*|('[a-z]')|("[a-z]"))/i))) {
+				str = int_m[1];
+				suffix = int_m[2] + suffix;
 			}
 		}
 
@@ -33,7 +30,7 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 		if (str && /^round\(/i.test(prefix) && /\*/i.test(str)) {
 			//split out multiplication
 			let int_x;
-			while ((int_x = str.match(/(.*)(\s\*\s.*)/i))) {
+			while ((int_x = str.match(/(.*)(\s\*\s[\s0-9.]*)/i))) {
 				str = int_x[1];
 				suffix = int_x[2] + suffix;
 			}
