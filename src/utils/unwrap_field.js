@@ -19,7 +19,7 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 
 			//split out commas
 			let int_m;
-			while ((int_m = str.match(/(.*)(,[a-z0-9,\s]*|('[a-z]')|("[a-z]"))/i))) {
+			while ((int_m = str.match(/(.*)(,\s*((["'])?[a-z0-9\s]+\4))+/i))) { // eslint-disable-line security/detect-unsafe-regex
 				str = int_m[1];
 				suffix = int_m[2] + suffix;
 			}
