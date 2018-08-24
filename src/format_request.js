@@ -336,6 +336,27 @@ function prepCondition(field, value, type, negate) {
 			values = [a[1]];
 		}
 
+		//deal with date_sub
+		const date_sub_regex = new RegExp(/^(date_sub\()(.*)(,[a-z0-9\s]*\))/i);
+		if (values.length === 1 && date_sub_regex.test(values[0])) {
+			const m = values[0].match(date_sub_regex);
+			condition = condition.replace(' ?', ` ${m[1]} ? ${m[3]}`);
+			values = [m[2]];
+		}
+		else {
+			if (date_sub_regex.test(values[0])) {
+				const m = values[0].match(date_sub_regex);
+				condition = condition.replace(' ? ', ` ${m[1]} ? ${m[3]} `);
+				values[0] = m[2];
+			}
+
+			if (date_sub_regex.test(values[1])) {
+				const m = values[1].match(date_sub_regex);
+				condition = condition.replace('AND ?', `AND ${m[1]} ? ${m[3]}`);
+				values[1] = m[2];
+			}
+		}
+
 		if (negate) {
 			condition = `(NOT ${condition} OR ?? IS NULL)`;
 			negate = '';
