@@ -12,7 +12,9 @@ describe('utils/unwrap_field', () => {
 		'COUNT(DISTINCT field)',
 		'GROUP_CONCAT(DISTINCT field)',
 		'MAX(DAY(field))',
-		'EXTRACT(YEAR_MONTH FROM field)'
+		'EXTRACT(YEAR_MONTH FROM field)',
+		'IF(field, "yes", "no")',
+		'ROUND(field * 5, 2)'
 	].forEach(test => {
 
 		it(`where ${JSON.stringify(test)}`, () => {
