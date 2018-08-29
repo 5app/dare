@@ -471,13 +471,13 @@ describe('format_request', () => {
 					[
 						{prop: [1, null, 2]},
 						'prop',
-						'(?? IN (?,?) OR ?? IS NULL)',
+						'($$ IN (?,?) OR $$ IS NULL)',
 						[1, 2]
 					],
 					[
 						{'-prop': [1, null, 2]},
 						'prop',
-						'(?? NOT IN (?,?) AND ?? IS NOT NULL)',
+						'($$ NOT IN (?,?) AND $$ IS NOT NULL)',
 						[1, 2]
 					],
 					[
@@ -519,25 +519,25 @@ describe('format_request', () => {
 					[
 						{'-date': '1981-12-05..'},
 						'date',
-						'(NOT ?? > ? OR ?? IS NULL)',
+						'(NOT $$ > ? OR $$ IS NULL)',
 						['1981-12-05T00:00:00']
 					],
 					[
-						{'prop': '..date_sub(1981-12-05T00:00:00, interval 30 day)'},
+						{'prop': '..DATE_SUB(1981-12-05T00:00:00, interval 30 day)'},
 						'prop',
-						'?? < date_sub( ? , interval 30 day)',
+						'$$ < DATE_SUB(?, interval 30 day)',
 						['1981-12-05T00:00:00']
 					],
 					[
-						{'prop': 'date_sub(1981-12-05T00:00:00, interval 30 day)..'},
+						{'prop': 'DATE_SUB(1981-12-05T00:00:00, interval 30 day)..'},
 						'prop',
-						'?? > date_sub( ? , interval 30 day)',
+						'$$ > DATE_SUB(?, interval 30 day)',
 						['1981-12-05T00:00:00']
 					],
 					[
-						{'prop': 'date_sub(1981-12-05T00:00:00, interval 30 day)..date_sub(1981-12-05T00:00:00, interval 90 day)'},
+						{'prop': 'DATE_SUB(1981-12-05T00:00:00, interval 30 day)..DATE_SUB(1981-12-05T00:00:00, interval 90 day)'},
 						'prop',
-						'BETWEEN date_sub( ? , interval 30 day) AND date_sub( ? , interval 90 day)',
+						'BETWEEN DATE_SUB(?, interval 30 day) AND DATE_SUB(?, interval 90 day)',
 						['1981-12-05T00:00:00', '1981-12-05T00:00:00']
 					]
 				];
@@ -616,11 +616,11 @@ describe('format_request', () => {
 						['1981-12-05T00:00:00', '1981-12-06T23:59:59']
 					],
 					'1981-12-05..': [
-						'?? > ?',
+						'$$ > ?',
 						['1981-12-05T00:00:00']
 					],
 					'..1981-12-05': [
-						'?? < ?',
+						'$$ < ?',
 						['1981-12-05T00:00:00']
 					],
 					'1981-12': [
