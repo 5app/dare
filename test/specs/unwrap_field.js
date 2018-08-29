@@ -14,7 +14,11 @@ describe('utils/unwrap_field', () => {
 		'MAX(DAY(field))',
 		'EXTRACT(YEAR_MONTH FROM field)',
 		'IF(field, "yes", "no")',
-		'ROUND(field * 5, 2)'
+		'NULLIF(field, "is null")',
+		'RIGHT(field, 4)',
+		'FORMAT(field,\'en_GB\')',
+		'CONCAT(ROUND(field * 100, 2), \'%\')',
+		'FORMAT(ROUND(field * 5, 2), \'en_GB\')'
 	].forEach(test => {
 
 		it(`where ${JSON.stringify(test)}`, () => {

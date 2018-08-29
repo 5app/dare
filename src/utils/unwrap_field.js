@@ -19,7 +19,7 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 
 			//split out commas
 			let int_m;
-			while ((int_m = str.match(/(.*)(,\s*((["'])?[a-z0-9\s]+\4))+/i))) { // eslint-disable-line security/detect-unsafe-regex
+			while ((int_m = str.match(/(.*)(,\s*((["'])?[a-z0-9%_\s]+?\4))$/i))) {
 				str = int_m[1];
 				suffix = int_m[2] + suffix;
 			}
@@ -27,10 +27,10 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 
 		//deal with math on string
 		// testing for * (multiplication for now) and only when inside a round as a precaution
-		if (str && /^round\(/i.test(prefix) && /\*/i.test(str)) {
+		if (str && /ROUND\($/i.test(prefix) && /\*/i.test(str)) {
 			//split out multiplication
 			let int_x;
-			while ((int_x = str.match(/(.*)(\s\*\s[\s0-9.]*)/i))) {
+			while ((int_x = str.match(/(.*)(\s\*\s[0-9]+)$/i))) {
 				str = int_x[1];
 				suffix = int_x[2] + suffix;
 			}
