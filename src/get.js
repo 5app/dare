@@ -447,7 +447,7 @@ function formCondition(tbl_alias, field, condition) {
 	const field_definition = `${tbl_alias}.${field}`;
 
 	// Insert the field name in place
-	return condition.includes('??') ? condition.replace(/\?\?/g, field_definition) : `${field_definition} ${condition}`;
+	return condition.includes('$$') ? condition.replace(/\$\$/g, field_definition) : `${field_definition} ${condition}`;
 }
 
 function aliasOrderAndGroupFields(arr, fields) {

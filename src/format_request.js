@@ -328,16 +328,20 @@ function prepCondition(field, value, type, negate) {
 			values = a;
 		}
 		else if (a[0]) {
-			condition = '?? > ?';
+			condition = '$$ > ?';
 			values = [a[0]];
 		}
 		else {
-			condition = '?? < ?';
+			condition = '$$ < ?';
 			values = [a[1]];
 		}
 
+		// Extract values from SQL Functions
+		// Put the values back on the condition
+		condition = rewrapFunctionValues(values, condition);
+
 		if (negate) {
-			condition = `(NOT ${condition} OR ?? IS NULL)`;
+			condition = `(NOT ${condition} OR $$ IS NULL)`;
 			negate = '';
 		}
 	}
@@ -412,7 +416,7 @@ function prepCondition(field, value, type, negate) {
 		}
 		else {
 			// Join...
-			condition = `(${conds.map(cond => `?? ${cond}`).join(negate ? ' AND ' : ' OR ')})`;
+			condition = `(${conds.map(cond => `$$ ${cond}`).join(negate ? ' AND ' : ' OR ')})`;
 		}
 
 		negate = ''; // Already negated
@@ -437,4 +441,27 @@ function toArray(a) {
 		a = [a];
 	}
 	return a;
+}
+
+function rewrapFunctionValues(values, condition) {
+
+	const date_sub_regex = new RegExp(/^(DATE_SUB\()(.*)(,[a-z0-9\s]*\))/i);
+
+	values.forEach((value, index) => {
+
+		const m = value.match(date_sub_regex);
+
+		if (m) {
+			values[index] = m[2];
+			let i = 0;
+			condition = condition.replace(/\?/g, () => {
+				if (i++ === index) {
+					return `${m[1]}?${m[3]}`;
+				}
+				return '?';
+			});
+		}
+	});
+
+	return condition;
 }
