@@ -198,9 +198,9 @@ SELECT id, name, created_date FROM ....
 
 The array items can also be Objects.
 
-#### Aliased Items (objects)
+#### Aliased Items and Formatting (objects)
 
-Object entries whose value are strings, may define SQL functions. E.g.
+It's sometimes appropriate to alias a field definition, if it's to be renamed, or when using SQL Functions and operators to manipulate the response. E.g. Below we're using the DATE functin to format the date, and we're aliasing it so it will be returned with prop key `_date`.
 
 ```javascript
 	[
@@ -212,6 +212,15 @@ Object entries whose value are strings, may define SQL functions. E.g.
 
 	// sql: SELECT name, DATE(created_date) AS _date ...
 ```
+
+Here are some common operations
+
+Field Defition | Description
+--|--
+`FORMAT(field, 2, 'de_DE')` | Rounding to 2 decimal places and convert to a string with German formatting.
+`CONCAT(ROUND(field * 100), '%')` | Multiplying a number by 100. Rounding to 2 decimal places and appending a '%' to the end to convert a decimal value to a percentage.
+
+Please note some functions and operations are not available.
 
 #### Nesting Fields
 
