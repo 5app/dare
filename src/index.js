@@ -244,7 +244,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 
 	// Construct a db update
 	const sql = `INSERT ${exec} INTO ${req.table}
-			(${fields.join(',')})
+			(${fields.map(field => `\`${field}\``).join(',')})
 			VALUES
 			${data.join(',')}`;
 
@@ -327,7 +327,7 @@ function serialize(obj, separator, delimiter) {
 	const r = [];
 	for (const x in obj) {
 		const val = obj[x];
-		r.push(`${x} ${separator} ${val}`);
+		r.push(`\`${x}\` ${separator} ${val}`);
 	}
 	return r.join(` ${delimiter} `);
 }
