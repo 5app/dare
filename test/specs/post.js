@@ -23,7 +23,7 @@ describe('post', () => {
 	it('should generate an INSERT statement and execute dare.execute', async() => {
 
 		dare.execute = (query, callback) => {
-			sqlEqual(query, 'INSERT INTO test (id) VALUES (1)');
+			sqlEqual(query, 'INSERT INTO test (`id`) VALUES (1)');
 			callback(null, {id: 1});
 		};
 
@@ -38,7 +38,7 @@ describe('post', () => {
 
 		dare.execute = (query, callback) => {
 			sqlEqual(query, `
-				INSERT INTO test (id, name, field)
+				INSERT INTO test (\`id\`, \`name\`, \`field\`)
 				VALUES (1, '1', DEFAULT), (2, '2', 'extra')
 			`);
 			callback(null, []);
@@ -56,7 +56,7 @@ describe('post', () => {
 
 		dare.execute = (query, callback) => {
 			called = 1;
-			sqlEqual(query, 'INSERT IGNORE INTO test (id) VALUES (1)');
+			sqlEqual(query, 'INSERT IGNORE INTO test (`id`) VALUES (1)');
 			callback(null, {});
 		};
 
@@ -71,7 +71,7 @@ describe('post', () => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
-			sqlEqual(query, 'INSERT INTO test (name) VALUES (\'name\')');
+			sqlEqual(query, 'INSERT INTO test (`name`) VALUES (\'name\')');
 			callback(null, {success: true});
 		};
 
@@ -86,7 +86,7 @@ describe('post', () => {
 	it('should trigger pre handler, options.post.[table]', async() => {
 
 		dare.execute = (query, callback) => {
-			sqlEqual(query, 'INSERT INTO tbl (name) VALUES (\'andrew\')');
+			sqlEqual(query, 'INSERT INTO tbl (`name`) VALUES (\'andrew\')');
 			callback(null, {success: true});
 		};
 
@@ -110,7 +110,7 @@ describe('post', () => {
 	it('should trigger pre handler, options.post.default, and wait for Promise to resolve', async() => {
 
 		dare.execute = (query, callback) => {
-			sqlEqual(query, 'INSERT INTO tbl (name) VALUES (\'andrew\')');
+			sqlEqual(query, 'INSERT INTO tbl (`name`) VALUES (\'andrew\')');
 			callback(null, {success: true});
 		};
 

@@ -26,7 +26,7 @@ describe('patch', () => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
-			sqlEqual(query, 'UPDATE test SET name = \'name\' WHERE id = 1 LIMIT 1');
+			sqlEqual(query, 'UPDATE test SET `name` = \'name\' WHERE id = 1 LIMIT 1');
 			callback(null, {success: true});
 		};
 
@@ -54,7 +54,7 @@ describe('patch', () => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
-			sqlEqual(query, 'UPDATE test SET name = \'name\' WHERE id = 1 LIMIT 1');
+			sqlEqual(query, 'UPDATE test SET `name` = \'name\' WHERE id = 1 LIMIT 1');
 			callback(null, {success: true});
 		};
 
@@ -70,7 +70,7 @@ describe('patch', () => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
-			sqlEqual(query, 'UPDATE test SET name = \'name\' WHERE id = 1 LIMIT 11');
+			sqlEqual(query, 'UPDATE test SET `name` = \'name\' WHERE id = 1 LIMIT 11');
 			callback(null, {success: true});
 		};
 
@@ -87,7 +87,7 @@ describe('patch', () => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
-			sqlEqual(query, 'UPDATE tablename SET name = \'name\' WHERE id = 1 LIMIT 1');
+			sqlEqual(query, 'UPDATE tablename SET `name` = \'name\' WHERE id = 1 LIMIT 1');
 			callback(null, {success: true});
 		};
 
@@ -109,7 +109,7 @@ describe('patch', () => {
 	it('should trigger pre handler, options.patch.[table]', async() => {
 
 		dare.execute = (query, callback) => {
-			sqlEqual(query, 'UPDATE tbl SET name = \'andrew\' WHERE id = 1 LIMIT 1');
+			sqlEqual(query, 'UPDATE tbl SET `name` = \'andrew\' WHERE id = 1 LIMIT 1');
 			callback(null, {success: true});
 		};
 
@@ -134,7 +134,7 @@ describe('patch', () => {
 	it('should trigger pre handler, options.patch.default, and wait for Promise to resolve', async() => {
 
 		dare.execute = (query, callback) => {
-			sqlEqual(query, 'UPDATE tbl SET name = \'andrew\' WHERE id = 1 LIMIT 1');
+			sqlEqual(query, 'UPDATE tbl SET `name` = \'andrew\' WHERE id = 1 LIMIT 1');
 			callback(null, {success: true});
 		};
 
