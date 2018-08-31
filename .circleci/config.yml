@@ -1,3 +1,7 @@
+aliases:
+  - &store_test_results
+    path: /tmp/test-results
+
 version: 2
 jobs:
   build:
@@ -15,5 +19,10 @@ jobs:
           paths:
             - ./node_modules
       - run:
+          environment:
+            MOCHA_FILE: /tmp/test-results/mocha.xml
           name: run mocha tests
-          command: npm test
+          command: |
+            mkdir /tmp/test-results
+            npm run test:ci
+      - store_test_results: *store_test_results
