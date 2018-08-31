@@ -9,7 +9,7 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 		let suffix = '';
 		let prefix = '';
 
-		while ((m = str.match(/^([a-z_]+\()(.*)(\))$/i))) {
+		while ((m = str.match(/^([a-z]+\()(.*)(\))$/i))) {
 			// Change the string to match the inner string...
 			str = m[2];
 
