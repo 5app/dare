@@ -1,6 +1,6 @@
 aliases:
   - &store_test_results
-    path: /tmp/test_results
+    path: /tmp/test-results
 
 version: 2
 jobs:
