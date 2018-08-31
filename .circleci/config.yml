@@ -20,9 +20,9 @@ jobs:
             - ./node_modules
       - run:
           environment:
-            MOCHA_FILE: tmp/test-results/mocha.xml
+            MOCHA_FILE: /tmp/test-results/mocha.xml
           name: run mocha tests
           command: |
-            mkdir tmp/test-results
+            mkdir /tmp/test-results
             npm run test:ci
       - store_test_results: *store_test_results
