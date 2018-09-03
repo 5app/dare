@@ -31,7 +31,7 @@ describe('format_request', () => {
 
 	describe('aliasing', () => {
 
-		it('should call table_alias_handler on the given object and update the table and alias property', async() => {
+		it('should call table_alias_handler on the given object and update the table and alias property', async () => {
 
 			const table = 'alias';
 			const filter = {id: 1};
@@ -62,7 +62,7 @@ describe('format_request', () => {
 
 		});
 
-		it('should throw an error if falsly on root table', async() => {
+		it('should throw an error if falsly on root table', async () => {
 
 			dare.table_alias_handler = () => (false);
 
@@ -109,7 +109,7 @@ describe('format_request', () => {
 				{'asset': ['field']}
 			].forEach(fields => {
 
-				it(`valid: ${JSON.stringify(fields)}`, async() => {
+				it(`valid: ${JSON.stringify(fields)}`, async () => {
 
 					return dare.format_request(Object.assign({}, options, {fields}));
 
@@ -131,7 +131,7 @@ describe('format_request', () => {
 				[{'asset': ['DATE(id)']}]
 			].forEach(fields => {
 
-				it(`invalid: ${ JSON.stringify(fields)}`, async() => {
+				it(`invalid: ${ JSON.stringify(fields)}`, async () => {
 
 					try {
 						await dare.format_request(Object.assign({}, options, {fields}));
@@ -159,7 +159,7 @@ describe('format_request', () => {
 				}],
 			].forEach(fields => {
 
-				it(`where ${JSON.stringify(fields)}`, async() => {
+				it(`where ${JSON.stringify(fields)}`, async () => {
 
 					const req = await dare.format_request(Object.assign({}, options, {fields}));
 
@@ -183,7 +183,7 @@ describe('format_request', () => {
 
 				['90', 90, '99', 1, 10000].forEach(limit => {
 
-					it(`valid: ${ limit } (${ typeof limit })`, async() => {
+					it(`valid: ${ limit } (${ typeof limit })`, async () => {
 
 						return dare.format_request(Object.assign({}, options, {limit}));
 
@@ -196,7 +196,7 @@ describe('format_request', () => {
 
 				['nonsense', 0, -1, 10001, NaN, {}, null].forEach(limit => {
 
-					it(`invalid: ${ limit } (${ typeof limit })`, async() => {
+					it(`invalid: ${ limit } (${ typeof limit })`, async () => {
 
 						try {
 							await dare.format_request(Object.assign({}, options, {limit}));
@@ -218,7 +218,7 @@ describe('format_request', () => {
 
 				['90', 90, '99', 1].forEach(start => {
 
-					it(`valid: ${ start } (${ typeof start })`, async() => {
+					it(`valid: ${ start } (${ typeof start })`, async () => {
 
 						return dare.format_request(Object.assign({}, options, {start}));
 
@@ -231,7 +231,7 @@ describe('format_request', () => {
 
 				['nonsense', -1, NaN, {}, null].forEach(start => {
 
-					it(`invalid: ${ start } (${ typeof start })`, async() => {
+					it(`invalid: ${ start } (${ typeof start })`, async () => {
 
 						try {
 							await dare.format_request(Object.assign({}, options, {start}));
@@ -257,7 +257,7 @@ describe('format_request', () => {
 
 			['table.field', 'DATE(table.created_time)', 'EXTRACT(YEAR_MONTH FROM table.created_time)'].forEach(groupby => {
 
-				it(`valid: ${ groupby } (${ typeof groupby })`, async() => {
+				it(`valid: ${ groupby } (${ typeof groupby })`, async () => {
 
 					const resp = await dare.format_request({
 						table: 'table',
@@ -275,7 +275,7 @@ describe('format_request', () => {
 
 			[-1, 101, {}, 'parenthisis(snap', '; ', 'SUM(SE-LECT 1)'].forEach(groupby => {
 
-				it(`invalid: ${ groupby } (${ typeof groupby })`, async() => {
+				it(`invalid: ${ groupby } (${ typeof groupby })`, async () => {
 
 					try {
 						await dare.format_request({
@@ -297,7 +297,7 @@ describe('format_request', () => {
 
 			[NaN, null, 0, undefined].forEach(groupby => {
 
-				it(`ignores: ${ groupby } (${ typeof groupby })`, async() => {
+				it(`ignores: ${ groupby } (${ typeof groupby })`, async () => {
 
 					return dare.format_request({
 						table: 'table',
@@ -327,7 +327,7 @@ describe('format_request', () => {
 				['DATE(table.created_time) DESC', 'table.name ASC'],
 			].forEach(orderby => {
 
-				it(`valid: ${ orderby } (${ typeof orderby })`, async() => {
+				it(`valid: ${ orderby } (${ typeof orderby })`, async () => {
 
 					return dare.format_request({
 						table: 'table',
@@ -350,7 +350,7 @@ describe('format_request', () => {
 				['name ASC', 'id WEST']
 			].forEach(orderby => {
 
-				it(`invalid: ${ orderby } (${ typeof orderby })`, async() => {
+				it(`invalid: ${ orderby } (${ typeof orderby })`, async () => {
 
 					try {
 						await dare.format_request({
@@ -375,7 +375,7 @@ describe('format_request', () => {
 
 			[NaN, null, 0, undefined].forEach(orderby => {
 
-				it(`ignores: ${ orderby } (${ typeof orderby })`, async() => {
+				it(`ignores: ${ orderby } (${ typeof orderby })`, async () => {
 
 					return dare.format_request({
 						table: 'table',
@@ -546,7 +546,7 @@ describe('format_request', () => {
 
 					const [filter, prop, condition, values] = test;
 
-					it(`should transform condition ${JSON.stringify(filter)} -> ${JSON.stringify(condition)}`, async() => {
+					it(`should transform condition ${JSON.stringify(filter)} -> ${JSON.stringify(condition)}`, async () => {
 
 						const resp = await dare.format_request({
 							table,
@@ -579,7 +579,7 @@ describe('format_request', () => {
 					}
 				].forEach(filter => {
 
-					it(`invalid: ${JSON.stringify(filter)}`, async() => {
+					it(`invalid: ${JSON.stringify(filter)}`, async () => {
 
 						try {
 							await dare.format_request({
@@ -641,7 +641,7 @@ describe('format_request', () => {
 
 					const [condition, values] = o[date];
 
-					it(`should augment filter values ${date}`, async() => {
+					it(`should augment filter values ${date}`, async () => {
 
 						dare.options = {
 							schema: {
@@ -682,7 +682,7 @@ describe('format_request', () => {
 		};
 
 
-		it('should use options.table_alias_handler for interpretting the table names', async() => {
+		it('should use options.table_alias_handler for interpretting the table names', async () => {
 
 			dare.options = {
 				schema
@@ -706,7 +706,7 @@ describe('format_request', () => {
 
 		});
 
-		it('should use the options.table_alias hash if no handler is defined', async() => {
+		it('should use the options.table_alias hash if no handler is defined', async () => {
 
 			dare.options = {
 				schema,
@@ -734,7 +734,7 @@ describe('format_request', () => {
 
 		describe('Permittable tables: table_alias returns falsly', () => {
 
-			it('should throw an error if falsly on join table', async() => {
+			it('should throw an error if falsly on join table', async () => {
 
 				dare.options = {
 					schema
@@ -765,7 +765,7 @@ describe('format_request', () => {
 
 	describe('scheme', () => {
 
-		it('should throw an error when there are two tables with an undefined relationship', async() => {
+		it('should throw an error when there are two tables with an undefined relationship', async () => {
 
 			// Redefine the structure
 			dare.options = {
@@ -795,7 +795,7 @@ describe('format_request', () => {
 
 		});
 
-		it('should understand options.schema which defines table structure which reference other tables.', async() => {
+		it('should understand options.schema which defines table structure which reference other tables.', async () => {
 
 			// Redefine the structure
 			dare.options = {
@@ -823,7 +823,7 @@ describe('format_request', () => {
 
 		});
 
-		it('should understand multiple References, and pick the appropriate one.', async() => {
+		it('should understand multiple References, and pick the appropriate one.', async () => {
 
 			// Redefine the structure
 			dare.options = {
@@ -859,7 +859,7 @@ describe('format_request', () => {
 
 		});
 
-		it('should allow simple descriptions of deep links', async() => {
+		it('should allow simple descriptions of deep links', async () => {
 
 			// Here the schema is a series of tables a street, belongs to 1 town and in return 1 country
 			dare.options = {
@@ -894,7 +894,7 @@ describe('format_request', () => {
 
 	describe('table conditional dependencies', () => {
 
-		it('should automatically require join another table', async() => {
+		it('should automatically require join another table', async () => {
 
 			dare.options = {
 				schema: {
@@ -925,7 +925,7 @@ describe('format_request', () => {
 
 	describe('method table handlers', () => {
 
-		it('should pass through exceptions raised in the method handlers', async() => {
+		it('should pass through exceptions raised in the method handlers', async () => {
 			const msg = 'snap';
 			dare.options = {
 				get: {
@@ -951,7 +951,7 @@ describe('format_request', () => {
 			}
 		});
 
-		it('should pass through the table scoped request', async() => {
+		it('should pass through the table scoped request', async () => {
 
 			dare.options = {
 				get: {
@@ -979,7 +979,7 @@ describe('format_request', () => {
 
 		});
 
-		it('should append parent through the table scoped request', async() => {
+		it('should append parent through the table scoped request', async () => {
 
 			const removed = {removed: false};
 
@@ -1041,7 +1041,7 @@ describe('format_request', () => {
 
 		});
 
-		it('should await the response from a promise', async() => {
+		it('should await the response from a promise', async () => {
 
 			dare.options = {
 				get: {

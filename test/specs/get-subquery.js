@@ -35,7 +35,7 @@ describe('get - subquery', () => {
 	});
 
 
-	it('should write one to many requests with a subquery', async() => {
+	it('should write one to many requests with a subquery', async () => {
 
 		dare.sql = sql => {
 
@@ -75,7 +75,7 @@ describe('get - subquery', () => {
 		expect(resp).to.have.property('collection_count', 42);
 	});
 
-	it('should export the response in the format given', async() => {
+	it('should export the response in the format given', async () => {
 
 		dare.sql = sql => {
 
@@ -116,7 +116,7 @@ describe('get - subquery', () => {
 		expect(resp.collections).to.have.property('count', 42);
 	});
 
-	it('should concatinate many expressions into an array using GROUP_CONCAT', async() => {
+	it('should concatinate many expressions into an array using GROUP_CONCAT', async () => {
 
 		dare.sql = sql => {
 
@@ -156,7 +156,7 @@ describe('get - subquery', () => {
 		expect(resp.collections[0]).to.have.property('name', 'a');
 	});
 
-	it('should *not* subquery a nested object without fields', async() => {
+	it('should *not* subquery a nested object without fields', async () => {
 
 		dare.sql = sql => {
 
@@ -190,7 +190,7 @@ describe('get - subquery', () => {
 
 	});
 
-	it('should *not* use a subquery when the many table is used in the filter', async() => {
+	it('should *not* use a subquery when the many table is used in the filter', async () => {
 
 		dare.sql = sql => {
 
@@ -225,7 +225,7 @@ describe('get - subquery', () => {
 
 	});
 
-	it('should *not* subquery a table off a join with a possible set of values', async() => {
+	it('should *not* subquery a table off a join with a possible set of values', async () => {
 
 		dare.sql = sql => {
 
@@ -264,7 +264,7 @@ describe('get - subquery', () => {
 
 	});
 
-	it('should aggregate single field requests in a subquery, aka without group_concat', async() => {
+	it('should aggregate single field requests in a subquery, aka without group_concat', async () => {
 
 
 		dare.sql = sql => {
@@ -317,7 +317,7 @@ describe('get - subquery', () => {
 
 	describe('with groupby', () => {
 
-		it('should allow multiple groupby on nested tables', async() => {
+		it('should allow multiple groupby on nested tables', async () => {
 
 			dare.sql = async sql => {
 

@@ -33,7 +33,7 @@ describe('get - request object', () => {
 		expect(dare.get).to.be.a('function');
 	});
 
-	it('should generate a SELECT statement and execute dare.sql', async() => {
+	it('should generate a SELECT statement and execute dare.sql', async () => {
 
 		dare.sql = sql => {
 
@@ -91,7 +91,7 @@ describe('get - request object', () => {
 
 	describe('fields', () => {
 
-		it('should respond with the same structure as the request.fields', async() => {
+		it('should respond with the same structure as the request.fields', async () => {
 
 			dare.sql = () =>
 				Promise.resolve([{
@@ -125,7 +125,7 @@ describe('get - request object', () => {
 			expect(item.asset).to.have.property('name', 2001);
 		});
 
-		it('should respond with the same structure as the request.fields', async() => {
+		it('should respond with the same structure as the request.fields', async () => {
 
 			dare.sql = () =>
 				Promise.resolve([{
@@ -172,7 +172,7 @@ describe('get - request object', () => {
 			}
 			].forEach(value => {
 
-				it(`valid: ${JSON.stringify(value)}`, async() => {
+				it(`valid: ${JSON.stringify(value)}`, async () => {
 
 					dare.sql = (sql, prepared) => {
 
@@ -263,7 +263,7 @@ describe('get - request object', () => {
 
 				const {join, fields, expected} = test;
 
-				it(`valid: ${JSON.stringify(test.join)}`, async() => {
+				it(`valid: ${JSON.stringify(test.join)}`, async () => {
 
 					dare.sql = sql => {
 
@@ -283,7 +283,7 @@ describe('get - request object', () => {
 			});
 		});
 
-		it('should ignore redundant joins', async() => {
+		it('should ignore redundant joins', async () => {
 
 			dare.sql = sql => {
 
@@ -315,7 +315,7 @@ describe('get - request object', () => {
 			});
 		});
 
-		it('should enforce required table joins', async() => {
+		it('should enforce required table joins', async () => {
 
 			dare.sql = sql => {
 
@@ -348,7 +348,7 @@ describe('get - request object', () => {
 
 		});
 
-		it('should enforce required table joins between deep nested tables', async() => {
+		it('should enforce required table joins between deep nested tables', async () => {
 
 			dare.sql = sql => {
 
@@ -390,7 +390,7 @@ describe('get - request object', () => {
 
 	describe('GROUP BY inclusion', () => {
 
-		it('should automatically assign a GROUP BY on a 1:n join', async() => {
+		it('should automatically assign a GROUP BY on a 1:n join', async () => {
 
 			dare.sql = sql => {
 
@@ -420,7 +420,7 @@ describe('get - request object', () => {
 			});
 		});
 
-		it('should not automatically assign a GROUP on an 1:n join where there are Aggregate ', async() => {
+		it('should not automatically assign a GROUP on an 1:n join where there are Aggregate ', async () => {
 
 			dare.sql = sql => {
 
@@ -452,7 +452,7 @@ describe('get - request object', () => {
 
 	describe('generated fields', () => {
 
-		it('should allow bespoke fields to be defined in the schema', async() => {
+		it('should allow bespoke fields to be defined in the schema', async () => {
 
 			// Create handler for 'asset.thumbnail'
 			dare.options = {

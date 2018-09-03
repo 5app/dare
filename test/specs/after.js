@@ -46,7 +46,7 @@ describe('after Handler', () => {
 
 		for (const method in env) {
 
-			it(method, async() => {
+			it(method, async () => {
 				const resp = await env[method]();
 				expect(resp).to.eql('called');
 			});
@@ -115,7 +115,7 @@ describe('after Handler', () => {
 
 		].forEach(({label, handler: users, expected}) => {
 
-			it(`and ${label}`, async() => {
+			it(`and ${label}`, async () => {
 
 				const d = dare.use({
 					afterGet: {
@@ -177,7 +177,7 @@ describe('after Handler', () => {
 		};
 
 		for (const method in env) {
-			it(method, async() => {
+			it(method, async () => {
 				const resp = await env[method]();
 				expect(resp).to.eql('overriden');
 				expect(dare.after).to.not.eql(new_after_handler);
