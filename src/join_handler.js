@@ -1,37 +1,57 @@
 // deciding on how to connect two tables depends on which one holds the connection
 // The join_handler here looks at the schema of both tables to find one which has a reference field to the other.
 
-module.exports = function(join_table, rootTable) {
+function tidy(value, index, self) {
+	// Remove empty and duplicate values
+	return value && self.indexOf(value) === index;
+}
+
+
+module.exports = function(join_object, root_object) {
 
 	const schema = this.options.schema;
-	const joinTable = join_table.table;
 
-	let joinAlias = join_table.alias;
-	if (joinAlias) {
-		joinAlias = joinAlias.split('$')[0];
-	}
+	const {table: rootTable, alias: _rootAlias} = root_object;
+	const {table: joinTable, alias: _joinAlias} = join_object;
+
+	// Remove the join alias label
+	const joinAlias = _joinAlias.split('$')[0];
+
+	// Remove the root alias label
+	const rootAlias = _rootAlias.split('$')[0];
 
 	// Get the Join Conditions...
 	let join_conditions;
 
+	// The preference is to match in order:
+	// joinAlias to rootAlias
+	// rootAlias to joinAlias (inverted)
+	// joinAlias to rootTable
+	// rootTable to joinAlias (inverted)
+	// joinTable to rootAlias
+	// rootAlias to joinTable (inverted)
+	// joinTable to rootTable
+	// rootTable to joinTable (inverted)
+
 	// Does the alias exist...
-	if (schema[joinAlias]) {
-		join_conditions = links(schema[joinAlias], rootTable);
-	}
+	const a = [joinAlias, joinTable].filter(tidy);
+	const b = [rootAlias, rootTable].filter(tidy);
 
-	// Try inverting...
-	if (!join_conditions) {
-		join_conditions = invert_links(schema[rootTable], joinAlias);
-	}
-
-	// If the alias didn't match, try the table name...
-	if (!join_conditions) {
-		join_conditions = links(schema[joinTable], rootTable) || invert_links(schema[rootTable], joinTable);
+	for (const _a of a) {
+		for (const _b of b) {
+			join_conditions = links(schema[_a], _b) || invert_links(schema[_b], _a);
+			if (join_conditions) {
+				break;
+			}
+		}
+		if (join_conditions) {
+			break;
+		}
 	}
 
 	// Yes, no, Yeah!
 	if (join_conditions) {
-		return Object.assign(join_table, join_conditions);
+		return Object.assign(join_object, join_conditions);
 	}
 
 	// Crawl the schema for a link table, ... we're only going for a single Kevin Bacon.
@@ -65,7 +85,7 @@ module.exports = function(join_table, rootTable) {
 			alias: this.get_unique_alias(),
 			table: linkTable,
 			joins: [
-				Object.assign(join_table, join_conditions)
+				Object.assign(join_object, join_conditions)
 			]
 		}, root_conditions);
 	}

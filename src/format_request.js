@@ -235,7 +235,7 @@ async function format_specs(options) {
 
 			// Do the smart bit...
 			// Augment the join object, with additional 'conditions'
-			const new_join_object = this.join_handler(join_object, options.table);
+			const new_join_object = this.join_handler(join_object, options);
 
 			// Reject if the join handler returned a falsy value
 			if (!new_join_object) {
