@@ -80,6 +80,40 @@ describe('response_handler', () => {
 		});
 	});
 
+	it('should transform a deep linked nested', () => {
+
+		const data = dare.response_handler([{
+			'field': 'value',
+			'asset.id': 1,
+			'asset.collection[id,name,assoc.id,assoc.name]': '[["1","a","a1","aa"],["2","b","b1","ba"]]',
+			'asset.name': 'name',
+		}]);
+
+		expect(data).to.be.an('array');
+		expect(data[0]).to.deep.equal({
+			field: 'value',
+			asset: {
+				id: 1,
+				name: 'name',
+				collection: [{
+					id: '1',
+					name: 'a',
+					assoc: {
+						id: 'a1',
+						name: 'aa'
+					}
+				}, {
+					id: '2',
+					name: 'b',
+					assoc: {
+						id: 'b1',
+						name: 'ba'
+					}
+				}]
+			}
+		});
+	});
+
 	it('should return empty value if it cannot be interpretted', () => {
 
 		// Return a response field which is invalid
