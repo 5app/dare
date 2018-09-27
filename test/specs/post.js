@@ -20,7 +20,7 @@ describe('post', () => {
 		expect(dare.post).to.be.a('function');
 	});
 
-	it('should generate an INSERT statement and execute dare.execute', async() => {
+	it('should generate an INSERT statement and execute dare.execute', async () => {
 
 		dare.execute = (query, callback) => {
 			sqlEqual(query, 'INSERT INTO test (`id`) VALUES (1)');
@@ -34,7 +34,7 @@ describe('post', () => {
 	});
 
 
-	it('should accept an Array of records to insert', async() => {
+	it('should accept an Array of records to insert', async () => {
 
 		dare.execute = (query, callback) => {
 			sqlEqual(query, `
@@ -50,7 +50,7 @@ describe('post', () => {
 	});
 
 
-	it('should accept option.duplicate_keys=ignore', async() => {
+	it('should accept option.duplicate_keys=ignore', async () => {
 
 		let called;
 
@@ -67,7 +67,7 @@ describe('post', () => {
 
 	});
 
-	it('should understand a request object', async() => {
+	it('should understand a request object', async () => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -83,7 +83,7 @@ describe('post', () => {
 	});
 
 
-	it('should trigger pre handler, options.post.[table]', async() => {
+	it('should trigger pre handler, options.post.[table]', async () => {
 
 		dare.execute = (query, callback) => {
 			sqlEqual(query, 'INSERT INTO tbl (`name`) VALUES (\'andrew\')');
@@ -107,7 +107,7 @@ describe('post', () => {
 	});
 
 
-	it('should trigger pre handler, options.post.default, and wait for Promise to resolve', async() => {
+	it('should trigger pre handler, options.post.default, and wait for Promise to resolve', async () => {
 
 		dare.execute = (query, callback) => {
 			sqlEqual(query, 'INSERT INTO tbl (`name`) VALUES (\'andrew\')');
@@ -130,7 +130,7 @@ describe('post', () => {
 			});
 	});
 
-	it('should trigger pre handler, and handle errors being thrown', async() => {
+	it('should trigger pre handler, and handle errors being thrown', async () => {
 
 		const msg = 'snap';
 
@@ -157,7 +157,7 @@ describe('post', () => {
 		}
 	});
 
-	it('should not exectute if the opts.skip request is marked', async() => {
+	it('should not exectute if the opts.skip request is marked', async () => {
 
 		const skip = 'true';
 

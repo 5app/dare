@@ -21,7 +21,7 @@ describe('del', () => {
 		expect(dare.del).to.be.a('function');
 	});
 
-	it('should generate an DELETE statement and execute dare.execute', async() => {
+	it('should generate an DELETE statement and execute dare.execute', async () => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -34,9 +34,9 @@ describe('del', () => {
 		expect(resp).to.have.property('success', true);
 	});
 
-	it('should throw an exception if affectedRows: 0', async() => {
+	it('should throw an exception if affectedRows: 0', async () => {
 
-		dare.sql = async() => ({affectedRows: 0});
+		dare.sql = async () => ({affectedRows: 0});
 
 		try {
 			await dare
@@ -50,7 +50,7 @@ describe('del', () => {
 		}
 	});
 
-	it('should use table aliases', async() => {
+	it('should use table aliases', async () => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -71,7 +71,7 @@ describe('del', () => {
 			});
 	});
 
-	it('should trigger pre handler, options.del.[table]', async() => {
+	it('should trigger pre handler, options.del.[table]', async () => {
 
 		dare.execute = (query, callback) => {
 			sqlEqual(query, 'DELETE FROM tbl WHERE id = 1 LIMIT 1');
@@ -95,7 +95,7 @@ describe('del', () => {
 	});
 
 
-	it('should trigger pre handler, options.del.default, and wait for Promise to resolve', async() => {
+	it('should trigger pre handler, options.del.default, and wait for Promise to resolve', async () => {
 
 		dare.execute = (query, callback) => {
 			sqlEqual(query, 'DELETE FROM tbl WHERE id = 1 LIMIT 1');
@@ -116,7 +116,7 @@ describe('del', () => {
 			});
 	});
 
-	it('should trigger pre handler, and handle errors being thrown', async() => {
+	it('should trigger pre handler, and handle errors being thrown', async () => {
 
 		const msg = 'test';
 
@@ -141,7 +141,7 @@ describe('del', () => {
 		}
 	});
 
-	it('should return options.skip if set and not trigger further operations', async() => {
+	it('should return options.skip if set and not trigger further operations', async () => {
 
 		dare.options = {
 			del: {

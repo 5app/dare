@@ -29,7 +29,7 @@ describe('get', () => {
 
 		const basic_fields = ['id', 'name'];
 
-		it('should generate a SELECT statement and execute dare.execute', async() => {
+		it('should generate a SELECT statement and execute dare.execute', async () => {
 
 			dare.execute = (query, callback) => {
 				// Defaults
@@ -47,7 +47,7 @@ describe('get', () => {
 
 		});
 
-		it('should create a query with fields', async() => {
+		it('should create a query with fields', async () => {
 
 			dare.execute = (query, callback) => {
 				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.id = 1 LIMIT 1');
@@ -62,7 +62,7 @@ describe('get', () => {
 		});
 
 
-		it('should support array of value in the query condition', async() => {
+		it('should support array of value in the query condition', async () => {
 
 			dare.execute = (query, callback) => {
 				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.id IN (1, 2) LIMIT 2');
@@ -78,7 +78,7 @@ describe('get', () => {
 
 		});
 
-		it('should support wildcard characters for pattern matching', async() => {
+		it('should support wildcard characters for pattern matching', async () => {
 
 			dare.execute = (query, callback) => {
 				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.name LIKE \'And%\' LIMIT 5');
@@ -92,7 +92,7 @@ describe('get', () => {
 
 		});
 
-		it('should have an overidable limit', async() => {
+		it('should have an overidable limit', async () => {
 
 			dare.execute = (query, callback) => {
 				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.id = 1 LIMIT 5');
@@ -107,7 +107,7 @@ describe('get', () => {
 
 		});
 
-		it('should have an overidable limit and start', async() => {
+		it('should have an overidable limit and start', async () => {
 
 			dare.execute = (query, callback) => {
 				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.id = 1 LIMIT 4, 5');
@@ -121,7 +121,7 @@ describe('get', () => {
 
 		});
 
-		it('should throw an error if limit is invalid', async() => {
+		it('should throw an error if limit is invalid', async () => {
 
 
 			try {
@@ -134,7 +134,7 @@ describe('get', () => {
 
 		});
 
-		it('should throw an error if limit is invalid', async() => {
+		it('should throw an error if limit is invalid', async () => {
 
 			try {
 				await dare.get('test', basic_fields, {id: 1}, {limit: null});
@@ -147,7 +147,7 @@ describe('get', () => {
 		});
 
 
-		it('should throw an error where no limit was defined and an empty resultset was returned.', async() => {
+		it('should throw an error where no limit was defined and an empty resultset was returned.', async () => {
 
 			dare.execute = (query, callback) => callback(null, []);
 
@@ -162,7 +162,7 @@ describe('get', () => {
 		});
 
 
-		it('should passthrough an orderby', async() => {
+		it('should passthrough an orderby', async () => {
 
 			dare.execute = (query, callback) => {
 				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.id = 1 ORDER BY a.id LIMIT 1');
@@ -174,7 +174,7 @@ describe('get', () => {
 
 		});
 
-		it('should re-alias orderby', async() => {
+		it('should re-alias orderby', async () => {
 
 			dare.execute = (query, callback) => {
 				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.id = 1 ORDER BY a.id LIMIT 1');
@@ -187,7 +187,7 @@ describe('get', () => {
 
 		});
 
-		it('should passthrough an orderby with direction', async() => {
+		it('should passthrough an orderby with direction', async () => {
 
 			dare.execute = (query, callback) => {
 				sqlEqual(query, 'SELECT a.id, a.name FROM test a WHERE a.id = 1 ORDER BY a.id DESC LIMIT 1');
@@ -199,7 +199,7 @@ describe('get', () => {
 
 		});
 
-		it('should use field labels in the orderby', async() => {
+		it('should use field labels in the orderby', async () => {
 
 			dare.execute = (query, callback) => {
 				const expected = `
@@ -219,7 +219,7 @@ describe('get', () => {
 			expect(resp).to.eql({_count: 10});
 		});
 
-		it('should use functions in the orderby', async() => {
+		it('should use functions in the orderby', async () => {
 
 			dare.execute = (query, callback) => {
 				const expected = `
@@ -239,7 +239,7 @@ describe('get', () => {
 			expect(resp).to.eql({_count: 10});
 		});
 
-		it('should throw an error if fields is an empty array', async() => {
+		it('should throw an error if fields is an empty array', async () => {
 
 			try {
 				await dare.get('test', [], {id: 1}, {groupby: 'id'});
@@ -251,7 +251,7 @@ describe('get', () => {
 
 		});
 
-		it('should throw an error if missing fields on an unknown schema', async() => {
+		it('should throw an error if missing fields on an unknown schema', async () => {
 
 			try {
 				await dare.get('test', {id: 1}, {groupby: 'id'});
@@ -263,7 +263,7 @@ describe('get', () => {
 
 		});
 
-		it('should let us pass through SQL Functions', async() => {
+		it('should let us pass through SQL Functions', async () => {
 
 			dare.execute = (query, callback) => {
 				sqlEqual(query, 'SELECT count(a.*) AS \'_count\' FROM test a WHERE a.id = 1 GROUP BY a.name LIMIT 1');
@@ -276,7 +276,7 @@ describe('get', () => {
 			expect(resp).to.eql({id: 1});
 		});
 
-		it('should interpret _count as COUNT(*)', async() => {
+		it('should interpret _count as COUNT(*)', async () => {
 
 			dare.execute = (query, callback) => {
 
@@ -298,7 +298,7 @@ describe('get', () => {
 
 		});
 
-		it('should use the special field _count as a label for orderby reference', async() => {
+		it('should use the special field _count as a label for orderby reference', async () => {
 
 			dare.execute = (query, callback) => {
 				const expected = `
@@ -318,7 +318,7 @@ describe('get', () => {
 			expect(resp).to.eql({_count: 10});
 		});
 
-		it('should interpret _group as a shortcut to the groupby', async() => {
+		it('should interpret _group as a shortcut to the groupby', async () => {
 
 			dare.execute = (query, callback) => {
 

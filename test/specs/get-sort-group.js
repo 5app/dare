@@ -24,7 +24,7 @@ const limit = 5;
 			dare = new Dare(options);
 		});
 
-		it('should add orderby using nested tables', async() => {
+		it('should add orderby using nested tables', async () => {
 
 			dare.sql = async sql => {
 
@@ -50,7 +50,7 @@ const limit = 5;
 			});
 		});
 
-		it('should use the field label', async() => {
+		it('should use the field label', async () => {
 
 			dare.sql = async sql => {
 

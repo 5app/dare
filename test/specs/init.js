@@ -17,7 +17,7 @@ describe('Dare', () => {
 		expect(dare.options).to.have.property('schema', schema);
 	});
 
-	it('should throw errors if dare.execute is not defined', async() => {
+	it('should throw errors if dare.execute is not defined', async () => {
 
 		const dare = new Dare();
 

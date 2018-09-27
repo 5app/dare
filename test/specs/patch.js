@@ -22,7 +22,7 @@ describe('patch', () => {
 		expect(dare.patch).to.be.a('function');
 	});
 
-	it('should generate an UPDATE statement and execute dare.execute', async() => {
+	it('should generate an UPDATE statement and execute dare.execute', async () => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -35,7 +35,7 @@ describe('patch', () => {
 		expect(resp).to.have.property('success', true);
 	});
 
-	it('should throw an exception if affectedRows: 0', async() => {
+	it('should throw an exception if affectedRows: 0', async () => {
 
 		dare.sql = () => Promise.resolve({affectedRows: 0});
 
@@ -50,7 +50,7 @@ describe('patch', () => {
 		}
 	});
 
-	it('should understand a request object', async() => {
+	it('should understand a request object', async () => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -66,7 +66,7 @@ describe('patch', () => {
 			});
 	});
 
-	it('should apply the request.limit', async() => {
+	it('should apply the request.limit', async () => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -83,7 +83,7 @@ describe('patch', () => {
 			});
 	});
 
-	it('should use table aliases', async() => {
+	it('should use table aliases', async () => {
 
 		dare.execute = (query, callback) => {
 			// limit: 1
@@ -106,7 +106,7 @@ describe('patch', () => {
 	});
 
 
-	it('should trigger pre handler, options.patch.[table]', async() => {
+	it('should trigger pre handler, options.patch.[table]', async () => {
 
 		dare.execute = (query, callback) => {
 			sqlEqual(query, 'UPDATE tbl SET `name` = \'andrew\' WHERE id = 1 LIMIT 1');
@@ -131,7 +131,7 @@ describe('patch', () => {
 	});
 
 
-	it('should trigger pre handler, options.patch.default, and wait for Promise to resolve', async() => {
+	it('should trigger pre handler, options.patch.default, and wait for Promise to resolve', async () => {
 
 		dare.execute = (query, callback) => {
 			sqlEqual(query, 'UPDATE tbl SET `name` = \'andrew\' WHERE id = 1 LIMIT 1');
@@ -154,7 +154,7 @@ describe('patch', () => {
 			});
 	});
 
-	it('should trigger pre handler, and handle errors being thrown', async() => {
+	it('should trigger pre handler, and handle errors being thrown', async () => {
 
 		const msg = 'snap';
 
@@ -180,7 +180,7 @@ describe('patch', () => {
 		}
 	});
 
-	it('should not exectute if the opts.skip request is marked', async() => {
+	it('should not exectute if the opts.skip request is marked', async () => {
 
 		const skip = 'true';
 
