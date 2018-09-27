@@ -17,22 +17,24 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 			prefix += m[1];
 			suffix = m[3] + suffix;
 
-			//split out commas
+			//split out comma variables
 			let int_m;
 			while ((int_m = str.match(/(.*)(,\s*((["'])?[a-z0-9%_\s]+?\4))$/i))) {
 				str = int_m[1];
 				suffix = int_m[2] + suffix;
 			}
-		}
 
-		//deal with math on string
-		// testing for * (multiplication for now) and only when inside a round as a precaution
-		if (str && /ROUND\($/i.test(prefix) && /[*/]/i.test(str)) {
-			//split out multiplication
-			let int_x;
-			while ((int_x = str.match(/(.*)(\s[*/]\s[0-9.]+)$/i))) {
-				str = int_x[1];
-				suffix = int_x[2] + suffix;
+
+			//deal with math on string
+			// testing for * (multiplication for now) and only when inside a round as a precaution
+			if (str && m[1].toLowerCase() === 'round(') {
+				//split out multiplication
+				const int_x = str.match(/(.*)(\s[*/]\s[0-9.]+)$/i);
+
+				if (int_x) {
+					str = int_x[1];
+					suffix = int_x[2] + suffix;
+				}
 			}
 		}
 

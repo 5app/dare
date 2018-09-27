@@ -15,6 +15,8 @@ describe('utils/unwrap_field', () => {
 		'EXTRACT(YEAR_MONTH FROM field)',
 		'IF(field, "yes", "no")',
 		'NULLIF(field, "is null")',
+		'ROUND(field, 2)',
+		'ROUND(AVG(field) * 100, 2)',
 		'RIGHT(field, 4)',
 		'FORMAT(field,\'en_GB\')',
 		'CONCAT(ROUND(field * 100, 2), \'%\')',

@@ -28,15 +28,22 @@ describe('join_handler', () => {
 			}
 		};
 
-		const child_table = {
-			table: 'child'
+		const child_object = {
+			table: 'child',
+			alias: 'child'
 		};
 
-		const join = dare.join_handler(child_table, 'parent');
+		const parent_object = {
+			table: 'parent',
+			alias: 'parent'
+		};
 
-		expect(child_table).to.eql(join);
+		const join = dare.join_handler(child_object, parent_object);
 
-		expect(child_table).to.deep.equal({
+		expect(child_object).to.eql(join);
+
+		expect(child_object).to.deep.equal({
+			alias: 'child',
 			table: 'child',
 			join_conditions: {
 				'parent_id': 'id'
@@ -58,15 +65,22 @@ describe('join_handler', () => {
 			}
 		};
 
-		const parent_table = {
-			table: 'parent'
+		const parent_object = {
+			table: 'parent',
+			alias: 'parent'
 		};
 
-		const join = dare.join_handler(parent_table, 'child');
+		const child_object = {
+			table: 'child',
+			alias: 'child'
+		};
 
-		expect(parent_table).to.eql(join);
+		const join = dare.join_handler(parent_object, child_object);
 
-		expect(parent_table).to.deep.equal({
+		expect(parent_object).to.eql(join);
+
+		expect(parent_object).to.deep.equal({
+			alias: 'parent',
 			table: 'parent',
 			join_conditions: {
 				'id': 'parent_id'
@@ -91,11 +105,17 @@ describe('join_handler', () => {
 			}
 		};
 
-		const child_table = {
+		const child_object = {
+			alias: 'child',
 			table: 'child'
 		};
 
-		const join = dare.join_handler(child_table, 'grandparent');
+		const grandparent_object = {
+			alias: 'grandparent',
+			table: 'grandparent'
+		};
+
+		const join = dare.join_handler(child_object, grandparent_object);
 
 		expect(join).to.deep.equal({
 			table: 'parent',
@@ -105,13 +125,13 @@ describe('join_handler', () => {
 			},
 			many: true,
 			joins: [
-				child_table
+				child_object
 			]
 		});
 
 	});
 
-	describe('using alternative schema', () => {
+	describe('many to many table joins', () => {
 
 		beforeEach(() => {
 
@@ -145,16 +165,20 @@ describe('join_handler', () => {
 		});
 
 
-		it('should prefer an alternative schema definition if one exists for the alias used', () => {
-
+		it('message.recipient, message.author: using referenced aliases', () => {
 
 			const recipient = {
 				table: 'person',
 				alias: 'recipient'
 			};
 
+			const message = {
+				table: 'message',
+				alias: 'message'
+			};
+
 			// Join the recipient table based upon the
-			const recipient_join = dare.join_handler(recipient, 'message');
+			const recipient_join = dare.join_handler(recipient, message);
 
 			expect(recipient_join).to.deep.equal({
 				table: 'person',
@@ -172,7 +196,7 @@ describe('join_handler', () => {
 			};
 
 			// Join the recipient table based upon the
-			const author_join = dare.join_handler(author, 'message');
+			const author_join = dare.join_handler(author, message);
 
 			expect(author_join).to.deep.equal({
 				table: 'person',
@@ -184,7 +208,96 @@ describe('join_handler', () => {
 			});
 		});
 
-		it('should join based on the table name if the alias does not match', () => {
+		it('author.message.recipient: using referenced aliases', () => {
+
+			// In this example we have a many to many relationship
+			// Where author and recipient are both aliases of person
+			const message = {
+				table: 'message',
+				alias: 'message'
+			};
+
+			const author = {
+				table: 'person',
+				alias: 'author'
+			};
+
+			const recipient = {
+				table: 'person',
+				alias: 'recipient'
+			};
+
+			// Join the recipient table based upon the
+			const author_join = dare.join_handler(message, author);
+
+			expect(author_join).to.deep.equal({
+				table: 'message',
+				alias: 'message',
+				join_conditions: {
+					'from_id': 'id'
+				},
+				many: true
+			});
+
+			// Join the recipient table based upon the
+			const recipient_join = dare.join_handler(message, recipient);
+
+			expect(recipient_join).to.deep.equal({
+				table: 'message',
+				alias: 'message',
+				join_conditions: {
+					'to_id': 'id'
+				},
+				many: true
+			});
+		});
+
+		it('author.inbox.recipient: using all referenced aliases', () => {
+
+			// In this example we have a many to many relationship
+			// Where author and recipient are both aliases of person
+			const message = {
+				table: 'message',
+				alias: 'inbox'
+			};
+
+			const author = {
+				table: 'person',
+				alias: 'author'
+			};
+
+			const recipient = {
+				table: 'person',
+				alias: 'recipient'
+			};
+
+			// Join the recipient table based upon the
+			const author_join = dare.join_handler(message, author);
+
+			expect(author_join).to.deep.equal({
+				table: 'message',
+				alias: 'inbox',
+				join_conditions: {
+					'from_id': 'id'
+				},
+				many: true
+			});
+
+			// Join the recipient table based upon the
+			const recipient_join = dare.join_handler(message, recipient);
+
+			expect(recipient_join).to.deep.equal({
+				table: 'message',
+				alias: 'inbox',
+				join_conditions: {
+					'to_id': 'id'
+				},
+				many: true
+			});
+		});
+
+
+		it('messageB.recipient: using unreferenced aliases', () => {
 
 			dare.options.schema.messageB = {
 				to_id: 'person.id',
@@ -196,8 +309,13 @@ describe('join_handler', () => {
 				alias: 'recipient'
 			};
 
+			const messageB = {
+				table: 'messageB',
+				alias: 'messageB'
+			};
+
 			// Join the recipient table based upon the
-			const recipient_join = dare.join_handler(recipient, 'messageB');
+			const recipient_join = dare.join_handler(recipient, messageB);
 
 			expect(recipient_join).to.deep.equal({
 				table: 'person',
@@ -207,10 +325,39 @@ describe('join_handler', () => {
 				},
 				many: false
 			});
-
 		});
 
-		it('should join based upon the an alias which doesn\'t have a schema', () => {
+		it('recipient.messageB: using unreferenced aliases', () => {
+
+			dare.options.schema.message = {
+				from_id: 'author.id',
+				to_id: 'person.id',
+			};
+
+			const join_object = {
+				table: 'message',
+				alias: 'message'
+			};
+
+			const root_object = {
+				table: 'person',
+				alias: 'recipient'
+			};
+
+			// Join the recipient table based upon the
+			const recipient_join = dare.join_handler(join_object, root_object);
+
+			expect(recipient_join).to.deep.equal({
+				table: 'message',
+				alias: 'message',
+				join_conditions: {
+					'to_id': 'id'
+				},
+				many: true
+			});
+		});
+
+		it('should join based upon the alias which doesn\'t have a schema', () => {
 
 			// We already know from options.table_alias this is the same as a person
 			// Redefine
@@ -222,8 +369,13 @@ describe('join_handler', () => {
 				alias: 'recipient'
 			};
 
+			const message = {
+				table: 'message',
+				alias: 'message'
+			};
+
 			// Join the recipient table based upon the
-			const recipient_join = dare.join_handler(recipient, 'message');
+			const recipient_join = dare.join_handler(recipient, message);
 
 			expect(recipient_join).to.deep.equal({
 				table: 'person',
