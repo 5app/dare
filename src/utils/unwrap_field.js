@@ -24,11 +24,12 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 				suffix = int_m[2] + suffix;
 			}
 
+
 			//deal with math on string
 			// testing for * (multiplication for now) and only when inside a round as a precaution
 			if (str && m[1].toLowerCase() === 'round(') {
 				//split out multiplication
-				const int_x = str.match(/(.*)(\s\*\s[0-9]+)$/i);
+				const int_x = str.match(/(.*)(\s[*/]\s[0-9.]+)$/i);
 
 				if (int_x) {
 					str = int_x[1];

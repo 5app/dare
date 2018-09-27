@@ -20,7 +20,9 @@ describe('utils/unwrap_field', () => {
 		'RIGHT(field, 4)',
 		'FORMAT(field,\'en_GB\')',
 		'CONCAT(ROUND(field * 100, 2), \'%\')',
-		'FORMAT(ROUND(field * 5, 2), \'en_GB\')'
+		'FORMAT(ROUND(field * 5, 2), \'en_GB\')',
+		'FORMAT(ROUND(field * 5.5, 2), \'en_GB\')',
+		'FORMAT(ROUND(field / 5, 2), \'en_GB\')'
 	].forEach(test => {
 
 		it(`where ${JSON.stringify(test)}`, () => {
