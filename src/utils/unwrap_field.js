@@ -27,10 +27,10 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 
 		//deal with math on string
 		// testing for * (multiplication for now) and only when inside a round as a precaution
-		if (str && /ROUND\($/i.test(prefix) && /\*/i.test(str)) {
+		if (str && /ROUND\($/i.test(prefix) && /[*/]/i.test(str)) {
 			//split out multiplication
 			let int_x;
-			while ((int_x = str.match(/(.*)(\s\*\s[0-9]+)$/i))) {
+			while ((int_x = str.match(/(.*)(\s[*/]\s[0-9.]+)$/i))) {
 				str = int_x[1];
 				suffix = int_x[2] + suffix;
 			}
