@@ -481,6 +481,18 @@ describe('format_request', () => {
 						[1, 2]
 					],
 					[
+						{prop: [1, 2, null, 'test%', 'test2%']},
+						'prop',
+						'($$ IN (?,?) OR $$ IS NULL OR $$ LIKE ? OR $$ LIKE ?)',
+						[1, 2, 'test%', 'test2%']
+					],
+					[
+						{'-prop': [1, 2, null, 'test%', 'test2%']},
+						'prop',
+						'($$ NOT IN (?,?) AND $$ IS NOT NULL AND $$ NOT LIKE ? AND $$ NOT LIKE ?)',
+						[1, 2, 'test%', 'test2%']
+					],
+					[
 						{prop: [null]},
 						'prop',
 						'IS NULL',

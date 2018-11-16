@@ -381,7 +381,7 @@ function prepCondition(field, value, type, negate) {
 		// Filter the results of the array...
 		value = value.filter(item => {
 			// Remove the items which can't in group statement...
-			if (item !== null) {
+			if (item !== null && !(typeof item === 'string' && item.match('%'))) {
 				return true;
 			}
 
