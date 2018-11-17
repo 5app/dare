@@ -213,7 +213,7 @@ async function format_specs(options) {
 	}
 
 	// Set default limit
-	limit(options);
+	limit(options, this.MAX_LIMIT);
 
 
 	// Joins
@@ -276,7 +276,7 @@ async function format_specs(options) {
 }
 
 
-function limit(opts) {
+function limit(opts, MAX_LIMIT) {
 
 	if (opts.limit === undefined) {
 		opts.limit = 1;
@@ -288,7 +288,7 @@ function limit(opts) {
 		if (typeof limit === 'string' && limit.match(/^\d+$/)) {
 			limit = +opts.limit;
 		}
-		if (isNaN(limit) || limit > 10000 || limit < 1) {
+		if (isNaN(limit) || limit > MAX_LIMIT || limit < 1) {
 			throw new DareError(DareError.INVALID_LIMIT, `Out of bounds limit value: '${limit}'`);
 		}
 	}

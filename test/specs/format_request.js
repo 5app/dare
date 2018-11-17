@@ -192,7 +192,7 @@ describe('format_request', () => {
 				});
 			});
 
-			describe('should ignore', () => {
+			describe('should throw an exception', () => {
 
 				['nonsense', 0, -1, 10001, NaN, {}, null].forEach(limit => {
 
@@ -207,6 +207,18 @@ describe('format_request', () => {
 						}
 
 					});
+
+				});
+			});
+
+			describe('has a configurable max_limit', () => {
+
+				it('set dare.max_limit = 20000', async () => {
+
+					const limit = 20000;
+					dare.MAX_LIMIT = limit;
+
+					return dare.format_request(Object.assign({}, options, {limit}));
 
 				});
 			});

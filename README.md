@@ -577,3 +577,18 @@ E.g. here is a list of supported syntaxes and the resulting timestamp.
 
 etc...
 ```
+
+
+### Changing the default MAX_LIMIT
+
+By default the maximum value for a `limit` option is set by `dare.MAX_LIMIT`, you can override this in an instance of Dare.
+
+```js
+const Dare = require('dare');
+
+// Initiate it
+const dare = new Dare();
+
+dare.MAX_LIMIT = 1000000;
+```
+

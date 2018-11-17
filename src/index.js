@@ -18,6 +18,8 @@ Dare.prototype.execute = (query, callback) => callback(new DareError(DareError.I
 // Group concat
 Dare.prototype.group_concat = '$$';
 
+// Set the Max Limit for SELECT statements
+Dare.prototype.MAX_LIMIT = 10000;
 
 // Default prepare statement.
 Dare.prototype.prepare = require('./utils/prepare');
