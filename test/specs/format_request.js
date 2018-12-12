@@ -181,7 +181,7 @@ describe('format_request', () => {
 
 			describe('should accept', () => {
 
-				['90', 90, '99', 1, 10000].forEach(limit => {
+				['90', 90, '99', 1, 10000001].forEach(limit => {
 
 					it(`valid: ${ limit } (${ typeof limit })`, async () => {
 
@@ -194,12 +194,13 @@ describe('format_request', () => {
 
 			describe('should throw an exception', () => {
 
-				['nonsense', 0, -1, 10001, NaN, {}, null].forEach(limit => {
+				['nonsense', 0, -1, NaN, {}, null].forEach(limit => {
 
 					it(`invalid: ${ limit } (${ typeof limit })`, async () => {
 
 						try {
 							await dare.format_request(Object.assign({}, options, {limit}));
+							throw new Error('should not get here');
 						}
 						catch (err) {
 							expect(err.code).to.eql(error.INVALID_LIMIT);
@@ -213,12 +214,39 @@ describe('format_request', () => {
 
 			describe('has a configurable max_limit', () => {
 
+				const limit = 20000;
+
 				it('set dare.max_limit = 20000', async () => {
 
-					const limit = 20000;
-					dare.MAX_LIMIT = limit;
+					// Create another instance
+					const _dare = dare.use();
 
-					return dare.format_request(Object.assign({}, options, {limit}));
+					expect(dare.MAX_LIMIT).to.eql(null);
+					expect(_dare.MAX_LIMIT).to.eql(null);
+
+					// Update instance length
+					_dare.MAX_LIMIT = limit;
+					expect(dare.MAX_LIMIT).to.eql(null);
+					expect(_dare.MAX_LIMIT).to.eql(limit);
+
+					return _dare.format_request(Object.assign({}, options, {limit}));
+
+				});
+
+
+				it('should throw an error if limit is above MAX_LIMIT', async () => {
+
+					// Update the length
+					dare.MAX_LIMIT = limit - 1;
+
+					try {
+						await dare.format_request(Object.assign({}, options, {limit}));
+						throw new Error('should not get here');
+					}
+					catch (err) {
+						expect(err.code).to.eql(error.INVALID_LIMIT);
+						expect(err).to.have.property('message');
+					}
 
 				});
 			});

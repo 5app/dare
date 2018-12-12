@@ -288,7 +288,7 @@ function limit(opts, MAX_LIMIT) {
 		if (typeof limit === 'string' && limit.match(/^\d+$/)) {
 			limit = +opts.limit;
 		}
-		if (isNaN(limit) || limit > MAX_LIMIT || limit < 1) {
+		if (isNaN(limit) || (MAX_LIMIT && limit > MAX_LIMIT) || limit < 1) {
 			throw new DareError(DareError.INVALID_LIMIT, `Out of bounds limit value: '${limit}'`);
 		}
 	}
