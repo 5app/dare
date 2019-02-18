@@ -66,6 +66,47 @@ describe('patch', () => {
 			});
 	});
 
+	it('should understand a request object', async () => {
+
+		dare.execute = (query, callback) => {
+			// limit: 1
+			sqlEqual(query, 'UPDATE test SET `name` = \'name\' WHERE id = 1 LIMIT 1');
+			callback(null, {success: true});
+		};
+
+		return dare
+			.patch({
+				table: 'test',
+				filter: {id: 1},
+				body: {name: 'name'}
+			});
+	});
+
+	it('should stringify objects', async () => {
+
+		const body = {
+			an_object: {
+				shall: 'be stringified'
+			}
+		};
+
+		dare.execute = (query, callback) => {
+
+			// limit: 1
+			sqlEqual(query, `UPDATE test SET \`an_object\` = '${JSON.stringify(body.an_object)}' WHERE id = 1 LIMIT 1`);
+			callback(null, {success: true});
+		};
+
+		return dare
+			.patch({
+				table: 'test',
+				filter: {
+					id: 1
+				},
+				body
+			});
+	});
+
 	it('should apply the request.limit', async () => {
 
 		dare.execute = (query, callback) => {

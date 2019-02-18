@@ -82,7 +82,6 @@ describe('post', () => {
 			});
 	});
 
-
 	it('should trigger pre handler, options.post.[table]', async () => {
 
 		dare.execute = (query, callback) => {

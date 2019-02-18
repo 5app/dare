@@ -4,6 +4,8 @@ const getHandler = require('./get');
 
 const DareError = require('./utils/error');
 
+const validateBody = require('./utils/validate_body');
+
 module.exports = Dare;
 
 function Dare(options) {
@@ -137,6 +139,9 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 
 	const req = await _this.format_request(opts);
 
+	// Validate Body
+	validateBody(req.body);
+
 	// Skip this operation?
 	if (req.skip) {
 		return _this.after(req.skip);
@@ -193,6 +198,9 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	if (req.skip) {
 		return _this.after(req.skip);
 	}
+
+	// Validate Body
+	validateBody(req.body);
 
 	// Set table
 	let post = req.body;
@@ -314,6 +322,10 @@ function prepare(obj) {
 	const a = [];
 
 	for (const x in obj) {
+
+		if (typeof obj[x] === 'object') {
+			obj[x] = JSON.stringify(obj[x]);
+		}
 
 		// Add to the array of items
 		a.push(obj[x]);
