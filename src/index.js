@@ -139,13 +139,13 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 
 	const req = await _this.format_request(opts);
 
-	// Validate Body
-	validateBody(req.body);
-
 	// Skip this operation?
 	if (req.skip) {
 		return _this.after(req.skip);
 	}
+
+	// Validate Body
+	validateBody(req.body);
 
 	// Clone
 	const post = clone(req.body);
