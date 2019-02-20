@@ -14,6 +14,7 @@ describe('utils/unwrap_field', () => {
 		'MAX(DAY(field))',
 		'EXTRACT(YEAR_MONTH FROM field)',
 		'IF(field, "yes", "no")',
+		'COALESCE(field, "")',
 		'NULLIF(field, "is null")',
 		'ROUND(field, 2)',
 		'ROUND(AVG(field) * 100, 2)',
