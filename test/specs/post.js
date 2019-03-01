@@ -67,6 +67,23 @@ describe('post', () => {
 
 	});
 
+	it('should accept option.update=[field1, field2, ...fieldn]', async () => {
+
+		let called;
+
+		dare.execute = (query, callback) => {
+			called = 1;
+			sqlEqual(query, 'INSERT INTO test (`id`, `name`, `age`) VALUES (1, \'name\', 38) ON DUPLICATE KEYS UPDATE name=VALUES(name), age=VALUES(age)');
+			callback(null, {});
+		};
+
+		await dare
+			.post('test', {id: 1, name: 'name', age: 38}, {duplicate_keys_update: ['name', 'age']});
+
+		expect(called).to.eql(1);
+
+	});
+
 	it('should understand a request object', async () => {
 
 		dare.execute = (query, callback) => {

@@ -416,6 +416,10 @@ dare.get({
 | Prop          | Type             | Description
 |---------------|------------------|----------------
 | duplicate_key | 'ignore'         | Inserts SQL 'IGNORE' option
+| duplicate_keys_update | Array(field1, field2, ...) | Appends ON DUPLICATE KEYS UPDATE field1=VALUES(field1)
+
+
+
 
 # Additional Options
 

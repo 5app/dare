@@ -252,11 +252,15 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 		return `(${a.join(',')})`;
 	});
 
+	// Options
+	const on_duplicate_keys_update = onDuplicateKeysUpdate(req.duplicate_keys_update) || '';
+
 	// Construct a db update
 	const sql = `INSERT ${exec} INTO ${req.table}
 			(${fields.map(field => `\`${field}\``).join(',')})
 			VALUES
-			${data.join(',')}`;
+			${data.join(',')}
+			${on_duplicate_keys_update }`;
 
 	const resp = await _this.sql(sql, prepared);
 
@@ -351,4 +355,14 @@ function mustAffectRows(result) {
 		throw new DareError(DareError.NOT_FOUND);
 	}
 	return result;
+}
+
+function onDuplicateKeysUpdate(keys) {
+	if (!keys) {
+		return null;
+	}
+
+	const s = keys.map(name => `${name}=VALUES(${name})`).join(',');
+
+	return `ON DUPLICATE KEYS UPDATE ${s}`;
 }
