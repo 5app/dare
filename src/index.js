@@ -364,5 +364,5 @@ function onDuplicateKeysUpdate(keys) {
 
 	const s = keys.map(name => `${name}=VALUES(${name})`).join(',');
 
-	return `ON DUPLICATE KEYS UPDATE ${s}`;
+	return `ON DUPLICATE KEY UPDATE ${s}`;
 }

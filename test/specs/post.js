@@ -73,7 +73,7 @@ describe('post', () => {
 
 		dare.execute = (query, callback) => {
 			called = 1;
-			sqlEqual(query, 'INSERT INTO test (`id`, `name`, `age`) VALUES (1, \'name\', 38) ON DUPLICATE KEYS UPDATE name=VALUES(name), age=VALUES(age)');
+			sqlEqual(query, 'INSERT INTO test (`id`, `name`, `age`) VALUES (1, \'name\', 38) ON DUPLICATE KEY UPDATE name=VALUES(name), age=VALUES(age)');
 			callback(null, {});
 		};
 
