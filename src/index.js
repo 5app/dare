@@ -327,7 +327,7 @@ function prepare(obj) {
 
 	for (const x in obj) {
 
-		if (typeof obj[x] === 'object') {
+		if (obj[x] && typeof obj[x] === 'object') {
 			obj[x] = JSON.stringify(obj[x]);
 		}
 
