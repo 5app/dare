@@ -56,7 +56,7 @@
   },
   "dependencies": {},
   "release": {
-    "branch": "semantic-release",
+    "branch": "master",
     "prepare": [
       "@semantic-release/changelog",
       "@semantic-release/npm",
