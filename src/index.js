@@ -4,6 +4,8 @@ const getHandler = require('./get');
 
 const DareError = require('./utils/error');
 
+const promisify = require('./utils/promisify');
+
 const validateBody = require('./utils/validate_body');
 
 module.exports = Dare;
@@ -79,21 +81,13 @@ Dare.prototype.use = function(options) {
 	return inst;
 };
 
-Dare.prototype.sql = function sql(sql, prepared) {
+Dare.prototype.sql = async function sql(sql, prepared) {
 
 	prepared = prepared || [];
 
-	return new Promise((resolve, reject) => {
-		this.execute(this.prepare(sql, prepared), (err, results) => {
+	const sql_prepared = this.prepare(sql, prepared);
 
-			if (err) {
-				reject(err);
-				return;
-			}
-			resolve(results);
-
-		});
-	});
+	return promisify(this.execute)(sql_prepared);
 };
 
 
