@@ -25,9 +25,19 @@ jobs:
             mkdir /tmp/test-results
             npm run test:ci
       - store_test_results: *store_test_results
+  release:
+    docker:
+      - image: circleci/node:8.4.0
+    steps:
+      - checkout
+      - run: npm i
+      - run: npx semantic-release
 
 workflows:
   version: 2
   build:
     jobs:
       - test
+      - release:
+        requires:
+          - test

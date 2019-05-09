@@ -10,6 +10,7 @@
     "test": "npm run lint && npm run spec && (nyc report --reporter=text-lcov | coveralls)",
     "test:ci": "eslint ./ && nyc mocha test/specs/**/*.js --reporter mocha-circleci-reporter && (nyc report --reporter=text-lcov | coveralls)",
     "spec": "nyc mocha test/specs/**/*.js",
+    "semantic-release": "semantic-release",
     "lint": "eslint ./",
     "lint-fix": "eslint --fix ./",
     "lint-diff": "LIST=`git diff-index --name-only HEAD | grep '.*\\.js$';`; if [ \"$LIST\" ]; then eslint $LIST; fi",
@@ -39,6 +40,8 @@
     "src/"
   ],
   "devDependencies": {
+    "@semantic-release/changelog": "^3.0.2",
+    "@semantic-release/git": "^7.0.8",
     "chai": "^4.2.0",
     "coveralls": "^3.0.2",
     "eslint": "^5.6.0",
@@ -48,7 +51,34 @@
     "mocha": "^6.1.2",
     "mocha-circleci-reporter": "0.0.3",
     "nyc": "^14.0.0",
-    "pre-commit": "^1.2.2"
+    "pre-commit": "^1.2.2",
+    "semantic-release": "^15.13.12"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "release": {
+    "prepare": [
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      {
+        "path": "@semantic-release/git",
+        "assets": [
+          "package.json",
+          "package-lock.json",
+          "CHANGELOG.md"
+        ],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      [
+        "@semantic-release/npm",
+        {
+          "npmPublish": false
+        }
+      ],
+      "@semantic-release/github"
+    ]
+  }
 }
