@@ -9,13 +9,7 @@
 
 
 
-Dare is an API for generating SQL, it can be used internally to build and execute SQL. As well as lathered with request handlers for layering per table rules and security, just the thing for maintaining data integrity and developing REST interfaces.
-
-# Install
-
-```bash
-npm i dare --save
-```
+Dare is a lovely API for generating SQL out of structured JS Object. It can be used to query and modify your flavour of SQL database inside your node app. Or if you dare, give it it's own restful interface and have it construct and execute all the scrumptuous queries the client throws at it. Now the security conscious amongst you may fret but dont fear, your own rules can be applied via "handlers" by table and method, just the thing for maintaining data integrity and developing REST interfaces.
 
 # Example usage...
 
@@ -24,14 +18,16 @@ This is a simple setup to get started with, it'll make a basic SELECT query.
 ```javascript
 // Require the module
 const Dare = require('dare');
+const sqlConn = require('./someSqlConnection');
 
 // Initiate it
 const dare = new Dare();
 
 // Define a module for connecting
-dare.execute = (sql, callback) => {
+dare.execute = async (sql) => {
 	// Connect to DB, and execute the `sql`,
-	// Execute `callback(errorResponse, successResponse)`;
+	// resolve with a successResponse or throw an errorResponse
+	return sqlConn.execute(sql);
 };
 
 // Make a request
@@ -49,15 +45,25 @@ dare.get('users', ['name'], {id: 1}).then((resp) => {
 
 # Setup
 
+
+## Install
+
+```bash
+npm i dare --save
+```
+
+
 ## dare = new Dare(options)
 
 Create an instance of Dare with some options
 
 ```javascript
+const Dare = reqire('dare');
 
 const options = {
 	schema
-}
+};
+
 const dare = new Dare(options);
 ```
 
@@ -68,7 +74,7 @@ The `options Object` is a set of properties to apply at the point of calling any
 The `options` themselves are a set of properties used to interpret and manipulate the request.
 
 
-## Schema
+## Schema `schema`
 
 The schema is used to define the structure of your SQL database. You can refer to it as `options.schema`. It's each property in the schema pertains to a database table. And defines the fields within the table.
 
