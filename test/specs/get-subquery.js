@@ -124,7 +124,7 @@ describe('get - subquery', () => {
 
 				SELECT a.name AS 'name',
 				(
-					SELECT CONCAT('[', GROUP_CONCAT(CONCAT_WS('', '[', '"', REPLACE(c.id, '"', '\\"'), '"', ',', '"', REPLACE(c.name, '"', '\\"'), '"', ']')), ']')
+					SELECT CONCAT('[', GROUP_CONCAT(CONCAT_WS('', '[', '"', REPLACE(REPLACE(c.id, '\\', '\\\\'), '"', '\\"'), '"', ',', '"', REPLACE(REPLACE(c.name, '\\', '\\\\'), '"', '\\"'), '"', ']')), ']')
 					FROM assetCollections b
 					LEFT JOIN collections c ON (c.id = b.collection_id)
 					WHERE b.asset_id = a.id
@@ -196,7 +196,7 @@ describe('get - subquery', () => {
 
 			const expected = `
 				SELECT a.name AS 'name',
-					CONCAT('[', GROUP_CONCAT(CONCAT_WS('', '[', '"', REPLACE(c.id, '"', '\\"'), '"', ',', '"', REPLACE(c.name, '"', '\\"'), '"', ']')), ']') AS 'collections[id,name]'
+					CONCAT('[', GROUP_CONCAT(CONCAT_WS('', '[', '"', REPLACE(REPLACE(c.id, '\\', '\\\\'), '"', '\\"'), '"', ',', '"', REPLACE(REPLACE(c.name, '\\', '\\\\'), '"', '\\"'), '"', ']')), ']') AS 'collections[id,name]'
 				FROM assets a
 				LEFT JOIN assetCollections b ON(b.asset_id = a.id)
 				LEFT JOIN collections c ON (c.id = b.collection_id)
@@ -230,7 +230,7 @@ describe('get - subquery', () => {
 		dare.sql = sql => {
 
 			const expected = `
-				SELECT a.name AS 'name', CONCAT('[',GROUP_CONCAT(CONCAT_WS('', '[', '"', REPLACE(COUNT(d.id),'"','\\"'),'"',']')),']') AS 'assetCollections[collections.descendents]'
+				SELECT a.name AS 'name', CONCAT('[',GROUP_CONCAT(CONCAT_WS('', '[', '"', REPLACE(REPLACE(COUNT(d.id), '\\', '\\\\'),'"','\\"'),'"',']')),']') AS 'assetCollections[collections.descendents]'
 				FROM assets a
 				LEFT JOIN assetCollections b ON(b.asset_id = a.id)
 				LEFT JOIN collections c ON(c.id = b.collection_id)
@@ -272,7 +272,7 @@ describe('get - subquery', () => {
 			const expected = `
 				SELECT a.id,a.name,a.created_time,
 				(
-					SELECT CONCAT_WS('', '[', '"', REPLACE(b.id, '"', '\\"'), '"', ',', '"', REPLACE(b.email, '"', '\\"'), '"', ']')
+					SELECT CONCAT_WS('', '[', '"', REPLACE(REPLACE(b.id, '\\', '\\\\'), '"', '\\"'), '"', ',', '"', REPLACE(REPLACE(b.email, '\\', '\\\\'), '"', '\\"'), '"', ']')
 					FROM userEmails b
 					WHERE
 						b.user_id = a.id
