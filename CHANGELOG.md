@@ -1,3 +1,10 @@
+## [0.31.3](https://github.com/5app/dare/compare/v0.31.2...v0.31.3) (2019-05-20)
+
+
+### Bug Fixes
+
+* Escape backslashes in concat fixes [#68](https://github.com/5app/dare/issues/68), again ([b48253f](https://github.com/5app/dare/commit/b48253f))
+
 ## [0.31.2](https://github.com/5app/dare/compare/v0.31.1...v0.31.2) (2019-05-20)
 
 
