@@ -1,3 +1,10 @@
+## [0.31.4](https://github.com/5app/dare/compare/v0.31.3...v0.31.4) (2019-05-20)
+
+
+### Bug Fixes
+
+* properly escape *quotes* in JSON nested data constuct, fixes [#60](https://github.com/5app/dare/issues/60) ([e5162c7](https://github.com/5app/dare/commit/e5162c7))
+
 ## [0.31.3](https://github.com/5app/dare/compare/v0.31.2...v0.31.3) (2019-05-20)
 
 
