@@ -1,3 +1,6 @@
-'use strict';
-
-module.exports = () => {};
+/**
+ * Dummy SQL execute
+ */
+module.exports = () => {
+	// Do nothing
+};

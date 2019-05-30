@@ -1,19 +1,23 @@
-'use strict';
+
 
 describe('join_handler', () => {
 
 	let dare;
 
 	beforeEach(() => {
+
 		// Create a new instance
 		dare = new Dare();
 
 		// Create an execution instance
 		dare = dare.use();
+
 	});
 
 	it('join handler should be defined in instances of Dare', () => {
+
 		expect(dare).to.have.property('join_handler');
+
 	});
 
 	it('should return an array of objects which describe the join between the two tables', () => {
@@ -135,9 +139,11 @@ describe('join_handler', () => {
 
 		beforeEach(() => {
 
-			// One table can have multiple joins with another table
-			// In this example below the message descibes to links
-			// Table
+			/*
+			 * One table can have multiple joins with another table
+			 * In this example below the message descibes to links
+			 * Table
+			 */
 			dare.options = {
 				schema: {
 
@@ -162,6 +168,7 @@ describe('join_handler', () => {
 					recipient: 'person'
 				}
 			};
+
 		});
 
 
@@ -206,12 +213,15 @@ describe('join_handler', () => {
 				},
 				many: false
 			});
+
 		});
 
 		it('author.message.recipient: using referenced aliases', () => {
 
-			// In this example we have a many to many relationship
-			// Where author and recipient are both aliases of person
+			/*
+			 * In this example we have a many to many relationship
+			 * Where author and recipient are both aliases of person
+			 */
 			const message = {
 				table: 'message',
 				alias: 'message'
@@ -250,12 +260,15 @@ describe('join_handler', () => {
 				},
 				many: true
 			});
+
 		});
 
 		it('author.inbox.recipient: using all referenced aliases', () => {
 
-			// In this example we have a many to many relationship
-			// Where author and recipient are both aliases of person
+			/*
+			 * In this example we have a many to many relationship
+			 * Where author and recipient are both aliases of person
+			 */
 			const message = {
 				table: 'message',
 				alias: 'inbox'
@@ -294,6 +307,7 @@ describe('join_handler', () => {
 				},
 				many: true
 			});
+
 		});
 
 
@@ -325,13 +339,14 @@ describe('join_handler', () => {
 				},
 				many: false
 			});
+
 		});
 
 		it('recipient.messageB: using unreferenced aliases', () => {
 
 			dare.options.schema.message = {
 				from_id: 'author.id',
-				to_id: 'person.id',
+				to_id: 'person.id'
 			};
 
 			const join_object = {
@@ -355,12 +370,15 @@ describe('join_handler', () => {
 				},
 				many: true
 			});
+
 		});
 
 		it('should join based upon the alias which doesn\'t have a schema', () => {
 
-			// We already know from options.table_alias this is the same as a person
-			// Redefine
+			/*
+			 * We already know from options.table_alias this is the same as a person
+			 * Redefine
+			 */
 			delete dare.options.schema.recipient;
 
 
@@ -389,4 +407,5 @@ describe('join_handler', () => {
 		});
 
 	});
+
 });

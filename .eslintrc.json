@@ -1,13 +1,27 @@
 {
 	"root": true,
-	"extends": [
-		"5app"
-	],
+	"extends": "5app",
 	"plugins": [
 		"promise",
 		"security"
 	],
 	"rules": {
+		"array-bracket-newline": [2, "consistent"],
+		"array-element-newline": [2, "consistent"],
+		"arrow-body-style": [2, "as-needed"],
+		"capitalized-comments": 2,
+		"comma-dangle": 2,
+		"dot-location": [2, "property"],
+		"no-empty-function": 2,
+		"no-magic-numbers": 0,
+		"no-tabs": [2, {"allowIndentationTabs": true}],
+		"multiline-comment-style": [2, "starred-block"],
+		"padded-blocks": 2,
+		"require-await": 0,
+		"spaced-comment": [2, "always"],
+		"strict": 2,
+
+
 		"newline-per-chained-call": 2,
 		"prefer-promise-reject-errors": 2,
 		"promise/prefer-await-to-then": 2,

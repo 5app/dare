@@ -1,6 +1,8 @@
-// Generate GROUP_CONCAT statement given an array of fields definitions
-// Label the GROUP CONCAT(..) AS 'address[fields,...]'
-// Wrap all the fields in a GROUP_CONCAT statement
+/*
+ * Generate GROUP_CONCAT statement given an array of fields definitions
+ * Label the GROUP CONCAT(..) AS 'address[fields,...]'
+ * Wrap all the fields in a GROUP_CONCAT statement
+ */
 module.exports = function group_concat(fields, address = '') {
 
 	// Is this an aggregate list?
@@ -10,33 +12,38 @@ module.exports = function group_concat(fields, address = '') {
 
 	// Return solitary value
 	if (agg && fields.length === 1) {
+
 		expression = fields[0].expression;
 		return {
 			expression,
 			label
 		};
+
 	}
 
 
-	// convert to JSON Array
-	// fields = fields.map(field => `'"${escape(field.label || field.expression)}":', '"', REPLACE(${field.def}, '"', '\\"'), '"'`);
+	// Convert to JSON Array
 	expression = fields.map(field => `'"', REPLACE(REPLACE(${field.expression}, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"'`);
 	expression = `CONCAT_WS('', '[', ${expression.join(', \',\', ')}, ']')`;
 
 	if (agg) {
+
 		return {
 			expression,
 			label
 		};
+
 	}
 
 	// Multiple
 	expression = `CONCAT('[', GROUP_CONCAT(${expression}), ']')`;
 
 	label = fields.map(field => {
+
 		const label = field.label;
-		// trim the parent address from the start of the label
+		// Trim the parent address from the start of the label
 		return label.slice(address.length);
+
 	}).join(',');
 
 	label = `${address.slice(0, address.lastIndexOf('.'))}[${label}]`;
@@ -45,8 +52,5 @@ module.exports = function group_concat(fields, address = '') {
 		expression,
 		label
 	};
-};
 
-// function escape(str) {
-// 	return str.replace(/\"/g, '\\"');
-// }
+};

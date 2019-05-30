@@ -7,23 +7,27 @@
  */
 module.exports = function promisify(func) {
 
-	return (...args) => {
-		return new Promise((resolve, reject) => {
+	return (...args) => new Promise((resolve, reject) => {
 
-			const p = func(...args, (err, results) => {
+		const p = func(...args, (err, results) => {
 
-				if (err) {
-					reject(err);
-					return;
-				}
-				resolve(results);
+			if (err) {
 
-			});
+				reject(err);
+				return;
 
-			if (p && typeof p.then === 'function') { // eslint-disable-line promise/prefer-await-to-then
-				// support if execute returns a promise
-				p.then(resolve, reject); // eslint-disable-line promise/prefer-await-to-then
 			}
+			resolve(results);
+
 		});
-	};
+
+		if (p && typeof p.then === 'function') { // eslint-disable-line promise/prefer-await-to-then
+
+			// Support if execute returns a promise
+			p.then(resolve, reject); // eslint-disable-line promise/prefer-await-to-then
+
+		}
+
+	});
+
 };

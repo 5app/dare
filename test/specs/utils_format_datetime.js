@@ -29,7 +29,9 @@ describe('utils/format_datetime', () => {
 
 			// Expect the formatted list of fields to be identical to the inputted value
 			expect(formatted).to.eql(expected);
+
 		});
+
 	});
 
 	[
@@ -45,6 +47,9 @@ describe('utils/format_datetime', () => {
 
 			// Expect the formatted list of fields to be identical to the inputted value
 			expect(formatted).to.eql(input);
+
 		});
+
 	});
+
 });

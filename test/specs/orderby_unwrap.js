@@ -1,5 +1,7 @@
-// Field Reducer
-// Extract the fields from the current dataset
+/*
+ * Field Reducer
+ * Extract the fields from the current dataset
+ */
 
 const orderby_unwrap = require('../../src/utils/orderby_unwrap');
 
@@ -40,7 +42,10 @@ describe('utils/orderby_unwrap', () => {
 
 			// Expect the formatted list of fields to be identical to the inputted value
 			expect(unwrapped).to.eql(output);
+
 		});
+
 	});
+
 });
 

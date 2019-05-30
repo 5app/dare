@@ -1,5 +1,7 @@
-// Field Reducer
-// Extract the fields from the current dataset
+/*
+ * Field Reducer
+ * Extract the fields from the current dataset
+ */
 
 const field_format = require('../../src/utils/field_format');
 
@@ -71,7 +73,10 @@ describe('utils/field_format', () => {
 				agg: expected[2] || false,
 				original: input[0]
 			});
+
 		});
+
 	});
+
 });
 
