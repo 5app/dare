@@ -5,12 +5,16 @@ describe('validate_body', () => {
 	let dare;
 
 	beforeEach(() => {
+
 		dare = new Dare();
 
 		// Should not be called...
 		dare.execute = () => {
+
 			throw new Error('execute called');
+
 		};
+
 	});
 
 	['post', 'patch'].forEach(method => {
@@ -26,7 +30,9 @@ describe('validate_body', () => {
 			].forEach(body => {
 
 				it(JSON.stringify(body), async () => {
+
 					try {
+
 						await dare[method]({
 							table: 'tbl',
 							filter: {
@@ -36,12 +42,20 @@ describe('validate_body', () => {
 						});
 
 						throw new Error('expected exception');
+
 					}
 					catch (err) {
+
 						expect(err).to.have.property('code', DareError.INVALID_REQUEST);
+
 					}
+
 				});
+
 			});
+
 		});
+
 	});
+
 });

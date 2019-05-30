@@ -1,20 +1,24 @@
-'use strict';
+
 
 const DareError = require('../../src/utils/error');
 
 describe('Dare', () => {
 
 	it('should be a constructor', () => {
+
 		const dare = new Dare();
 		expect(dare.constructor).to.eql(Dare);
+
 	});
 
 	it('should define default options', () => {
+
 		const schema = {};
 		const dare = new Dare({
 			schema
 		});
 		expect(dare.options).to.have.property('schema', schema);
+
 	});
 
 	it('should throw errors if dare.execute is not defined', async () => {
@@ -22,14 +26,19 @@ describe('Dare', () => {
 		const dare = new Dare();
 
 		try {
+
 			await dare
 				.sql('SELECT 1=1');
 
 			throw new Error('expected failure');
+
 		}
 		catch (err) {
+
 			expect(err).to.be.instanceof(DareError);
+
 		}
+
 	});
 
 	it('should define dare.use to create an instance from another', () => {
@@ -38,13 +47,15 @@ describe('Dare', () => {
 		const dare = new Dare({
 			schema: {
 				'users': {
-					// name: {required: true}
+					// Name: {required: true}
 				}
 			}
 		});
 
 		// Define the execute handler
-		dare.execute = () => {};
+		dare.execute = () => {
+			// Do nothing
+		};
 
 		// Create another instance with some alternative options
 		const dareChild = dare.use({
@@ -60,6 +71,7 @@ describe('Dare', () => {
 
 		// Check the parent was not affected by the child configuration
 		expect(dare.options).to.not.have.property('limit');
+
 	});
 
 });

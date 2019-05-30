@@ -1,5 +1,7 @@
-// Field Reducer
-// Extract the fields from the current dataset
+/*
+ * Field Reducer
+ * Extract the fields from the current dataset
+ */
 
 const field_reducer = require('../../src/utils/field_reducer');
 
@@ -8,8 +10,10 @@ describe('Field Reducer', () => {
 
 	describe('should split the current fields belonging to the current and joined tables', () => {
 
-		// These are all related to the current item
-		// And should return an array item with the item as given
+		/*
+		 * These are all related to the current item
+		 * And should return an array item with the item as given
+		 */
 		[
 			// Test 1
 			[
@@ -22,7 +26,7 @@ describe('Field Reducer', () => {
 			[
 				[{
 					'Field': 'COUNT(DISTINCT field)'
-				}],
+				}]
 			],
 
 			// Test 3
@@ -97,7 +101,7 @@ describe('Field Reducer', () => {
 				[{
 					'Field': 'asset.field'
 				}]
-			],
+			]
 
 
 		].forEach(test => {
@@ -127,20 +131,29 @@ describe('Field Reducer', () => {
 				expect(f).to.eql(expected);
 
 				if (expect_join_fields) {
+
 					expect(joined.b_table.fields).to.eql(expect_join_fields);
+
 				}
 				else {
+
 					expect(joined).to.not.have.property('b_table');
+
 				}
+
 			});
+
 		});
+
 	});
 
 	it('should return generated fields', () => {
 
 		const table_schema = {
 			generated_field() {
+
 				return 'another_field';
+
 			}
 		};
 
@@ -152,6 +165,7 @@ describe('Field Reducer', () => {
 
 		// Expect the formatted list of fields to be identical to the inputted value
 		expect(f[0]).to.have.property('generated_field', 'another_field');
+
 	});
 
 });

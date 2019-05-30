@@ -1,5 +1,7 @@
-// SQL Match
-// Convert a SQL string into a regular expression to compare with a generated SQL string
+/*
+ * SQL Match
+ * Convert a SQL string into a regular expression to compare with a generated SQL string
+ */
 
 module.exports = (a, b) => {
 
@@ -9,5 +11,7 @@ module.exports = (a, b) => {
 };
 
 function reformat(sql) {
+
 	return sql.replace(/[\s]+/g, '');
+
 }

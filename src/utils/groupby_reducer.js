@@ -18,6 +18,7 @@ module.exports = function groupbyReducer(current_path, join) {
 
 			// Persist the field...
 			return field;
+
 		}
 
 		// Create a groupby in the associate model
@@ -25,7 +26,9 @@ module.exports = function groupbyReducer(current_path, join) {
 
 		// Set up a join table...
 		if (!join[key]) {
+
 			join[key] = {};
+
 		}
 
 		// Get/Set groupby
@@ -40,11 +43,17 @@ module.exports = function groupbyReducer(current_path, join) {
 		// Update groupby
 		join[key].groupby = a;
 
-		// Dont return anything
-		// So it wont be included in the reduce list...
+		/*
+		 * Dont return anything
+		 * So it wont be included in the reduce list...
+		 */
+
 	});
+
 };
 
 function fieldWrap(item) {
+
 	return item.prefix + item.field + item.suffix;
+
 }

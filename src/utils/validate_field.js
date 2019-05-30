@@ -10,13 +10,18 @@ module.exports = function validate_field(key) {
 
 	// Capture errors in the key
 	if (!field.match(reg)) {
+
 		throw new DareError(DareError.INVALID_REFERENCE, `The key '${key}' must match ${reg}`);
+
 	}
 
 	// Validate the path
 	const path = a.join('.');
 
 	if (path) {
+
 		validate_alias(path);
+
 	}
+
 };

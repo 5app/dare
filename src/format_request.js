@@ -1,4 +1,4 @@
-'use strict';
+
 
 const DareError = require('./utils/error');
 const fieldReducer = require('./utils/field_reducer');
@@ -9,21 +9,27 @@ const checkTableAlias = require('./utils/validate_alias');
 const formatDateTime = require('./utils/format_datetime');
 
 module.exports = function(options) {
+
 	return format_request.call(this, options);
+
 };
 
 async function format_request(options = {}) {
 
 	// Use the alias to find the real table name
 	if (!options.alias) {
+
 		const alias = options.table;
 		options.alias = alias;
 		options.table = this.table_alias_handler(alias);
+
 	}
 
 	// Reject when the table is not recognised
 	if (!options.table) {
+
 		throw new DareError(DareError.INVALID_REFERENCE, `Unrecognized reference '${options.table}'`);
+
 	}
 
 	// Call bespoke table handler
@@ -33,18 +39,24 @@ async function format_request(options = {}) {
 	let handler;
 
 	if (table in handlers) {
+
 		handler = handlers[table];
+
 	}
 	else if ('default' in handlers) {
+
 		handler = handlers.default;
+
 	}
 	if (handler) {
 
 		// Trigger the handler which alters the options...
 		await handler.call(this, options);
+
 	}
 
 	return format_specs.call(this, options);
+
 }
 
 async function format_specs(options) {
@@ -57,11 +69,14 @@ async function format_specs(options) {
 
 	// Format filters
 	{
+
 		const filter = options.filter || {};
 
-		// filter must be an object with key=>values
+		// Filter must be an object with key=>values
 		if (typeof filter !== 'object') {
+
 			throw new DareError(DareError.INVALID_REFERENCE, `The filter '${filter}' is invalid.`);
+
 		}
 
 		// Explore the filter for any table joins
@@ -77,6 +92,7 @@ async function format_specs(options) {
 				// Add it to the join table
 				joined[key] = joined[key] || {};
 				joined[key].filter = Object.assign(joined[key].filter || {}, value);
+
 			}
 			else {
 
@@ -90,6 +106,7 @@ async function format_specs(options) {
 
 					// Strip the key
 					key = key.substring(1);
+
 				}
 
 				// Check this is a path
@@ -97,8 +114,11 @@ async function format_specs(options) {
 
 				const type = table_schema[key] && table_schema[key].type;
 				filters.push(prepCondition(key, value, type, negate));
+
 			}
+
 		}
+
 	}
 
 	// Set the prefix if not already
@@ -110,16 +130,21 @@ async function format_specs(options) {
 
 		// Fields must be an array, or a dictionary (aka object)
 		if (typeof fields !== 'object') {
+
 			throw new DareError(DareError.INVALID_REFERENCE, `The field definition '${fields}' is invalid.`);
+
 		}
 
 		// Make the fields an array
 		if (!Array.isArray(fields)) {
+
 			fields = [fields];
+
 		}
 
 		// Filter out child fields
 		fields = fields.reduce(fieldReducer.call(this, options.field_alias_path, joined, table_schema), []);
+
 	}
 
 	// Format conditional joins
@@ -128,9 +153,11 @@ async function format_specs(options) {
 		const _join = {};
 		const join = options.join;
 
-		// filter must be an object with key=>values
+		// Filter must be an object with key=>values
 		if (typeof join !== 'object') {
+
 			throw new DareError(DareError.INVALID_REFERENCE, `The join '${join}' is invalid.`);
+
 		}
 
 		// Explore the filter for any table joins
@@ -146,28 +173,41 @@ async function format_specs(options) {
 				// Add it to the join table
 				joined[key] = joined[key] || {};
 				joined[key].join = Object.assign(joined[key].join || {}, value);
+
 			}
 			else {
+
 				_join[key] = value;
+
 			}
+
 		}
 
 		// Set the reduced condtions
 		options.join = _join;
+
 	}
 
-	// Groupby
-	// If the content is grouped
+	/*
+	 * Groupby
+	 * If the content is grouped
+	 */
 	if (options.groupby) {
+
 		// Explode the group formatter...
 		options.groupby = toArray(options.groupby).reduce(groupbyReducer(options.field_alias_path || `${options.alias }.`, joined), []);
+
 	}
 
-	// Orderby
-	// If the content is ordered
+	/*
+	 * Orderby
+	 * If the content is ordered
+	 */
 	if (options.orderby) {
+
 		// Reduce
 		options.orderby = toArray(options.orderby).reduce(orderbyReducer(options.field_alias_path || `${options.alias }.`, joined), []);
+
 	}
 
 	// Update the joined tables
@@ -201,6 +241,7 @@ async function format_specs(options) {
 
 				// Strip the key
 				key = key.substring(1);
+
 			}
 
 			// Check this is a path
@@ -208,8 +249,10 @@ async function format_specs(options) {
 
 			const type = table_schema[key] && table_schema[key].type;
 			_join.push(prepCondition(key, value, type, negate));
+
 		}
 		options._join = _join;
+
 	}
 
 	// Set default limit
@@ -218,6 +261,7 @@ async function format_specs(options) {
 
 	// Joins
 	{
+
 		const joins = options.joins || [];
 
 		// Add additional joins which have been derived from nested fields and filters...
@@ -230,16 +274,22 @@ async function format_specs(options) {
 			});
 
 			if (!join_object.table) {
+
 				join_object.table = this.table_alias_handler(alias);
+
 			}
 
-			// Do the smart bit...
-			// Augment the join object, with additional 'conditions'
+			/*
+			 * Do the smart bit...
+			 * Augment the join object, with additional 'conditions'
+			 */
 			const new_join_object = this.join_handler(join_object, options);
 
 			// Reject if the join handler returned a falsy value
 			if (!new_join_object) {
+
 				throw new DareError(DareError.INVALID_REFERENCE, `Could not understand field '${alias}'`);
+
 			}
 
 			// Help the GET parser
@@ -252,6 +302,7 @@ async function format_specs(options) {
 
 			// Update the request with this table join
 			joins.push(new_join_object);
+
 		}
 
 		// Loop through the joins array
@@ -265,58 +316,81 @@ async function format_specs(options) {
 
 				// Format join...
 				return format_request.call(this, join_object);
+
 			});
 
 			// Add Joins
 			options._joins = await Promise.all(a);
+
 		}
+
 	}
 
 	return options;
+
 }
 
 
 function limit(opts, MAX_LIMIT) {
 
 	if (opts.limit === undefined) {
+
 		opts.limit = 1;
 		opts.single = true;
+
 	}
 
 	else {
+
 		let limit = opts.limit;
 		if (typeof limit === 'string' && limit.match(/^\d+$/)) {
+
 			limit = +opts.limit;
+
 		}
 		if (isNaN(limit) || (MAX_LIMIT && limit > MAX_LIMIT) || limit < 1) {
+
 			throw new DareError(DareError.INVALID_LIMIT, `Out of bounds limit value: '${limit}'`);
+
 		}
+
 	}
 
 	let start = opts.start;
 
 	if (start !== undefined) {
+
 		if (typeof start === 'string' && start.match(/^\d+$/)) {
+
 			start = +opts.start;
+
 		}
 		if (typeof start !== 'number' || isNaN(start) || start < 0) {
+
 			throw new DareError(DareError.INVALID_START, `Out of bounds start value: '${start}'`);
+
 		}
 		opts.start = start;
+
 	}
+
 }
 
 function prepCondition(field, value, type, negate) {
 
 	if (type === 'datetime') {
+
 		value = formatDateTime(value);
+
 	}
 
 	// Set the default negate operator, if appropriate
 	negate = negate ? 'NOT ' : '';
 
-	// Range
-	// A range is denoted by two dots, e.g 1..10
+	/*
+	 * Range
+	 * A range is denoted by two dots, e.g 1..10
+	 */
 	let condition;
 	let values;
 	const a = (typeof value === 'string') && value.split('..');
@@ -324,46 +398,63 @@ function prepCondition(field, value, type, negate) {
 	if (a.length === 2) {
 
 		if (a[0] && a[1]) {
+
 			condition = 'BETWEEN ? AND ?';
 			values = a;
+
 		}
 		else if (a[0]) {
+
 			condition = '$$ > ?';
 			values = [a[0]];
+
 		}
 		else {
+
 			condition = '$$ < ?';
 			values = [a[1]];
+
 		}
 
-		// Extract values from SQL Functions
-		// Put the values back on the condition
+		/*
+		 * Extract values from SQL Functions
+		 * Put the values back on the condition
+		 */
 		condition = rewrapFunctionValues(values, condition);
 
 		if (negate) {
+
 			condition = `(NOT ${condition} OR $$ IS NULL)`;
 			negate = '';
+
 		}
+
 	}
 
 	// Not match
 	else if (typeof value === 'string' && value[0] === '!') {
+
 		condition = 'LIKE ?';
 		values = [value.slice(1)];
 		negate = 'NOT ';
+
 	}
 
 	// String partial match
 	else if (typeof value === 'string' && value.match('%')) {
+
 		condition = 'LIKE ?';
 		values = [value];
+
 	}
 
 	// Null
 	else if (value === null) {
+
 		condition = `IS ${negate}NULL`;
 		values = [];
-		negate = ''; // already negated
+		negate = ''; // Already negated
+
 	}
 
 	// Add to the array of items
@@ -375,25 +466,33 @@ function prepCondition(field, value, type, negate) {
 
 		// Format empty
 		if (value.length === 0) {
+
 			value.push(null);
+
 		}
 
 		// Filter the results of the array...
 		value = value.filter(item => {
+
 			// Remove the items which can't in group statement...
 			if (item !== null && !(typeof item === 'string' && item.match('%'))) {
+
 				return true;
+
 			}
 
 			// Put into a separate list...
 			sub_values.push(item);
 
 			return false;
+
 		});
 
 		// Use the `IN(...)` for items which can be grouped...
 		if (value.length) {
+
 			conds.push(`${negate}IN (${value.map(() => '?')})`);
+
 		}
 
 		// Other Values which can't be grouped ...
@@ -401,6 +500,7 @@ function prepCondition(field, value, type, negate) {
 
 			// Cond
 			sub_values.forEach(item => {
+
 				const [, cond, values] = prepCondition(null, item, type, negate);
 
 				// Add to condition
@@ -408,39 +508,55 @@ function prepCondition(field, value, type, negate) {
 
 				// Add Values
 				value.push(...values);
+
 			});
+
 		}
 
 		if (conds.length === 1) {
+
 			condition = conds[0];
+
 		}
 		else {
+
 			// Join...
 			condition = `(${conds.map(cond => `$$ ${cond}`).join(negate ? ' AND ' : ' OR ')})`;
+
 		}
 
 		negate = ''; // Already negated
 
 		values = value;
+
 	}
 
 	else {
+
 		condition = '= ?';
 		values = [value];
 		negate = negate ? '!' : '';
+
 	}
 
 	return [field, negate + condition, values];
+
 }
 
 function toArray(a) {
+
 	if (typeof a === 'string') {
+
 		a = a.split(',').map(s => s.trim());
+
 	}
 	else if (!Array.isArray(a)) {
+
 		a = [a];
+
 	}
 	return a;
+
 }
 
 function rewrapFunctionValues(values, condition) {
@@ -452,16 +568,24 @@ function rewrapFunctionValues(values, condition) {
 		const m = value.match(date_sub_regex);
 
 		if (m) {
+
 			values[index] = m[2];
 			let i = 0;
 			condition = condition.replace(/\?/g, () => {
+
 				if (i++ === index) {
+
 					return `${m[1]}?${m[3]}`;
+
 				}
 				return '?';
+
 			});
+
 		}
+
 	});
 
 	return condition;
+
 }
