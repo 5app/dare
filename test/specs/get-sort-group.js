@@ -21,7 +21,9 @@ const limit = 5;
 		let dare;
 
 		beforeEach(() => {
+
 			dare = new Dare(options);
+
 		});
 
 		it('should add orderby using nested tables', async () => {
@@ -38,6 +40,7 @@ const limit = 5;
 
 				expectSQLEqual(sql, expected);
 				return [{}];
+
 			};
 
 			return dare.get({
@@ -48,6 +51,7 @@ const limit = 5;
 				],
 				limit
 			});
+
 		});
 
 		it('should use the field label', async () => {
@@ -65,6 +69,7 @@ const limit = 5;
 
 				expectSQLEqual(sql, expected);
 				return [{}];
+
 			};
 
 			return dare.get({
@@ -88,6 +93,9 @@ const limit = 5;
 				],
 				limit
 			});
+
 		});
+
 	});
+
 });

@@ -1,4 +1,4 @@
-'use strict';
+
 
 const DareError = require('../../src/utils/error');
 
@@ -8,11 +8,14 @@ describe('table_handler', () => {
 	let dare;
 
 	beforeEach(() => {
+
 		// Create a new instance
 		dare = new Dare();
 
-		// Create an execution instance
-		// Setup test schema
+		/*
+		 * Create an execution instance
+		 * Setup test schema
+		 */
 		dare = dare.use({
 			schema: {
 				'users': {
@@ -31,7 +34,9 @@ describe('table_handler', () => {
 	});
 
 	it('table handler should be defined in instances of Dare', () => {
+
 		expect(dare).to.have.property('table_handler');
+
 	});
 
 
@@ -95,18 +100,24 @@ describe('table_handler', () => {
 
 	it('should throw an error if the table_condition is not a string', () => {
 
-		dare.options.table_conditions.emails = () => {};
+		dare.options.table_conditions.emails = () => {
+			// Do nothing
+		};
 
 		try {
+
 			dare.table_handler({
 				table: 'emails',
 				alias: 'peeps'
 			});
+
 		}
 		catch (e) {
+
 			expect(e).to.be.instanceof(DareError);
 			expect(e).to.have.property('code', DareError.INVALID_IMPLEMENTATION);
 			return;
+
 		}
 
 		throw new Error('Should have thrown an exception');

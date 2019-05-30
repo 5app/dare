@@ -1,4 +1,4 @@
-'use strict';
+
 
 // Test Generic DB functions
 const expectSQLEqual = require('../lib/sql-equal');
@@ -31,7 +31,9 @@ const options = {
 describe('get - subquery', () => {
 
 	beforeEach(() => {
+
 		dare = new Dare(options);
+
 	});
 
 
@@ -61,6 +63,7 @@ describe('get - subquery', () => {
 				asset_name: 'name',
 				collection_count: 42
 			}]);
+
 		};
 
 		const resp = await dare.get({
@@ -73,6 +76,7 @@ describe('get - subquery', () => {
 
 		expect(resp).to.have.property('asset_name', 'name');
 		expect(resp).to.have.property('collection_count', 42);
+
 	});
 
 	it('should export the response in the format given', async () => {
@@ -101,6 +105,7 @@ describe('get - subquery', () => {
 				asset_name: 'name',
 				'collections.count': 42
 			}]);
+
 		};
 
 		const resp = await dare.get({
@@ -114,6 +119,7 @@ describe('get - subquery', () => {
 		});
 
 		expect(resp.collections).to.have.property('count', 42);
+
 	});
 
 	it('should concatinate many expressions into an array using GROUP_CONCAT', async () => {
@@ -141,6 +147,7 @@ describe('get - subquery', () => {
 				asset_name: 'name',
 				'collections[id,name]': '[["1","a"],["2","b"]]'
 			}]);
+
 		};
 
 		const resp = await dare.get({
@@ -154,6 +161,7 @@ describe('get - subquery', () => {
 		expect(resp.collections).to.be.an('array');
 		expect(resp.collections[0]).to.have.property('id', '1');
 		expect(resp.collections[0]).to.have.property('name', 'a');
+
 	});
 
 	it('should *not* subquery a nested object without fields', async () => {
@@ -172,6 +180,7 @@ describe('get - subquery', () => {
 			return Promise.resolve([{
 				asset_name: 'name'
 			}]);
+
 		};
 
 		const resp = await dare.get({
@@ -208,6 +217,7 @@ describe('get - subquery', () => {
 			expectSQLEqual(sql, expected);
 
 			return Promise.resolve([{}]);
+
 		};
 
 		return dare.get({
@@ -243,6 +253,7 @@ describe('get - subquery', () => {
 			expectSQLEqual(sql, expected);
 
 			return Promise.resolve([{}]);
+
 		};
 
 		return dare.get({
@@ -286,6 +297,7 @@ describe('get - subquery', () => {
 			expectSQLEqual(sql, expected);
 
 			return Promise.resolve([{}]);
+
 		};
 
 		dare.options = {
@@ -310,7 +322,7 @@ describe('get - subquery', () => {
 			filter: {},
 			join: {},
 			groupby: 'id',
-			orderby: 'name',
+			orderby: 'name'
 		});
 
 	});
@@ -328,6 +340,7 @@ describe('get - subquery', () => {
 					'CollectionID': 2,
 					'Collection': 'b'
 				}];
+
 			};
 
 			return dare.get({
@@ -344,5 +357,7 @@ describe('get - subquery', () => {
 			});
 
 		});
+
 	});
+
 });

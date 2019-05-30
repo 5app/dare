@@ -1,5 +1,7 @@
-// Field Reducer
-// Extract the fields from the current dataset
+/*
+ * Field Reducer
+ * Extract the fields from the current dataset
+ */
 
 const unwrap_field = require('../../src/utils/unwrap_field');
 
@@ -33,7 +35,10 @@ describe('utils/unwrap_field', () => {
 
 			// Expect the formatted list of fields to be identical to the inputted value
 			expect(unwrapped.field).to.eql('field');
+
 		});
+
 	});
+
 });
 

@@ -1,11 +1,13 @@
-'use strict';
+
 
 const JSONparse = require('./utils/JSONparse');
 
 // Response
 module.exports = function responseHandler(resp) {
+
 	// Iterate over the response array and trigger formatting
 	return resp.map(formatHandler.bind(this));
+
 };
 
 // Format
@@ -23,10 +25,12 @@ function formatHandler(item) {
 			if (!label.includes('.')) {
 
 				continue; // Dont do anything
+
 			}
 
 			// Create new object
 			explodeKeyValue(item, label.split('.'), value);
+
 		}
 
 		// Does this contain multiples
@@ -40,6 +44,7 @@ function formatHandler(item) {
 				explodeKeyValue(item, label.split('.'), value[index]);
 
 			});
+
 		}
 
 		else {
@@ -49,9 +54,13 @@ function formatHandler(item) {
 			const m = label.match(r);
 
 			if (!m) {
-				// We do not know how to handle this response
-				// silently error, return the response as is...
+
+				/*
+				 * We do not know how to handle this response
+				 * silently error, return the response as is...
+				 */
 				continue;
+
 			}
 
 			if (value) {
@@ -59,8 +68,10 @@ function formatHandler(item) {
 				// Remove tabs then parse the value
 				value = JSONparse(value);
 
-				// Create a dummy array
-				// And insert into the dataset...
+				/*
+				 * Create a dummy array
+				 * And insert into the dataset...
+				 */
 				const a = [];
 				const alabel = m[1];
 				explodeKeyValue(item, alabel.split('.'), a);
@@ -70,36 +81,49 @@ function formatHandler(item) {
 
 				value && value.forEach(values => {
 
-					// This is a workaround/tidy up for GROUP_CONCAT/CONCAT_WS
-					// If we can't find a non-empty value...
+					/*
+					 * This is a workaround/tidy up for GROUP_CONCAT/CONCAT_WS
+					 * If we can't find a non-empty value...
+					 */
 					if (!values.find(val => val !== '')) {
+
 						// Continue
 						return;
+
 					}
 
 					const obj = {};
 					keys.forEach((label, index) => obj[label] = values[index]);
 					formatHandler(obj);
 					a.push(obj);
+
 				});
+
 			}
+
 		}
 
 		delete item[label];
+
 	}
 
 	if (this && this.response_handlers) {
+
 		this.response_handlers.forEach(callback => callback(item));
+
 	}
 
 	return item;
+
 }
 
 function explodeKeyValue(obj, a, value) {
 
 	// Is this the end?
 	if (a.length === 0) {
+
 		return value;
+
 	}
 
 	// Clone
@@ -110,12 +134,15 @@ function explodeKeyValue(obj, a, value) {
 
 	// This is a regular object...
 	if (!(key in obj)) {
+
 		// Create a new object
 		obj[key] = {};
+
 	}
 
 	// Traverse and Update key value
 	obj[key] = explodeKeyValue(obj[key], a, value);
 
 	return obj;
+
 }
