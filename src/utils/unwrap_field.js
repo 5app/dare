@@ -29,7 +29,7 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 
 
 			/*
-			 *Deal with math on string
+			 * Deal with math on string
 			 * testing for * (multiplication for now) and only when inside a round as a precaution
 			 */
 			if (str && m[1].toLowerCase() === 'round(') {
