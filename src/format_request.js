@@ -195,7 +195,7 @@ async function format_specs(options) {
 	if (options.groupby) {
 
 		// Explode the group formatter...
-		options.groupby = toArray(options.groupby).reduce(groupbyReducer(options.field_alias_path || `${options.alias }.`, joined), []);
+		options.groupby = toArray(options.groupby).reduce(groupbyReducer(options.field_alias_path || `${options.alias}.`, joined), []);
 
 	}
 
@@ -206,7 +206,7 @@ async function format_specs(options) {
 	if (options.orderby) {
 
 		// Reduce
-		options.orderby = toArray(options.orderby).reduce(orderbyReducer(options.field_alias_path || `${options.alias }.`, joined), []);
+		options.orderby = toArray(options.orderby).reduce(orderbyReducer(options.field_alias_path || `${options.alias}.`, joined), []);
 
 	}
 

@@ -298,7 +298,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 			(${fields.map(field => `\`${field}\``).join(',')})
 			VALUES
 			${data.join(',')}
-			${on_duplicate_keys_update }`;
+			${on_duplicate_keys_update}`;
 
 	const resp = await _this.sql(sql, prepared);
 

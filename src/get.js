@@ -57,7 +57,7 @@ function buildQuery(opts) {
 	opts.root = true;
 
 	// Limit
-	const sql_limit = `LIMIT ${opts.start ? `${opts.start},` : '' }${opts.limit}`;
+	const sql_limit = `LIMIT ${opts.start ? `${opts.start},` : ''}${opts.limit}`;
 
 	// SubQuery
 	const is_subquery = opts.is_subquery;

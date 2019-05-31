@@ -145,7 +145,7 @@ describe('format_request', () => {
 				[{'asset': ['DATE(id)']}]
 			].forEach(fields => {
 
-				it(`invalid: ${ JSON.stringify(fields)}`, async () => {
+				it(`invalid: ${JSON.stringify(fields)}`, async () => {
 
 					try {
 
@@ -206,7 +206,7 @@ describe('format_request', () => {
 
 				['90', 90, '99', 1, 10000001].forEach(limit => {
 
-					it(`valid: ${ limit } (${ typeof limit })`, async () => dare.format_request(Object.assign({}, options, {limit})));
+					it(`valid: ${limit} (${typeof limit})`, async () => dare.format_request(Object.assign({}, options, {limit})));
 
 				});
 
@@ -216,7 +216,7 @@ describe('format_request', () => {
 
 				['nonsense', 0, -1, NaN, {}, null].forEach(limit => {
 
-					it(`invalid: ${ limit } (${ typeof limit })`, async () => {
+					it(`invalid: ${limit} (${typeof limit})`, async () => {
 
 						try {
 
@@ -289,7 +289,7 @@ describe('format_request', () => {
 
 				['90', 90, '99', 1].forEach(start => {
 
-					it(`valid: ${ start } (${ typeof start })`, async () => dare.format_request(Object.assign({}, options, {start})));
+					it(`valid: ${start} (${typeof start})`, async () => dare.format_request(Object.assign({}, options, {start})));
 
 				});
 
@@ -299,7 +299,7 @@ describe('format_request', () => {
 
 				['nonsense', -1, NaN, {}, null].forEach(start => {
 
-					it(`invalid: ${ start } (${ typeof start })`, async () => {
+					it(`invalid: ${start} (${typeof start})`, async () => {
 
 						try {
 
@@ -331,7 +331,7 @@ describe('format_request', () => {
 
 			['table.field', 'DATE(table.created_time)', 'EXTRACT(YEAR_MONTH FROM table.created_time)'].forEach(groupby => {
 
-				it(`valid: ${ groupby } (${ typeof groupby })`, async () => {
+				it(`valid: ${groupby} (${typeof groupby})`, async () => {
 
 					const resp = await dare.format_request({
 						table: 'table',
@@ -351,7 +351,7 @@ describe('format_request', () => {
 
 			[-1, 101, {}, 'parenthisis(snap', '; ', 'SUM(SE-LECT 1)'].forEach(groupby => {
 
-				it(`invalid: ${ groupby } (${ typeof groupby })`, async () => {
+				it(`invalid: ${groupby} (${typeof groupby})`, async () => {
 
 					try {
 
@@ -380,7 +380,7 @@ describe('format_request', () => {
 
 			[NaN, null, 0, undefined].forEach(groupby => {
 
-				it(`ignores: ${ groupby } (${ typeof groupby })`, async () => dare.format_request({
+				it(`ignores: ${groupby} (${typeof groupby})`, async () => dare.format_request({
 					table: 'table',
 					fields: ['id'],
 					groupby
@@ -410,7 +410,7 @@ describe('format_request', () => {
 				['DATE(table.created_time) DESC', 'table.name ASC']
 			].forEach(orderby => {
 
-				it(`valid: ${ orderby } (${ typeof orderby })`, async () => dare.format_request({
+				it(`valid: ${orderby} (${typeof orderby})`, async () => dare.format_request({
 					table: 'table',
 					fields: ['id'],
 					orderby
@@ -431,7 +431,7 @@ describe('format_request', () => {
 				['name ASC', 'id WEST']
 			].forEach(orderby => {
 
-				it(`invalid: ${ orderby } (${ typeof orderby })`, async () => {
+				it(`invalid: ${orderby} (${typeof orderby})`, async () => {
 
 					try {
 
@@ -461,7 +461,7 @@ describe('format_request', () => {
 
 			[NaN, null, 0, undefined].forEach(orderby => {
 
-				it(`ignores: ${ orderby } (${ typeof orderby })`, async () => dare.format_request({
+				it(`ignores: ${orderby} (${typeof orderby})`, async () => dare.format_request({
 					table: 'table',
 					fields: ['id'],
 					orderby

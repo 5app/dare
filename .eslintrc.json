@@ -20,6 +20,7 @@
 		"require-await": 0,
 		"spaced-comment": [2, "always"],
 		"strict": 2,
+		"template-curly-spacing": 2,
 
 
 		"newline-per-chained-call": 2,
