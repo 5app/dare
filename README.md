@@ -413,18 +413,42 @@ Alternatively a options Object can be used instead.
 e.g.
 
 ```javascript
-dare.get({
-	table: 'users',
-	body: {name: 'Andrew', profession: 'Mad scientist'}
+dare.post({
+	table: 'user',
+	body: {
+		name: 'Andrew',
+		profession: 'Mad scientist'
+	}
+});
+
+```
+
+## dare.post(options Object) with multiple values
+
+The body can be an Array of objects.
+
+e.g.
+
+```javascript
+dare.post({
+	table: 'user',
+	body: [{
+		name: 'Andrew',
+		profession: 'Mad scientist'
+	}, {
+		name: 'Peppa'
+	}]
 });
 ```
 
-### Post options
+This generates `INSERT INTO user (name, profession) VALUES ('Andrew', 'Mad Scientist'), ('Peppa', DEFAULT)`. Note where the key's differ between items in the Array the `DEFAULT` value is inserted instead. 
+
+### Post options (additional)
 
 | Prop          | Type             | Description
 |---------------|------------------|----------------
 | duplicate_key | 'ignore'         | Inserts SQL 'IGNORE' option
-| duplicate_keys_update | Array(field1, field2, ...) | Appends ON DUPLICATE KEYS UPDATE field1=VALUES(field1)
+| duplicate_keys_update | Array(field1, field2, ...) | Appends `ON DUPLICATE KEYS UPDATE field1=VALUES(field1)`
 
 
 
