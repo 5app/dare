@@ -569,30 +569,31 @@ E.g. here is an example using the before handlers to capture the original value 
 ```javascript
 ...
 patch: {
-	users(options) {
+	async users(options) {
 
-		// Clone the request, and add fields to query
-		const opts = Object.assign(
-			{},
-			options,
-			{fields: ['id', 'name']}
-		);
+		/**
+		 * Check that the data to be modified
+		 * By using the options to construct a SELECT request first
+		 */
 
-		return dare.get(opts).then(resp => {
+		// Clonse the options
+		const opts = {
+			...options,
+			fields: ['id', 'name']
+		};
 
-			const previous_name = resp.name;
-			const ref_id = resp.id;
+		// Execute a dare.get with the cloned options
+		const {id: ref_id, name: previous_name} = await dare.get(opts);
 
-			// Set the after handler
-			this.after = () => {
-				dare.post('changelog', {
-					message: 'User updated',
-					type: 'users',
-					ref_id,
-					previous_name
-				})
-			};
-		});
+		// Set the after handler
+		this.after = () => {
+			dare.post('changelog', {
+				message: 'User updated',
+				type: 'users',
+				ref_id,
+				previous_name
+			})
+		};
 	}
 }
 ...
