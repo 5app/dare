@@ -17,6 +17,7 @@
 		"no-tabs": [2, {"allowIndentationTabs": true}],
 		"multiline-comment-style": [2, "starred-block"],
 		"padded-blocks": 2,
+		"require-atomic-updates": 0,
 		"require-await": 0,
 		"spaced-comment": [2, "always"],
 		"strict": 2,
