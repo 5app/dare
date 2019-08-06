@@ -12,7 +12,8 @@ describe('field alias', () => {
 		dare = new Dare({
 			schema: {
 				'users': {
-					'emailAddress': 'email'
+					'emailAddress': 'email',
+					'country_id': 'country.id'
 				}
 			}
 		});
@@ -47,14 +48,25 @@ describe('field alias', () => {
 					// Support a Function
 					{
 						'emailaddress': 'LOWER(emailAddress)'
-					}
+					},
+
+					// Should not map a reference, even though it has a similar string structure
+					'country_id'
+
 				],
 				filter: {
 					// Filter the results using the aliased name as the key
-					'emailAddress': 'andrew%'
+					'emailAddress': 'andrew%',
+
+					// Should not map a reference, even though it has a similar string structure
+					'country_id': 1
 				},
 				join: {
-					'-emailAddress': null
+					// Should equally apply the alias mapping to joins
+					'-emailAddress': null,
+
+					// Should not map a reference, even though it has a similar string structure
+					'-country_id': null
 				},
 				limit
 			});
@@ -62,8 +74,12 @@ describe('field alias', () => {
 			expect(sql).to.contain('email AS \'emailAddress\'');
 			expect(sql).to.contain('email AS \'field\'');
 			expect(sql).to.contain('LOWER(a.email) AS \'emailaddress\'');
+			expect(sql).to.contain(',a.country_id');
 			expect(sql).to.contain('email LIKE ?');
+			expect(sql).to.contain('country_id = ?');
 			expect(sql).to.contain('email IS NOT NULL');
+			expect(sql).to.contain('country_id IS NOT NULL');
+
 
 		});
 
@@ -86,7 +102,11 @@ describe('field alias', () => {
 			await dare.patch({
 				table: 'users',
 				body: {
-					'emailAddress': 'andrew@example.com'
+					// Should map this to `email`
+					'emailAddress': 'andrew@example.com',
+
+					// Should not change this, aka map this to `country_id``
+					'country_id': 1
 				},
 				filter: {
 					// Filter the results using the aliased name as the key
@@ -95,6 +115,7 @@ describe('field alias', () => {
 			});
 
 			expect(sql).to.contain('`email` = ?');
+			expect(sql).to.contain('`country_id` = ?');
 			expect(sql).to.contain('email LIKE ?');
 
 		});
@@ -119,11 +140,16 @@ describe('field alias', () => {
 				table: 'users',
 				filter: {
 					// Filter the results using the aliased name as the key
-					'emailAddress': 'andrew%'
+					'emailAddress': 'andrew%',
+
+					// Should not map a reference, even though it has a similar string structure
+					'country_id': 1
 				}
 			});
 
 			expect(sql).to.contain('email LIKE ?');
+
+			expect(sql).to.contain('country_id = ?');
 
 		});
 
@@ -147,13 +173,21 @@ describe('field alias', () => {
 			await dare.post({
 				table: 'users',
 				body: [{
-					'emailAddress': 'andrew@example.com'
+					// Should map this to `email`
+					'emailAddress': 'andrew@example.com',
+
+					// Should leave this unchanged and map to country_id
+					'country_id': 1
 				}],
-				duplicate_keys_update: ['emailAddress']
+				duplicate_keys_update: ['emailAddress', 'country_id']
 			});
 
-			expect(sql).to.contain('(`email`)');
-			expect(sql).to.contain('ON DUPLICATE KEY UPDATE email=VALUES(email)');
+			expect(sql).to.contain('(`email`,`country_id`)');
+
+			// ON DUPLICATE KEY UPDATE
+			expect(sql).to.contain('email=VALUES(email)');
+			expect(sql).to.contain('country_id=VALUES(country_id)');
+
 
 		});
 

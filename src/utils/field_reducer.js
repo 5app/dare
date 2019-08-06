@@ -163,7 +163,7 @@ function fieldMapping(field, label, tableSchema, fieldsArray) {
 	}
 
 	// Does the field map to another key name...
-	else if (typeof key_definition === 'string') {
+	else if (typeof key_definition === 'string' && !key_definition.includes('.')) {
 
 		// Use the original name, defined by the key_definition
 		return {

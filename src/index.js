@@ -385,9 +385,11 @@ function prepareSet(body, tableSchema = {}) {
 			let fieldName = label;
 
 			// Check for aliases of the label
-			if (typeof tableSchema[label] === 'string') {
+			const key_definition = tableSchema[label];
 
-				fieldName = tableSchema[label];
+			if (typeof key_definition === 'string' && !key_definition.includes('.')) {
+
+				fieldName = key_definition;
 
 			}
 
@@ -469,9 +471,11 @@ function mapFieldNames(fields, tableSchema = {}) {
 
 	return fields.map(label => {
 
-		if (typeof tableSchema[label] === 'string') {
+		const key_definition = tableSchema[label];
 
-			label = tableSchema[label];
+		if (typeof key_definition === 'string' && !key_definition.includes('.')) {
+
+			label = key_definition;
 
 		}
 		return label;

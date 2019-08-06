@@ -111,7 +111,6 @@ describe('get - request object', () => {
 					'asset.name': 2001
 				}]);
 
-
 			const resp = await dare.get({
 				table: 'activityEvents',
 				filter: {
@@ -121,6 +120,7 @@ describe('get - request object', () => {
 				},
 				fields: [
 					'name',
+					'ref_id',
 					{
 						asset: [
 							'name'

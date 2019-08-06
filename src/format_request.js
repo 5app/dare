@@ -380,7 +380,7 @@ function prepCondition(field, value, key_definition, negate) {
 
 	const {type} = key_definition || {};
 
-	if (typeof key_definition === 'string') {
+	if (typeof key_definition === 'string' && !key_definition.includes('.')) {
 
 		// The key definition says the key is an alias
 		field = key_definition;
