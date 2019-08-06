@@ -100,4 +100,32 @@ describe('field alias', () => {
 
 	});
 
+	describe('del - DELETE', () => {
+
+		it('should map field aliases defined in the schema into DELETE filters', async () => {
+
+			let sql;
+
+			// Stub the execute function
+			dare.sql = _sql => {
+
+				sql = _sql;
+				return [];
+
+			};
+
+			await dare.del({
+				table: 'users',
+				filter: {
+					// Filter the results using the aliased name as the key
+					'emailAddress': 'andrew%'
+				}
+			});
+
+			expect(sql).to.contain('email LIKE ?');
+
+		});
+
+	});
+
 });
