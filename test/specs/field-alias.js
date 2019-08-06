@@ -61,6 +61,7 @@ describe('field alias', () => {
 
 			expect(sql).to.contain('email AS \'emailAddress\'');
 			expect(sql).to.contain('email AS \'field\'');
+			expect(sql).to.contain('LOWER(a.email) AS \'emailaddress\'');
 			expect(sql).to.contain('email LIKE ?');
 			expect(sql).to.contain('email IS NOT NULL');
 
