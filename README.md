@@ -58,7 +58,7 @@ npm i dare --save
 Create an instance of Dare with some options
 
 ```javascript
-const Dare = reqire('dare');
+const Dare = require('dare');
 
 const options = {
 	schema
