@@ -163,16 +163,16 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	// Validate Body
 	validateBody(req.body);
 
-	// Clone
-	const post = clone(req.body);
+	// Get the schema
+	const tableSchema = this.options.schema && this.options.schema[req.table];
 
 	// Prepare post
-	const a = prepare(post);
+	const {assignments, preparedValues} = prepareSet(req.body, tableSchema);
 
 	// Prepare query
 	const sql_query = req._filter.map(([field, condition, values]) => {
 
-		a.push(...values);
+		preparedValues.push(...values);
 		return `${field} ${condition}`;
 
 	});
@@ -180,12 +180,12 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	// Construct a db update
 	const sql = `UPDATE ${req.table}
 			SET
-				${serialize(post, '=', ',')}
+				${serialize(assignments, '=', ',')}
 			WHERE
 				${sql_query.join(' AND ')}
 			LIMIT ${req.limit}`;
 
-	let resp = await this.sql(sql, a);
+	let resp = await this.sql(sql, preparedValues);
 
 	resp = mustAffectRows(resp);
 
@@ -357,40 +357,60 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 };
 
 
-function clone(obj) {
+/**
+ * Prepared Set
+ * Prepare a SET assignments used in Patch
+ * @param {object} body - body to format
+ * @param {object|undefined} tableSchema - Schema for the current table
+ * @returns {object} {assignment, preparedValues}
+ */
+function prepareSet(body, tableSchema = {}) {
 
-	const r = {};
-	for (const x in obj) {
+	const preparedValues = [];
+	const assignments = {};
 
-		r[x] = obj[x];
+	for (const label in body) {
 
-	}
-	return r;
+		// Assignments
+		{
 
-}
+			// By default the fieldName is the label of the key.
+			let fieldName = label;
 
+			// Check for aliases of the label
+			if (typeof tableSchema[label] === 'string') {
 
-function prepare(obj) {
+				fieldName = tableSchema[label];
 
-	const a = [];
+			}
 
-	for (const x in obj) {
-
-		if (obj[x] && typeof obj[x] === 'object') {
-
-			obj[x] = JSON.stringify(obj[x]);
+			// Replace value with a question using any mapped fieldName
+			assignments[fieldName] = '?';
 
 		}
 
-		// Add to the array of items
-		a.push(obj[x]);
+		// Values
+		{
 
-		// Replace with the question
-		obj[x] = '?';
+			let value = body[label];
+
+			if (value && typeof value === 'object') {
+
+				value = JSON.stringify(value);
+
+			}
+
+			// Add to the array of items
+			preparedValues.push(value);
+
+		}
 
 	}
 
-	return a;
+	return {
+		assignments,
+		preparedValues
+	};
 
 }
 
