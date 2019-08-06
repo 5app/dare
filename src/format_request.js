@@ -112,8 +112,8 @@ async function format_specs(options) {
 				// Check this is a path
 				checkKey(key);
 
-				const type = table_schema[key] && table_schema[key].type;
-				filters.push(prepCondition(key, value, type, negate));
+				const key_definition = table_schema[key];
+				filters.push(prepCondition(key, value, key_definition, negate));
 
 			}
 
@@ -247,8 +247,8 @@ async function format_specs(options) {
 			// Check this is a path
 			checkKey(key);
 
-			const type = table_schema[key] && table_schema[key].type;
-			_join.push(prepCondition(key, value, type, negate));
+			const key_definition = table_schema[key];
+			_join.push(prepCondition(key, value, key_definition, negate));
 
 		}
 		options._join = _join;
@@ -376,7 +376,16 @@ function limit(opts, MAX_LIMIT) {
 
 }
 
-function prepCondition(field, value, type, negate) {
+function prepCondition(field, value, key_definition, negate) {
+
+	const {type} = key_definition || {};
+
+	if (typeof key_definition === 'string') {
+
+		// The key definition says the key is an alias
+		field = key_definition;
+
+	}
 
 	if (type === 'datetime') {
 
@@ -501,7 +510,7 @@ function prepCondition(field, value, type, negate) {
 			// Cond
 			sub_values.forEach(item => {
 
-				const [, cond, values] = prepCondition(null, item, type, negate);
+				const [, cond, values] = prepCondition(null, item, key_definition, negate);
 
 				// Add to condition
 				conds.push(cond);

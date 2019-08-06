@@ -50,7 +50,7 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
 	};
 
 	// Handle each field property
-	return (a, field) => {
+	return (fieldsArray, field) => {
 
 		if (typeof field !== 'string') {
 
@@ -88,9 +88,7 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
 
 					}
 
-					a.push({
-						[key]: value
-					});
+					fieldsArray.push(fieldMapping(value, key, table_schema, fieldsArray));
 
 				}
 
@@ -109,35 +107,95 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
 			 */
 			if (addToJoin(field)) {
 
-				return a;
+				return fieldsArray;
 
 			}
 
-			// Does this field have a handler in the schema
-			const def = table_schema[field];
-
-			if (typeof def === 'function') {
-
-				// Execute the handler, add the response to the field list
-				a.push({
-					[field]: def.call(this, a)
-				});
-
-			}
-			else {
-
-				// Add the field to the array
-				a.push(field);
-
-			}
+			fieldsArray.push(fieldMapping.call(this, field, null, table_schema, fieldsArray));
 
 		}
 
-		return a;
+		return fieldsArray;
 
 	};
 
 };
+
+/**
+ * FieldMapping
+ * Given a label, value and schema
+ * Maps the field expression to an entry in the schema and formats the entry
+ * Invokes generated functions with access to modify the fieldsArray
+ *
+ * @param {string} field - Field expression
+ * @param {string|null} label - Optional label, or null
+ * @param {object} tableSchema - Schema of the current table
+ * @param {Array} fieldsArray - An array of all the fields to use with generated functions
+ * @returns {string|object} The augemented field expression
+ */
+function fieldMapping(field, label, tableSchema, fieldsArray) {
+
+	// Try to return an object
+	const isObj = Boolean(label);
+
+	// Set the label
+	if (!label) {
+
+		// Set the label to be the field...
+		label = field;
+
+	}
+
+	// Extract the underlying field
+	const {field_name, prefix, suffix} = checkFormat(field);
+
+	// Get the schema entry for the field
+	const key_definition = tableSchema[field_name];
+
+	// Does this field have a handler in the schema
+	if (typeof key_definition === 'function') {
+
+		// Execute the handler, add the response to the field list
+		return {
+			[label]: key_definition.call(this, fieldsArray)
+		};
+
+	}
+
+	// Does the field map to another key name...
+	else if (typeof key_definition === 'string') {
+
+		// Use the original name, defined by the key_definition
+		return {
+			[label]: rewrap_field(key_definition, prefix, suffix)
+		};
+
+	}
+
+	// If this is a object-field definition
+	else if (isObj) {
+
+		// Add the field to the array
+		return {
+			[label]: field
+		};
+
+	}
+
+	else {
+
+		// Add the field to the array
+		return field;
+
+	}
+
+}
+
+function rewrap_field(field_name, prefix, suffix) {
+
+	return [prefix, field_name, suffix].filter(a => a).join('');
+
+}
 
 // Is Empty
 function isEmpty(value) {
