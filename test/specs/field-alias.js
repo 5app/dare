@@ -128,4 +128,34 @@ describe('field alias', () => {
 
 	});
 
+
+	describe('post - INSERT', () => {
+
+		it('should map field aliases defined in the schema into INSERT body', async () => {
+
+			let sql;
+
+			// Stub the execute function
+			dare.sql = _sql => {
+
+				sql = _sql;
+				return [];
+
+			};
+
+			await dare.post({
+				table: 'users',
+				body: [{
+					'emailAddress': 'andrew@example.com'
+				}],
+				duplicate_keys_update: ['emailAddress']
+			});
+
+			expect(sql).to.contain('(`email`)');
+			expect(sql).to.contain('ON DUPLICATE KEY UPDATE email=VALUES(email)');
+
+		});
+
+	});
+
 });

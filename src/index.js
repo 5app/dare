@@ -257,6 +257,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 			if (i === -1) {
 
 				i = fields.length;
+
 				fields.push(prop);
 
 			}
@@ -290,12 +291,18 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 
 	});
 
+	// Get the schema
+	const tableSchema = this.options.schema && this.options.schema[req.table];
+
+	// Format fields
+	const columns = mapFieldNames(fields, tableSchema);
+
 	// Options
-	const on_duplicate_keys_update = onDuplicateKeysUpdate(req.duplicate_keys_update) || '';
+	const on_duplicate_keys_update = onDuplicateKeysUpdate(mapFieldNames(req.duplicate_keys_update, tableSchema)) || '';
 
 	// Construct a db update
 	const sql = `INSERT ${exec} INTO ${req.table}
-			(${fields.map(field => `\`${field}\``).join(',')})
+			(${columns.map(field => `\`${field}\``).join(',')})
 			VALUES
 			${data.join(',')}
 			${on_duplicate_keys_update}`;
@@ -449,5 +456,26 @@ function onDuplicateKeysUpdate(keys) {
 	const s = keys.map(name => `${name}=VALUES(${name})`).join(',');
 
 	return `ON DUPLICATE KEY UPDATE ${s}`;
+
+}
+
+function mapFieldNames(fields, tableSchema = {}) {
+
+	if (!fields) {
+
+		return;
+
+	}
+
+	return fields.map(label => {
+
+		if (typeof tableSchema[label] === 'string') {
+
+			label = tableSchema[label];
+
+		}
+		return label;
+
+	});
 
 }
