@@ -7,7 +7,14 @@
 
 module.exports = fieldDefinition => {
 
-	const attributes = typeof fieldDefinition === 'object' ? fieldDefinition : {};
+	if (fieldDefinition && typeof fieldDefinition === 'object' && !Array.isArray(fieldDefinition)) {
+
+		// This is already a definition object
+		return fieldDefinition;
+
+	}
+
+	const attributes = {};
 
 	if (typeof fieldDefinition === 'string' && !fieldDefinition.includes('.')) {
 
@@ -15,7 +22,13 @@ module.exports = fieldDefinition => {
 		attributes.alias = fieldDefinition;
 
 	}
-	if (typeof fieldDefinition === 'function') {
+	else if ((typeof fieldDefinition === 'string' && fieldDefinition.includes('.')) || Array.isArray(fieldDefinition)) {
+
+		// This is an reference to another table, this field can be used in a table join
+		attributes.references = fieldDefinition;
+
+	}
+	else if (typeof fieldDefinition === 'function') {
 
 		// This is a generated field
 		attributes.handler = fieldDefinition;
