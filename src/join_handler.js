@@ -1,3 +1,5 @@
+const getFieldAttributes = require('./utils/field_attributes');
+
 /*
  * Deciding on how to connect two tables depends on which one holds the connection
  * The join_handler here looks at the schema of both tables to find one which has a reference field to the other.
@@ -127,22 +129,11 @@ function links(tableObj, joinTable, flipped = false) {
 	// Loop through the table fields
 	for (const field in tableObj) {
 
-		const column = tableObj[field];
+		const {references} = getFieldAttributes(tableObj[field]);
 
-		let ref = [];
+		let ref = references || [];
 
-		if (typeof column === 'string' || Array.isArray(column)) {
-
-			ref = column;
-
-		}
-		else if (typeof column === 'object' && column.references) {
-
-			ref = column.references;
-
-		}
-
-		if (typeof ref === 'string') {
+		if (!Array.isArray(ref)) {
 
 			ref = [ref];
 
