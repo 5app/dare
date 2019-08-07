@@ -7,6 +7,8 @@ const orderbyReducer = require('./utils/orderby_reducer');
 const checkKey = require('./utils/validate_field');
 const checkTableAlias = require('./utils/validate_alias');
 const formatDateTime = require('./utils/format_datetime');
+const getFieldAttributes = require('./utils/field_attributes');
+
 
 module.exports = function(options) {
 
@@ -378,12 +380,12 @@ function limit(opts, MAX_LIMIT) {
 
 function prepCondition(field, value, key_definition, negate) {
 
-	const {type} = key_definition || {};
+	const {type, alias} = getFieldAttributes(key_definition);
 
-	if (typeof key_definition === 'string' && !key_definition.includes('.')) {
+	if (alias) {
 
 		// The key definition says the key is an alias
-		field = key_definition;
+		field = alias;
 
 	}
 

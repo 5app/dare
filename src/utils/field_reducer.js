@@ -2,6 +2,7 @@ const checkFormat = require('./unwrap_field');
 const checkLabel = require('./validate_label');
 const checkKey = require('./validate_field');
 const fieldRelativePath = require('./field_relative');
+const getFieldAttributes = require('./field_attributes');
 
 // Return a reducer function
 module.exports = function fieldReducer(current_address, join, table_schema = {}) {
@@ -150,24 +151,24 @@ function fieldMapping(field, label, tableSchema, fieldsArray) {
 	const {field_name, prefix, suffix} = checkFormat(field);
 
 	// Get the schema entry for the field
-	const key_definition = tableSchema[field_name];
+	const {handler, alias} = getFieldAttributes(tableSchema[field_name]);
 
 	// Does this field have a handler in the schema
-	if (typeof key_definition === 'function') {
+	if (handler) {
 
 		// Execute the handler, add the response to the field list
 		return {
-			[label]: key_definition.call(this, fieldsArray)
+			[label]: handler.call(this, fieldsArray)
 		};
 
 	}
 
 	// Does the field map to another key name...
-	else if (typeof key_definition === 'string' && !key_definition.includes('.')) {
+	else if (alias) {
 
 		// Use the original name, defined by the key_definition
 		return {
-			[label]: rewrap_field(key_definition, prefix, suffix)
+			[label]: rewrap_field(alias, prefix, suffix)
 		};
 
 	}

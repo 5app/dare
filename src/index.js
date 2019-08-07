@@ -8,6 +8,8 @@ const promisify = require('./utils/promisify');
 
 const validateBody = require('./utils/validate_body');
 
+const getFieldAttributes = require('./utils/field_attributes');
+
 module.exports = Dare;
 
 function Dare(options) {
@@ -385,11 +387,11 @@ function prepareSet(body, tableSchema = {}) {
 			let fieldName = label;
 
 			// Check for aliases of the label
-			const key_definition = tableSchema[label];
+			const {alias} = getFieldAttributes(tableSchema[label]);
 
-			if (typeof key_definition === 'string' && !key_definition.includes('.')) {
+			if (alias) {
 
-				fieldName = key_definition;
+				fieldName = alias;
 
 			}
 
@@ -471,13 +473,14 @@ function mapFieldNames(fields, tableSchema = {}) {
 
 	return fields.map(label => {
 
-		const key_definition = tableSchema[label];
+		const {alias} = getFieldAttributes(tableSchema[label]);
 
-		if (typeof key_definition === 'string' && !key_definition.includes('.')) {
+		if (alias) {
 
-			label = key_definition;
+			label = alias;
 
 		}
+
 		return label;
 
 	});
