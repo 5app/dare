@@ -297,10 +297,10 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	const tableSchema = this.options.schema && this.options.schema[req.table];
 
 	// Format fields
-	const columns = mapFieldNames(fields, tableSchema);
+	const columns = unAliasFieldNames(fields, tableSchema);
 
 	// Options
-	const on_duplicate_keys_update = onDuplicateKeysUpdate(mapFieldNames(req.duplicate_keys_update, tableSchema)) || '';
+	const on_duplicate_keys_update = onDuplicateKeysUpdate(unAliasFieldNames(req.duplicate_keys_update, tableSchema)) || '';
 
 	// Construct a db update
 	const sql = `INSERT ${exec} INTO ${req.table}
@@ -462,15 +462,16 @@ function onDuplicateKeysUpdate(keys) {
 
 }
 
-function mapFieldNames(fields, tableSchema = {}) {
+/**
+ * Un-alias field names
+ *
+ * @param {Array|undefined} fields - An array of fields to test
+ * @param {object} [tableSchema={}] - An object containing the table schema
+ * @returns {Array|undefined} An array of the field names containing the unaliased names
+ */
+function unAliasFieldNames(fields, tableSchema = {}) {
 
-	if (!fields) {
-
-		return;
-
-	}
-
-	return fields.map(label => {
+	return fields && fields.map(label => {
 
 		const {alias} = getFieldAttributes(tableSchema[label]);
 
