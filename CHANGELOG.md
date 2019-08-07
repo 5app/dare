@@ -1,3 +1,10 @@
+# [0.32.0](https://github.com/5app/dare/compare/v0.31.4...v0.32.0) (2019-08-07)
+
+
+### Features
+
+* **Field Alias:** Enable aliasing field names ([#78](https://github.com/5app/dare/issues/78)) ([9d530d2](https://github.com/5app/dare/commit/9d530d2)), closes [#30](https://github.com/5app/dare/issues/30) [#30](https://github.com/5app/dare/issues/30) [#30](https://github.com/5app/dare/issues/30) [#30](https://github.com/5app/dare/issues/30) [#30](https://github.com/5app/dare/issues/30) [#30](https://github.com/5app/dare/issues/30) [#30](https://github.com/5app/dare/issues/30) [#30](https://github.com/5app/dare/issues/30) [#30](https://github.com/5app/dare/issues/30) [#30](https://github.com/5app/dare/issues/30) [#30](https://github.com/5app/dare/issues/30) [#30](https://github.com/5app/dare/issues/30)
+
 ## [0.31.4](https://github.com/5app/dare/compare/v0.31.3...v0.31.4) (2019-05-20)
 
 
