@@ -168,7 +168,7 @@ To alias a field, so that you can use a name different to the db column name, as
     ...
 ```
 
-For example this will allow us to refer to `emailAddress` which when it it request data will use `email`.
+For example this will allow us to use the alias `emailAddress` in our api (see below), but the SQL generated will refer to it with it's true field name "`email`".
 
 ```javascript
 dare.get('users', ['emailAddress'], {emailAddress: 'andrew@%'});

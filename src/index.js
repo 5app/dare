@@ -370,7 +370,7 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
  * Prepared Set
  * Prepare a SET assignments used in Patch
  * @param {object} body - body to format
- * @param {object|undefined} tableSchema - Schema for the current table
+ * @param {object} [tableSchema={}] - Schema for the current table
  * @returns {object} {assignment, preparedValues}
  */
 function prepareSet(body, tableSchema = {}) {
@@ -380,41 +380,40 @@ function prepareSet(body, tableSchema = {}) {
 
 	for (const label in body) {
 
-		// Assignments
-		{
+		/*
+		 * Assignments
+		 */
 
-			// By default the fieldName is the label of the key.
-			let fieldName = label;
+		// By default the fieldName is the label of the key.
+		let fieldName = label;
 
-			// Check for aliases of the label
-			const {alias} = getFieldAttributes(tableSchema[label]);
+		// Check for aliases of the label
+		const {alias} = getFieldAttributes(tableSchema[label]);
 
-			if (alias) {
+		if (alias) {
 
-				fieldName = alias;
-
-			}
-
-			// Replace value with a question using any mapped fieldName
-			assignments[fieldName] = '?';
+			fieldName = alias;
 
 		}
 
-		// Values
-		{
+		// Replace value with a question using any mapped fieldName
+		assignments[fieldName] = '?';
 
-			let value = body[label];
 
-			if (value && typeof value === 'object') {
+		/*
+		 * Values
+		 */
 
-				value = JSON.stringify(value);
+		let value = body[label];
 
-			}
+		if (value && typeof value === 'object') {
 
-			// Add to the array of items
-			preparedValues.push(value);
+			value = JSON.stringify(value);
 
 		}
+
+		// Add to the array of items
+		preparedValues.push(value);
 
 	}
 
