@@ -107,6 +107,12 @@ Dare.prototype.sql = async function sql(sql, prepared) {
 
 };
 
+Dare.prototype.count = async function sql_count() {
+
+	const [{count}] = await promisify(this.execute)('SELECT FOUND_ROWS() AS count');
+	return count;
+
+};
 
 Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 
@@ -142,6 +148,7 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 	return _this.after(resp);
 
 };
+
 
 Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 

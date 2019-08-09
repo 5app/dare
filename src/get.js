@@ -60,7 +60,7 @@ function buildQuery(opts) {
 	const sql_limit = `LIMIT ${opts.start ? `${opts.start},` : ''}${opts.limit}`;
 
 	// Found rows
-	const sql_found_rows = opts.found_rows ? 'SQL_CALC_FOUND_ROWS ' : '';
+	const sql_count = opts.count ? 'SQL_CALC_FOUND_ROWS ' : '';
 
 	// SubQuery
 	const is_subquery = opts.is_subquery;
@@ -181,7 +181,7 @@ function buildQuery(opts) {
 
 
 	// Put it all together
-	const sql = `SELECT ${sql_found_rows}${sql_fields.toString()}
+	const sql = `SELECT ${sql_count}${sql_fields.toString()}
 				 FROM ${sql_table} ${sql_alias}
 						${sql_joins.join('\n')}
 				 ${sql_filter.length ? 'WHERE' : ''}

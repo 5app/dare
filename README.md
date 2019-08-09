@@ -648,5 +648,27 @@ const Dare = require('dare');
 const dare = new Dare();
 
 dare.MAX_LIMIT = 1000000;
+
 ```
+
+### Retrieving the number of results in a SELECT with LIMIT
+
+Setting an additional option `count` will mark the query to be counted.
+
+
+```js
+
+// Get some data using the `count: true` attribute
+const users = await dare.get({
+	table: 'users',
+	fields: ['name'],
+	limit: 10,
+	count: true
+});
+
+// Call `dare.count()` to retrive the number of results the previous query would have obtained had it not been limited.
+const count = await dare.count();
+```
+
+Behind the scenes this uses `SQL_CALC_FOUND_ROWS` and `FOUND_ROWS()`
 
