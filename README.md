@@ -5,15 +5,11 @@
 [![CircleCI](https://circleci.com/gh/5app/dare.svg?style=shield)](https://circleci.com/gh/5app/dare)
 [![NPM Version](https://img.shields.io/npm/v/dare.svg)](https://www.npmjs.com/package/dare)
 [![Known Vulnerabilities](https://snyk.io/test/github/5app/dare/badge.svg)](https://snyk.io/test/github/5app/dare)
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 
-Dare is an API for generating SQL, it can be used internally to build and execute SQL. As well as lathered with request handlers for layering per table rules and security, just the thing for maintaining data integrity and developing REST interfaces.
 
-# Install
-
-```bash
-npm i dare --save
-```
+Dare is a lovely API for generating SQL out of structured JS Object. It can be used to query and modify your flavour of SQL database inside your node app. Or if you dare, give it it's own restful interface and have it construct and execute all the scrumptuous queries the client throws at it. Now the security conscious amongst you may fret but dont fear, your own rules can be applied via "handlers" by table and method, just the thing for maintaining data integrity and developing REST interfaces.
 
 # Example usage...
 
@@ -22,14 +18,16 @@ This is a simple setup to get started with, it'll make a basic SELECT query.
 ```javascript
 // Require the module
 const Dare = require('dare');
+const sqlConn = require('./someSqlConnection');
 
 // Initiate it
 const dare = new Dare();
 
 // Define a module for connecting
-dare.execute = (sql, callback) => {
+dare.execute = async (sql) => {
 	// Connect to DB, and execute the `sql`,
-	// Execute `callback(errorResponse, successResponse)`;
+	// resolve with a successResponse or throw an errorResponse
+	return sqlConn.execute(sql);
 };
 
 // Make a request
@@ -47,15 +45,25 @@ dare.get('users', ['name'], {id: 1}).then((resp) => {
 
 # Setup
 
+
+## Install
+
+```bash
+npm i dare --save
+```
+
+
 ## dare = new Dare(options)
 
 Create an instance of Dare with some options
 
 ```javascript
+const Dare = require('dare');
 
 const options = {
 	schema
-}
+};
+
 const dare = new Dare(options);
 ```
 
@@ -66,15 +74,16 @@ The `options Object` is a set of properties to apply at the point of calling any
 The `options` themselves are a set of properties used to interpret and manipulate the request.
 
 
-## Schema
+## Schema `schema`
 
 The schema is used to define the structure of your SQL database. You can refer to it as `options.schema`. It's each property in the schema pertains to a database table. And defines the fields within the table.
 
 e.g.
+
 ```javascript
 {
-	users: {Field Definition's,...},
-	country: {Field Definition's,...}
+	users: {Field Definitions, ...},
+	country: {Field Definitions, ...}
 }
 ```
 
@@ -110,7 +119,7 @@ Defining the `type` introduces additional features.
 
 *currently this is limited to datetime*
 
-E.g. in the example the type is defined as 'datetime', a conditional filter short hand for `created_time: 2017` would be expanded too `created_time BETWEEN '2017-01-01T00:00:00' AND '2017-12-31T23:59:59'
+E.g. in the example the type is defined as 'datetime', a conditional filter short hand for `created_time: 2017` would be expanded too `created_time BETWEEN '2017-01-01T00:00:00' AND '2017-12-31T23:59:59`
 
 ```javascript
     ...
@@ -133,7 +142,7 @@ This will manipulate the request and response to create the property `avatar_url
 
 ```javascript
     ...
-	schema : {
+	schema: {
 		users: {
 			avatar_url(fields) {
 
@@ -145,6 +154,26 @@ This will manipulate the request and response to create the property `avatar_url
     ...
 ```
 
+#### field alias
+
+To alias a field, so that you can use a name different to the db column name, assign it a string name of the field in the current table. e.g. `emailAddress: 'email'`
+
+
+```javascript
+    ...
+	schema: {
+		users: {
+			emailAddress: 'email'
+		},
+    ...
+```
+
+For example this will allow us to use the alias `emailAddress` in our api (see below), but the SQL generated will refer to it with it's true field name "`email`".
+
+```javascript
+dare.get('users', ['emailAddress'], {emailAddress: 'andrew@%'});
+// SELECT email AS emailAddress FROM users WHERE email LIKE 'andrew@%'
+```
 
 
 
@@ -198,9 +227,9 @@ SELECT id, name, created_date FROM ....
 
 The array items can also be Objects.
 
-#### Aliased Items (objects)
+#### Aliased Items and Formatting (objects)
 
-Object entries whose value are strings, may define SQL functions. E.g.
+It's sometimes appropriate to alias a field definition, if it's to be renamed, or when using SQL Functions and operators to manipulate the response. E.g. Below we're using the DATE functin to format the date, and we're aliasing it so it will be returned with prop key `_date`.
 
 ```javascript
 	[
@@ -212,6 +241,15 @@ Object entries whose value are strings, may define SQL functions. E.g.
 
 	// sql: SELECT name, DATE(created_date) AS _date ...
 ```
+
+Here are some common operations
+
+Field Defition | Description
+--|--
+`FORMAT(field, 2, 'de_DE')` | Rounding to 2 decimal places and convert to a string with German formatting.
+`CONCAT(ROUND(field * 100), '%')` | Multiplying a number by 100. Rounding to 2 decimal places and appending a '%' to the end to convert a decimal value to a percentage.
+
+Please note some functions and operations are not available.
 
 #### Nesting Fields
 
@@ -396,17 +434,45 @@ Alternatively a options Object can be used instead.
 e.g.
 
 ```javascript
-dare.get({
-	table: 'users',
-	body: {name: 'Andrew', profession: 'Mad scientist'}
+dare.post({
+	table: 'user',
+	body: {
+		name: 'Andrew',
+		profession: 'Mad scientist'
+	}
+});
+
+```
+
+## dare.post(options Object) with multiple values
+
+The body can be an Array of objects.
+
+e.g.
+
+```javascript
+dare.post({
+	table: 'user',
+	body: [{
+		name: 'Andrew',
+		profession: 'Mad scientist'
+	}, {
+		name: 'Peppa'
+	}]
 });
 ```
 
-### Post options
+This generates `INSERT INTO user (name, profession) VALUES ('Andrew', 'Mad Scientist'), ('Peppa', DEFAULT)`. Note where the key's differ between items in the Array the `DEFAULT` value is inserted instead. 
+
+### Post options (additional)
 
 | Prop          | Type             | Description
 |---------------|------------------|----------------
-| duplicate_key | 'ignore'         | Inserts SQL 'IGNORE' option
+| duplicate_keys | 'ignore'         | Inserts SQL 'IGNORE' option
+| duplicate_keys_update | Array(field1, field2, ...) | Appends `ON DUPLICATE KEYS UPDATE field1=VALUES(field1)`
+
+
+
 
 # Additional Options
 
@@ -524,30 +590,31 @@ E.g. here is an example using the before handlers to capture the original value 
 ```javascript
 ...
 patch: {
-	users(options) {
+	async users(options) {
 
-		// Clone the request, and add fields to query
-		const opts = Object.assign(
-			{},
-			options,
-			{fields: ['id', 'name']}
-		);
+		/**
+		 * Check that the data to be modified
+		 * By using the options to construct a SELECT request first
+		 */
 
-		return dare.get(opts).then(resp => {
+		// Clonse the options
+		const opts = {
+			...options,
+			fields: ['id', 'name']
+		};
 
-			const previous_name = resp.name;
-			const ref_id = resp.id;
+		// Execute a dare.get with the cloned options
+		const {id: ref_id, name: previous_name} = await dare.get(opts);
 
-			// Set the after handler
-			this.after = () => {
-				dare.post('changelog', {
-					message: 'User updated',
-					type: 'users',
-					ref_id,
-					previous_name
-				})
-			};
-		});
+		// Set the after handler
+		this.after = () => {
+			dare.post('changelog', {
+				message: 'User updated',
+				type: 'users',
+				ref_id,
+				previous_name
+			})
+		};
 	}
 }
 ...
@@ -568,3 +635,18 @@ E.g. here is a list of supported syntaxes and the resulting timestamp.
 
 etc...
 ```
+
+
+### Changing the default MAX_LIMIT
+
+By default the maximum value for a `limit` option is set by `dare.MAX_LIMIT`, you can override this in an instance of Dare.
+
+```js
+const Dare = require('dare');
+
+// Initiate it
+const dare = new Dare();
+
+dare.MAX_LIMIT = 1000000;
+```
+

@@ -1,4 +1,5 @@
-'use strict';
+/* eslint quotes: ["error", "single", { "avoidEscape": true, "allowTemplateLiterals": true }]*/
+
 
 // Test Generic DB functions
 const group_concat = require('../../src/utils/group_concat');
@@ -7,7 +8,9 @@ describe('utils/group_concat', () => {
 
 
 	it('should return a function', () => {
+
 		expect(group_concat).to.be.a('function');
+
 	});
 
 	it('should reduce an array of fields to a GROUP_CONCAT statement', () => {
@@ -20,7 +23,7 @@ describe('utils/group_concat', () => {
 			label: 'collection.b'
 		}], 'collection.');
 
-		expect(gc.expression).to.eql('CONCAT(\'[\', GROUP_CONCAT(CONCAT_WS(\'\', \'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \',\', \'"\', REPLACE(table.b, \'"\', \'\\"\'), \'"\', \']\')), \']\')');
+		expect(gc.expression).to.eql(`CONCAT('[', GROUP_CONCAT(CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(table.b, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']')), ']')`);
 		expect(gc.label).to.eql('collection[a,b]');
 
 	});
@@ -36,8 +39,9 @@ describe('utils/group_concat', () => {
 			label: 'b'
 		}]);
 
-		expect(gc.expression).to.eql('CONCAT_WS(\'\', \'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \',\', \'"\', REPLACE(table.b, \'"\', \'\\"\'), \'"\', \']\')');
+		expect(gc.expression).to.eql(`CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(table.b, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']')`);
 		expect(gc.label).to.eql('a,b');
+
 	});
 
 
@@ -51,6 +55,7 @@ describe('utils/group_concat', () => {
 
 		expect(gc.expression).to.eql('table.a');
 		expect(gc.label).to.eql('a');
+
 	});
 
 	it('should return an array of values for many results', () => {
@@ -60,8 +65,9 @@ describe('utils/group_concat', () => {
 			label: 'collection.a'
 		}], 'collection.');
 
-		expect(gc.expression).to.eql('CONCAT(\'[\', GROUP_CONCAT(CONCAT_WS(\'\', \'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \']\')), \']\')');
+		expect(gc.expression).to.eql(`CONCAT('[', GROUP_CONCAT(CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']')), ']')`);
 		expect(gc.label).to.eql('collection[a]');
+
 	});
 
 	it('should infer from the label whether results are implicitly aggregated', () => {
@@ -83,7 +89,7 @@ describe('utils/group_concat', () => {
 			label: 'b'
 		}], 'collection.');
 
-		expect(gc_many.expression).to.eql('CONCAT_WS(\'\', \'[\', \'"\', REPLACE(table.a, \'"\', \'\\"\'), \'"\', \',\', \'"\', REPLACE(table.b, \'"\', \'\\"\'), \'"\', \']\')');
+		expect(gc_many.expression).to.eql(`CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(table.b, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']')`);
 		expect(gc_many.label).to.eql('a,b');
 
 	});

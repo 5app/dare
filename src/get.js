@@ -1,4 +1,4 @@
-'use strict';
+
 
 const DareError = require('./utils/error');
 const group_concat = require('./utils/group_concat');
@@ -7,6 +7,7 @@ const orderbyUnwrap = require('./utils/orderby_unwrap');
 
 
 module.exports = async function(opts) {
+
 	// Reset the alias
 	this.unique_alias_index = 0;
 
@@ -16,8 +17,10 @@ module.exports = async function(opts) {
 	// Define the buildQuery
 	this.buildQuery = buildQuery;
 
-	// Define the Traversal
-	// This is triggered by the build query to create the SQL
+	/*
+	 * Define the Traversal
+	 * This is triggered by the build query to create the SQL
+	 */
 	this.traverse = traverse;
 
 	// Execute the Build
@@ -31,15 +34,22 @@ module.exports = async function(opts) {
 
 	// If limit was not defined we should return the first result only.
 	if (opts.single) {
+
 		if (resp.length) {
+
 			return resp[0];
+
 		}
 		else {
+
 			throw new DareError(DareError.NOT_FOUND);
+
 		}
+
 	}
 
 	return resp;
+
 };
 
 function buildQuery(opts) {
@@ -47,7 +57,7 @@ function buildQuery(opts) {
 	opts.root = true;
 
 	// Limit
-	const sql_limit = `LIMIT ${opts.start ? `${opts.start},` : '' }${opts.limit}`;
+	const sql_limit = `LIMIT ${opts.start ? `${opts.start},` : ''}${opts.limit}`;
 
 	// Found rows
 	const sql_found_rows = opts.found_rows ? 'SQL_CALC_FOUND_ROWS ' : '';
@@ -65,7 +75,7 @@ function buildQuery(opts) {
 		sql_filter,
 		groupby,
 		orderby,
-		sql_values,
+		sql_values
 	} = this.traverse(opts, is_subquery);
 
 	// Get the root tableID
@@ -73,30 +83,40 @@ function buildQuery(opts) {
 	const sql_alias = opts.sql_alias;
 
 	{
+
 		// Count is a special field, find and replace ...
 		fields.filter(item => item.expression === `${sql_alias}._count`)
 			.forEach(item => {
+
 				item.expression = 'COUNT(*)';
 				item.label = '_count';
 				item.agg = true;
+
 			});
 
 		// Find the special _group column...
 		fields
 			.filter(item => item.expression === `${sql_alias}._group`)
 			.forEach(item => {
+
 				// Pick the first_groupby statement
 				item.expression = groupby[0].expression;
 				item.label = '_group';
+
 			});
+
 	}
 
 	// Conditions
 	if (opts._join) {
+
 		opts._join.forEach(([field, condition, values]) => {
+
 			sql_values.push(...values);
 			sql_filter.push(formCondition(sql_alias, field, condition));
+
 		});
+
 	}
 
 	// Merge values
@@ -105,18 +125,23 @@ function buildQuery(opts) {
 		.concat(sql_join_values)
 		.concat(sql_values);
 
-	// Groupby
-	// If the content is grouped
-	// Ensure that the parent has opts.groupby when we're joining tables
+	/*
+	 * Groupby
+	 * If the content is grouped
+	 * Ensure that the parent has opts.groupby when we're joining tables
+	 */
 	if (!is_subquery && !groupby.length && has_many_join) {
 
 		// Are all the fields aggregates?
 		const all_aggs = fields.every(item => item.agg);
 
 		if (!all_aggs) {
+
 			// Determine whether there are non?
 			groupby.push({expression: `${opts.sql_alias}.id`});
+
 		}
+
 	}
 
 	// Format Fields
@@ -124,20 +149,28 @@ function buildQuery(opts) {
 	let alias;
 
 	if (!fields.length) {
-		// This query does not contain any fields
-		// And so we should not include it
+
+		/*
+		 * This query does not contain any fields
+		 * And so we should not include it
+		 */
 		throw new DareError(DareError.INVALID_REQUEST, 'Missing fields');
+
 	}
 
 	if (is_subquery) {
+
 		// Generate a Group Concat statement of the result
 		const address = opts.field_alias_path || opts._joins[0].field_alias_path;
 		const gc = group_concat(fields, address);
 		sql_fields = gc.expression;
 		alias = gc.label;
+
 	}
 	else {
+
 		sql_fields = fields.map(field => `${field.expression}${field.label ? ` AS '${field.label}'` : ''}`);
+
 	}
 
 	// Clean up sql_orderby
@@ -158,6 +191,7 @@ function buildQuery(opts) {
 				 ${sql_limit}`;
 
 	return {sql, values, alias};
+
 }
 
 
@@ -172,8 +206,10 @@ function traverse(item, is_subquery) {
 
 	const sql_subquery_values = [];
 
-	// List
-	// Store each item in a list
+	/*
+	 * List
+	 * Store each item in a list
+	 */
 	const list = [];
 
 	// Joins
@@ -208,21 +244,28 @@ function traverse(item, is_subquery) {
 		if (item._join) {
 
 			item._join = item._join.filter(([field]) => {
+
 				// Special join condition
 				if (field === '_required') {
+
 					// Dont include this filter
 					item.required_join = true;
 					return false;
+
 				}
 
 				return true;
+
 			});
+
 		}
 
 		// Is this required join table?
 		if (!item.required_join && !item.has_fields && !item.has_filter) {
+
 			// Prevent this join from being included.
 			return resp;
+
 		}
 
 		// Adopt the parents settings
@@ -231,24 +274,34 @@ function traverse(item, is_subquery) {
 		// Does this have a many join
 		resp.has_many_join = many;
 
-		// We're unable to filter the subquery on a set of values
-		// So, Do any of the ancestors containing one-many relationships?
+		/*
+		 * We're unable to filter the subquery on a set of values
+		 * So, Do any of the ancestors containing one-many relationships?
+		 */
 		let ancestors_many = false;
 
 		{
+
 			let x = item;
 			while (x.parent) {
+
 				if (x.parent.many) {
+
 					ancestors_many = true;
 					break;
+
 				}
 				x = x.parent;
+
 			}
+
 		}
 
-		// Should this be a sub query?
-		// The join is not required for filtering,
-		// And has a one to many relationship with its parent.
+		/*
+		 * Should this be a sub query?
+		 * The join is not required for filtering,
+		 * And has a one to many relationship with its parent.
+		 */
 		if (this.group_concat && !is_subquery && !ancestors_many && !item.required_join && !item.has_filter && many && !item.groupby) {
 
 			// Mark as subquery
@@ -268,6 +321,7 @@ function traverse(item, is_subquery) {
 
 			// The rest has been handled in the sub-query
 			return resp;
+
 		}
 
 	}
@@ -280,15 +334,20 @@ function traverse(item, is_subquery) {
 		// Update the values with the alias of the parent
 		const sql_join_condition = [];
 		if (item._join) {
+
 			item._join.forEach(([field, condition, values]) => {
 
 				sql_join_values.push(...values);
 				sql_join_condition.push(formCondition(sql_alias, field, condition));
+
 			});
+
 		}
 		for (const x in item.join_conditions) {
+
 			const val = item.join_conditions[x];
 			sql_join_condition.push(`${sql_alias}.${x} = ${parent.sql_alias}.${val}`);
+
 		}
 
 		const required_join = item.required_join;
@@ -298,60 +357,79 @@ function traverse(item, is_subquery) {
 
 		if (!item.is_subquery) {
 
-			// Required JOIN is used to lock table records together
-			// This ensures that authorisation in can be handled by another
+			/*
+			 * Required JOIN is used to lock table records together
+			 * This ensures that authorisation in can be handled by another
+			 */
 
 			// If the parent is not required or the root
 			if (required_join && !(parent.required_join || parent.root)) {
 
 				// Enforce a join by adding filters based on the table relationships
 				for (const x in item.join_conditions) {
+
 					const val = item.join_conditions[x];
 					sql_filter.push(`(${sql_alias}.${x} = ${parent.sql_alias}.${val} OR ${parent.sql_alias}.${val} IS NULL)`);
+
 				}
+
 			}
 
 			// Append to the sql_join
 			sql_joins.push(`${item.required_join ? '' : 'LEFT'} JOIN ${item.table} ${sql_alias} ON (${sql_join_condition.join(' AND ')})`);
+
 		}
 		else {
+
 			// Merge the join condition on the filter
 			sql_filter.push(...sql_join_condition);
 
 			// Offload and Reset the sql_join_values
 			sql_values.push(...sql_join_values);
 			sql_join_values.length = 0;
+
 		}
+
 	}
 
 
-	// Build up the SQL conditions
-	// e.g. filter= {category: asset, action: open, created_time: 2016-04-12T13:29:23Z..]
+	/*
+	 * Build up the SQL conditions
+	 * e.g. filter= {category: asset, action: open, created_time: 2016-04-12T13:29:23Z..]
+	 */
 	if (item._filter) {
 
 		item._filter.forEach(([field, condition, values]) => {
+
 			sql_values.push(...values);
 			sql_filter.push(formCondition(sql_alias, field, condition));
+
 		});
+
 	}
 
-	// Fields
-	// e.g. fields = [action, category, count, ...]
+	/*
+	 * Fields
+	 * e.g. fields = [action, category, count, ...]
+	 */
 	if (item.fields) {
 
-		// yes, believe it or not but some queries do have them...
+		// Yes, believe it or not but some queries do have them...
 		item.fields.map(prepField).forEach(([expression, label]) => {
 
 			// Have we got a generated field?
 			if (typeof expression === 'function') {
+
 				// Add this to the list
 				this.response_handlers.push(
 					setField.bind(this, !item.root && item.alias, label, expression)
 				);
 				return;
+
 			}
 
 			fields.push(field_format(expression, label, sql_alias, item.field_alias_path));
+
 		});
 
 	}
@@ -360,6 +438,7 @@ function traverse(item, is_subquery) {
 	if (item._joins) {
 
 		item._joins.forEach(child => {
+
 			child.parent = item;
 
 			// Traverse the decendent arrays
@@ -367,16 +446,24 @@ function traverse(item, is_subquery) {
 
 			// Merge the results into this
 			for (const x in resp) {
+
 				const a = resp[x];
 				const b = child_resp[x];
 				if (Array.isArray(a)) {
+
 					a.push(...b);
+
 				}
 				else if (b) {
+
 					resp[x] = b;
+
 				}
+
 			}
+
 		});
+
 	}
 
 	// Groupby
@@ -384,6 +471,7 @@ function traverse(item, is_subquery) {
 
 		// Either an empty groupby
 		groupby.push(...item.groupby.map(field => field_format(field, null, sql_alias, item.field_alias_path)));
+
 	}
 
 	// Orderby
@@ -395,20 +483,26 @@ function traverse(item, is_subquery) {
 			// Split the entry into field and direction
 			const {field, direction} = orderbyUnwrap(entry);
 
-			// Create a Field object
-			// Extend object with direction
-			// Return the object
+			/*
+			 * Create a Field object
+			 * Extend object with direction
+			 * Return the object
+			 */
 			return Object.assign(field_format(field, null, sql_alias, item.field_alias_path), {direction});
+
 		});
 
 		orderby.push(...a);
 
 	}
 
-	// When the item is not within a subquery
-	// And its contains a relationship of many to one
-	// Groups all the fields into GROUP_CONCAT
+	/*
+	 * When the item is not within a subquery
+	 * And its contains a relationship of many to one
+	 * Groups all the fields into GROUP_CONCAT
+	 */
 	if (item.many && !is_subquery && fields.length) {
+
 		// Generate a Group Concat statement of the result
 		const address = item.field_alias_path || item._joins[0].field_alias_path;
 		const gc = group_concat(fields, address);
@@ -416,33 +510,43 @@ function traverse(item, is_subquery) {
 		// Reset the fields array
 		fields.length = 0;
 		fields.push(gc);
+
 	}
 
 	// Add this resource to the internal list
 	list.push(item);
 
 	return resp;
+
 }
 
 function prepField(field) {
 
 	if (typeof field === 'string') {
+
 		return [field];
+
 	}
 
 	for (const label in field) {
+
 		const expression = field[label];
 		return [expression, label];
+
 	}
+
 }
 
 function setField(table, field, handler, obj) {
 
 	if (table) {
+
 		obj = obj[table];
+
 	}
 
 	obj[field] = handler.call(this, obj);
+
 }
 
 function formCondition(tbl_alias, field, condition) {
@@ -450,7 +554,8 @@ function formCondition(tbl_alias, field, condition) {
 	const field_definition = `${tbl_alias}.${field}`;
 
 	// Insert the field name in place
-	return condition.includes('??') ? condition.replace(/\?\?/g, field_definition) : `${field_definition} ${condition}`;
+	return condition.includes('$$') ? condition.replace(/\$\$/g, field_definition) : `${field_definition} ${condition}`;
+
 }
 
 function aliasOrderAndGroupFields(arr, fields) {
@@ -459,30 +564,40 @@ function aliasOrderAndGroupFields(arr, fields) {
 
 		return arr.map(({expression, label, direction, original}) => {
 
-			// _count, etc...
-			// Is the value a shortcut to a labelled field?
-			// fields.find(_field => {
-			// 	if (_field.label && _field.label === expression) {
-			// 		return entry;
-			// 	}
-			// });
+			/*
+			 * _count, etc...
+			 * Is the value a shortcut to a labelled field?
+			 * fields.find(_field => {
+			 *   if (_field.label && _field.label === expression) {
+			 *     return entry;
+			 *   }
+			 * });
+			 */
 
 			for (const field of fields) {
 
 				// Does the expression belong to something in the fields?
 				if (field.label && (field.label === label)) {
+
 					expression = `\`${field.label}\``;
 					break;
+
 				}
 				if (field.label && field.label === original) {
+
 					expression = `\`${field.label}\``;
 					break;
+
 				}
+
 			}
 
 			return [expression, direction].filter(v => !!v).join(' ');
+
 		});
+
 	}
 
 	return [];
+
 }

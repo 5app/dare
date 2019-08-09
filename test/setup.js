@@ -1,4 +1,4 @@
-'use strict';
+
 
 const Dare = require('../src/');
 
@@ -7,4 +7,4 @@ global.Dare = Dare;
 
 global.expect = require('chai').expect;
 
-// global.sinon = require('sinon');
+// Global.sinon = require('sinon');

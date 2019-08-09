@@ -1,4 +1,4 @@
-'use strict';
+
 
 // Test Generic DB functions
 const sqlEqual = require('../lib/sql-equal');
@@ -9,36 +9,46 @@ describe('del', () => {
 	let dare;
 
 	beforeEach(() => {
+
 		dare = new Dare();
 
 		// Should not be called...
 		dare.execute = () => {
+
 			throw new Error('execute called');
+
 		};
+
 	});
 
 	it('should contain the function dare.del', () => {
+
 		expect(dare.del).to.be.a('function');
+
 	});
 
-	it('should generate an DELETE statement and execute dare.execute', async() => {
+	it('should generate an DELETE statement and execute dare.execute', async () => {
 
 		dare.execute = (query, callback) => {
-			// limit: 1
+
+			// Limit: 1
 			sqlEqual(query, 'DELETE FROM test WHERE id = 1 LIMIT 1');
 			callback(null, {success: true});
+
 		};
 
 		const resp = await dare.del('test', {id: 1});
 
 		expect(resp).to.have.property('success', true);
+
 	});
 
-	it('should throw an exception if affectedRows: 0', async() => {
+	it('should throw an exception if affectedRows: 0', async () => {
 
-		dare.sql = async() => ({affectedRows: 0});
+		dare.sql = async () => ({affectedRows: 0});
 
 		try {
+
 			await dare
 				.del('groups', {name: 'name'}, {id: 20000});
 
@@ -46,16 +56,21 @@ describe('del', () => {
 
 		}
 		catch (err) {
+
 			expect(err.code).to.eql(DareError.NOT_FOUND);
+
 		}
+
 	});
 
-	it('should use table aliases', async() => {
+	it('should use table aliases', async () => {
 
 		dare.execute = (query, callback) => {
-			// limit: 1
+
+			// Limit: 1
 			sqlEqual(query, 'DELETE FROM tablename WHERE id = 1 LIMIT 1');
 			callback(null, {success: true});
+
 		};
 
 		dare.options = {
@@ -67,22 +82,27 @@ describe('del', () => {
 		return dare
 			.del({
 				table: 'test',
-				filter: {id: 1},
+				filter: {id: 1}
 			});
+
 	});
 
-	it('should trigger pre handler, options.del.[table]', async() => {
+	it('should trigger pre handler, options.del.[table]', async () => {
 
 		dare.execute = (query, callback) => {
+
 			sqlEqual(query, 'DELETE FROM tbl WHERE id = 1 LIMIT 1');
 			callback(null, {success: true});
+
 		};
 
 		dare.options = {
 			del: {
 				'tbl': req => {
+
 					// Augment the request
 					req.filter.id = 1;
+
 				}
 			}
 		};
@@ -92,14 +112,17 @@ describe('del', () => {
 				table: 'tbl',
 				filter: {id: 2}
 			});
+
 	});
 
 
-	it('should trigger pre handler, options.del.default, and wait for Promise to resolve', async() => {
+	it('should trigger pre handler, options.del.default, and wait for Promise to resolve', async () => {
 
 		dare.execute = (query, callback) => {
+
 			sqlEqual(query, 'DELETE FROM tbl WHERE id = 1 LIMIT 1');
 			callback(null, {success: true});
+
 		};
 
 		dare.options = {
@@ -114,39 +137,49 @@ describe('del', () => {
 				table: 'tbl',
 				filter: {id: 2}
 			});
+
 	});
 
-	it('should trigger pre handler, and handle errors being thrown', async() => {
+	it('should trigger pre handler, and handle errors being thrown', async () => {
 
 		const msg = 'test';
 
 		dare.options = {
 			del: {
 				'default': () => {
+
 					// Augment the request
 					throw new Error(msg);
+
 				}
 			}
 		};
 
 		try {
+
 			await dare.del({
 				table: 'tbl',
 				filter: {id: 2}
 			});
 			throw new Error('should not be called');
+
 		}
 		catch (e) {
+
 			expect(e.message).to.eql(msg);
+
 		}
+
 	});
 
-	it('should return options.skip if set and not trigger further operations', async() => {
+	it('should return options.skip if set and not trigger further operations', async () => {
 
 		dare.options = {
 			del: {
 				'default': options => {
+
 					options.skip = true;
+
 				}
 			}
 		};
@@ -158,5 +191,7 @@ describe('del', () => {
 			});
 
 		expect(resp).to.eql(true);
+
 	});
+
 });

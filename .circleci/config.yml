@@ -1,10 +1,28 @@
+aliases:
+  - &store_test_results
+    path: /tmp/test-results
+
+defaults: &defaults
+  working_directory: ~/repo
+  docker:
+    - image: circleci/node:8.4.0
+
 version: 2
 jobs:
-  build:
-    docker:
-      - image: circleci/node:8.4.0
+  checkout_code:
+    <<: *defaults
     steps:
       - checkout
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - .
+
+  test:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/repo
       - restore_cache:
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
@@ -15,5 +33,35 @@ jobs:
           paths:
             - ./node_modules
       - run:
+          environment:
+            MOCHA_FILE: /tmp/test-results/mocha.xml
           name: run mocha tests
-          command: npm test
+          command: |
+            mkdir /tmp/test-results
+            npm run test:ci
+      - store_test_results: *store_test_results
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - node_modules
+
+  release:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/repo
+      - checkout
+      - run: npm run semantic-release
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - checkout_code
+      - test:
+          requires:
+            - checkout_code
+      - release:
+          context: org-global
+          requires:
+            - test

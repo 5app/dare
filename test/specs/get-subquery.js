@@ -1,4 +1,4 @@
-'use strict';
+
 
 // Test Generic DB functions
 const expectSQLEqual = require('../lib/sql-equal');
@@ -31,11 +31,13 @@ const options = {
 describe('get - subquery', () => {
 
 	beforeEach(() => {
+
 		dare = new Dare(options);
+
 	});
 
 
-	it('should write one to many requests with a subquery', async() => {
+	it('should write one to many requests with a subquery', async () => {
 
 		dare.sql = sql => {
 
@@ -61,6 +63,7 @@ describe('get - subquery', () => {
 				asset_name: 'name',
 				collection_count: 42
 			}]);
+
 		};
 
 		const resp = await dare.get({
@@ -73,9 +76,10 @@ describe('get - subquery', () => {
 
 		expect(resp).to.have.property('asset_name', 'name');
 		expect(resp).to.have.property('collection_count', 42);
+
 	});
 
-	it('should export the response in the format given', async() => {
+	it('should export the response in the format given', async () => {
 
 		dare.sql = sql => {
 
@@ -101,6 +105,7 @@ describe('get - subquery', () => {
 				asset_name: 'name',
 				'collections.count': 42
 			}]);
+
 		};
 
 		const resp = await dare.get({
@@ -114,9 +119,10 @@ describe('get - subquery', () => {
 		});
 
 		expect(resp.collections).to.have.property('count', 42);
+
 	});
 
-	it('should concatinate many expressions into an array using GROUP_CONCAT', async() => {
+	it('should concatinate many expressions into an array using GROUP_CONCAT', async () => {
 
 		dare.sql = sql => {
 
@@ -124,7 +130,7 @@ describe('get - subquery', () => {
 
 				SELECT a.name AS 'name',
 				(
-					SELECT CONCAT('[', GROUP_CONCAT(CONCAT_WS('', '[', '"', REPLACE(c.id, '"', '\\"'), '"', ',', '"', REPLACE(c.name, '"', '\\"'), '"', ']')), ']')
+					SELECT CONCAT('[', GROUP_CONCAT(CONCAT_WS('', '[', '"', REPLACE(REPLACE(c.id, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(c.name, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']')), ']')
 					FROM assetCollections b
 					LEFT JOIN collections c ON (c.id = b.collection_id)
 					WHERE b.asset_id = a.id
@@ -141,6 +147,7 @@ describe('get - subquery', () => {
 				asset_name: 'name',
 				'collections[id,name]': '[["1","a"],["2","b"]]'
 			}]);
+
 		};
 
 		const resp = await dare.get({
@@ -154,9 +161,10 @@ describe('get - subquery', () => {
 		expect(resp.collections).to.be.an('array');
 		expect(resp.collections[0]).to.have.property('id', '1');
 		expect(resp.collections[0]).to.have.property('name', 'a');
+
 	});
 
-	it('should *not* subquery a nested object without fields', async() => {
+	it('should *not* subquery a nested object without fields', async () => {
 
 		dare.sql = sql => {
 
@@ -172,6 +180,7 @@ describe('get - subquery', () => {
 			return Promise.resolve([{
 				asset_name: 'name'
 			}]);
+
 		};
 
 		const resp = await dare.get({
@@ -190,13 +199,13 @@ describe('get - subquery', () => {
 
 	});
 
-	it('should *not* use a subquery when the many table is used in the filter', async() => {
+	it('should *not* use a subquery when the many table is used in the filter', async () => {
 
 		dare.sql = sql => {
 
 			const expected = `
 				SELECT a.name AS 'name',
-					CONCAT('[', GROUP_CONCAT(CONCAT_WS('', '[', '"', REPLACE(c.id, '"', '\\"'), '"', ',', '"', REPLACE(c.name, '"', '\\"'), '"', ']')), ']') AS 'collections[id,name]'
+					CONCAT('[', GROUP_CONCAT(CONCAT_WS('', '[', '"', REPLACE(REPLACE(c.id, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(c.name, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']')), ']') AS 'collections[id,name]'
 				FROM assets a
 				LEFT JOIN assetCollections b ON(b.asset_id = a.id)
 				LEFT JOIN collections c ON (c.id = b.collection_id)
@@ -208,6 +217,7 @@ describe('get - subquery', () => {
 			expectSQLEqual(sql, expected);
 
 			return Promise.resolve([{}]);
+
 		};
 
 		return dare.get({
@@ -225,12 +235,12 @@ describe('get - subquery', () => {
 
 	});
 
-	it('should *not* subquery a table off a join with a possible set of values', async() => {
+	it('should *not* subquery a table off a join with a possible set of values', async () => {
 
 		dare.sql = sql => {
 
 			const expected = `
-				SELECT a.name AS 'name', CONCAT('[',GROUP_CONCAT(CONCAT_WS('', '[', '"', REPLACE(COUNT(d.id),'"','\\"'),'"',']')),']') AS 'assetCollections[collections.descendents]'
+				SELECT a.name AS 'name', CONCAT('[',GROUP_CONCAT(CONCAT_WS('', '[', '"', REPLACE(REPLACE(COUNT(d.id), '\\\\', '\\\\\\\\'), '"','\\\\"'),'"',']')),']') AS 'assetCollections[collections.descendents]'
 				FROM assets a
 				LEFT JOIN assetCollections b ON(b.asset_id = a.id)
 				LEFT JOIN collections c ON(c.id = b.collection_id)
@@ -243,6 +253,7 @@ describe('get - subquery', () => {
 			expectSQLEqual(sql, expected);
 
 			return Promise.resolve([{}]);
+
 		};
 
 		return dare.get({
@@ -264,7 +275,7 @@ describe('get - subquery', () => {
 
 	});
 
-	it('should aggregate single field requests in a subquery, aka without group_concat', async() => {
+	it('should aggregate single field requests in a subquery, aka without group_concat', async () => {
 
 
 		dare.sql = sql => {
@@ -272,7 +283,7 @@ describe('get - subquery', () => {
 			const expected = `
 				SELECT a.id,a.name,a.created_time,
 				(
-					SELECT CONCAT_WS('', '[', '"', REPLACE(b.id, '"', '\\"'), '"', ',', '"', REPLACE(b.email, '"', '\\"'), '"', ']')
+					SELECT CONCAT_WS('', '[', '"', REPLACE(REPLACE(b.id, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(b.email, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']')
 					FROM userEmails b
 					WHERE
 						b.user_id = a.id
@@ -286,6 +297,7 @@ describe('get - subquery', () => {
 			expectSQLEqual(sql, expected);
 
 			return Promise.resolve([{}]);
+
 		};
 
 		dare.options = {
@@ -310,14 +322,14 @@ describe('get - subquery', () => {
 			filter: {},
 			join: {},
 			groupby: 'id',
-			orderby: 'name',
+			orderby: 'name'
 		});
 
 	});
 
 	describe('with groupby', () => {
 
-		it('should allow multiple groupby on nested tables', async() => {
+		it('should allow multiple groupby on nested tables', async () => {
 
 			dare.sql = async sql => {
 
@@ -328,6 +340,7 @@ describe('get - subquery', () => {
 					'CollectionID': 2,
 					'Collection': 'b'
 				}];
+
 			};
 
 			return dare.get({
@@ -344,5 +357,7 @@ describe('get - subquery', () => {
 			});
 
 		});
+
 	});
+
 });

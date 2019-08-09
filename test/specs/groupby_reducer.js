@@ -1,5 +1,7 @@
-// Field Reducer
-// Extract the fields from the current dataset
+/*
+ * Field Reducer
+ * Extract the fields from the current dataset
+ */
 
 const groupby_reducer = require('../../src/utils/groupby_reducer');
 
@@ -8,8 +10,10 @@ describe('Groupby Reducer', () => {
 
 	describe('should split the current fields belonging to the current and joined tables', () => {
 
-		// These are all related to the current item
-		// And should return an array item with the item as given
+		/*
+		 * These are all related to the current item
+		 * And should return an array item with the item as given
+		 */
 		[
 			// Test 1
 			[
@@ -52,13 +56,20 @@ describe('Groupby Reducer', () => {
 				expect(f).to.eql(expected);
 
 				if (expect_join_fields) {
+
 					expect(joined.b_table.groupby).to.eql(expect_join_fields);
+
 				}
 				else {
+
 					expect(joined).to.not.have.property('b_table');
+
 				}
+
 			});
+
 		});
+
 	});
 
 });

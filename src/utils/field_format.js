@@ -17,11 +17,14 @@ module.exports = function field_format(original, label, table_prefix, label_pref
 
 		// Does the expression contain a nested address?
 		if (address) {
+
 			// Deduct the nested address from the label_prefix
 			label_prefix = label_prefix.slice(0, label_prefix.lastIndexOf(address));
+
 		}
 
 		label = `${label_prefix}${label || name}`;
+
 	}
 
 	label = label || undefined;
@@ -29,11 +32,13 @@ module.exports = function field_format(original, label, table_prefix, label_pref
 	// Expression
 	const expression = `${prefix || ''}${table_prefix}.${name}${suffix || ''}`;
 
-	// aggregate function flag
+	// Aggregate function flag
 	let agg = false;
 
 	if (prefix && /\b(SUM|COUNT|AVG|MAX|MIN|GROUP_CONCAT)\(/.test(prefix.toUpperCase())) {
+
 		agg = true;
+
 	}
 
 	return {
@@ -42,4 +47,5 @@ module.exports = function field_format(original, label, table_prefix, label_pref
 		label,
 		agg
 	};
+
 };

@@ -1,8 +1,14 @@
-'use strict';
+
 
 const getHandler = require('./get');
 
 const DareError = require('./utils/error');
+
+const promisify = require('./utils/promisify');
+
+const validateBody = require('./utils/validate_body');
+
+const getFieldAttributes = require('./utils/field_attributes');
 
 module.exports = Dare;
 
@@ -10,6 +16,7 @@ function Dare(options) {
 
 	// Overwrite default properties
 	this.options = options || {};
+
 }
 
 // Set default function
@@ -18,28 +25,38 @@ Dare.prototype.execute = (query, callback) => callback(new DareError(DareError.I
 // Group concat
 Dare.prototype.group_concat = '$$';
 
+// Set the Max Limit for SELECT statements
+Dare.prototype.MAX_LIMIT = null;
 
 // Default prepare statement.
 Dare.prototype.prepare = require('./utils/prepare');
 
 // Set default table_alias handler
 Dare.prototype.table_alias_handler = function(name) {
+
 	name = name.split('$')[0];
 	return (this.options.table_alias ? this.options.table_alias[name] : null) || name;
+
 };
 
 Dare.prototype.unique_alias_index = 0;
 
 Dare.prototype.get_unique_alias = function(iterate = 1) {
+
 	if (iterate) {
+
 		this.unique_alias_index += iterate;
+
 	}
 	const i = this.unique_alias_index;
 	const str = String.fromCharCode(96 + i);
 	if (i <= 26) {
+
 		return str;
+
 	}
 	return `\`${str}\``;
+
 };
 
 Dare.prototype.format_request = require('./format_request');
@@ -58,38 +75,36 @@ Dare.prototype.after = function(resp) {
 
 	// Trigger after handlers following a request
 	if (handler in this.options && table in this.options[handler]) {
+
 		// Trigger handler
 		return this.options[handler][table].call(this, resp) || resp;
+
 	}
 
 	return resp;
+
 };
 
 // Create an instance
 Dare.prototype.use = function(options) {
+
 	const inst = Object.create(this);
 	inst.options = Object.assign({}, this.options, options);
 
 	// Set SQL level states
 	inst.unique_alias_index = 0;
 	return inst;
+
 };
 
-Dare.prototype.sql = function sql(sql, prepared) {
+Dare.prototype.sql = async function sql(sql, prepared) {
 
 	prepared = prepared || [];
 
-	return new Promise((resolve, reject) => {
-		this.execute(this.prepare(sql, prepared), (err, results) => {
+	const sql_prepared = this.prepare(sql, prepared);
 
-			if (err) {
-				reject(err);
-				return;
-			}
-			resolve(results);
+	return promisify(this.execute)(sql_prepared);
 
-		});
-	});
 };
 
 
@@ -97,7 +112,9 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 
 	// Get Request Object
 	if (typeof table === 'object') {
+
 		opts = table;
+
 	}
 	else {
 
@@ -106,12 +123,14 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 
 			// Fields must be defined
 			throw new DareError(DareError.INVALID_REQUEST);
+
 		}
 
 		opts = Object.assign(opts, {table, fields, filter});
+
 	}
 
-	// define method
+	// Define method
 	opts.method = 'get';
 
 	const _this = this.use(opts);
@@ -121,6 +140,7 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 	const resp = await getHandler.call(_this, req);
 
 	return _this.after(resp);
+
 };
 
 Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
@@ -128,7 +148,7 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	// Get Request Object
 	opts = typeof table === 'object' ? table : Object.assign(opts, {table, filter, body});
 
-	// define method
+	// Define method
 	opts.method = 'patch';
 
 	const _this = this.use(opts);
@@ -137,42 +157,52 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 
 	// Skip this operation?
 	if (req.skip) {
+
 		return _this.after(req.skip);
+
 	}
 
-	// Clone
-	const post = clone(req.body);
+	// Validate Body
+	validateBody(req.body);
+
+	// Get the schema
+	const tableSchema = this.options.schema && this.options.schema[req.table];
 
 	// Prepare post
-	const a = prepare(post);
+	const {assignments, preparedValues} = prepareSet(req.body, tableSchema);
 
 	// Prepare query
 	const sql_query = req._filter.map(([field, condition, values]) => {
-		a.push(...values);
+
+		preparedValues.push(...values);
 		return `${field} ${condition}`;
+
 	});
 
 	// Construct a db update
 	const sql = `UPDATE ${req.table}
 			SET
-				${serialize(post, '=', ',')}
+				${serialize(assignments, '=', ',')}
 			WHERE
 				${sql_query.join(' AND ')}
 			LIMIT ${req.limit}`;
 
-	let resp = await this.sql(sql, a);
+	let resp = await this.sql(sql, preparedValues);
 
 	resp = mustAffectRows(resp);
 
 	return _this.after(resp);
+
 };
 
 
-// Insert new data into database
-// @table string
-// @post object
-// @opts object
-// return Promise
+/*
+ * Insert new data into database
+ * @table string
+ * @post object
+ * @opts object
+ * return Promise
+ */
 
 Dare.prototype.post = async function post(table, body, opts = {}) {
 
@@ -189,27 +219,37 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 
 	// Skip this operation?
 	if (req.skip) {
+
 		return _this.after(req.skip);
+
 	}
+
+	// Validate Body
+	validateBody(req.body);
 
 	// Set table
 	let post = req.body;
 
 	// Clone object before formatting
 	if (!Array.isArray(post)) {
+
 		post = [post];
+
 	}
 
 	// If ignore duplicate keys is stated as ignore
 	let exec = '';
 	if (req.duplicate_keys && req.duplicate_keys.toString().toLowerCase() === 'ignore') {
+
 		exec = 'IGNORE';
+
 	}
 
 	// Capture keys
 	const fields = [];
 	const prepared = [];
 	const data = post.map(item => {
+
 		const _data = [];
 		for (const prop in item) {
 
@@ -217,36 +257,57 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 			let i = fields.indexOf(prop);
 
 			if (i === -1) {
+
 				i = fields.length;
+
 				fields.push(prop);
+
 			}
 
 			// Insert the value at that position
 			_data[i] = item[prop];
+
 		}
 
 		return _data;
+
 	}).map(_data => {
+
 		// Create prepared values
 		const a = fields.map((prop, index) => {
+
 			if (_data[index] === undefined) {
+
 				return 'DEFAULT';
+
 			}
 			// Add the value to prepared statement list
 			prepared.push(_data[index]);
 
 			// Return the prepared statement placeholder
 			return '?';
+
 		});
 
 		return `(${a.join(',')})`;
+
 	});
+
+	// Get the schema
+	const tableSchema = this.options.schema && this.options.schema[req.table];
+
+	// Format fields
+	const columns = unAliasFieldNames(fields, tableSchema);
+
+	// Options
+	const on_duplicate_keys_update = onDuplicateKeysUpdate(unAliasFieldNames(req.duplicate_keys_update, tableSchema)) || '';
 
 	// Construct a db update
 	const sql = `INSERT ${exec} INTO ${req.table}
-			(${fields.join(',')})
+			(${columns.map(field => `\`${field}\``).join(',')})
 			VALUES
-			${data.join(',')}`;
+			${data.join(',')}
+			${on_duplicate_keys_update}`;
 
 	const resp = await _this.sql(sql, prepared);
 
@@ -255,11 +316,13 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 };
 
 
-// Delete a record
-// @table string
-// @query object
-// @opts object
-// return Promise
+/*
+ * Delete a record
+ * @table string
+ * @query object
+ * @opts object
+ * return Promise
+ */
 Dare.prototype.del = async function del(table, filter, opts = {}) {
 
 	// Get Request Object
@@ -274,14 +337,18 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 
 	// Skip this operation?
 	if (req.skip) {
+
 		return _this.after(req.skip);
+
 	}
 
 	// Clone object before formatting
 	const a = [];
 	const sql_query = req._filter.map(([field, condition, values]) => {
+
 		a.push(...values);
 		return `${field} ${condition}`;
+
 	});
 
 	// Construct a db update
@@ -295,46 +362,127 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 	resp = mustAffectRows(resp);
 
 	return _this.after(resp);
+
 };
 
 
-function clone(obj) {
-	const r = {};
-	for (const x in obj) {
-		r[x] = obj[x];
-	}
-	return r;
-}
+/**
+ * Prepared Set
+ * Prepare a SET assignments used in Patch
+ * @param {object} body - body to format
+ * @param {object} [tableSchema={}] - Schema for the current table
+ * @returns {object} {assignment, preparedValues}
+ */
+function prepareSet(body, tableSchema = {}) {
+
+	const preparedValues = [];
+	const assignments = {};
+
+	for (const label in body) {
+
+		/*
+		 * Assignments
+		 */
+
+		// By default the fieldName is the label of the key.
+		let fieldName = label;
+
+		// Check for aliases of the label
+		const {alias} = getFieldAttributes(tableSchema[label]);
+
+		if (alias) {
+
+			fieldName = alias;
+
+		}
+
+		// Replace value with a question using any mapped fieldName
+		assignments[fieldName] = '?';
 
 
-function prepare(obj) {
+		/*
+		 * Values
+		 */
 
-	const a = [];
+		let value = body[label];
 
-	for (const x in obj) {
+		if (value && typeof value === 'object') {
+
+			value = JSON.stringify(value);
+
+		}
 
 		// Add to the array of items
-		a.push(obj[x]);
+		preparedValues.push(value);
 
-		// Replace with the question
-		obj[x] = '?';
 	}
 
-	return a;
+	return {
+		assignments,
+		preparedValues
+	};
+
 }
 
 function serialize(obj, separator, delimiter) {
+
 	const r = [];
 	for (const x in obj) {
+
 		const val = obj[x];
-		r.push(`${x} ${separator} ${val}`);
+		r.push(`\`${x}\` ${separator} ${val}`);
+
 	}
 	return r.join(` ${delimiter} `);
+
 }
 
 function mustAffectRows(result) {
+
 	if (result.affectedRows === 0) {
+
 		throw new DareError(DareError.NOT_FOUND);
+
 	}
 	return result;
+
+}
+
+function onDuplicateKeysUpdate(keys) {
+
+	if (!keys) {
+
+		return null;
+
+	}
+
+	const s = keys.map(name => `${name}=VALUES(${name})`).join(',');
+
+	return `ON DUPLICATE KEY UPDATE ${s}`;
+
+}
+
+/**
+ * Un-alias field names
+ *
+ * @param {Array|undefined} fields - An array of fields to test
+ * @param {object} [tableSchema={}] - An object containing the table schema
+ * @returns {Array|undefined} An array of the field names containing the unaliased names
+ */
+function unAliasFieldNames(fields, tableSchema = {}) {
+
+	return fields && fields.map(label => {
+
+		const {alias} = getFieldAttributes(tableSchema[label]);
+
+		if (alias) {
+
+			label = alias;
+
+		}
+
+		return label;
+
+	});
+
 }

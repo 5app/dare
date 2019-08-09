@@ -1,4 +1,4 @@
-'use strict';
+
 
 // Test Generic DB functions
 const expectSQLEqual = require('../lib/sql-equal');
@@ -7,13 +7,20 @@ const expectSQLEqual = require('../lib/sql-equal');
 function walk(obj, handler, key = null) {
 
 	if (typeof obj !== 'object') {
+
 		handler(obj, key);
+
 	}
 	else {
+
 		for (const x in obj) {
+
 			walk(obj[x], handler, x);
+
 		}
+
 	}
+
 }
 
 // Create a schema
@@ -26,14 +33,18 @@ describe('get - request object', () => {
 	const limit = 5;
 
 	beforeEach(() => {
+
 		dare = new Dare(options);
+
 	});
 
 	it('should contain the function dare.get', () => {
+
 		expect(dare.get).to.be.a('function');
+
 	});
 
-	it('should generate a SELECT statement and execute dare.sql', async() => {
+	it('should generate a SELECT statement and execute dare.sql', async () => {
 
 		dare.sql = sql => {
 
@@ -56,6 +67,7 @@ describe('get - request object', () => {
 			expectSQLEqual(sql, expected);
 
 			return Promise.resolve([]);
+
 		};
 
 		return dare.get({
@@ -91,14 +103,13 @@ describe('get - request object', () => {
 
 	describe('fields', () => {
 
-		it('should respond with the same structure as the request.fields', async() => {
+		it('should respond with the same structure as the request.fields', async () => {
 
 			dare.sql = () =>
 				Promise.resolve([{
 					name: 'Name',
 					'asset.name': 2001
 				}]);
-
 
 			const resp = await dare.get({
 				table: 'activityEvents',
@@ -109,6 +120,7 @@ describe('get - request object', () => {
 				},
 				fields: [
 					'name',
+					'ref_id',
 					{
 						asset: [
 							'name'
@@ -123,9 +135,10 @@ describe('get - request object', () => {
 			const item = resp[0];
 			expect(item).to.have.property('name');
 			expect(item.asset).to.have.property('name', 2001);
+
 		});
 
-		it('should respond with the same structure as the request.fields', async() => {
+		it('should respond with the same structure as the request.fields', async () => {
 
 			dare.sql = () =>
 				Promise.resolve([{
@@ -156,6 +169,7 @@ describe('get - request object', () => {
 			expect(resp).to.be.an('array');
 
 		});
+
 	});
 
 	describe('filter', () => {
@@ -169,19 +183,21 @@ describe('get - request object', () => {
 				asset: {
 					type: 'mobile'
 				}
-			}
-			].forEach(value => {
+			}].forEach(value => {
 
-				it(`valid: ${JSON.stringify(value)}`, async() => {
+				it(`valid: ${JSON.stringify(value)}`, async () => {
 
 					dare.sql = (sql, prepared) => {
 
 						walk(value, (value, key) => {
+
 							expect(sql).to.contain(key);
 							expect(prepared).to.contain(value);
+
 						});
 
 						return Promise.resolve([]);
+
 					};
 
 					return dare.get({
@@ -196,7 +212,9 @@ describe('get - request object', () => {
 				});
 
 			});
+
 		});
+
 	});
 
 	describe('join conditions', () => {
@@ -257,19 +275,20 @@ describe('get - request object', () => {
 						WHERE a.type = ?
 						LIMIT 5
 					`
-				},
+				}
 
 			].forEach(test => {
 
 				const {join, fields, expected} = test;
 
-				it(`valid: ${JSON.stringify(test.join)}`, async() => {
+				it(`valid: ${JSON.stringify(test.join)}`, async () => {
 
 					dare.sql = sql => {
 
 						expectSQLEqual(sql, expected);
 
 						return Promise.resolve([{}]);
+
 					};
 
 					return dare.get({
@@ -278,12 +297,14 @@ describe('get - request object', () => {
 						join,
 						limit
 					});
+
 				});
 
 			});
+
 		});
 
-		it('should ignore redundant joins', async() => {
+		it('should ignore redundant joins', async () => {
 
 			dare.sql = sql => {
 
@@ -296,6 +317,7 @@ describe('get - request object', () => {
 				expectSQLEqual(sql, expected);
 
 				return Promise.resolve([{}]);
+
 			};
 
 			return dare.get({
@@ -303,9 +325,11 @@ describe('get - request object', () => {
 				fields: [
 					'id'
 				],
-				// This defines the join condition,
-				// But the table asset is redundant
-				// it's neither returning fields, part of the filter, or a required join.
+				/*
+				 * This defines the join condition,
+				 * But the table asset is redundant
+				 * it's neither returning fields, part of the filter, or a required join.
+				 */
 				join: {
 					asset: {
 						type: 'a'
@@ -313,9 +337,10 @@ describe('get - request object', () => {
 				},
 				limit
 			});
+
 		});
 
-		it('should enforce required table joins', async() => {
+		it('should enforce required table joins', async () => {
 
 			dare.sql = sql => {
 
@@ -329,6 +354,7 @@ describe('get - request object', () => {
 				expectSQLEqual(sql, expected);
 
 				return Promise.resolve([{}]);
+
 			};
 
 			return dare.get({
@@ -348,7 +374,7 @@ describe('get - request object', () => {
 
 		});
 
-		it('should enforce required table joins between deep nested tables', async() => {
+		it('should enforce required table joins between deep nested tables', async () => {
 
 			dare.sql = sql => {
 
@@ -365,6 +391,7 @@ describe('get - request object', () => {
 				expectSQLEqual(sql, expected);
 
 				return Promise.resolve([{}]);
+
 			};
 
 			return dare.get({
@@ -390,7 +417,7 @@ describe('get - request object', () => {
 
 	describe('GROUP BY inclusion', () => {
 
-		it('should automatically assign a GROUP BY on a 1:n join', async() => {
+		it('should automatically assign a GROUP BY on a 1:n join', async () => {
 
 			dare.sql = sql => {
 
@@ -406,6 +433,7 @@ describe('get - request object', () => {
 				expectSQLEqual(sql, expected);
 
 				return Promise.resolve([{}]);
+
 			};
 
 			return dare.get({
@@ -418,9 +446,10 @@ describe('get - request object', () => {
 				},
 				limit
 			});
+
 		});
 
-		it('should not automatically assign a GROUP on an 1:n join where there are Aggregate ', async() => {
+		it('should not automatically assign a GROUP on an 1:n join where there are Aggregate ', async () => {
 
 			dare.sql = sql => {
 
@@ -435,6 +464,7 @@ describe('get - request object', () => {
 				expectSQLEqual(sql, expected);
 
 				return Promise.resolve([{}]);
+
 			};
 
 			return dare.get({
@@ -447,12 +477,14 @@ describe('get - request object', () => {
 				},
 				limit
 			});
+
 		});
+
 	});
 
 	describe('generated fields', () => {
 
-		it('should allow bespoke fields to be defined in the schema', async() => {
+		it('should allow bespoke fields to be defined in the schema', async () => {
 
 			// Create handler for 'asset.thumbnail'
 			dare.options = {
@@ -463,22 +495,29 @@ describe('get - request object', () => {
 
 							// Update the current fields array to include any dependencies missing
 							if (fields.indexOf('id') === -1) {
+
 								fields.push('id');
+
 							}
 
 							// Return either a SQL string or a function to run on the response object
 							return obj => `/asset/${obj.id}/thumbnail`;
+
 						}
 					},
 					'picture': {
 						image(fields) {
+
 							// Update the current fields array to include any dependencies missing
 							if (fields.indexOf('id') === -1) {
+
 								fields.push('id');
+
 							}
 
 							// Return either a SQL string or a function to run on the response object
 							return obj => `${this.options.meta.root}/picture/${obj.id}/image`;
+
 						}
 					}
 				}
@@ -519,35 +558,7 @@ describe('get - request object', () => {
 			});
 
 		});
+
 	});
-
-
-	// describe('join_handler', () => {
-
-	// 	it('should throw and error when the request.join_handler returns an empty join condition', done => {
-
-	// 		dare.sql = () => done(new Error('Unexpected call dare.sql'));
-
-	// 		dare.get({
-	// 			table: 'activityEvents',
-	// 			filter: {
-	// 				activitySession : {
-	// 					domain: '5app.com'
-	// 				}
-	// 			},
-	// 			fields: [
-	// 				'created_time'
-	// 			],
-	// 			limit: 100
-	// 		})
-	// 		.then(() => {
-	// 			done(new Error('Should have thrown an error'));
-	// 		}, (err) => {
-	// 			expect(err).to.have.property('message');
-	// 			done();
-	// 		});
-
-	// 	});
-	// });
 
 });

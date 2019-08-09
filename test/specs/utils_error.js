@@ -1,5 +1,7 @@
-// Field Reducer
-// Extract the fields from the current dataset
+/*
+ * Field Reducer
+ * Extract the fields from the current dataset
+ */
 
 const DareError = require('../../src/utils/error');
 
@@ -15,6 +17,8 @@ describe('utils/error', () => {
 		expect(error).to.have.property('code', 'INVALID_REFERENCE');
 		expect(error).to.have.property('status', 500);
 		expect(error).to.have.property('message', 'Invalid request');
+
 	});
+
 });
 

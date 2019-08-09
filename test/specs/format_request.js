@@ -1,7 +1,7 @@
-// Format Request
-// Takes a simple request object and explodes it into a more comprehensive object using the schema
-
-'use strict';
+/*
+ * Format Request
+ * Takes a simple request object and explodes it into a more comprehensive object using the schema
+ */
 
 const error = require('../../src/utils/error');
 
@@ -11,6 +11,7 @@ describe('format_request', () => {
 	const method = 'get';
 
 	beforeEach(() => {
+
 		// Create a new instance
 		dare = new Dare();
 
@@ -18,20 +19,28 @@ describe('format_request', () => {
 		dare = dare.use({
 			schema: {}
 		});
+
 	});
 
 	it('should be defined in instances of Dare', () => {
+
 		expect(dare).to.have.property('format_request');
+
 	});
 
 	it('should return a promise', () => {
-		const fn = dare.format_request().catch(() => {});
+
+		const fn = dare.format_request().catch(() => {
+			// Ignore errors
+		});
+
 		expect(fn).to.have.property('then');
+
 	});
 
 	describe('aliasing', () => {
 
-		it('should call table_alias_handler on the given object and update the table and alias property', async() => {
+		it('should call table_alias_handler on the given object and update the table and alias property', async () => {
 
 			const table = 'alias';
 			const filter = {id: 1};
@@ -62,23 +71,29 @@ describe('format_request', () => {
 
 		});
 
-		it('should throw an error if falsly on root table', async() => {
+		it('should throw an error if falsly on root table', async () => {
 
 			dare.table_alias_handler = () => (false);
 
 			try {
+
 				await dare.format_request({
 					table: 'private',
 					fields: ['id']
 				});
 
 				throw new Error('expected fail');
+
 			}
 			catch (err) {
+
 				expect(err.code).to.eql(error.INVALID_REFERENCE);
 				expect(err).to.have.property('message');
+
 			}
+
 		});
+
 	});
 
 	describe('fields', () => {
@@ -88,11 +103,13 @@ describe('format_request', () => {
 		};
 
 		beforeEach(() => {
+
 			dare.options = {
 				schema: {
 					'asset': {tbl_id: 'tbl.id'}
 				}
 			};
+
 		});
 
 		describe('should accept', () => {
@@ -109,13 +126,10 @@ describe('format_request', () => {
 				{'asset': ['field']}
 			].forEach(fields => {
 
-				it(`valid: ${JSON.stringify(fields)}`, async() => {
-
-					return dare.format_request(Object.assign({}, options, {fields}));
-
-				});
+				it(`valid: ${JSON.stringify(fields)}`, async () => dare.format_request(Object.assign({}, options, {fields})));
 
 			});
+
 		});
 
 		describe('should throw error', () => {
@@ -131,20 +145,26 @@ describe('format_request', () => {
 				[{'asset': ['DATE(id)']}]
 			].forEach(fields => {
 
-				it(`invalid: ${ JSON.stringify(fields)}`, async() => {
+				it(`invalid: ${JSON.stringify(fields)}`, async () => {
 
 					try {
+
 						await dare.format_request(Object.assign({}, options, {fields}));
 
 						throw new Error('expected failure');
+
 					}
 					catch (err) {
+
 						expect(err.code).to.eql(error.INVALID_REFERENCE);
 						expect(err).to.have.property('message');
+
 					}
 
 				});
+
 			});
+
 		});
 
 		describe('should generate joins where the field definition contains table names', () => {
@@ -156,18 +176,21 @@ describe('format_request', () => {
 				}],
 				[{
 					'Field': 'COUNT(DISTINCT asset.field)'
-				}],
+				}]
 			].forEach(fields => {
 
-				it(`where ${JSON.stringify(fields)}`, async() => {
+				it(`where ${JSON.stringify(fields)}`, async () => {
 
 					const req = await dare.format_request(Object.assign({}, options, {fields}));
 
 					expect(req._joins[0]).to.have.property('alias', 'asset');
 
 				});
+
 			});
+
 		});
+
 	});
 
 	describe('limiting', () => {
@@ -181,35 +204,83 @@ describe('format_request', () => {
 
 			describe('should accept', () => {
 
-				['90', 90, '99', 1, 10000].forEach(limit => {
+				['90', 90, '99', 1, 10000001].forEach(limit => {
 
-					it(`valid: ${ limit } (${ typeof limit })`, async() => {
-
-						return dare.format_request(Object.assign({}, options, {limit}));
-
-					});
+					it(`valid: ${limit} (${typeof limit})`, async () => dare.format_request(Object.assign({}, options, {limit})));
 
 				});
+
 			});
 
-			describe('should ignore', () => {
+			describe('should throw an exception', () => {
 
-				['nonsense', 0, -1, 10001, NaN, {}, null].forEach(limit => {
+				['nonsense', 0, -1, NaN, {}, null].forEach(limit => {
 
-					it(`invalid: ${ limit } (${ typeof limit })`, async() => {
+					it(`invalid: ${limit} (${typeof limit})`, async () => {
 
 						try {
+
 							await dare.format_request(Object.assign({}, options, {limit}));
+							throw new Error('should not get here');
+
 						}
 						catch (err) {
+
 							expect(err.code).to.eql(error.INVALID_LIMIT);
 							expect(err).to.have.property('message');
+
 						}
 
 					});
 
 				});
+
 			});
+
+			describe('has a configurable max_limit', () => {
+
+				const limit = 20000;
+
+				it('set dare.max_limit = 20000', async () => {
+
+					// Create another instance
+					const _dare = dare.use();
+
+					expect(dare.MAX_LIMIT).to.eql(null);
+					expect(_dare.MAX_LIMIT).to.eql(null);
+
+					// Update instance length
+					_dare.MAX_LIMIT = limit;
+					expect(dare.MAX_LIMIT).to.eql(null);
+					expect(_dare.MAX_LIMIT).to.eql(limit);
+
+					return _dare.format_request(Object.assign({}, options, {limit}));
+
+				});
+
+
+				it('should throw an error if limit is above MAX_LIMIT', async () => {
+
+					// Update the length
+					dare.MAX_LIMIT = limit - 1;
+
+					try {
+
+						await dare.format_request(Object.assign({}, options, {limit}));
+						throw new Error('should not get here');
+
+					}
+					catch (err) {
+
+						expect(err.code).to.eql(error.INVALID_LIMIT);
+						expect(err).to.have.property('message');
+
+					}
+
+				});
+
+			});
+
 		});
 
 		describe('start', () => {
@@ -218,34 +289,37 @@ describe('format_request', () => {
 
 				['90', 90, '99', 1].forEach(start => {
 
-					it(`valid: ${ start } (${ typeof start })`, async() => {
-
-						return dare.format_request(Object.assign({}, options, {start}));
-
-					});
+					it(`valid: ${start} (${typeof start})`, async () => dare.format_request(Object.assign({}, options, {start})));
 
 				});
+
 			});
 
 			describe('should ignore', () => {
 
 				['nonsense', -1, NaN, {}, null].forEach(start => {
 
-					it(`invalid: ${ start } (${ typeof start })`, async() => {
+					it(`invalid: ${start} (${typeof start})`, async () => {
 
 						try {
+
 							await dare.format_request(Object.assign({}, options, {start}));
 							throw new Error('expected failure');
+
 						}
 						catch (err) {
+
 							expect(err.code).to.eql(error.INVALID_START);
 							expect(err).to.have.property('message');
+
 						}
 
 					});
 
 				});
+
 			});
+
 		});
 
 	});
@@ -257,7 +331,7 @@ describe('format_request', () => {
 
 			['table.field', 'DATE(table.created_time)', 'EXTRACT(YEAR_MONTH FROM table.created_time)'].forEach(groupby => {
 
-				it(`valid: ${ groupby } (${ typeof groupby })`, async() => {
+				it(`valid: ${groupby} (${typeof groupby})`, async () => {
 
 					const resp = await dare.format_request({
 						table: 'table',
@@ -266,47 +340,56 @@ describe('format_request', () => {
 					});
 
 					expect(resp.groupby).to.eql([groupby]);
+
 				});
 
 			});
+
 		});
 
 		describe('should throw an error, when:', () => {
 
 			[-1, 101, {}, 'parenthisis(snap', '; ', 'SUM(SE-LECT 1)'].forEach(groupby => {
 
-				it(`invalid: ${ groupby } (${ typeof groupby })`, async() => {
+				it(`invalid: ${groupby} (${typeof groupby})`, async () => {
 
 					try {
+
 						await dare.format_request({
 							table: 'table',
 							fields: ['id'],
 							groupby
 						});
 						throw new Error('expected failure');
+
 					}
 					catch (err) {
+
 						expect(err.code).to.eql(error.INVALID_REFERENCE);
 						expect(err).to.have.property('message');
+
 					}
+
 				});
+
 			});
+
 		});
 
 		describe('should ignore falsy values:', () => {
 
 			[NaN, null, 0, undefined].forEach(groupby => {
 
-				it(`ignores: ${ groupby } (${ typeof groupby })`, async() => {
+				it(`ignores: ${groupby} (${typeof groupby})`, async () => dare.format_request({
+					table: 'table',
+					fields: ['id'],
+					groupby
+				}));
 
-					return dare.format_request({
-						table: 'table',
-						fields: ['id'],
-						groupby
-					});
-				});
 			});
+
 		});
+
 	});
 
 
@@ -324,19 +407,17 @@ describe('format_request', () => {
 				['name ASC'],
 				['table.name ASC'],
 				['DATE(created_time) DESC', 'name ASC'],
-				['DATE(table.created_time) DESC', 'table.name ASC'],
+				['DATE(table.created_time) DESC', 'table.name ASC']
 			].forEach(orderby => {
 
-				it(`valid: ${ orderby } (${ typeof orderby })`, async() => {
-
-					return dare.format_request({
-						table: 'table',
-						fields: ['id'],
-						orderby
-					});
-				});
+				it(`valid: ${orderby} (${typeof orderby})`, async () => dare.format_request({
+					table: 'table',
+					fields: ['id'],
+					orderby
+				}));
 
 			});
+
 		});
 
 		describe('should throw an error', () => {
@@ -350,20 +431,25 @@ describe('format_request', () => {
 				['name ASC', 'id WEST']
 			].forEach(orderby => {
 
-				it(`invalid: ${ orderby } (${ typeof orderby })`, async() => {
+				it(`invalid: ${orderby} (${typeof orderby})`, async () => {
 
 					try {
+
 						await dare.format_request({
 							table: 'table',
 							fields: ['id'],
 							orderby
 						});
 						throw new Error('exepected failure');
+
 					}
 					catch (err) {
+
 						expect(err.code).to.eql(error.INVALID_REFERENCE);
 						expect(err).to.have.property('message');
+
 					}
+
 				});
 
 			});
@@ -375,16 +461,16 @@ describe('format_request', () => {
 
 			[NaN, null, 0, undefined].forEach(orderby => {
 
-				it(`ignores: ${ orderby } (${ typeof orderby })`, async() => {
+				it(`ignores: ${orderby} (${typeof orderby})`, async () => dare.format_request({
+					table: 'table',
+					fields: ['id'],
+					orderby
+				}));
 
-					return dare.format_request({
-						table: 'table',
-						fields: ['id'],
-						orderby
-					});
-				});
 			});
+
 		});
+
 	});
 
 	['filter', 'join'].forEach(condition_type => {
@@ -396,6 +482,7 @@ describe('format_request', () => {
 				const table = 'table';
 
 				beforeEach(() => {
+
 					dare.options = {
 						schema: {
 							[table]: {
@@ -405,6 +492,7 @@ describe('format_request', () => {
 							}
 						}
 					};
+
 				});
 
 				const a = [
@@ -471,14 +559,26 @@ describe('format_request', () => {
 					[
 						{prop: [1, null, 2]},
 						'prop',
-						'(?? IN (?,?) OR ?? IS NULL)',
+						'($$ IN (?,?) OR $$ IS NULL)',
 						[1, 2]
 					],
 					[
 						{'-prop': [1, null, 2]},
 						'prop',
-						'(?? NOT IN (?,?) AND ?? IS NOT NULL)',
+						'($$ NOT IN (?,?) AND $$ IS NOT NULL)',
 						[1, 2]
+					],
+					[
+						{prop: [1, 2, null, 'test%', 'test2%']},
+						'prop',
+						'($$ IN (?,?) OR $$ IS NULL OR $$ LIKE ? OR $$ LIKE ?)',
+						[1, 2, 'test%', 'test2%']
+					],
+					[
+						{'-prop': [1, 2, null, 'test%', 'test2%']},
+						'prop',
+						'($$ NOT IN (?,?) AND $$ IS NOT NULL AND $$ NOT LIKE ? AND $$ NOT LIKE ?)',
+						[1, 2, 'test%', 'test2%']
 					],
 					[
 						{prop: [null]},
@@ -519,8 +619,26 @@ describe('format_request', () => {
 					[
 						{'-date': '1981-12-05..'},
 						'date',
-						'(NOT ?? > ? OR ?? IS NULL)',
+						'(NOT $$ > ? OR $$ IS NULL)',
 						['1981-12-05T00:00:00']
+					],
+					[
+						{'prop': '..DATE_SUB(1981-12-05T00:00:00, interval 30 day)'},
+						'prop',
+						'$$ < DATE_SUB(?, interval 30 day)',
+						['1981-12-05T00:00:00']
+					],
+					[
+						{'prop': 'DATE_SUB(1981-12-05T00:00:00, interval 30 day)..'},
+						'prop',
+						'$$ > DATE_SUB(?, interval 30 day)',
+						['1981-12-05T00:00:00']
+					],
+					[
+						{'prop': 'DATE_SUB(1981-12-05T00:00:00, interval 30 day)..DATE_SUB(1981-12-05T00:00:00, interval 90 day)'},
+						'prop',
+						'BETWEEN DATE_SUB(?, interval 30 day) AND DATE_SUB(?, interval 90 day)',
+						['1981-12-05T00:00:00', '1981-12-05T00:00:00']
 					]
 				];
 
@@ -528,7 +646,7 @@ describe('format_request', () => {
 
 					const [filter, prop, condition, values] = test;
 
-					it(`should transform condition ${JSON.stringify(filter)} -> ${JSON.stringify(condition)}`, async() => {
+					it(`should transform condition ${JSON.stringify(filter)} -> ${JSON.stringify(condition)}`, async () => {
 
 						const resp = await dare.format_request({
 							table,
@@ -537,7 +655,9 @@ describe('format_request', () => {
 						});
 
 						expect(resp[`_${condition_type}`][0]).to.eql([prop, condition, values]);
+
 					});
+
 				});
 
 			});
@@ -561,23 +681,29 @@ describe('format_request', () => {
 					}
 				].forEach(filter => {
 
-					it(`invalid: ${JSON.stringify(filter)}`, async() => {
+					it(`invalid: ${JSON.stringify(filter)}`, async () => {
 
 						try {
+
 							await dare.format_request({
 								table: 'activityEvents',
 								fields: ['id'],
 								[condition_type]: filter
 							});
 							throw new Error('expected failure');
+
 						}
 						catch (err) {
+
 							expect(err.code).to.eql(error.INVALID_REFERENCE);
 							expect(err).to.have.property('message');
+
 						}
 
 					});
+
 				});
+
 			});
 
 			describe('field type=datetime', () => {
@@ -598,11 +724,11 @@ describe('format_request', () => {
 						['1981-12-05T00:00:00', '1981-12-06T23:59:59']
 					],
 					'1981-12-05..': [
-						'?? > ?',
+						'$$ > ?',
 						['1981-12-05T00:00:00']
 					],
 					'..1981-12-05': [
-						'?? < ?',
+						'$$ < ?',
 						['1981-12-05T00:00:00']
 					],
 					'1981-12': [
@@ -623,7 +749,7 @@ describe('format_request', () => {
 
 					const [condition, values] = o[date];
 
-					it(`should augment filter values ${date}`, async() => {
+					it(`should augment filter values ${date}`, async () => {
 
 						dare.options = {
 							schema: {
@@ -644,8 +770,11 @@ describe('format_request', () => {
 						});
 
 						expect(resp[`_${condition_type}`][0]).to.eql(['date', condition, values]);
+
 					});
+
 				}
+
 			});
 
 		});
@@ -660,11 +789,11 @@ describe('format_request', () => {
 			},
 			events: {
 				asset_id: 'asset.id'
-			},
+			}
 		};
 
 
-		it('should use options.table_alias_handler for interpretting the table names', async() => {
+		it('should use options.table_alias_handler for interpretting the table names', async () => {
 
 			dare.options = {
 				schema
@@ -688,7 +817,7 @@ describe('format_request', () => {
 
 		});
 
-		it('should use the options.table_alias hash if no handler is defined', async() => {
+		it('should use the options.table_alias hash if no handler is defined', async () => {
 
 			dare.options = {
 				schema,
@@ -716,7 +845,7 @@ describe('format_request', () => {
 
 		describe('Permittable tables: table_alias returns falsly', () => {
 
-			it('should throw an error if falsly on join table', async() => {
+			it('should throw an error if falsly on join table', async () => {
 
 				dare.options = {
 					schema
@@ -725,6 +854,7 @@ describe('format_request', () => {
 				dare.table_alias_handler = table_alias => ({'public': 'public'}[table_alias]);
 
 				try {
+
 					await dare.format_request({
 						table: 'public',
 						fields: [
@@ -735,19 +865,25 @@ describe('format_request', () => {
 					});
 
 					throw new Error('expected failure');
+
 				}
 				catch (err) {
+
 					expect(err.code).to.eql(error.INVALID_REFERENCE);
 					expect(err).to.have.property('message');
+
 				}
+
 			});
+
 		});
+
 	});
 
 
 	describe('scheme', () => {
 
-		it('should throw an error when there are two tables with an undefined relationship', async() => {
+		it('should throw an error when there are two tables with an undefined relationship', async () => {
 
 			// Redefine the structure
 			dare.options = {
@@ -759,6 +895,7 @@ describe('format_request', () => {
 
 			// The table country has no relationship with assets
 			try {
+
 				await dare.format_request({
 					table: 'asset',
 					fields: [
@@ -769,15 +906,18 @@ describe('format_request', () => {
 					]
 				});
 				throw new Error('expected failure');
+
 			}
 			catch (err) {
+
 				expect(err.code).to.eql(error.INVALID_REFERENCE);
 				expect(err).to.have.property('message', 'Could not understand field \'comments\'');
+
 			}
 
 		});
 
-		it('should understand options.schema which defines table structure which reference other tables.', async() => {
+		it('should understand options.schema which defines table structure which reference other tables.', async () => {
 
 			// Redefine the structure
 			dare.options = {
@@ -805,14 +945,14 @@ describe('format_request', () => {
 
 		});
 
-		it('should understand multiple References, and pick the appropriate one.', async() => {
+		it('should understand multiple References, and pick the appropriate one.', async () => {
 
 			// Redefine the structure
 			dare.options = {
 				schema: {
 					asset: {name: {}},
 					assetType: {
-						// references can be as simple as a string to another [table].[field]
+						// References can be as simple as a string to another [table].[field]
 						asset_id: 'asset.id'
 					},
 					comments: {
@@ -841,13 +981,13 @@ describe('format_request', () => {
 
 		});
 
-		it('should allow simple descriptions of deep links', async() => {
+		it('should allow simple descriptions of deep links', async () => {
 
 			// Here the schema is a series of tables a street, belongs to 1 town and in return 1 country
 			dare.options = {
 				schema: {
 					street: {
-						// references can be as simple as a string to another [table].[field]
+						// References can be as simple as a string to another [table].[field]
 						town_id: 'town.id'
 					},
 					town: {
@@ -857,9 +997,11 @@ describe('format_request', () => {
 				}
 			};
 
-			// If we just wanted the street name and country
-			// The app should understand the relationship between street and country
-			// and join up the town automatically in the SQL
+			/*
+			 * If we just wanted the street name and country
+			 * The app should understand the relationship between street and country
+			 * and join up the town automatically in the SQL
+			 */
 			return dare.format_request({
 				table: 'street',
 				fields: [
@@ -876,7 +1018,7 @@ describe('format_request', () => {
 
 	describe('table conditional dependencies', () => {
 
-		it('should automatically require join another table', async() => {
+		it('should automatically require join another table', async () => {
 
 			dare.options = {
 				schema: {
@@ -901,24 +1043,29 @@ describe('format_request', () => {
 			const join = resp._joins[0];
 			expect(join).to.have.property('table', 'userDomain');
 			expect(join).to.have.property('required_join', true);
+
 		});
 
 	});
 
 	describe('method table handlers', () => {
 
-		it('should pass through exceptions raised in the method handlers', async() => {
+		it('should pass through exceptions raised in the method handlers', async () => {
+
 			const msg = 'snap';
 			dare.options = {
 				get: {
 					users() {
+
 						throw Error(msg);
+
 					}
 				},
 				method: 'get'
 			};
 
 			try {
+
 				await dare.format_request({
 					method,
 					table: 'users',
@@ -927,13 +1074,17 @@ describe('format_request', () => {
 					]
 				});
 				throw new Error('expected failure');
+
 			}
 			catch (err) {
+
 				expect(err.message).to.eql(msg);
+
 			}
+
 		});
 
-		it('should pass through the table scoped request', async() => {
+		it('should pass through the table scoped request', async () => {
 
 			dare.options = {
 				get: {
@@ -961,7 +1112,7 @@ describe('format_request', () => {
 
 		});
 
-		it('should append parent through the table scoped request', async() => {
+		it('should append parent through the table scoped request', async () => {
 
 			const removed = {removed: false};
 
@@ -974,27 +1125,36 @@ describe('format_request', () => {
 				},
 				get: {
 					users(options) {
+
 						// Add a filter to users to only show user who haven't been removed
 						options.filter = removed;
+
 					},
 					comments(options) {
 
-						// We show comments if the user hasn't been deleted
-						// But if the parent table is users this sould be superfluous
-						// So let's check the parent table name...
+						/*
+						 * We show comments if the user hasn't been deleted
+						 * But if the parent table is users this sould be superfluous
+						 * So let's check the parent table name...
+						 */
 						if (!options.parent || options.parent.table !== 'users') {
+
 							// Enforce join on the User,
 							options.filter = {
 								users: removed
 							};
+
 						}
+
 					}
 				},
 				method
 			};
 
-			// Test 1
-			// Enforcing user table join
+			/*
+			 * Test 1
+			 * Enforcing user table join
+			 */
 			const comments = await dare.format_request({
 				method,
 				table: 'comments',
@@ -1005,8 +1165,10 @@ describe('format_request', () => {
 
 			expect(comments.filter).to.eql({users: removed});
 
-			// Test 2
-			// Adding comments
+			/*
+			 * Test 2
+			 * Adding comments
+			 */
 			const users = await dare.format_request({
 				method,
 				table: 'users',
@@ -1023,20 +1185,25 @@ describe('format_request', () => {
 
 		});
 
-		it('should await the response from a promise', async() => {
+		it('should await the response from a promise', async () => {
 
 			dare.options = {
 				get: {
 					users() {
+
 						return new Promise((resolve, reject) => {
+
 							setTimeout(() => reject(Error('snap')));
+
 						});
+
 					}
 				},
 				method: 'get'
 			};
 
 			try {
+
 				await dare.format_request({
 					method,
 					table: 'users',
@@ -1045,12 +1212,16 @@ describe('format_request', () => {
 					]
 				});
 				throw new Error('expected failure');
+
 			}
 			catch (err) {
+
 				expect(err.message).to.eql('snap');
+
 			}
 
 		});
+
 	});
 
 });
