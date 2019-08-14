@@ -2,9 +2,7 @@ const unwrap_expression = require('./unwrap_field');
 
 module.exports = function field_format(original, label, table_prefix, label_prefix) {
 
-	const m = unwrap_expression(original);
-
-	const {field, prefix, suffix} = m;
+	const {field, prefix, suffix} = unwrap_expression(original);
 
 	// Split it...
 	const a = field.split('.');
