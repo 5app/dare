@@ -1,13 +1,13 @@
 {
   "name": "dare",
-  "version": "0.31.4",
+  "version": "0.32.0",
   "description": "Database to REST, REST to Database",
   "main": "src/index.js",
   "engines": {
     "node": ">=8.0.0"
   },
   "scripts": {
-    "test": "npm run lint && npm run spec && (nyc report --reporter=text-lcov | coveralls)",
+    "test": "npm run lint && npm run spec && ((nyc report --reporter=text-lcov | coveralls) || exit 0)",
     "test:ci": "eslint ./ && nyc mocha test/specs/**/*.js --reporter mocha-circleci-reporter && (nyc report --reporter=text-lcov | coveralls)",
     "spec": "nyc mocha test/specs/**/*.js",
     "semantic-release": "semantic-release",
@@ -40,19 +40,19 @@
     "src/"
   ],
   "devDependencies": {
-    "@semantic-release/changelog": "^3.0.2",
-    "@semantic-release/git": "^7.0.8",
+    "@semantic-release/changelog": "^3.0.4",
+    "@semantic-release/git": "^7.0.14",
     "chai": "^4.2.0",
-    "coveralls": "^3.0.3",
-    "eslint": "^5.16.0",
-    "eslint-config-5app": "^0.6.2",
-    "eslint-plugin-promise": "^4.1.1",
+    "coveralls": "^3.0.4",
+    "eslint": "^6.0.1",
+    "eslint-config-5app": "^0.6.5",
+    "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-security": "^1.4.0",
     "mocha": "^6.1.4",
     "mocha-circleci-reporter": "0.0.3",
     "nyc": "^14.0.0",
     "pre-commit": "^1.2.2",
-    "semantic-release": "^15.13.12"
+    "semantic-release": "^15.13.18"
   },
   "dependencies": {},
   "release": {

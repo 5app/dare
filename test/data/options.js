@@ -2,9 +2,17 @@ module.exports = {
 	schema: {
 		// Users table
 		users: {
-			country_id: {
-				references: 'country.id'
-			}
+			/*
+			 * Field alias
+			 * The DB schema defines `email` however our business requires that we can alias it as emailAddress
+			 */
+			emailAddress: 'email',
+
+			/*
+			 * Field reference
+			 * The users.country_id references the country.id column, this is used for making joins
+			 */
+			country_id: 'country.id'
 		},
 
 		// Users have multiple emails
@@ -30,9 +38,7 @@ module.exports = {
 			session_id: {
 				references: 'activitySession.id'
 			},
-			ref_id: {
-				references: 'apps.id'
-			}
+			ref_id: 'apps.id'
 		},
 
 		apps: {

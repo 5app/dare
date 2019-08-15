@@ -69,6 +69,7 @@
 		"prefer-named-capture-group": 0,
 		"prefer-object-spread": 0,
 		"prefer-promise-reject-errors": 2,
+		"require-atomic-updates": 0,
 		"require-await": 0,
 		"require-unicode-regexp": 0,
 		"sort-keys": 0,

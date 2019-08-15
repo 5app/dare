@@ -58,7 +58,7 @@ npm i dare --save
 Create an instance of Dare with some options
 
 ```javascript
-const Dare = reqire('dare');
+const Dare = require('dare');
 
 const options = {
 	schema
@@ -79,10 +79,11 @@ The `options` themselves are a set of properties used to interpret and manipulat
 The schema is used to define the structure of your SQL database. You can refer to it as `options.schema`. It's each property in the schema pertains to a database table. And defines the fields within the table.
 
 e.g.
+
 ```javascript
 {
-	users: {Field Definition's,...},
-	country: {Field Definition's,...}
+	users: {Field Definitions, ...},
+	country: {Field Definitions, ...}
 }
 ```
 
@@ -118,7 +119,7 @@ Defining the `type` introduces additional features.
 
 *currently this is limited to datetime*
 
-E.g. in the example the type is defined as 'datetime', a conditional filter short hand for `created_time: 2017` would be expanded too `created_time BETWEEN '2017-01-01T00:00:00' AND '2017-12-31T23:59:59'
+E.g. in the example the type is defined as 'datetime', a conditional filter short hand for `created_time: 2017` would be expanded too `created_time BETWEEN '2017-01-01T00:00:00' AND '2017-12-31T23:59:59`
 
 ```javascript
     ...
@@ -141,7 +142,7 @@ This will manipulate the request and response to create the property `avatar_url
 
 ```javascript
     ...
-	schema : {
+	schema: {
 		users: {
 			avatar_url(fields) {
 
@@ -153,6 +154,26 @@ This will manipulate the request and response to create the property `avatar_url
     ...
 ```
 
+#### field alias
+
+To alias a field, so that you can use a name different to the db column name, assign it a string name of the field in the current table. e.g. `emailAddress: 'email'`
+
+
+```javascript
+    ...
+	schema: {
+		users: {
+			emailAddress: 'email'
+		},
+    ...
+```
+
+For example this will allow us to use the alias `emailAddress` in our api (see below), but the SQL generated will refer to it with it's true field name "`email`".
+
+```javascript
+dare.get('users', ['emailAddress'], {emailAddress: 'andrew@%'});
+// SELECT email AS emailAddress FROM users WHERE email LIKE 'andrew@%'
+```
 
 
 
@@ -413,18 +434,42 @@ Alternatively a options Object can be used instead.
 e.g.
 
 ```javascript
-dare.get({
-	table: 'users',
-	body: {name: 'Andrew', profession: 'Mad scientist'}
+dare.post({
+	table: 'user',
+	body: {
+		name: 'Andrew',
+		profession: 'Mad scientist'
+	}
+});
+
+```
+
+## dare.post(options Object) with multiple values
+
+The body can be an Array of objects.
+
+e.g.
+
+```javascript
+dare.post({
+	table: 'user',
+	body: [{
+		name: 'Andrew',
+		profession: 'Mad scientist'
+	}, {
+		name: 'Peppa'
+	}]
 });
 ```
 
-### Post options
+This generates `INSERT INTO user (name, profession) VALUES ('Andrew', 'Mad Scientist'), ('Peppa', DEFAULT)`. Note where the key's differ between items in the Array the `DEFAULT` value is inserted instead. 
+
+### Post options (additional)
 
 | Prop          | Type             | Description
 |---------------|------------------|----------------
-| duplicate_key | 'ignore'         | Inserts SQL 'IGNORE' option
-| duplicate_keys_update | Array(field1, field2, ...) | Appends ON DUPLICATE KEYS UPDATE field1=VALUES(field1)
+| duplicate_keys | 'ignore'         | Inserts SQL 'IGNORE' option
+| duplicate_keys_update | Array(field1, field2, ...) | Appends `ON DUPLICATE KEYS UPDATE field1=VALUES(field1)`
 
 
 
@@ -545,30 +590,31 @@ E.g. here is an example using the before handlers to capture the original value 
 ```javascript
 ...
 patch: {
-	users(options) {
+	async users(options) {
 
-		// Clone the request, and add fields to query
-		const opts = Object.assign(
-			{},
-			options,
-			{fields: ['id', 'name']}
-		);
+		/**
+		 * Check that the data to be modified
+		 * By using the options to construct a SELECT request first
+		 */
 
-		return dare.get(opts).then(resp => {
+		// Clonse the options
+		const opts = {
+			...options,
+			fields: ['id', 'name']
+		};
 
-			const previous_name = resp.name;
-			const ref_id = resp.id;
+		// Execute a dare.get with the cloned options
+		const {id: ref_id, name: previous_name} = await dare.get(opts);
 
-			// Set the after handler
-			this.after = () => {
-				dare.post('changelog', {
-					message: 'User updated',
-					type: 'users',
-					ref_id,
-					previous_name
-				})
-			};
-		});
+		// Set the after handler
+		this.after = () => {
+			dare.post('changelog', {
+				message: 'User updated',
+				type: 'users',
+				ref_id,
+				previous_name
+			})
+		};
 	}
 }
 ...

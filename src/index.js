@@ -8,6 +8,8 @@ const promisify = require('./utils/promisify');
 
 const validateBody = require('./utils/validate_body');
 
+const getFieldAttributes = require('./utils/field_attributes');
+
 module.exports = Dare;
 
 function Dare(options) {
@@ -163,16 +165,16 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	// Validate Body
 	validateBody(req.body);
 
-	// Clone
-	const post = clone(req.body);
+	// Get the schema
+	const tableSchema = this.options.schema && this.options.schema[req.table];
 
 	// Prepare post
-	const a = prepare(post);
+	const {assignments, preparedValues} = prepareSet(req.body, tableSchema);
 
 	// Prepare query
 	const sql_query = req._filter.map(([field, condition, values]) => {
 
-		a.push(...values);
+		preparedValues.push(...values);
 		return `${field} ${condition}`;
 
 	});
@@ -180,12 +182,12 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	// Construct a db update
 	const sql = `UPDATE ${req.table}
 			SET
-				${serialize(post, '=', ',')}
+				${serialize(assignments, '=', ',')}
 			WHERE
 				${sql_query.join(' AND ')}
 			LIMIT ${req.limit}`;
 
-	let resp = await this.sql(sql, a);
+	let resp = await this.sql(sql, preparedValues);
 
 	resp = mustAffectRows(resp);
 
@@ -257,6 +259,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 			if (i === -1) {
 
 				i = fields.length;
+
 				fields.push(prop);
 
 			}
@@ -290,12 +293,18 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 
 	});
 
+	// Get the schema
+	const tableSchema = this.options.schema && this.options.schema[req.table];
+
+	// Format fields
+	const columns = unAliasFieldNames(fields, tableSchema);
+
 	// Options
-	const on_duplicate_keys_update = onDuplicateKeysUpdate(req.duplicate_keys_update) || '';
+	const on_duplicate_keys_update = onDuplicateKeysUpdate(unAliasFieldNames(req.duplicate_keys_update, tableSchema)) || '';
 
 	// Construct a db update
 	const sql = `INSERT ${exec} INTO ${req.table}
-			(${fields.map(field => `\`${field}\``).join(',')})
+			(${columns.map(field => `\`${field}\``).join(',')})
 			VALUES
 			${data.join(',')}
 			${on_duplicate_keys_update}`;
@@ -357,40 +366,61 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 };
 
 
-function clone(obj) {
+/**
+ * Prepared Set
+ * Prepare a SET assignments used in Patch
+ * @param {object} body - body to format
+ * @param {object} [tableSchema={}] - Schema for the current table
+ * @returns {object} {assignment, preparedValues}
+ */
+function prepareSet(body, tableSchema = {}) {
 
-	const r = {};
-	for (const x in obj) {
+	const preparedValues = [];
+	const assignments = {};
 
-		r[x] = obj[x];
+	for (const label in body) {
 
-	}
-	return r;
+		/*
+		 * Assignments
+		 */
 
-}
+		// By default the fieldName is the label of the key.
+		let fieldName = label;
+
+		// Check for aliases of the label
+		const {alias} = getFieldAttributes(tableSchema[label]);
+
+		if (alias) {
+
+			fieldName = alias;
+
+		}
+
+		// Replace value with a question using any mapped fieldName
+		assignments[fieldName] = '?';
 
 
-function prepare(obj) {
+		/*
+		 * Values
+		 */
 
-	const a = [];
+		let value = body[label];
 
-	for (const x in obj) {
+		if (value && typeof value === 'object') {
 
-		if (obj[x] && typeof obj[x] === 'object') {
-
-			obj[x] = JSON.stringify(obj[x]);
+			value = JSON.stringify(value);
 
 		}
 
 		// Add to the array of items
-		a.push(obj[x]);
-
-		// Replace with the question
-		obj[x] = '?';
+		preparedValues.push(value);
 
 	}
 
-	return a;
+	return {
+		assignments,
+		preparedValues
+	};
 
 }
 
@@ -429,5 +459,30 @@ function onDuplicateKeysUpdate(keys) {
 	const s = keys.map(name => `${name}=VALUES(${name})`).join(',');
 
 	return `ON DUPLICATE KEY UPDATE ${s}`;
+
+}
+
+/**
+ * Un-alias field names
+ *
+ * @param {Array|undefined} fields - An array of fields to test
+ * @param {object} [tableSchema={}] - An object containing the table schema
+ * @returns {Array|undefined} An array of the field names containing the unaliased names
+ */
+function unAliasFieldNames(fields, tableSchema = {}) {
+
+	return fields && fields.map(label => {
+
+		const {alias} = getFieldAttributes(tableSchema[label]);
+
+		if (alias) {
+
+			label = alias;
+
+		}
+
+		return label;
+
+	});
 
 }
