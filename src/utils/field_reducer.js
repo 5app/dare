@@ -151,7 +151,7 @@ function fieldMapping(field, label, tableSchema, fieldsArray) {
 	const {field_name, prefix, suffix} = checkFormat(field);
 
 	// Get the schema entry for the field
-	const {handler, alias} = getFieldAttributes(tableSchema[field_name]);
+	const {handler, alias, type} = getFieldAttributes(tableSchema[field_name]);
 
 	// Does this field have a handler in the schema
 	if (handler) {
@@ -164,17 +164,23 @@ function fieldMapping(field, label, tableSchema, fieldsArray) {
 	}
 
 	// Does the field map to another key name...
-	else if (alias) {
+	if (alias) {
 
 		// Use the original name, defined by the key_definition
-		return {
-			[label]: rewrap_field(alias, prefix, suffix)
-		};
+		field = rewrap_field(alias, prefix, suffix);
+
+	}
+
+
+	// Default format datetime field as an ISO string...
+	if (type === 'datetime' && !prefix) {
+
+		field = `DATE_FORMAT(${field},'%Y-%m-%dT%TZ')`;
 
 	}
 
 	// If this is a object-field definition
-	else if (isObj) {
+	if (isObj || label !== field) {
 
 		// Add the field to the array
 		return {
