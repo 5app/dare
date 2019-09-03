@@ -143,6 +143,53 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 
 };
 
+
+Dare.prototype.getCount = async function getCount(table, fields, filter, opts = {}) {
+
+	// Get Request Object
+	if (typeof table === 'object') {
+
+		opts = table;
+
+	}
+	else {
+
+		// Shuffle
+		if (typeof fields === 'object' && !Array.isArray(fields)) {
+
+			// Fields must be defined
+			throw new DareError(DareError.INVALID_REQUEST);
+
+		}
+
+		opts = Object.assign(opts, {table, fields, filter});
+
+	}
+
+	// Define method
+	opts.method = 'get';
+
+	// Replace the fields...
+	opts.fields = [{count: `COUNT(DISTINCT ${opts.groupby || 'id'})`}];
+
+	// Remove the groupby
+	opts.groupby = null;
+
+	// Remove the limit
+	opts.limit = undefined;
+
+	const _this = this.use(opts);
+
+	const req = await _this.format_request(_this.options);
+
+	const resp = await getHandler.call(_this, req);
+
+	// Return the count
+	return resp.count;
+
+};
+
+
 Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 
 	// Get Request Object
