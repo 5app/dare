@@ -1,3 +1,10 @@
+## [0.32.2](https://github.com/5app/dare/compare/v0.32.1...v0.32.2) (2019-09-03)
+
+
+### Bug Fixes
+
+* **datatype:** fix the broken datatype formatting, [#36](https://github.com/5app/dare/issues/36), [#84](https://github.com/5app/dare/issues/84) ([0d46af2](https://github.com/5app/dare/commit/0d46af2))
+
 ## [0.32.1](https://github.com/5app/dare/compare/v0.32.0...v0.32.1) (2019-09-03)
 
 
