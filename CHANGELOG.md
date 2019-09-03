@@ -1,3 +1,10 @@
+## [0.32.1](https://github.com/5app/dare/compare/v0.32.0...v0.32.1) (2019-09-03)
+
+
+### Bug Fixes
+
+* **datetime:** return cast datetime fields in ISO format ([71364db](https://github.com/5app/dare/commit/71364db))
+
 # [0.32.0](https://github.com/5app/dare/compare/v0.31.4...v0.32.0) (2019-08-07)
 
 
