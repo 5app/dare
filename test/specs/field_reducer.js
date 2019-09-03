@@ -168,5 +168,24 @@ describe('Field Reducer', () => {
 
 	});
 
+	it('should format datetime fields', () => {
+
+		const table_schema = {
+			created: {
+				type: 'datetime'
+			}
+		};
+
+		// Curry the field_reducer
+		const fr = field_reducer.call({}, 'created', {}, table_schema);
+
+		// Call the field with the
+		const f = ['created'].reduce(fr, []);
+
+		// Expect the formatted list of fields to be identical to the inputted value
+		expect(f[0]).to.have.property('created', 'DATE_FORMAT(created,\'%Y-%m-%dT%TZ\')');
+
+	});
+
 });
 
