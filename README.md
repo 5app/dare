@@ -412,7 +412,7 @@ The following statement includes all results from the main table, but does not a
 
 ## dare.getCount(table[, filter][, options])
 
-The `dare.getCount` method builds and executes a `SELECT ...` SQL statement. It returns the number of results which match the request options.
+The `dare.getCount` method builds and executes a `SELECT ...` SQL statement. It returns the number of results which match the request options. And is useful when constructing pagination.
 
 | property | Type              | Description
 |----------|-------------------|----------------
@@ -429,7 +429,7 @@ dare.getCount('profile', {first_name: 'Andrew'});
 
 ## dare.getCount(options Object)
 
-Alternatively an options Object can be used instead. Which is handy to pass the same set of request options to `date.getCount(options)` as passed to `dare.get(options)`. 
+Using an options Object allows for  `date.getCount(options)` to be paired with a request to `dare.get(options)`.
 
 e.g.
 
