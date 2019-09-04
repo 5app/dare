@@ -410,6 +410,51 @@ The following statement includes all results from the main table, but does not a
 	// ...
 ```
 
+## dare.getCount(table[, filter][, options])
+
+The `dare.getCount` method builds and executes a `SELECT ...` SQL statement. It returns the number of results which match the request options.
+
+| property | Type              | Description
+|----------|-------------------|----------------
+| table    | string            | Name of the table to access
+| filter   | Hash (key=>Value) | Query Object
+| options  | Hash (key=>Value) | Additional Options
+
+e.g.
+
+```javascript
+dare.getCount('profile', {first_name: 'Andrew'});
+// SELECT COUNT(DISTINCT a.id) FROM profile WHERE name = 'Andrew' LIMIT 1;
+```
+
+## dare.getCount(options Object)
+
+Alternatively an options Object can be used instead. Which is handy to pass the same set of options to `date.getCount(options)` as passed to `dare.get(options)`. 
+
+e.g.
+
+```javascript
+const optionsObject = {
+	table: 'profile',
+	filter: {
+		first_name: 'Andrew'
+	},
+	limit: 10
+};
+
+// Get the first 10 items, and the number of possible rows
+const [items, foundRows] = Promise.all([
+
+	// Make a request for members matching the condition 
+	dare.get(optionsObject)
+
+	// Get the number of possible results
+	dare.getCount(optionsObject)
+]);
+```
+
+
+
 ## dare.post(table, body[, options])
 
 The `dare.post` method is used to build and execute an `INSERT ...` SQL statement.
