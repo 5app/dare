@@ -26,6 +26,32 @@ describe('get', () => {
 
 	});
 
+	it('should not mutate the request object', async () => {
+
+		const original = {
+			table: 'test',
+			fields: ['id', 'name'],
+			groupby: ['name'],
+			limit: 10,
+			orderby: ['name']
+		};
+
+		dare.execute = async () => ([]);
+
+		const request = {...original};
+
+		await dare
+			.get(request);
+
+		// Check shallow clone
+		expect(request).to.deep.equal(original);
+
+		// Check deep clone
+		expect(request).to.have.deep.property('fields', ['id', 'name']);
+		expect(request).to.have.deep.property('orderby', ['name']);
+
+	});
+
 	describe('Simple arguments', () => {
 
 		const basic_record = {

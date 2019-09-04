@@ -113,7 +113,7 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 	// Get Request Object
 	if (typeof table === 'object') {
 
-		opts = table;
+		opts = {...table};
 
 	}
 	else {
@@ -126,7 +126,7 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 
 		}
 
-		opts = Object.assign(opts, {table, fields, filter});
+		opts = {...opts, table, fields, filter};
 
 	}
 
