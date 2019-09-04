@@ -143,26 +143,27 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 
 };
 
-
-Dare.prototype.getCount = async function getCount(table, fields, filter, opts = {}) {
+/**
+ * GetCount
+ *
+ * @param {string} table - Name of the table to query
+ * @param {object} filter - Filter Object to query
+ * @param {object} opts - An Options object containing all other request options
+ * @returns {integer} Number of matched items
+ */
+Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
 
 	// Get Request Object
 	if (typeof table === 'object') {
 
-		opts = table;
+		// Clone
+		opts = {...table};
 
 	}
 	else {
 
-		// Shuffle
-		if (typeof fields === 'object' && !Array.isArray(fields)) {
-
-			// Fields must be defined
-			throw new DareError(DareError.INVALID_REQUEST);
-
-		}
-
-		opts = Object.assign(opts, {table, fields, filter});
+		// Clone and extend
+		opts = {...opts, table, filter};
 
 	}
 

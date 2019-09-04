@@ -27,24 +27,23 @@ describe('getCount', () => {
 
 	it('should generate a SELECT statement and execute dare.execute', async () => {
 
-		dare.execute = (query, callback) => {
+		dare.execute = async query => {
 
 			sqlEqual(query, 'SELECT COUNT(DISTINCT a.id) AS \'count\' FROM test a WHERE a.id = 1 LIMIT 1');
-			callback(null, [{count}]);
+			return [{count}];
 
 		};
 
 		const resp = await dare
-			.getCount('test', ['id', 'name'], {id: 1});
+			.getCount('test', {id: 1});
 
 		expect(resp).to.eql(count);
 
 	});
 
-
 	it('should remove the groupby to the fields section', async () => {
 
-		dare.execute = (query, callback) => {
+		dare.execute = async query => {
 
 			const expected = `
 				SELECT COUNT(DISTINCT DATE(a.created_time)) AS 'count'
@@ -54,7 +53,7 @@ describe('getCount', () => {
 
 			sqlEqual(query, expected);
 
-			callback(null, [{count}]);
+			return [{count}];
 
 		};
 
@@ -71,7 +70,7 @@ describe('getCount', () => {
 
 	it('should apply multiple groupby', async () => {
 
-		dare.execute = (query, callback) => {
+		dare.execute = async query => {
 
 			const expected = `
 				SELECT COUNT(DISTINCT DATE(a.created_time), a.name) AS 'count'
@@ -81,7 +80,7 @@ describe('getCount', () => {
 
 			sqlEqual(query, expected);
 
-			callback(null, [{count}]);
+			return [{count}];
 
 		};
 
@@ -93,6 +92,29 @@ describe('getCount', () => {
 			});
 
 		expect(resp).to.eql(count);
+
+	});
+
+	it('should not mutate the request object', async () => {
+
+		const options = {
+			table: 'test',
+			fields: ['id', 'name'],
+			groupby: ['DATE(created_time)', 'name'],
+			limit: 10,
+			orderby: ['name']
+		};
+
+		dare.execute = async () => [{count}];
+
+		const request = {...options};
+
+		await dare
+			.getCount(request);
+
+		expect(request).to.have.property('fields', options.fields);
+		expect(request).to.have.property('limit', options.limit);
+		expect(request).to.have.property('orderby', options.orderby);
 
 	});
 
