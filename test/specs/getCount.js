@@ -97,7 +97,7 @@ describe('getCount', () => {
 
 	it('should not mutate the request object', async () => {
 
-		const options = {
+		const original = {
 			table: 'test',
 			fields: ['id', 'name'],
 			groupby: ['DATE(created_time)', 'name'],
@@ -107,14 +107,17 @@ describe('getCount', () => {
 
 		dare.execute = async () => [{count}];
 
-		const request = {...options};
+		const request = {...original};
 
 		await dare
 			.getCount(request);
 
-		expect(request).to.have.property('fields', options.fields);
-		expect(request).to.have.property('limit', options.limit);
-		expect(request).to.have.property('orderby', options.orderby);
+		// Check shallow clone
+		expect(request).to.deep.equal(original);
+
+		// Check deep clone
+		expect(request).to.have.deep.property('fields', ['id', 'name']);
+		expect(request).to.have.deep.property('orderby', ['name']);
 
 	});
 
