@@ -429,12 +429,12 @@ dare.getCount('profile', {first_name: 'Andrew'});
 
 ## dare.getCount(options Object)
 
-Alternatively an options Object can be used instead. Which is handy to pass the same set of options to `date.getCount(options)` as passed to `dare.get(options)`. 
+Alternatively an options Object can be used instead. Which is handy to pass the same set of request options to `date.getCount(options)` as passed to `dare.get(options)`. 
 
 e.g.
 
 ```javascript
-const optionsObject = {
+const requestOptions = {
 	table: 'profile',
 	filter: {
 		first_name: 'Andrew'
@@ -446,10 +446,10 @@ const optionsObject = {
 const [items, foundRows] = Promise.all([
 
 	// Make a request for members matching the condition 
-	dare.get(optionsObject)
+	dare.get(requestOptions)
 
 	// Get the number of possible results
-	dare.getCount(optionsObject)
+	dare.getCount(requestOptions)
 ]);
 ```
 
