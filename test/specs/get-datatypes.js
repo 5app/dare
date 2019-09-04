@@ -22,12 +22,12 @@ describe('get - datatypes', () => {
 
 	it('should return `created_time` using DATE_FORMAT', async () => {
 
-		const created_time = '2019-09-03T12:00:00Z';
+		const created_time = '2019-09-03T12:00:00.000000Z';
 
 		dare.execute = async query => {
 
 			const expected = `
-				SELECT DATE_FORMAT(a.created_time,'%Y-%m-%dT%TZ') AS 'created_time'
+				SELECT DATE_FORMAT(a.created_time,'%Y-%m-%dT%T.%fZ') AS 'created_time'
 				FROM users a
 				LIMIT 1
 			`;

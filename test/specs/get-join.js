@@ -50,7 +50,7 @@ describe('get - request object', () => {
 
 			const expected = `
 
-				SELECT DATE_FORMAT(a.created_time, '%Y-%m-%dT%TZ') AS 'created_time', COUNT(*) AS '_count', c.id AS 'asset.id', c.name AS 'asset.name', DATE(c.updated_time) AS 'asset.last_updated'
+				SELECT DATE_FORMAT(a.created_time, '%Y-%m-%dT%T.%fZ') AS 'created_time', COUNT(*) AS '_count', c.id AS 'asset.id', c.name AS 'asset.name', DATE(c.updated_time) AS 'asset.last_updated'
 				FROM activityEvents a
 					LEFT JOIN activitySession b ON (b.id = a.session_id)
 					LEFT JOIN apps c ON (c.id = a.ref_id)

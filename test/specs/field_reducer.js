@@ -183,7 +183,7 @@ describe('Field Reducer', () => {
 		const f = ['created'].reduce(fr, []);
 
 		// Expect the formatted list of fields to be identical to the inputted value
-		expect(f[0]).to.have.property('created', 'DATE_FORMAT(created,\'%Y-%m-%dT%TZ\')');
+		expect(f[0]).to.have.property('created', 'DATE_FORMAT(created,\'%Y-%m-%dT%T.%fZ\')');
 
 	});
 

@@ -175,7 +175,7 @@ function fieldMapping(field, label, tableSchema, fieldsArray) {
 	// Default format datetime field as an ISO string...
 	if (type === 'datetime' && !prefix) {
 
-		field = `DATE_FORMAT(${field},'%Y-%m-%dT%TZ')`;
+		field = `DATE_FORMAT(${field},'%Y-%m-%dT%T.%fZ')`;
 
 	}
 

@@ -20,7 +20,7 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 
 			// Split out comma variables
 			let int_m;
-			while ((int_m = str.match(/(.*)(,\s*((["'])?[a-z0-9%_\-\s]*\4))$/i))) {
+			while ((int_m = str.match(/(.*)(,\s*((["'])?[a-z0-9%_\-.\s]*\4))$/i))) {
 
 				str = int_m[1];
 				suffix = int_m[2] + suffix;
