@@ -169,11 +169,14 @@ Dare.prototype.getCount = async function getCount(table, fields, filter, opts = 
 	// Define method
 	opts.method = 'get';
 
-	// Replace the fields...
-	opts.fields = [{count: `COUNT(DISTINCT ${opts.groupby || 'id'})`}];
+	// Flag Count all rows
+	opts.countRows = true;
 
-	// Remove the groupby
-	opts.groupby = null;
+	// Remove the fields...
+	opts.fields = [];
+
+	// Remove any orderby
+	opts.orderby = undefined;
 
 	// Remove the limit
 	opts.limit = undefined;

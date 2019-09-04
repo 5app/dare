@@ -6,6 +6,7 @@ const sqlEqual = require('../lib/sql-equal');
 describe('getCount', () => {
 
 	let dare;
+	const count = 123;
 
 	beforeEach(() => {
 
@@ -29,14 +30,14 @@ describe('getCount', () => {
 		dare.execute = (query, callback) => {
 
 			sqlEqual(query, 'SELECT COUNT(DISTINCT a.id) AS \'count\' FROM test a WHERE a.id = 1 LIMIT 1');
-			callback(null, [{count: 123}]);
+			callback(null, [{count}]);
 
 		};
 
 		const resp = await dare
 			.getCount('test', ['id', 'name'], {id: 1});
 
-		expect(resp).to.eql(123);
+		expect(resp).to.eql(count);
 
 	});
 
@@ -46,15 +47,14 @@ describe('getCount', () => {
 		dare.execute = (query, callback) => {
 
 			const expected = `
-				SELECT COUNT(DISTINT DATE(a.created_time)) AS 'count'
+				SELECT COUNT(DISTINCT DATE(a.created_time)) AS 'count'
 				FROM test a
-				GROUP BY DATE(a.created_time)
 				LIMIT 1
 			`;
 
 			sqlEqual(query, expected);
 
-			callback(null, [{_count: 10}]);
+			callback(null, [{count}]);
 
 		};
 
@@ -65,7 +65,34 @@ describe('getCount', () => {
 				groupby: 'DATE(created_time)'
 			});
 
-		expect(resp).to.eql({_count: 10});
+		expect(resp).to.eql(count);
+
+	});
+
+	it('should apply multiple groupby', async () => {
+
+		dare.execute = (query, callback) => {
+
+			const expected = `
+				SELECT COUNT(DISTINCT DATE(a.created_time), a.name) AS 'count'
+				FROM test a
+				LIMIT 1
+			`;
+
+			sqlEqual(query, expected);
+
+			callback(null, [{count}]);
+
+		};
+
+		const resp = await dare
+			.getCount({
+				table: 'test',
+				fields: ['id', 'name'],
+				groupby: ['DATE(created_time)', 'name']
+			});
+
+		expect(resp).to.eql(count);
 
 	});
 
