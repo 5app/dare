@@ -424,7 +424,7 @@ e.g.
 
 ```javascript
 dare.getCount('profile', {first_name: 'Andrew'});
-// SELECT COUNT(DISTINCT a.id) FROM profile WHERE name = 'Andrew' LIMIT 1;
+// SELECT COUNT(DISTINCT id) FROM profile WHERE name = 'Andrew' LIMIT 1;
 ```
 
 ## dare.getCount(options Object)
@@ -443,7 +443,7 @@ const requestOptions = {
 };
 
 // Get the first 10 items, and the number of possible rows
-const [items, foundRows] = Promise.all([
+const [items, foundRows] = await Promise.all([
 
 	// Make a request for members matching the condition 
 	dare.get(requestOptions)
