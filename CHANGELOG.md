@@ -1,3 +1,12 @@
+# [0.34.0](https://github.com/5app/dare/compare/v0.33.1...v0.34.0) (2019-09-05)
+
+
+### Features
+
+* **get:** shallow clone the request object to prevent mutation, [#81](https://github.com/5app/dare/issues/81) ([d7791f5](https://github.com/5app/dare/commit/d7791f5))
+* **getCount:** Add Dare getCount to run the request and retrieve the number of matching results, [#81](https://github.com/5app/dare/issues/81) ([9ee95f6](https://github.com/5app/dare/commit/9ee95f6))
+* **getCount:** clone the request object to prevent mutation, [#81](https://github.com/5app/dare/issues/81) ([17293b7](https://github.com/5app/dare/commit/17293b7))
+
 ## [0.33.1](https://github.com/5app/dare/compare/v0.33.0...v0.33.1) (2019-09-05)
 
 
