@@ -149,7 +149,7 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
  * @param {string} table - Name of the table to query
  * @param {object} filter - Filter Object to query
  * @param {object} opts - An Options object containing all other request options
- * @returns {integer} Number of matched items
+ * @returns {Promise<integer>} Number of matched items
  */
 Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
 
