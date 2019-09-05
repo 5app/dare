@@ -88,7 +88,9 @@ describe('getCount', () => {
 			.getCount({
 				table: 'test',
 				fields: ['id', 'name'],
-				groupby: ['DATE(created_time)', 'name']
+				groupby: ['DATE(created_time)', 'name'],
+				start: 10,
+				limit: 10
 			});
 
 		expect(resp).to.eql(count);
@@ -101,7 +103,6 @@ describe('getCount', () => {
 			table: 'test',
 			fields: ['id', 'name'],
 			groupby: ['DATE(created_time)', 'name'],
-			limit: 10,
 			orderby: ['name']
 		};
 

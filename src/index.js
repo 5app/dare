@@ -179,8 +179,9 @@ Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
 	// Remove any orderby
 	opts.orderby = undefined;
 
-	// Remove the limit
+	// Remove the limit and start
 	opts.limit = undefined;
+	opts.start = undefined;
 
 	const _this = this.use(opts);
 
