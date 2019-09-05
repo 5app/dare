@@ -1,3 +1,12 @@
+## [0.34.1](https://github.com/5app/dare/compare/v0.34.0...v0.34.1) (2019-09-05)
+
+
+### Bug Fixes
+
+* **getCount:** remove start option, [#81](https://github.com/5app/dare/issues/81) ([78afc8c](https://github.com/5app/dare/commit/78afc8c))
+* **package:** refactor, but also trigger semantic release ([5ab2200](https://github.com/5app/dare/commit/5ab2200))
+* **package:** refactor, but also trigger semantic release ([75fc5b1](https://github.com/5app/dare/commit/75fc5b1))
+
 # [0.34.0](https://github.com/5app/dare/compare/v0.33.1...v0.34.0) (2019-09-05)
 
 
