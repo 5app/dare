@@ -1,3 +1,37 @@
+## [0.34.1](https://github.com/5app/dare/compare/v0.34.0...v0.34.1) (2019-09-05)
+
+
+### Bug Fixes
+
+* **getCount:** remove start option, [#81](https://github.com/5app/dare/issues/81) ([78afc8c](https://github.com/5app/dare/commit/78afc8c))
+* **package:** refactor, but also trigger semantic release ([5ab2200](https://github.com/5app/dare/commit/5ab2200))
+* **package:** refactor, but also trigger semantic release ([75fc5b1](https://github.com/5app/dare/commit/75fc5b1))
+
+# [0.34.0](https://github.com/5app/dare/compare/v0.33.1...v0.34.0) (2019-09-05)
+
+
+### Features
+
+* **get:** shallow clone the request object to prevent mutation, [#81](https://github.com/5app/dare/issues/81) ([d7791f5](https://github.com/5app/dare/commit/d7791f5))
+* **getCount:** Add Dare getCount to run the request and retrieve the number of matching results, [#81](https://github.com/5app/dare/issues/81) ([9ee95f6](https://github.com/5app/dare/commit/9ee95f6))
+* **getCount:** clone the request object to prevent mutation, [#81](https://github.com/5app/dare/issues/81) ([17293b7](https://github.com/5app/dare/commit/17293b7))
+
+## [0.33.1](https://github.com/5app/dare/compare/v0.33.0...v0.33.1) (2019-09-05)
+
+
+### Bug Fixes
+
+* **dist:** add deploy channel next ([9640cb8](https://github.com/5app/dare/commit/9640cb8))
+
+# [0.33.0](https://github.com/5app/dare/compare/v0.32.2...v0.33.0) (2019-09-05)
+
+
+### Features
+
+* **dist:** add deploy channel next ([c0dddf6](https://github.com/5app/dare/commit/c0dddf6))
+* **dist:** add deploy channel next ([c935a87](https://github.com/5app/dare/commit/c935a87))
+* **dist:** add deploy channel next ([765d47f](https://github.com/5app/dare/commit/765d47f))
+
 ## [0.32.2](https://github.com/5app/dare/compare/v0.32.1...v0.32.2) (2019-09-03)
 
 

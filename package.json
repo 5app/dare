@@ -1,19 +1,21 @@
 {
   "name": "dare",
-  "version": "0.32.2",
+  "version": "0.34.1",
   "description": "Database to REST, REST to Database",
   "main": "src/index.js",
   "engines": {
     "node": ">=8.0.0"
   },
   "scripts": {
-    "test": "npm run lint && npm run spec && ((nyc report --reporter=text-lcov | coveralls) || exit 0)",
+    "pretest": "npm run lint",
+    "test": "npm run spec && ((nyc report --reporter=text-lcov | coveralls) || exit 0)",
     "test:ci": "eslint ./ && nyc mocha test/specs/**/*.js --reporter mocha-circleci-reporter && (nyc report --reporter=text-lcov | coveralls)",
     "spec": "nyc mocha test/specs/**/*.js",
     "semantic-release": "semantic-release",
     "lint": "eslint ./",
     "lint-fix": "eslint --fix ./",
     "lint-diff": "LIST=`git diff-index --name-only HEAD | grep '.*\\.js$';`; if [ \"$LIST\" ]; then eslint $LIST; fi",
+    "lint-diff-fix": "LIST=`git diff-index --name-only HEAD | grep '.*\\.js$';`; if [ \"$LIST\" ]; then eslint --fix $LIST; fi",
     "precommit-msg": "echo 'Running pre-commit checks... (skip using --no-verify)' && exit 0"
   },
   "pre-commit": [
@@ -41,14 +43,14 @@
   ],
   "devDependencies": {
     "@semantic-release/changelog": "^3.0.4",
-    "@semantic-release/git": "^7.0.14",
+    "@semantic-release/git": "^7.0.16",
     "chai": "^4.2.0",
-    "coveralls": "^3.0.4",
-    "eslint": "^6.0.1",
-    "eslint-config-5app": "^0.6.5",
+    "coveralls": "^3.0.6",
+    "eslint": "^6.3.0",
+    "eslint-config-5app": "^0.6.8",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-security": "^1.4.0",
-    "mocha": "^6.1.4",
+    "mocha": "^6.2.0",
     "mocha-circleci-reporter": "0.0.3",
     "nyc": "^14.0.0",
     "pre-commit": "^1.2.2",

@@ -113,7 +113,7 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 	// Get Request Object
 	if (typeof table === 'object') {
 
-		opts = table;
+		opts = {...table};
 
 	}
 	else {
@@ -126,7 +126,7 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 
 		}
 
-		opts = Object.assign(opts, {table, fields, filter});
+		opts = {...opts, table, fields, filter};
 
 	}
 
@@ -142,6 +142,58 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 	return _this.after(resp);
 
 };
+
+/**
+ * GetCount
+ *
+ * @param {string} table - Name of the table to query
+ * @param {object} filter - Filter Object to query
+ * @param {object} opts - An Options object containing all other request options
+ * @returns {Promise<integer>} Number of matched items
+ */
+Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
+
+	// Get Request Object
+	if (typeof table === 'object') {
+
+		// Clone
+		opts = {...table};
+
+	}
+	else {
+
+		// Clone and extend
+		opts = {...opts, table, filter};
+
+	}
+
+	// Define method
+	opts.method = 'get';
+
+	// Flag Count all rows
+	opts.countRows = true;
+
+	// Remove the fields...
+	opts.fields = [];
+
+	// Remove any orderby
+	opts.orderby = undefined;
+
+	// Remove the limit and start
+	opts.limit = undefined;
+	opts.start = undefined;
+
+	const _this = this.use(opts);
+
+	const req = await _this.format_request(_this.options);
+
+	const resp = await getHandler.call(_this, req);
+
+	// Return the count
+	return resp.count;
+
+};
+
 
 Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 
