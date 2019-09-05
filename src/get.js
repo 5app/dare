@@ -145,15 +145,6 @@ function buildQuery(opts) {
 	let sql_fields;
 	let alias;
 
-	if (!fields.length) {
-
-		/*
-		 * This query does not contain any fields
-		 * And so we should not include it
-		 */
-		throw new DareError(DareError.INVALID_REQUEST, 'Missing fields');
-
-	}
 
 	if (is_subquery) {
 
@@ -176,6 +167,28 @@ function buildQuery(opts) {
 	// Clean up sql_orderby
 	const sql_groupby = aliasOrderAndGroupFields(groupby, fields);
 
+	// Convert to count the resultset
+	if (opts.countRows) {
+
+		// Change the rows to show the count of the rows returned
+		sql_fields = `COUNT(DISTINCT ${sql_groupby.length ? sql_groupby : `${opts.sql_alias}.id`}) AS 'count'`;
+
+		// Remove groupby and orderby...
+		sql_groupby.length = 0;
+		sql_orderby.length = 0;
+
+	}
+
+	// Fields should be a non-empty array
+	if (!sql_fields.length) {
+
+		/*
+		 * This query does not contain any fields
+		 * And so we should not include it
+		 */
+		throw new DareError(DareError.INVALID_REQUEST, 'Missing fields');
+
+	}
 
 	// Put it all together
 	const sql = `SELECT ${sql_fields.toString()}
