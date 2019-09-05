@@ -57,6 +57,7 @@
   "dependencies": {},
   "publishConfig": {
     "access": "public",
+    "prerelease": true,
     "tag": "next"
   },
   "release": {
