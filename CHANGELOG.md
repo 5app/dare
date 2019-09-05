@@ -1,3 +1,10 @@
+## [0.33.1](https://github.com/5app/dare/compare/v0.33.0...v0.33.1) (2019-09-05)
+
+
+### Bug Fixes
+
+* **dist:** add deploy channel next ([9640cb8](https://github.com/5app/dare/commit/9640cb8))
+
 # [0.33.0](https://github.com/5app/dare/compare/v0.32.2...v0.33.0) (2019-09-05)
 
 
