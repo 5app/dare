@@ -56,7 +56,6 @@
   },
   "dependencies": {},
   "release": {
-    "branch": "master",
     "branches": [
       "master",
       {
