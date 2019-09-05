@@ -55,15 +55,12 @@
     "semantic-release": "^15.13.24"
   },
   "dependencies": {},
+  "publishConfig": {
+    "access": "public",
+    "tag": "next"
+  },
   "release": {
-    "branches": [
-      "master",
-      {
-        "name": "next",
-        "prerelease": "prerelease",
-        "channel": "next"
-      }
-    ],
+    "branch": "next",
     "prepare": [
       "@semantic-release/changelog",
       "@semantic-release/npm",
