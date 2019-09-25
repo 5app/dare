@@ -642,9 +642,12 @@ describe('format_request', () => {
 					]
 				];
 
-				a.forEach(test => {
+				a.forEach(async test => {
 
 					const [filter, prop, condition, values] = test;
+
+					// Clone filter
+					const filter_cloned = JSON.parse(JSON.stringify(filter));
 
 					it(`should transform condition ${JSON.stringify(filter)} -> ${JSON.stringify(condition)}`, async () => {
 
@@ -655,6 +658,18 @@ describe('format_request', () => {
 						});
 
 						expect(resp[`_${condition_type}`][0]).to.eql([prop, condition, values]);
+
+					});
+
+					it(`should not mutate the filters ${JSON.stringify(filter)}`, async () => {
+
+						await dare.format_request({
+							table,
+							fields: ['id'],
+							[condition_type]: filter
+						});
+
+						expect(filter).to.deep.eql(filter_cloned);
 
 					});
 

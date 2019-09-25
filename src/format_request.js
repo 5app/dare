@@ -475,6 +475,9 @@ function prepCondition(field, value, key_definition, negate) {
 		const sub_values = [];
 		const conds = [];
 
+		// Clone the values
+		value = [...value];
+
 		// Format empty
 		if (value.length === 0) {
 
