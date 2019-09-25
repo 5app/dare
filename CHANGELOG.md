@@ -1,3 +1,10 @@
+## [0.32.3](https://github.com/5app/dare/compare/v0.32.2...v0.32.3) (2019-09-25)
+
+
+### Bug Fixes
+
+* **filters:** prevent dare from modifying input filters, fixes [#91](https://github.com/5app/dare/issues/91) ([6c763dc](https://github.com/5app/dare/commit/6c763dc))
+
 ## [0.34.1](https://github.com/5app/dare/compare/v0.34.0...v0.34.1) (2019-09-05)
 
 
