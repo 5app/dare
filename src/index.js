@@ -496,12 +496,6 @@ function mustAffectRows(result) {
 
 function onDuplicateKeysUpdate(keys) {
 
-	if (!keys) {
-
-		return null;
-
-	}
-
 	const s = keys.map(name => `${name}=VALUES(${name})`).join(',');
 
 	return `ON DUPLICATE KEY UPDATE ${s}`;
