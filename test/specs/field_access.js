@@ -25,27 +25,38 @@ describe('field access', () => {
 
 	describe('get - SELECT', () => {
 
-		it('should prevent access to non-readable fields', async () => {
+		it('should prevent access to non-readable fields', () => Promise.all(
+			[
+				'password',
+				{
+					'name': 'password'
+				},
+				{
+					'name': 'CHAR(password)'
+				}
+			]
+				.map(field => {
 
-			const call = dare.get({
-				table: 'users',
-				fields: [
-					// Password is non-readable
-					'password'
-				]
-			});
+					const call = dare.get({
+						table: 'users',
+						fields: [
+							// Password is non-readable
+							field
+						]
+					});
 
-			await expect(call).to.be.eventually
-				.rejectedWith(DareError, 'Field \'password\' is not readable')
-				.and.have.property('code', DareError.INVALID_REFERENCE);
+					return expect(call).to.be.eventually
+						.rejectedWith(DareError, 'Field \'password\' is not readable')
+						.and.have.property('code', DareError.INVALID_REFERENCE);
 
-		});
+				})
+		));
 
 	});
 
 	describe('patch - UPDATE', () => {
 
-		it('should prevent mutations on non-writable fields', async () => {
+		it('should prevent mutations on non-writable fields', () => {
 
 			const call = dare.patch({
 				table: 'users',
@@ -58,7 +69,7 @@ describe('field access', () => {
 				}
 			});
 
-			await expect(call).to.be.eventually
+			return expect(call).to.be.eventually
 				.rejectedWith(DareError, 'Field \'id\' is not writeable')
 				.and.have.property('code', DareError.INVALID_REFERENCE);
 
@@ -68,7 +79,7 @@ describe('field access', () => {
 
 	describe('post - INSERT', () => {
 
-		it('should prevent inserts on non-writable fields', async () => {
+		it('should prevent inserts on non-writable fields', () => {
 
 			const call = dare.post({
 				table: 'users',
@@ -78,7 +89,7 @@ describe('field access', () => {
 				}
 			});
 
-			await expect(call).to.be.eventually
+			return expect(call).to.be.eventually
 				.rejectedWith(DareError, 'Field \'id\' is not writeable')
 				.and.have.property('code', DareError.INVALID_REFERENCE);
 

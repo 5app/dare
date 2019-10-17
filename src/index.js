@@ -505,9 +505,10 @@ function onDuplicateKeysUpdate(keys) {
 /**
  * Test and format fields for writes
  *
- * @param {string|undefined} field - field to test
+ * @param {string} field - field to test
  * @param {object} [tableSchema={}] - An object containing the table schema
- * @returns {Array|undefined} An array of the field names containing the unaliased names
+ * @throws Will throw an error if the field is not writable
+ * @returns {string} Unaliased field name
  */
 function testFormatWriteableField(field, tableSchema = {}) {
 
