@@ -348,11 +348,14 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	// Get the schema
 	const tableSchema = this.options.schema && this.options.schema[req.table];
 
+	// Create unalias function
+	const unAliasFields = field => testFormatWriteableField(field, tableSchema);
+
 	// Format fields
-	const columns = unAliasFieldNames(fields, tableSchema);
+	const columns = fields.map(unAliasFields);
 
 	// Options
-	const on_duplicate_keys_update = onDuplicateKeysUpdate(unAliasFieldNames(req.duplicate_keys_update, tableSchema)) || '';
+	const on_duplicate_keys_update = (req.duplicate_keys_update && onDuplicateKeysUpdate(req.duplicate_keys_update.map(unAliasFields))) || '';
 
 	// Construct a db update
 	const sql = `INSERT ${exec} INTO ${req.table}
@@ -437,16 +440,7 @@ function prepareSet(body, tableSchema = {}) {
 		 */
 
 		// By default the fieldName is the label of the key.
-		let fieldName = label;
-
-		// Check for aliases of the label
-		const {alias} = getFieldAttributes(tableSchema[label]);
-
-		if (alias) {
-
-			fieldName = alias;
-
-		}
+		const fieldName = testFormatWriteableField(label, tableSchema);
 
 		// Replace value with a question using any mapped fieldName
 		assignments[fieldName] = '?';
@@ -515,26 +509,28 @@ function onDuplicateKeysUpdate(keys) {
 }
 
 /**
- * Un-alias field names
+ * Test and format fields for writes
  *
- * @param {Array|undefined} fields - An array of fields to test
+ * @param {string|undefined} field - field to test
  * @param {object} [tableSchema={}] - An object containing the table schema
  * @returns {Array|undefined} An array of the field names containing the unaliased names
  */
-function unAliasFieldNames(fields, tableSchema = {}) {
+function testFormatWriteableField(field, tableSchema = {}) {
 
-	return fields && fields.map(label => {
+	const {alias, writeable} = getFieldAttributes(tableSchema[field]);
 
-		const {alias} = getFieldAttributes(tableSchema[label]);
+	if (writeable === false) {
 
-		if (alias) {
+		throw new DareError(DareError.INVALID_REFERENCE, `Field '${field}' is not writeable`);
 
-			label = alias;
+	}
 
-		}
+	if (alias) {
 
-		return label;
+		field = alias;
 
-	});
+	}
+
+	return field;
 
 }
