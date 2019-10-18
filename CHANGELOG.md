@@ -1,3 +1,10 @@
+# [0.37.0](https://github.com/5app/dare/compare/v0.36.3...v0.37.0) (2019-10-18)
+
+
+### Features
+
+* **error:** return bad request 400 codes, instead of 500 ([b88a412](https://github.com/5app/dare/commit/b88a41277603fdc838d629c3b64481479e4dec7a))
+
 ## [0.36.3](https://github.com/5app/dare/compare/v0.36.2...v0.36.3) (2019-10-18)
 
 
