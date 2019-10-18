@@ -45,6 +45,7 @@
     "@semantic-release/changelog": "^3.0.4",
     "@semantic-release/git": "^7.0.16",
     "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.6",
     "eslint": "^6.3.0",
     "eslint-config-5app": "^0.7.6",
@@ -54,9 +55,12 @@
     "mocha-circleci-reporter": "0.0.3",
     "nyc": "^14.0.0",
     "pre-commit": "^1.2.2",
-    "semantic-release": "^15.13.24"
+    "semantic-release": "^15.13.24",
+    "tricks": "^1.12.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "deepmerge": "^4.1.1"
+  },
   "release": {
     "branch": "master",
     "prepare": [

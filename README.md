@@ -175,6 +175,37 @@ dare.get('users', ['emailAddress'], {emailAddress: 'andrew@%'});
 // SELECT email AS emailAddress FROM users WHERE email LIKE 'andrew@%'
 ```
 
+#### field readable/writeable
+
+A flag to control access to a field
+
+```js
+dare = new Dare({
+	schema: {
+		users: {
+			id: {
+				writeable: false // non-writeable
+			},
+			password: false // non-readable + non-writeable
+		}
+	}
+})
+```
+
+With the above `writeable`/`readable` field definitions an error is thrown whenever attempting to access the field e.g.
+
+```js
+dare.get('users', ['password'], {id: 123});
+// throws {code: INVALID_REFERENCE}
+```
+
+Or when trying to modify a field through `post` or `patch` methods, e.g.
+
+```js
+dare.patch('users', {id: 321}, {id: 1337});
+// throws {code: INVALID_REFERENCE}
+```
+
 
 
 # Methods

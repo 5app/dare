@@ -1,8 +1,10 @@
 const checkFormat = require('./unwrap_field');
 const checkLabel = require('./validate_label');
 const checkKey = require('./validate_field');
+const DareError = require('./error');
 const fieldRelativePath = require('./field_relative');
 const getFieldAttributes = require('./field_attributes');
+
 
 // Return a reducer function
 module.exports = function fieldReducer(current_address, join, table_schema = {}) {
@@ -151,7 +153,14 @@ function fieldMapping(field, label, tableSchema, fieldsArray) {
 	const {field_name, prefix, suffix} = checkFormat(field);
 
 	// Get the schema entry for the field
-	const {handler, alias, type} = getFieldAttributes(tableSchema[field_name]);
+	const {handler, alias, type, readable} = getFieldAttributes(tableSchema[field_name]);
+
+	// Is this readable?
+	if (readable === false) {
+
+		throw new DareError(DareError.INVALID_REFERENCE, `Field '${field_name}' is not readable`);
+
+	}
 
 	// Does this field have a handler in the schema
 	if (handler) {
