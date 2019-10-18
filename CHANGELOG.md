@@ -5,6 +5,13 @@
 
 * **field-access:** enable declarative field access permissions [#99](https://github.com/5app/dare/issues/99) ([e1311af](https://github.com/5app/dare/commit/e1311af0c257f131a1c43de5b21434d8969cf628))
 
+# [0.33.0](https://github.com/5app/dare/compare/v0.32.3...v0.33.0) (2019-10-18)
+
+
+### Features
+
+* **field-access:** enable declarative field access permissions [#99](https://github.com/5app/dare/issues/99) ([e1311af](https://github.com/5app/dare/commit/e1311af0c257f131a1c43de5b21434d8969cf628))
+
 ## [0.32.3](https://github.com/5app/dare/compare/v0.32.2...v0.32.3) (2019-09-25)
 
 
