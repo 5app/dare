@@ -44,11 +44,11 @@ describe('Dare', () => {
 	describe('dare.use to extend the instance', () => {
 
 		let dare;
+		let options;
 
 		beforeEach(() => {
 
-			// Create a normal instance
-			dare = new Dare({
+			options = {
 				schema: {
 					'users': {
 						name: {
@@ -56,7 +56,10 @@ describe('Dare', () => {
 						}
 					}
 				}
-			});
+			};
+
+			// Create a normal instance
+			dare = new Dare(options);
 
 		});
 
@@ -81,7 +84,7 @@ describe('Dare', () => {
 
 		it('should inherit but not leak when extending schema', () => {
 
-			const options = {
+			const options2 = {
 				schema: {
 					'users': {
 						name: {
@@ -96,18 +99,22 @@ describe('Dare', () => {
 
 			const options_cloned = clone(options);
 
-			const dare2 = dare.use(options);
+			const options2_cloned = clone(options2);
 
-			// Should not leak back into instance it extended
+			const dare2 = dare.use(options2);
+
+			// Should not share same objects as instance it extended
 			expect(dare.options.schema.users)
 				.to.not.equal(dare2.options.schema.users);
 
+			// Should not mutate instance it extended
 			expect(dare.options.schema.different)
 				.to.be.undefined;
 
 			expect(dare.options.schema.users.name.writable)
 				.to.not.equal(dare2.options.schema.users.name.writable);
 
+			// Should merge settings for field definitiions... e.g.
 			expect(dare2.options.schema.users)
 				.to.deep.equal({
 					name: {
@@ -116,8 +123,11 @@ describe('Dare', () => {
 					}
 				});
 
-			// Should not mutate the options object passed through
-			expect(options).to.not.deep.equal(options_cloned);
+			// Should not mutate the inheritted options
+			expect(options).to.deep.equal(options_cloned);
+
+			// Should not mutate the new options input
+			expect(options2).to.deep.equal(options2_cloned);
 
 		});
 

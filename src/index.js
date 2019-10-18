@@ -92,8 +92,8 @@ Dare.prototype.use = function(options = {}) {
 
 	const inst = Object.create(this);
 
-	// Merging `options` twice to avoid mutating `this.options`` with deep nested objects
-	inst.options = extend({}, options, this.options, options);
+	// This clones and merges objects into base
+	inst.options = extend({}, this.options, options);
 
 	// Set SQL level states
 	inst.unique_alias_index = 0;
