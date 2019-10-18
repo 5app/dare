@@ -1,6 +1,3 @@
-const clone = require('tricks/object/clone');
-
-
 /**
  * Extend Object works like Object.assign(...) but recurses into the nested properties
  *
@@ -23,7 +20,7 @@ function extend(base, ...args) {
 		}
 		else {
 
-			base = clone(current);
+			base = current;
 
 		}
 

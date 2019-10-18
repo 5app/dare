@@ -12,6 +12,9 @@ const getFieldAttributes = require('./utils/field_attributes');
 
 const extend = require('./utils/extend');
 
+const clone = require('tricks/object/clone');
+
+
 module.exports = Dare;
 
 function Dare(options) {
@@ -92,8 +95,8 @@ Dare.prototype.use = function(options = {}) {
 
 	const inst = Object.create(this);
 
-	// This clones and merges objects into base
-	inst.options = extend({}, this.options, options);
+	// Create a new options, merging inheritted and new
+	inst.options = extend({}, clone(this.options), options);
 
 	// Set SQL level states
 	inst.unique_alias_index = 0;
@@ -137,11 +140,9 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 	// Define method
 	opts.method = 'get';
 
-	const _this = this.use();
+	const _this = this.use(opts);
 
-	Object.assign(_this.options, opts);
-
-	const req = await _this.format_request(opts);
+	const req = await _this.format_request(_this.options);
 
 	const resp = await getHandler.call(_this, req);
 
@@ -189,11 +190,9 @@ Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
 	opts.limit = undefined;
 	opts.start = undefined;
 
-	const _this = this.use();
+	const _this = this.use(opts);
 
-	Object.assign(_this.options, opts);
-
-	const req = await _this.format_request(opts);
+	const req = await _this.format_request(_this.options);
 
 	const resp = await getHandler.call(_this, req);
 
@@ -211,9 +210,7 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	// Define method
 	opts.method = 'patch';
 
-	const _this = this.use();
-
-	Object.assign(_this.options, opts);
+	const _this = this.use(opts);
 
 	const req = await _this.format_request(opts);
 
@@ -274,9 +271,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	// Post
 	opts.method = 'post';
 
-	const _this = this.use();
-
-	Object.assign(_this.options, opts);
+	const _this = this.use(opts);
 
 	// Table
 	const req = await _this.format_request(opts);
@@ -398,9 +393,7 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 	// Delete
 	opts.method = 'del';
 
-	const _this = this.use();
-
-	Object.assign(_this.options, opts);
+	const _this = this.use(opts);
 
 	const req = await _this.format_request(opts);
 
