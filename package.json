@@ -58,7 +58,9 @@
     "semantic-release": "^15.13.24",
     "tricks": "^1.12.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "deepmerge": "^4.1.1"
+  },
   "release": {
     "branch": "master",
     "prepare": [

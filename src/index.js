@@ -10,10 +10,7 @@ const validateBody = require('./utils/validate_body');
 
 const getFieldAttributes = require('./utils/field_attributes');
 
-const extend = require('./utils/extend');
-
-const clone = require('tricks/object/clone');
-
+const deepMerge = require('deepmerge');
 
 module.exports = Dare;
 
@@ -96,7 +93,7 @@ Dare.prototype.use = function(options = {}) {
 	const inst = Object.create(this);
 
 	// Create a new options, merging inheritted and new
-	inst.options = extend({}, clone(this.options), options);
+	inst.options = deepMerge(this.options, options, {arrayMerge: (_, sourceArray) => sourceArray});
 
 	// Set SQL level states
 	inst.unique_alias_index = 0;
