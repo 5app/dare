@@ -1,3 +1,10 @@
+## [0.36.1](https://github.com/5app/dare/compare/v0.36.0...v0.36.1) (2019-10-18)
+
+
+### Bug Fixes
+
+* **deploy:** silly preliminary release, noissue ([b4f79e0](https://github.com/5app/dare/commit/b4f79e03be94602f0ba869611054669e7feec4eb))
+
 # [0.33.0](https://github.com/5app/dare/compare/v0.32.3...v0.33.0) (2019-10-18)
 
 
