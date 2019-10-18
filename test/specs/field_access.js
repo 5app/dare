@@ -25,17 +25,18 @@ describe('field access', () => {
 
 	describe('get - SELECT', () => {
 
-		it('should prevent access to non-readable fields', () => Promise.all(
-			[
-				'password',
-				{
-					'name': 'password'
-				},
-				{
-					'name': 'CHAR(password)'
-				}
-			]
-				.map(field => {
+		[
+			'password',
+			{
+				'name': 'password'
+			},
+			{
+				'name': 'CHAR(password)'
+			}
+		]
+			.forEach(field => {
+
+				it(`should prevent access to non-readable field: ${JSON.stringify(field)}`, () => {
 
 					const call = dare.get({
 						table: 'users',
@@ -49,8 +50,9 @@ describe('field access', () => {
 						.rejectedWith(DareError, 'Field \'password\' is not readable')
 						.and.have.property('code', DareError.INVALID_REFERENCE);
 
-				})
-		));
+				});
+
+			});
 
 	});
 
