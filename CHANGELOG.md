@@ -1,3 +1,10 @@
+## [0.36.3](https://github.com/5app/dare/compare/v0.36.2...v0.36.3) (2019-10-18)
+
+
+### Bug Fixes
+
+* **deps:** remove deepmerge, promote tricks ([c4ecca6](https://github.com/5app/dare/commit/c4ecca6f3b606186f3c7fe83d0b17c0b5f642e41))
+
 ## [0.36.2](https://github.com/5app/dare/compare/v0.36.1...v0.36.2) (2019-10-18)
 
 
