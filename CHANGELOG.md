@@ -1,3 +1,10 @@
+## [0.36.2](https://github.com/5app/dare/compare/v0.36.1...v0.36.2) (2019-10-18)
+
+
+### Bug Fixes
+
+* **field-access:** revert deepMerge, it clones everything, [#99](https://github.com/5app/dare/issues/99) ([cf520ec](https://github.com/5app/dare/commit/cf520ec853ed2edbc69f4b5692aca8b10de86296))
+
 ## [0.36.1](https://github.com/5app/dare/compare/v0.36.0...v0.36.1) (2019-10-18)
 
 
