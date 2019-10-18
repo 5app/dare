@@ -10,6 +10,8 @@ const validateBody = require('./utils/validate_body');
 
 const getFieldAttributes = require('./utils/field_attributes');
 
+const extend = require('./utils/extend');
+
 module.exports = Dare;
 
 function Dare(options) {
@@ -86,10 +88,12 @@ Dare.prototype.after = function(resp) {
 };
 
 // Create an instance
-Dare.prototype.use = function(options) {
+Dare.prototype.use = function(options = {}) {
 
 	const inst = Object.create(this);
-	inst.options = Object.assign({}, this.options, options);
+
+	// Merging `options` twice to avoid mutating `this.options`` with deep nested objects
+	inst.options = extend({}, options, this.options, options);
 
 	// Set SQL level states
 	inst.unique_alias_index = 0;

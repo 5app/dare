@@ -180,7 +180,7 @@ dare.get('users', ['emailAddress'], {emailAddress: 'andrew@%'});
 A flag to control access to a field
 
 ```js
-dare.use({
+dare = new Dare({
 	schema: {
 		users: {
 			id: {

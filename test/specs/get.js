@@ -78,6 +78,7 @@ describe('get', () => {
 			const resp = await dare
 				.get('test', basic_fields, {id: 1});
 
+
 			expect(resp).to.be.a('object');
 			expect(resp).to.eql(basic_record);
 
