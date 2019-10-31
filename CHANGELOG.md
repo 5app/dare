@@ -1,3 +1,10 @@
+## [0.37.1](https://github.com/5app/dare/compare/v0.37.0...v0.37.1) (2019-10-31)
+
+
+### Bug Fixes
+
+* **ci:** clone to windows changing to CRLF ([#107](https://github.com/5app/dare/issues/107)) ([59a9750](https://github.com/5app/dare/commit/59a97502895925524901b65bd6183c63818d8536))
+
 # [0.37.0](https://github.com/5app/dare/compare/v0.36.3...v0.37.0) (2019-10-18)
 
 
