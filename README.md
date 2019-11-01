@@ -273,14 +273,24 @@ It's sometimes appropriate to alias a field definition, if it's to be renamed, o
 	// sql: SELECT name, DATE(created_date) AS _date ...
 ```
 
-Here are some common operations
+*Pattern*:
+
+`FUNCTION_NAME([FIELD_PREFIX]? field_name [, ADDITIONAL_PARAMETERS]*)`
+
+- *FUNCTION_NAME*: uppercase, no spaces
+- *FIELD_PREFIX*: optional, uppercase
+- *field_name*: db field reference
+- *ADDITIONAL_PARAMETERS*: optional, prefixed with `,`, (uppercase, digit or quoted string)
+
+*e.g.*
 
 Field Defition | Description
 --|--
 `FORMAT(field, 2, 'de_DE')` | Rounding to 2 decimal places and convert to a string with German formatting.
 `CONCAT(ROUND(field * 100), '%')` | Multiplying a number by 100. Rounding to 2 decimal places and appending a '%' to the end to convert a decimal value to a percentage.
+`DATE_FORMAT(field, '%Y-%m-%dT%T.%fZ')` | Formatted date field
 
-Please note some functions and operations are not available.
+In the case of `ROUND()` there is an allowance for `field * [digit]` pattern.
 
 #### Nesting Fields
 
