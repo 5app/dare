@@ -4,6 +4,7 @@
  */
 
 const unwrap_field = require('../../src/utils/unwrap_field');
+const DareError = require('../../src/utils/error');
 
 describe('utils/unwrap_field', () => {
 
@@ -11,6 +12,8 @@ describe('utils/unwrap_field', () => {
 	[
 		'field',
 		'DATE(field)',
+		'DATE_FORMAT(field, "%Y-%m-%dT%T.%fZ")',
+		'DATE_SUB(field, INTERVAL 10 DAY)',
 		'COUNT(DISTINCT field)',
 		'GROUP_CONCAT(DISTINCT field)',
 		'MAX(DAY(field))',
@@ -35,6 +38,22 @@ describe('utils/unwrap_field', () => {
 
 			// Expect the formatted list of fields to be identical to the inputted value
 			expect(unwrapped.field).to.eql('field');
+
+		});
+
+	});
+
+	// Should unwrap SQL Formating to underlying column name
+	[
+		'field(',
+		'CONCAT(field, secret)',
+		'DATE_FORMAT(field, '
+	].forEach(test => {
+
+		it(`where ${JSON.stringify(test)}`, () => {
+
+			// Expect the formatted list of fields to be identical to the inputted value
+			expect(unwrap_field.bind(null, test)).to.throw(DareError);
 
 		});
 
