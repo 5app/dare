@@ -1,3 +1,10 @@
+# [0.38.0](https://github.com/5app/dare/compare/v0.37.1...v0.38.0) (2019-11-01)
+
+
+### Features
+
+* **field processing:** allow (.) character, disallow lowercase strings out of quotes ([#106](https://github.com/5app/dare/issues/106)) ([d61b198](https://github.com/5app/dare/commit/d61b1984ecb35ebbbed51a28a49abcf3b2e7c99a))
+
 ## [0.37.1](https://github.com/5app/dare/compare/v0.37.0...v0.37.1) (2019-10-31)
 
 
