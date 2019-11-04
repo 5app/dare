@@ -260,7 +260,7 @@ The array items can also be Objects.
 
 #### Aliased Items and Formatting (objects)
 
-It's sometimes appropriate to alias a field definition, if it's to be renamed, or when using SQL Functions and operators to manipulate the response. E.g. Below we're using the DATE functin to format the date, and we're aliasing it so it will be returned with prop key `_date`.
+It's sometimes appropriate to alias a field definition, if it's to be renamed, or when using SQL Functions and operators to manipulate the response. E.g. Below we're using the `DATE` function to format the `created_date`, and we're aliasing it so it will be returned with prop key `_date`.
 
 ```javascript
 	[
@@ -288,7 +288,7 @@ Field Defition | Description
 --|--
 `FORMAT(field, 2, 'de_DE')` | Rounding to 2 decimal places and convert to a string with German formatting.
 `CONCAT(ROUND(field * 100), '%')` | Multiplying a number by 100. Rounding to 2 decimal places and appending a '%' to the end to convert a decimal value to a percentage.
-`DATE_FORMAT(field, '%Y-%m-%dT%T.%fZ')` | Formatted date field
+`DATE_FORMAT(field, "%Y-%m-%dT%T.%fZ")` | Format date field
 
 In the case of `ROUND()` there is an allowance for `field * [digit]` pattern.
 
