@@ -65,39 +65,95 @@ describe('patch', () => {
 	});
 
 
-	[
-		{
-			given: 'field',
-			expect: '\'field\''
-		},
-		{
-			given: null,
-			expect: 'null'
-		},
-		{
-			given: {
-				obj: 'be stringified'
+	describe('validate formatting of input values', () => {
+
+		[
+			{
+				given: 'field',
+				expect: '\'field\''
 			},
-			expect: '\'{"obj":"be stringified"}\''
-		}
-	].forEach(({given, expect}) => {
+			{
+				given: null,
+				expect: 'null'
+			}
+		].forEach(({given, expect}) => {
 
-		it(`should convert ${given} to ${expect}`, async () => {
+			it(`should convert ${given} to ${expect}`, async () => {
 
-			dare.execute = (query, callback) => {
+				dare.execute = (query, callback) => {
 
-				// Limit: 1
-				sqlEqual(query, `UPDATE test SET \`name\` = ${expect} WHERE id = 1 LIMIT 1`);
-				callback(null, {success: true});
+					// Limit: 1
+					sqlEqual(query, `UPDATE test SET \`name\` = ${expect} WHERE id = 1 LIMIT 1`);
+					callback(null, {success: true});
 
-			};
+				};
 
-			return dare
-				.patch({
-					table: 'test',
-					filter: {id: 1},
-					body: {name: given}
-				});
+				return dare
+					.patch({
+						table: 'test',
+						filter: {id: 1},
+						body: {name: given}
+					});
+
+			});
+
+		});
+
+		[
+			{
+				key: 'value'
+			},
+			[
+				1, 2, 3
+			]
+		].forEach(given => {
+
+
+			it(`type=json: should accept object, given ${JSON.stringify(given)}`, async () => {
+
+				dare.options = {
+					schema: {
+						'test': {
+							meta: {
+								type: 'json'
+							}
+						}
+					}
+				};
+
+				const expect = JSON.stringify(given);
+
+				dare.execute = (query, callback) => {
+
+					// Limit: 1
+					sqlEqual(query, `UPDATE test SET \`meta\` = '${expect}' WHERE id = 1 LIMIT 1`);
+					callback(null, {success: true});
+
+				};
+
+				return dare
+					.patch({
+						table: 'test',
+						filter: {id: 1},
+						body: {meta: given}
+					});
+
+			});
+
+			it(`type!=json: should throw an exception, given ${JSON.stringify(given)}`, async () => {
+
+				const call = dare
+					.patch({
+						table: 'test',
+						filter: {id: 1},
+						body: {name: given}
+					});
+
+				return expect(call).to.be.eventually
+					.rejectedWith(DareError, 'Field \'name\' does not accept objects as values')
+					.and.have.property('code', DareError.INVALID_VALUE);
+
+			});
 
 		});
 

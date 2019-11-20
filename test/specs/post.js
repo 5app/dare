@@ -3,6 +3,8 @@
 // Test Generic DB functions
 const sqlEqual = require('../lib/sql-equal');
 
+const DareError = require('../../src/utils/error');
+
 describe('post', () => {
 
 	let dare;
@@ -228,6 +230,99 @@ describe('post', () => {
 			});
 
 		expect(resp).to.eql(skip);
+
+	});
+
+
+	describe('validate formatting of input values', () => {
+
+		[
+			{
+				given: 'field',
+				expect: '\'field\''
+			},
+			{
+				given: null,
+				expect: 'null'
+			}
+		].forEach(({given, expect}) => {
+
+			it(`should convert ${given} to ${expect}`, async () => {
+
+				dare.execute = (query, callback) => {
+
+					// Limit: 1
+					sqlEqual(query, `INSERT INTO test (\`name\`) VALUES (${expect})`);
+					callback(null, {success: true});
+
+				};
+
+				return dare
+					.post({
+						table: 'test',
+						body: {name: given}
+					});
+
+			});
+
+		});
+
+		[
+			{
+				key: 'value'
+			},
+			[
+				1, 2, 3
+			]
+		].forEach(given => {
+
+
+			it(`type=json: should accept object, given ${JSON.stringify(given)}`, async () => {
+
+				dare.options = {
+					schema: {
+						'test': {
+							meta: {
+								type: 'json'
+							}
+						}
+					}
+				};
+
+				const expect = JSON.stringify(given);
+
+				dare.execute = (query, callback) => {
+
+					// Limit: 1
+					sqlEqual(query, `INSERT INTO test (\`meta\`) VALUES ('${expect}')`);
+					callback(null, {success: true});
+
+				};
+
+				return dare
+					.post({
+						table: 'test',
+						body: {meta: given}
+					});
+
+			});
+
+			it(`type!=json: should throw an exception, given ${JSON.stringify(given)}`, async () => {
+
+				const call = dare
+					.patch({
+						table: 'test',
+						filter: {id: 1},
+						body: {name: given}
+					});
+
+				return expect(call).to.be.eventually
+					.rejectedWith(DareError, 'Field \'name\' does not accept objects as values')
+					.and.have.property('code', DareError.INVALID_VALUE);
+
+			});
+
+		});
 
 	});
 

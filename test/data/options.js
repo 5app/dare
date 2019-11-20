@@ -19,6 +19,13 @@ module.exports = {
 			country_id: 'country.id',
 
 			/*
+			 * JSON data type
+			 */
+			meta: {
+				type: 'json'
+			},
+
+			/*
 			 * Date Type
 			 */
 			created_time
