@@ -99,6 +99,7 @@ describe('patch', () => {
 
 		});
 
+
 		[
 			{
 				key: 'value'
@@ -108,39 +109,7 @@ describe('patch', () => {
 			]
 		].forEach(given => {
 
-
-			it(`type=json: should accept object, given ${JSON.stringify(given)}`, async () => {
-
-				dare.options = {
-					schema: {
-						'test': {
-							meta: {
-								type: 'json'
-							}
-						}
-					}
-				};
-
-				const expect = JSON.stringify(given);
-
-				dare.execute = (query, callback) => {
-
-					// Limit: 1
-					sqlEqual(query, `UPDATE test SET \`meta\` = '${expect}' WHERE id = 1 LIMIT 1`);
-					callback(null, {success: true});
-
-				};
-
-				return dare
-					.patch({
-						table: 'test',
-						filter: {id: 1},
-						body: {meta: given}
-					});
-
-			});
-
-			it(`type!=json: should throw an exception, given ${JSON.stringify(given)}`, async () => {
+			it(`should throw an exception, given ${JSON.stringify(given)}`, async () => {
 
 				const call = dare
 					.patch({
@@ -156,6 +125,75 @@ describe('patch', () => {
 			});
 
 		});
+
+
+		describe('type=json', () => {
+
+			beforeEach(() => {
+
+				dare.options = {
+					schema: {
+						'test': {
+							meta: {
+								type: 'json'
+							}
+						}
+					}
+				};
+
+			});
+
+			// Invalid inputs...
+			['string', true, false, 0, NaN, a => a]
+				.forEach(given => {
+
+					it(`should throw an exception, given ${given}`, async () => {
+
+						const call = dare
+							.patch({
+								table: 'test',
+								filter: {id: 1},
+								body: {meta: given}
+							});
+
+						return expect(call).to.be.eventually
+							.rejectedWith(DareError, 'Field \'meta\' must be an object')
+							.and.have.property('code', DareError.INVALID_VALUE);
+
+					});
+
+				});
+
+			// Valid inputs
+			[{}, [], null]
+				.forEach(given => {
+
+
+					it(`should accept typeof object, given ${JSON.stringify(given)}`, async () => {
+
+						const expect = given ? `'${JSON.stringify(given)}'` : 'null';
+
+						dare.execute = (query, callback) => {
+
+							// Limit: 1
+							sqlEqual(query, `UPDATE test SET \`meta\` = ${expect} WHERE id = 1 LIMIT 1`);
+							callback(null, {success: true});
+
+						};
+
+						return dare
+							.patch({
+								table: 'test',
+								filter: {id: 1},
+								body: {meta: given}
+							});
+
+					});
+
+				});
+
+		});
+
 
 	});
 

@@ -521,7 +521,19 @@ function formatInputValue(tableSchema = {}, field, value) {
 	// Stringify object
 	if (type === 'json') {
 
-		value = JSON.stringify(value);
+		// Value must be an object
+		if (typeof value !== 'object') {
+
+			throw new DareError(DareError.INVALID_VALUE, `Field '${field}' must be an object: ${JSON.stringify(value)} provided`);
+
+		}
+
+		// Stringify
+		if (value !== null) {
+
+			value = JSON.stringify(value);
+
+		}
 
 	}
 
