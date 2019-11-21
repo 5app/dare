@@ -1,3 +1,10 @@
+# [0.39.0](https://github.com/5app/dare/compare/v0.38.0...v0.39.0) (2019-11-21)
+
+
+### Features
+
+* **json:** support serialised JSON data [#109](https://github.com/5app/dare/issues/109) ([#114](https://github.com/5app/dare/issues/114)) ([1a57653](https://github.com/5app/dare/commit/1a57653e6f6b24f3bc9d67ca487c353c1bb923b1))
+
 # [0.38.0](https://github.com/5app/dare/compare/v0.37.1...v0.38.0) (2019-11-01)
 
 

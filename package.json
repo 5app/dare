@@ -1,6 +1,6 @@
 {
   "name": "dare",
-  "version": "0.38.0",
+  "version": "0.39.0",
   "description": "Database to REST, REST to Database",
   "main": "src/index.js",
   "engines": {
@@ -65,11 +65,13 @@
   },
   "husky": {
     "hooks": {
-        "commit-msg": "commitlint -E  HUSKY_GIT_PARAMS"
-     }
+      "commit-msg": "commitlint -E  HUSKY_GIT_PARAMS"
+    }
   },
   "commitlint": {
-    "extends": ["@commitlint/config-conventional"]
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
   },
   "release": {
     "branch": "master",
