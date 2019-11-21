@@ -304,6 +304,9 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 
 	}
 
+	// Get the schema
+	const tableSchema = this.options.schema && this.options.schema[req.table];
+
 	// Capture keys
 	const fields = [];
 	const prepared = [];
@@ -312,19 +315,22 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 		const _data = [];
 		for (const prop in item) {
 
+			// Format key and values...
+			const {field, value} = formatInputValue(tableSchema, prop, item[prop]);
+
 			// Get the index in the field list
-			let i = fields.indexOf(prop);
+			let i = fields.indexOf(field);
 
 			if (i === -1) {
 
 				i = fields.length;
 
-				fields.push(prop);
+				fields.push(field);
 
 			}
 
 			// Insert the value at that position
-			_data[i] = item[prop];
+			_data[i] = value;
 
 		}
 
@@ -333,14 +339,16 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	}).map(_data => {
 
 		// Create prepared values
-		const a = fields.map((prop, index) => {
+		const a = fields.map((_, index) => {
 
+			// If any of the values are missing, set them as DEFAULT
 			if (_data[index] === undefined) {
 
 				return 'DEFAULT';
 
 			}
-			// Add the value to prepared statement list
+
+			// Else add the value to prepared statement list
 			prepared.push(_data[index]);
 
 			// Return the prepared statement placeholder
@@ -352,21 +360,16 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 
 	});
 
-	// Get the schema
-	const tableSchema = this.options.schema && this.options.schema[req.table];
 
 	// Create unalias function
-	const unAliasFields = field => testFormatWriteableField(field, tableSchema);
-
-	// Format fields
-	const columns = fields.map(unAliasFields);
+	const unAliaser = field => unAliasFields(tableSchema, field);
 
 	// Options
-	const on_duplicate_keys_update = (req.duplicate_keys_update && onDuplicateKeysUpdate(req.duplicate_keys_update.map(unAliasFields))) || '';
+	const on_duplicate_keys_update = (req.duplicate_keys_update && onDuplicateKeysUpdate(req.duplicate_keys_update.map(unAliaser))) || '';
 
 	// Construct a db update
 	const sql = `INSERT ${exec} INTO ${req.table}
-			(${columns.map(field => `\`${field}\``).join(',')})
+			(${fields.map(field => `\`${field}\``).join(',')})
 			VALUES
 			${data.join(',')}
 			${on_duplicate_keys_update}`;
@@ -443,27 +446,13 @@ function prepareSet(body, tableSchema = {}) {
 	for (const label in body) {
 
 		/*
-		 * Assignments
+		 * Get the real field in the db,
+		 * And formatted value...
 		 */
-
-		// By default the fieldName is the label of the key.
-		const fieldName = testFormatWriteableField(label, tableSchema);
+		const {field, value} = formatInputValue(tableSchema, label, body[label]);
 
 		// Replace value with a question using any mapped fieldName
-		assignments[fieldName] = '?';
-
-
-		/*
-		 * Values
-		 */
-
-		let value = body[label];
-
-		if (value && typeof value === 'object') {
-
-			value = JSON.stringify(value);
-
-		}
+		assignments[field] = '?';
 
 		// Add to the array of items
 		preparedValues.push(value);
@@ -510,20 +499,48 @@ function onDuplicateKeysUpdate(keys) {
 }
 
 /**
- * Test and format fields for writes
+ * Format Input Value
+ * For a given field definition, return the db key (alias) and format the input it required
  *
- * @param {string} field - field to test
  * @param {object} [tableSchema={}] - An object containing the table schema
+ * @param {string} field - field identifier
+ * @param {*} value - Given value
  * @throws Will throw an error if the field is not writable
- * @returns {string} Unaliased field name
+ * @returns {string} A singular value which can be inserted
  */
-function testFormatWriteableField(field, tableSchema = {}) {
+function formatInputValue(tableSchema = {}, field, value) {
 
-	const {alias, writeable} = getFieldAttributes(tableSchema[field]);
+	const {alias, writeable, type} = getFieldAttributes(tableSchema[field]);
 
 	if (writeable === false) {
 
 		throw new DareError(DareError.INVALID_REFERENCE, `Field '${field}' is not writeable`);
+
+	}
+
+	// Stringify object
+	if (type === 'json') {
+
+		// Value must be an object
+		if (typeof value !== 'object') {
+
+			throw new DareError(DareError.INVALID_VALUE, `Field '${field}' must be an object: ${JSON.stringify(value)} provided`);
+
+		}
+
+		// Stringify
+		if (value !== null) {
+
+			value = JSON.stringify(value);
+
+		}
+
+	}
+
+	// Check this is not an object
+	if (value && typeof value === 'object') {
+
+		throw new DareError(DareError.INVALID_VALUE, `Field '${field}' does not accept objects as values: '${JSON.stringify(value)}'`);
 
 	}
 
@@ -533,6 +550,22 @@ function testFormatWriteableField(field, tableSchema = {}) {
 
 	}
 
-	return field;
+	return {field, value};
 
 }
+
+
+/**
+ * Return un-aliased field names
+ *
+ * @param {object} [tableSchema={}] - An object containing the table schema
+ * @param {string} field - field identifier
+ * @returns {string} Unaliased field name
+ */
+function unAliasFields(tableSchema = {}, field) {
+
+	const {alias} = getFieldAttributes(tableSchema[field]);
+	return alias || field;
+
+}
+

@@ -187,5 +187,25 @@ describe('Field Reducer', () => {
 
 	});
 
+	it('should format type=json fields', () => {
+
+		const table_schema = {
+			meta: {
+				type: 'json'
+			}
+		};
+
+		// Curry the field_reducer
+		const fr = field_reducer.call({}, 'meta', {}, table_schema);
+
+		// Call the field with the
+		const f = ['meta'].reduce(fr, []);
+
+		// Expect the formatted list of fields to be identical to the inputted value
+		expect(f[0])
+			.to.have.property('meta');
+
+	});
+
 });
 

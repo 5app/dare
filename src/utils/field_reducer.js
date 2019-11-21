@@ -4,6 +4,7 @@ const checkKey = require('./validate_field');
 const DareError = require('./error');
 const fieldRelativePath = require('./field_relative');
 const getFieldAttributes = require('./field_attributes');
+const jsonParse = require('./JSONparse');
 
 
 // Return a reducer function
@@ -185,6 +186,18 @@ function fieldMapping(field, label, tableSchema, fieldsArray) {
 	if (type === 'datetime' && !prefix) {
 
 		field = `DATE_FORMAT(${field},'%Y-%m-%dT%TZ')`;
+
+	}
+
+	// Default format datetime field as an ISO string...
+	else if (type === 'json' && !prefix) {
+
+		// Add a function of the same name to retro-format the field
+		fieldsArray.push({
+			[label]: item => jsonParse(item[label]) || {}
+		});
+
+		// Continue...
 
 	}
 

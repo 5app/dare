@@ -117,9 +117,9 @@ Fields can reference other table fields, this is used to construct relationships
 
 Defining the `type` introduces additional features.
 
-*currently this is limited to datetime*
+**`datatime`**
 
-E.g. in the example the type is defined as 'datetime', a conditional filter short hand for `created_time: 2017` would be expanded too `created_time BETWEEN '2017-01-01T00:00:00' AND '2017-12-31T23:59:59`
+Setting value to 'datetime', a conditional filter short hand for `created_time: 2017` would be expanded to `created_time BETWEEN '2017-01-01T00:00:00' AND '2017-12-31T23:59:59`
 
 ```javascript
     ...
@@ -131,6 +131,52 @@ E.g. in the example the type is defined as 'datetime', a conditional filter shor
 		},
     ...
 ```
+
+**`json`**
+
+Serializes Objects and Deserializes JSON strings in `get`, `post` and `patch` operations.
+
+e.g.
+
+Schema: field definition...
+```js
+	// Defined in scope of users table
+	users: {
+		// Define a field meta, to contain serialized JSON
+		meta: {
+			type: 'json'
+		}
+	}
+```
+
+Example set and get
+```js
+	// Arbitary object...
+	const meta = {
+		prop1: 1,
+		prop2: 2
+	};
+
+	// For a field named `meta`
+	const {insertId: id} = await dare.post('users', {meta});
+	// The value is run through JSON.stringify before insertion
+	// INSERT INOT users (meta) VALUES('{"prop1": 1, "prop2": 2}')
+
+
+	...
+
+	// The value is desiralized, when accessed via get...
+	const {meta} = await dare.get('users', ['meta'], {id});
+
+	// e.g...
+	console.log(meta);
+	// Object({
+	// 	prop1: 1,
+	// 	prop2: 2
+	// });
+
+```
+
 
 #### field handler
 

@@ -48,5 +48,68 @@ describe('get - datatypes', () => {
 
 	});
 
+	describe('type=json', () => {
+
+		it('should JSON parse an string as object if type=json', async () => {
+
+			const meta = {param: 1};
+			const metaString = JSON.stringify(meta);
+
+			dare.execute = async query => {
+
+				const expected = `
+					SELECT a.meta
+					FROM users a
+					LIMIT 1
+				`;
+
+				sqlEqual(query, expected);
+
+				return [{meta: metaString}];
+
+			};
+
+			const resp = await dare
+				.get({
+					table: 'users',
+					fields: ['meta']
+				});
+
+			expect(resp)
+				.to.have.property('meta')
+				.to.deep.equal(meta);
+
+		});
+
+		it('should return an empty object if response value is falsy', async () => {
+
+			dare.execute = async query => {
+
+				const expected = `
+					SELECT a.meta
+					FROM users a
+					LIMIT 1
+				`;
+
+				sqlEqual(query, expected);
+
+				return [{meta: null}];
+
+			};
+
+			const resp = await dare
+				.get({
+					table: 'users',
+					fields: ['meta']
+				});
+
+			expect(resp)
+				.to.have.property('meta')
+				.to.deep.equal({});
+
+		});
+
+	});
+
 });
 
