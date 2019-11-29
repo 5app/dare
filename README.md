@@ -15,31 +15,25 @@ Dare is a lovely API for generating SQL out of structured JS Object. It can be u
 
 This is a simple setup to get started with, it'll make a basic SELECT query.
 
-```javascript
+```js
 // Require the module
 const Dare = require('dare');
-const sqlConn = require('./someSqlConnection');
+const sqlConn = require('./mySqlConn');
 
 // Initiate it
 const dare = new Dare();
 
 // Define a module for connecting
 dare.execute = async (sql) => {
-	// Connect to DB, and execute the `sql`,
-	// resolve with a successResponse or throw an errorResponse
+	// Execute query...
 	return sqlConn.execute(sql);
 };
 
 // Make a request
-dare.get('users', ['name'], {id: 1}).then((resp) => {
+const resp = await dare.get('users', ['name'], {id: 1});
+// SELECT id, name FROM users WHERE id = 1 LIMIT 1;
 
-	// This would have run...
-	// SELECT id, name FROM users WHERE id = 1 LIMIT 1;
-	// And returned a single record as the response...
-
-	console.log(`Hi ${resp.name}');
-});
-
+console.log(`Hi ${resp.name}');
 ```
 
 
@@ -57,7 +51,7 @@ npm i dare --save
 
 Create an instance of Dare with some options
 
-```javascript
+```js
 const Dare = require('dare');
 
 const options = {
@@ -80,11 +74,17 @@ The schema is used to define the structure of your SQL database. You can refer t
 
 e.g.
 
-```javascript
-{
-	users: {Field Definitions, ...},
-	country: {Field Definitions, ...}
-}
+```js
+const dare = new Dare({
+	schema: {
+		users: {
+			// user field defitions
+		},
+		country: {
+			// country field defitions
+		}
+	}
+});
 ```
 
 ### Relationships
@@ -92,16 +92,18 @@ e.g.
 In the example below the fields `users.country_id` defines a relationship with `country.id` which is used to construct SQL JOIN Conditions.
 
 
-```javascript
-	...
+```js
+const dare = new Dare({
 	schema : {
 		users: {
-			// table columns
+			// users fields...
 			country_id: 'country.id'
 		},
-		country: {...}
+		country: {
+			// country fields...
+		}
 	}
-	...
+});
 ```
 
 ### Field Definition
@@ -121,15 +123,16 @@ Defining the `type` introduces additional features.
 
 Setting value to 'datetime', a conditional filter short hand for `created_time: 2017` would be expanded to `created_time BETWEEN '2017-01-01T00:00:00' AND '2017-12-31T23:59:59`
 
-```javascript
-    ...
-	schema : {
+```js
+const dare = new Dare({
+	schema: {
 		users: {
 			created_time: {
 				type: 'datetime'
 			}
-		},
-    ...
+		}
+	}
+});
 ```
 
 **`json`**
@@ -140,13 +143,16 @@ e.g.
 
 Schema: field definition...
 ```js
-	// Defined in scope of users table
-	users: {
-		// Define a field meta, to contain serialized JSON
-		meta: {
-			type: 'json'
+const dare = new Dare({
+	schema: {
+		users: {
+			meta: {
+				// Define a field meta with data type of json
+				type: 'json'
+			}
 		}
 	}
+});
 ```
 
 Example set and get
@@ -186,8 +192,8 @@ E.g.
 
 This will manipulate the request and response to create the property `avatar_url` on the fly.
 
-```javascript
-    ...
+```js
+const dare = new Dare({
 	schema: {
 		users: {
 			avatar_url(fields) {
@@ -196,8 +202,9 @@ This will manipulate the request and response to create the property `avatar_url
 
 				return (item) => `/images/avatars/${item.id}`;
 			}
-		},
-    ...
+		}
+	}
+});
 ```
 
 #### field alias
@@ -205,18 +212,19 @@ This will manipulate the request and response to create the property `avatar_url
 To alias a field, so that you can use a name different to the db column name, assign it a string name of the field in the current table. e.g. `emailAddress: 'email'`
 
 
-```javascript
-    ...
+```js
+const dare = new Dare({
 	schema: {
 		users: {
 			emailAddress: 'email'
-		},
-    ...
+		}
+	}
+});
 ```
 
 For example this will allow us to use the alias `emailAddress` in our api (see below), but the SQL generated will refer to it with it's true field name "`email`".
 
-```javascript
+```js
 dare.get('users', ['emailAddress'], {emailAddress: 'andrew@%'});
 // SELECT email AS emailAddress FROM users WHERE email LIKE 'andrew@%'
 ```
@@ -226,7 +234,7 @@ dare.get('users', ['emailAddress'], {emailAddress: 'andrew@%'});
 A flag to control access to a field
 
 ```js
-dare = new Dare({
+const dare = new Dare({
 	schema: {
 		users: {
 			id: {
@@ -269,7 +277,7 @@ The `dare.get` method is used to build and execute a `SELECT ...` SQL statement.
 
 e.g.
 
-```javascript
+```js
 dare.get('table', ['name'], {id: 1});
 // SELECT name FROM table WHERE id = 1 LIMIT 1;
 ```
@@ -280,7 +288,7 @@ Alternatively a options Object can be used instead.
 
 e.g.
 
-```javascript
+```js
 dare.get({
 	table: 'users',
 	fields: ['name'],
@@ -308,15 +316,16 @@ The array items can also be Objects.
 
 It's sometimes appropriate to alias a field definition, if it's to be renamed, or when using SQL Functions and operators to manipulate the response. E.g. Below we're using the `DATE` function to format the `created_date`, and we're aliasing it so it will be returned with prop key `_date`.
 
-```javascript
+```js
+dare.get('users',
 	[
 	  'name',
 	  {
 	  	'_date': 'DATE(created_date)'
 	  }
 	]
-
-	// sql: SELECT name, DATE(created_date) AS _date ...
+);
+// sql: SELECT name, DATE(created_date) AS _date ...
 ```
 
 *Pattern*:
@@ -342,7 +351,7 @@ In the case of `ROUND()` there is an allowance for `field * [digit]` pattern.
 
 Objects entries which have Objects as value. In this case they shall attempt to get data from accross multiple tables.
 
-```javascript
+```js
 
 	[
 		'name',
@@ -356,7 +365,7 @@ Objects entries which have Objects as value. In this case they shall attempt to 
 
 The SQL this creates renames the fields and then recreates the structured format that was requested. So with the above request: a typical response would have the following structure...
 
-```javascript
+```js
 	{
 		name: 'Andrew',
 		country: {
@@ -375,7 +384,7 @@ The Filter Object is a Fields=>Value object literal, defining the SQL condition 
 
 e.g.
 
-```javascript
+```js
 
 	{
 		id: 1,
@@ -389,7 +398,7 @@ e.g.
 The filter object can contain nested objects (Similar too the Fields Object). Nested objects define conditions on Relational tables.
 
 
-```javascript
+```js
 	{
 		country: {
 			name: 'UK'
@@ -462,7 +471,7 @@ The Join Object is a Fields=>Value object literal. It accepts similar syntax to 
 
 e.g.
 
-```javascript
+```js
 
 	join: {
 		county: {
@@ -479,7 +488,7 @@ To facilitate scenarios where the optional JOIN tables records are dependent on 
 
 The following statement includes all results from the main table, but does not append the country data unless it is within the continent of 'Europe'
 
-```javascript
+```js
 
 	join: {
 		county: {
@@ -509,8 +518,8 @@ The `dare.getCount` method builds and executes a `SELECT ...` SQL statement. It 
 
 e.g.
 
-```javascript
-dare.getCount('profile', {first_name: 'Andrew'});
+```js
+const count = await dare.getCount('profile', {first_name: 'Andrew'});
 // SELECT COUNT(DISTINCT id) FROM profile WHERE name = 'Andrew' LIMIT 1;
 ```
 
@@ -520,7 +529,7 @@ Using an options Object allows for  `date.getCount(options)` to be paired with a
 
 e.g.
 
-```javascript
+```js
 const requestOptions = {
 	table: 'profile',
 	filter: {
@@ -554,7 +563,7 @@ The `dare.post` method is used to build and execute an `INSERT ...` SQL statemen
 
 e.g.
 
-```javascript
+```js
 dare.post('user', {name: 'Andrew', profession: 'Mad scientist'});
 // INSERT INTO table (name, profession) VALUES('Andrew', 'Mad scientist')
 ```
@@ -565,7 +574,7 @@ Alternatively a options Object can be used instead.
 
 e.g.
 
-```javascript
+```js
 dare.post({
 	table: 'user',
 	body: {
@@ -582,7 +591,7 @@ The body can be an Array of objects.
 
 e.g.
 
-```javascript
+```js
 dare.post({
 	table: 'user',
 	body: [{
@@ -614,7 +623,7 @@ Table can have alias's this is useful when the context changes.
 
 E.g. Define 'author' as an alternative for 'users'
 
-```javascript
+```js
 	table_alias: {
 		author: 'users'
 	}
@@ -622,7 +631,7 @@ E.g. Define 'author' as an alternative for 'users'
 
 Example implementation...
 
-```javascript
+```js
 dare.get({
 	table: comments,
 	fields: {
@@ -643,7 +652,7 @@ In order to both: show all relationship on the join table AND filter the main re
 E.g. Include all the tags associated with users AND only show users whom include the tag "Andrew"
 
 
-```javascript
+```js
 dare.get({
 	table: 'users',
 	fields: ['name', {'tags': ['name']}],
@@ -664,7 +673,7 @@ This will get all users who contain atleast the tags 'Andrew', as well as return
 
 This will create a required join to include another table as a dependency.
 
-```javascript
+```js
 	table_conditions: {
 		users: 'country'
 	}
@@ -696,7 +705,7 @@ This handler is executed after the request and is useful for logging or manipula
 
 E.g. log an update to the users table
 
-```javascript
+```js
 afterPatch: {
 	users(resp) {
 		// Get the original request filter...
@@ -719,7 +728,7 @@ Of course there are scenarios where you want to capture a previous existing valu
 
 E.g. here is an example using the before handlers to capture the original value of a field and redefine define the after handler on this instance....
 
-```javascript
+```js
 ...
 patch: {
 	async users(options) {
