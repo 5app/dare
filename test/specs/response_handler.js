@@ -192,5 +192,5 @@ describe('response_handler', () => {
 
 	});
 
-	
+
 });
