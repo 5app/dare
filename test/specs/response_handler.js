@@ -44,7 +44,8 @@ describe('response_handler', () => {
 
 		const data = dare.response_handler([{
 			'field': 'value',
-			'assoc.id,assoc.name': '["1","a"]'
+			'assoc.id,assoc.name': '["1","a"]',
+			'a,b': Buffer.from('["1","2"]')
 		}]);
 
 		expect(data).to.be.an('array');
@@ -53,7 +54,9 @@ describe('response_handler', () => {
 			assoc: {
 				id: '1',
 				name: 'a'
-			}
+			},
+			a: '1',
+			b: '2'
 		});
 
 	});
@@ -189,4 +192,5 @@ describe('response_handler', () => {
 
 	});
 
+	
 });
