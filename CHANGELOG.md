@@ -1,3 +1,10 @@
+## [0.39.1](https://github.com/5app/dare/compare/v0.39.0...v0.39.1) (2019-12-17)
+
+
+### Bug Fixes
+
+* **buffer:** format response Buffer values ([#115](https://github.com/5app/dare/issues/115)) ([21ae6b2](https://github.com/5app/dare/commit/21ae6b281aa3d50375b87c40140170bcecb03e93))
+
 # [0.39.0](https://github.com/5app/dare/compare/v0.38.0...v0.39.0) (2019-11-21)
 
 
