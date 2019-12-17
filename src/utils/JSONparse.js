@@ -3,6 +3,13 @@ module.exports = value => {
 
 	try {
 
+		// Ensure Buffers are converted..
+		if (Buffer.isBuffer(value)) {
+
+			value = value.toString();
+
+		}
+
 		return JSON.parse(value
 			.replace(/\t/g, '\\t')
 			.replace(/\n/g, '\\n')
