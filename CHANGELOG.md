@@ -1,3 +1,10 @@
+## [0.39.2](https://github.com/5app/dare/compare/v0.39.1...v0.39.2) (2019-12-19)
+
+
+### Reverts
+
+* Revert "chore(ci): disable github actions" ([795f5d3](https://github.com/5app/dare/commit/795f5d3162f525aa2a5a46326286ffbf6b37a75e))
+
 ## [0.39.1](https://github.com/5app/dare/compare/v0.39.0...v0.39.1) (2019-12-17)
 
 
