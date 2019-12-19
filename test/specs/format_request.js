@@ -595,13 +595,13 @@ describe('format_request', () => {
 					[
 						{prop: []},
 						'prop',
-						'IS NULL',
+						'AND false',
 						[]
 					],
 					[
 						{'-prop': []},
 						'prop',
-						'IS NOT NULL',
+						'AND true',
 						[]
 					],
 					[

@@ -469,7 +469,7 @@ function prepCondition(field, value, key_definition, negate) {
 	}
 
 	// Add to the array of items
-	else if (Array.isArray(value)) {
+	else if (Array.isArray(value) && value.length > 0) {
 
 		// Sub
 		const sub_values = [];
@@ -477,13 +477,6 @@ function prepCondition(field, value, key_definition, negate) {
 
 		// Clone the values
 		value = [...value];
-
-		// Format empty
-		if (value.length === 0) {
-
-			value.push(null);
-
-		}
 
 		// Filter the results of the array...
 		value = value.filter(item => {
@@ -545,6 +538,19 @@ function prepCondition(field, value, key_definition, negate) {
 
 	}
 
+	/*
+	 * Request filter includes empty array of possible values
+	 * @todo break execution and return empty resultset.
+	 * This workaround adds SQL `...AND false` to the conditions which makes the response empty
+	 */
+	else if (Array.isArray(value) && value.length === 0) {
+
+		// If the filter array is empty, then if negated ignore it (... AND true), else exclude everything (... AND false)
+		condition = `AND ${Boolean(negate)}`;
+		values = [];
+		negate = ''; // Already negated
+
+	}
 	else {
 
 		condition = '= ?';
