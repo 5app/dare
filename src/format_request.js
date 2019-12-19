@@ -538,16 +538,18 @@ function prepCondition(field, value, key_definition, negate) {
 
 	}
 
-	// Request filter includes empty array of possible values
-	// @todo break execution and return empty resultset.
-	// This workaround adds SQL `...AND false` to the conditions which makes the response empty
+	/*
+	 * Request filter includes empty array of possible values
+	 * @todo break execution and return empty resultset.
+	 * This workaround adds SQL `...AND false` to the conditions which makes the response empty
+	 */
 	else if (Array.isArray(value) && value.length === 0) {
 
 		// If the filter array is empty, then if negated ignore it (... AND true), else exclude everything (... AND false)
 		condition = `AND ${Boolean(negate)}`;
 		values = [];
 		negate = ''; // Already negated
-		
+
 	}
 	else {
 
