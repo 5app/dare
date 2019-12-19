@@ -1,3 +1,10 @@
+# [0.41.0](https://github.com/5app/dare/compare/v0.40.0...v0.41.0) (2019-12-19)
+
+
+### Features
+
+* **formatting:** provide a means of formatting responses, [#96](https://github.com/5app/dare/issues/96) ([70885c2](https://github.com/5app/dare/commit/70885c2ddbda06fe07c7ef55d23d52f6a941e71f))
+
 # [0.40.0](https://github.com/5app/dare/compare/v0.39.2...v0.40.0) (2019-12-19)
 
 
