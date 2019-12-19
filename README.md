@@ -791,3 +791,27 @@ const dare = new Dare();
 dare.MAX_LIMIT = 1000000;
 ```
 
+
+### Post format the response
+
+The `dare.response_row_handler` is a little helper to format or redirect the response data as it's being processed. Using this approach to post-processing should give better performance on large datasets.
+
+E.g.
+
+```js
+// create a new dare instance to avoid polluting the others.
+dare = dare.use(); 
+
+// Define a response_row_handler on the new instance...
+dare.response_row_handler = (item) => {
+	// rudimentary write out as CSV.
+	res.write(Object.keys(item).join(',') + '\n');
+
+	// Do not return anything unless you want to include it in `data` (see below)
+};
+
+// Execute the query
+const data = await dare.get('users', ['name'], {limit: 10000000});
+
+console.log(data.length === 0); // empty array
+```
