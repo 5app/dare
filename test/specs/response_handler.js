@@ -194,3 +194,75 @@ describe('response_handler', () => {
 
 
 });
+
+describe('response_row_handler', () => {
+
+	let dare;
+
+	beforeEach(() => {
+
+		// Create a new instance
+		dare = new Dare();
+
+		// Create an execution instance
+		dare = dare.use();
+
+	});
+
+	it('response handler should be defined in instances of Dare', () => {
+
+		expect(dare).to.not.have.property('response_row_handler');
+
+	});
+
+	it('should allow additional formatting with response_row_handler', () => {
+
+		// Define a new response_row_handler
+		dare.response_row_handler = item => {
+
+			// Adds "prefix" to item.fiele
+			item.field = `prefix${item.field}`;
+
+			// Must return item
+			return item;
+
+		};
+
+		const data = dare.response_handler([{
+			'field': 'value',
+			'assoc.id': 1,
+			'assoc.name': 'value'
+		}]);
+
+		expect(data)
+			.to.be.an('array')
+			.and.to.have.lengthOf(1);
+
+		expect(data[0]).to.deep.equal({
+			field: 'prefixvalue',
+			assoc: {
+				id: 1,
+				name: 'value'
+			}
+		});
+
+	});
+
+	it('should return empty array if response_row_handler returns undefined', () => {
+
+		// Define a new response_row_handler to return nothing
+		dare.response_row_handler = () => {
+			// Does nothing...
+		};
+
+		const data = dare.response_handler([{
+			'field': 'value',
+			'assoc.id,assoc.name': '["1","a"]',
+			'a,b': Buffer.from('["1","2"]')
+		}]);
+
+		expect(data).to.be.an('array').that.is.empty;
+
+	});
+
+});

@@ -6,7 +6,34 @@ const JSONparse = require('./utils/JSONparse');
 module.exports = function responseHandler(resp) {
 
 	// Iterate over the response array and trigger formatting
-	return resp.map(formatHandler.bind(this));
+	return resp.reduce((items, row) => {
+
+		// Expand row...
+		let item = formatHandler(row);
+
+		// Add response handlers for generated fields etc...
+		if (this.response_handlers) {
+
+			this.response_handlers.forEach(callback => callback(item));
+
+		}
+
+		// Add custom response_row_handler, for handling the record
+		if (this.response_row_handler) {
+
+			item = this.response_row_handler(item);
+
+		}
+
+		// Push to the out going
+		if (typeof item !== 'undefined') {
+
+			items.push(item);
+
+		}
+		return items;
+
+	}, []);
 
 };
 
@@ -104,12 +131,6 @@ function formatHandler(item) {
 		}
 
 		delete item[label];
-
-	}
-
-	if (this && this.response_handlers) {
-
-		this.response_handlers.forEach(callback => callback(item));
 
 	}
 
