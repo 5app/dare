@@ -1,3 +1,10 @@
+# [0.40.0](https://github.com/5app/dare/compare/v0.39.2...v0.40.0) (2019-12-19)
+
+
+### Features
+
+* **filter:** filter empty, empty response, [#92](https://github.com/5app/dare/issues/92) ([c6af4c8](https://github.com/5app/dare/commit/c6af4c8568a93d2b17d30ffeb0b7828115241c6c))
+
 ## [0.39.2](https://github.com/5app/dare/compare/v0.39.1...v0.39.2) (2019-12-19)
 
 
