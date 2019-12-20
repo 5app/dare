@@ -1,3 +1,10 @@
+## [0.41.1](https://github.com/5app/dare/compare/v0.41.0...v0.41.1) (2019-12-20)
+
+
+### Bug Fixes
+
+* **formatting:** include the index in the response_row_handler, [#96](https://github.com/5app/dare/issues/96) ([46d6f81](https://github.com/5app/dare/commit/46d6f817772c43f6b59f066c308393906d57fac1))
+
 # [0.41.0](https://github.com/5app/dare/compare/v0.40.0...v0.41.0) (2019-12-19)
 
 
