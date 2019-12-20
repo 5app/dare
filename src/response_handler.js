@@ -6,7 +6,7 @@ const JSONparse = require('./utils/JSONparse');
 module.exports = function responseHandler(resp) {
 
 	// Iterate over the response array and trigger formatting
-	return resp.reduce((items, row) => {
+	return resp.reduce((items, row, index) => {
 
 		// Expand row...
 		let item = formatHandler(row);
@@ -21,7 +21,7 @@ module.exports = function responseHandler(resp) {
 		// Add custom response_row_handler, for handling the record
 		if (this.response_row_handler) {
 
-			item = this.response_row_handler(item);
+			item = this.response_row_handler(item, index);
 
 		}
 
