@@ -58,7 +58,7 @@
     "mocha-circleci-reporter": "0.0.3",
     "nyc": "^15.0.0",
     "pre-commit": "^1.2.2",
-    "semantic-release": "^15.13.24"
+    "semantic-release": "^16.0.0"
   },
   "dependencies": {
     "tricks": "^1.12.0"
