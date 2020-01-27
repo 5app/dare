@@ -1,3 +1,10 @@
+## [0.41.2](https://github.com/5app/dare/compare/v0.41.1...v0.41.2) (2020-01-27)
+
+
+### Bug Fixes
+
+* allow redefining arrays of field keys, fixes [#43](https://github.com/5app/dare/issues/43) ([1405742](https://github.com/5app/dare/commit/14057425fedfea0dd8003f602375b89bd383aca0))
+
 ## [0.41.1](https://github.com/5app/dare/compare/v0.41.0...v0.41.1) (2019-12-20)
 
 
