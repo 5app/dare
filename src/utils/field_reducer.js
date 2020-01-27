@@ -40,11 +40,6 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
 				join[key].fields = [];
 
 			}
-			else if (!Array.isArray(join[key].fields)) {
-
-				join[key].fields = [join[key].fields];
-
-			}
 
 			join[key].fields.push(d);
 			return true;
@@ -71,8 +66,13 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
 
 					}
 
+					/*
+					 * This key=>value object refers to another table as the value is an object itself
+					 * Add the object to the join table...
+					 */
 					join[key] = join[key] || {};
-					join[key].fields = value;
+					join[key].fields = join[key].fields || [];
+					join[key].fields.push(...(Array.isArray(value) ? value : [value]));
 
 				}
 				else {

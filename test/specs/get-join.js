@@ -170,6 +170,49 @@ describe('get - request object', () => {
 
 		});
 
+
+		it('should allow multiple definitions of the same thing', async () => {
+
+			dare.sql = async query => {
+
+				const key = 'email1,users_email.email,users_email.emailnest';
+
+				expect(query).to.contain(key);
+
+				return [{
+					[key]: '["a@b.com","a@b.com","a@b.com"]'
+				}];
+
+			};
+
+			/*
+			 * We should get back both structures
+			 */
+			const res = await dare.get({
+				table: 'users',
+				fields: [
+					{
+						'email1': 'users_email.email'
+					},
+					{
+						'users_email': ['email']
+					},
+					{
+						'users_email': {
+							'emailnest': 'email'
+						}
+					}
+				]
+			});
+
+			expect(res).to.have.property('email1');
+			expect(res.users_email)
+				.to.have.property('email');
+			expect(res.users_email)
+				.to.have.property('emailnest');
+
+		});
+
 	});
 
 	describe('filter', () => {
