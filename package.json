@@ -45,7 +45,7 @@
     "@commitlint/cli": "^8.2.0",
     "@commitlint/config-conventional": "^8.2.0",
     "@semantic-release/changelog": "^3.0.4",
-    "@semantic-release/git": "^8.0.0",
+    "@semantic-release/git": "^9.0.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.6",
@@ -58,7 +58,7 @@
     "mocha-circleci-reporter": "0.0.3",
     "nyc": "^15.0.0",
     "pre-commit": "^1.2.2",
-    "semantic-release": "^16.0.0"
+    "semantic-release": "^17.0.0"
   },
   "dependencies": {
     "tricks": "^1.12.0"
