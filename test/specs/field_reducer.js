@@ -103,7 +103,6 @@ describe('Field Reducer', () => {
 				}]
 			]
 
-
 		].forEach(test => {
 
 			const input = test[0]; // Test request fields array to process
