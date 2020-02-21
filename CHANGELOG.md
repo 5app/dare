@@ -1,3 +1,10 @@
+# [0.42.0](https://github.com/5app/dare/compare/v0.41.2...v0.42.0) (2020-02-21)
+
+
+### Features
+
+* **get:** opts.notfound, override the notfound behaviour ([cc80af5](https://github.com/5app/dare/commit/cc80af51e624c523b916c2f5fec40f8decaa9fad))
+
 ## [0.41.2](https://github.com/5app/dare/compare/v0.41.1...v0.41.2) (2020-01-27)
 
 
