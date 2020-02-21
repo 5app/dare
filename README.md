@@ -506,6 +506,37 @@ The following statement includes all results from the main table, but does not a
 	// ...
 ```
 
+### Pagination `limit` and `start`
+
+The limit and start property are simply applied to the SQL query and can be used to paginate the resultset.
+
+```js
+dare.get({
+	table: 'table',
+	fields: ['name'],
+	limit: 10, // Return only 10 rows
+	start: 20, // Start in the 20th
+});
+// SELECT name FROM table LIMIT 10 OFFSET 20;
+```
+
+### No `limit` set and `notfound`
+Dare returns a single item when no `limit` is set. When the item is not found Dare rejects the request with `DareError.NOT_FOUND`. To override this default behaviour simply set the `notfound`. e.g.
+
+```js
+const resp = await dare.get({
+	table: 'table',
+	fields: ['name'],
+	filter: {name: 'Nameless'}
+	notfound: null
+});
+
+// SELECT name FROM table WHERE name = 'Nameless' LIMIT 1;
+// -- found 0 rows
+console.log(resp); // null
+
+```
+
 ## dare.getCount(table[, filter][, options])
 
 The `dare.getCount` method builds and executes a `SELECT ...` SQL statement. It returns the number of results which match the request options. And is useful when constructing pagination.
