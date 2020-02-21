@@ -42,21 +42,15 @@ describe('sql', () => {
 
 	});
 
-	it('should trigger execute and reject a promise', async () => {
+	it('should trigger execute and reject a promise', () => {
 
-		dare.execute = () => Promise.reject(new Error('test'));
+		const msg = 'test';
+		dare.execute = () => Promise.reject(new Error(msg));
 
-		try {
+		const test = dare.sql('SELECT 1');
 
-			await dare.sql('SELECT 1');
-			throw new Error('should not get here');
-
-		}
-		catch (e) {
-
-			expect(e).to.have.property('message', 'test');
-
-		}
+		return expect(test)
+			.to.be.eventually.rejectedWith(Error, msg);
 
 	});
 

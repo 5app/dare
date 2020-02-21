@@ -29,26 +29,19 @@ describe('validate_body', () => {
 				'string'
 			].forEach(body => {
 
-				it(JSON.stringify(body), async () => {
+				it(JSON.stringify(body), () => {
 
-					try {
+					const test = dare[method]({
+						table: 'tbl',
+						filter: {
+							id: 1
+						},
+						body
+					});
 
-						await dare[method]({
-							table: 'tbl',
-							filter: {
-								id: 1
-							},
-							body
-						});
-
-						throw new Error('expected exception');
-
-					}
-					catch (err) {
-
-						expect(err).to.have.property('code', DareError.INVALID_REQUEST);
-
-					}
+					return expect(test).to.be.eventually
+						.rejectedWith(DareError, /^The body .*? is invalid$/)
+						.and.have.property('code', DareError.INVALID_REQUEST);
 
 				});
 

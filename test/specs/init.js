@@ -21,23 +21,15 @@ describe('Dare', () => {
 
 	});
 
-	it('should throw errors if dare.execute is not defined', async () => {
+	it('should throw errors if dare.execute is not defined', () => {
 
 		const dare = new Dare();
 
-		try {
+		const test = dare
+			.sql('SELECT 1=1');
 
-			await dare
-				.sql('SELECT 1=1');
-
-			throw new Error('expected failure');
-
-		}
-		catch (err) {
-
-			expect(err).to.be.instanceof(DareError);
-
-		}
+		return expect(test)
+			.to.be.eventually.rejectedWith(DareError, 'Define dare.execute to continue');
 
 	});
 

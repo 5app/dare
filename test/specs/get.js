@@ -168,55 +168,36 @@ describe('get', () => {
 
 		});
 
-		it('should throw an error if limit is invalid', async () => {
+		it('should throw an error if limit is invalid', () => {
 
+			const test = dare.get('test', basic_fields, {id: 1}, {limit: 0});
 
-			try {
-
-				await dare.get('test', basic_fields, {id: 1}, {limit: 0});
-				throw new Error('expected failure');
-
-			}
-			catch (err) {
-
-				expect(err).to.have.property('code', DareError.INVALID_LIMIT);
-
-			}
+			return expect(test)
+				.to.be.eventually.rejectedWith(DareError)
+				.and.have.property('code', DareError.INVALID_LIMIT);
 
 		});
 
-		it('should throw an error if limit is invalid', async () => {
+		it('should throw an error if limit is invalid', () => {
 
-			try {
+			const test = dare.get('test', basic_fields, {id: 1}, {limit: null});
 
-				await dare.get('test', basic_fields, {id: 1}, {limit: null});
-				throw new Error('expected failure');
-
-			}
-			catch (err) {
-
-				expect(err).to.have.property('code', DareError.INVALID_LIMIT);
-
-			}
+			return expect(test)
+				.to.be.eventually.rejectedWith(DareError)
+				.and.have.property('code', DareError.INVALID_LIMIT);
 
 		});
 
 
-		it('should throw an error where no limit was defined and an empty resultset was returned.', async () => {
+		it('should throw an error where no limit was defined and an empty resultset was returned.', () => {
 
 			dare.execute = (query, callback) => callback(null, []);
 
-			try {
+			const test = dare.get('test', basic_fields, {id: 1});
 
-				await dare.get('test', basic_fields, {id: 1});
-				throw new Error('expected failure');
-
-			}
-			catch (err) {
-
-				expect(err).to.have.property('code', 'NOT_FOUND');
-
-			}
+			return expect(test)
+				.to.be.eventually.rejectedWith(DareError)
+				.and.have.property('code', DareError.NOT_FOUND);
 
 		});
 
@@ -322,35 +303,23 @@ describe('get', () => {
 
 		});
 
-		it('should throw an error if fields is an empty array', async () => {
+		it('should throw an error if fields is an empty array', () => {
 
-			try {
+			const test = dare.get('test', [], {id: 1}, {groupby: 'id'});
 
-				await dare.get('test', [], {id: 1}, {groupby: 'id'});
-				throw new Error('expected failure');
-
-			}
-			catch (err) {
-
-				expect(err).to.have.property('code', DareError.INVALID_REQUEST);
-
-			}
+			return expect(test)
+				.to.be.eventually.rejectedWith(DareError)
+				.and.have.property('code', DareError.INVALID_REQUEST);
 
 		});
 
-		it('should throw an error if missing fields on an unknown schema', async () => {
+		it('should throw an error if missing fields on an unknown schema', () => {
 
-			try {
+			const test = dare.get('test', {id: 1}, {groupby: 'id'});
 
-				await dare.get('test', {id: 1}, {groupby: 'id'});
-				throw new Error('expected failure');
-
-			}
-			catch (err) {
-
-				expect(err).to.have.property('code', DareError.INVALID_REQUEST);
-
-			}
+			return expect(test)
+				.to.be.eventually.rejectedWith(DareError)
+				.and.have.property('code', DareError.INVALID_REQUEST);
 
 		});
 

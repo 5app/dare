@@ -44,23 +44,16 @@ describe('patch', () => {
 
 	});
 
-	it('should throw an exception if affectedRows: 0', async () => {
+	it('should throw an exception if affectedRows: 0', () => {
 
 		dare.sql = () => Promise.resolve({affectedRows: 0});
 
-		try {
+		const test = dare
+			.patch('groups', {id: 20000}, {name: 'name'});
 
-			await dare
-				.patch('groups', {id: 20000}, {name: 'name'});
-
-			throw new Error('expected failure');
-
-		}
-		catch (err) {
-
-			expect(err.code).to.eql(DareError.NOT_FOUND);
-
-		}
+		return expect(test)
+			.to.be.eventually.rejectedWith(DareError)
+			.and.have.property('code', DareError.NOT_FOUND);
 
 	});
 
@@ -317,21 +310,14 @@ describe('patch', () => {
 			}
 		};
 
-		try {
+		const test = dare.patch({
+			table: 'tbl',
+			filter: {id: 1},
+			body: {name: 'name'}
+		});
 
-			await dare
-				.patch({
-					table: 'tbl',
-					filter: {id: 1},
-					body: {name: 'name'}
-				});
-
-		}
-		catch (err) {
-
-			expect(err).to.have.property('message', msg);
-
-		}
+		return expect(test)
+			.to.be.eventually.rejectedWith(Error, msg);
 
 	});
 

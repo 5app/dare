@@ -190,22 +190,13 @@ describe('post', () => {
 			}
 		};
 
-		try {
+		const test = dare.post({
+			table: 'tbl',
+			body: {name: 'name'}
+		});
 
-			await dare
-				.post({
-					table: 'tbl',
-					body: {name: 'name'}
-				});
-
-			throw new Error('expected failure');
-
-		}
-		catch (err) {
-
-			expect(err.message).to.eql(msg);
-
-		}
+		return expect(test)
+			.to.be.eventually.rejectedWith(Error, msg);
 
 	});
 
