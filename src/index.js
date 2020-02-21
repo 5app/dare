@@ -140,6 +140,16 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 	// Define method
 	opts.method = 'get';
 
+	if (!('notfound' in opts)) {
+
+		opts.notfound = () => {
+
+			throw new DareError(DareError.NOT_FOUND);
+
+		};
+
+	}
+
 	const _this = this.use(opts);
 
 	const req = await _this.format_request(_this.options);

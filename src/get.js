@@ -40,11 +40,13 @@ module.exports = async function(opts) {
 			return resp[0];
 
 		}
-		else {
+		else if (typeof opts.notfound === 'function') {
 
-			throw new DareError(DareError.NOT_FOUND);
+			opts.notfound();
 
 		}
+
+		return opts.notfound;
 
 	}
 

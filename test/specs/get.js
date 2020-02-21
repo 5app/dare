@@ -220,6 +220,18 @@ describe('get', () => {
 
 		});
 
+		it('should return value of notfound where no limit was defined and an empty resultset was returned.', async () => {
+
+			dare.execute = (query, callback) => callback(null, []);
+
+			const notfound = 'whoops';
+
+			const value = await dare.get('test', basic_fields, {id: 1}, {notfound});
+
+			expect(value).to.equal(notfound);
+
+		});
+
 
 		it('should passthrough an orderby', async () => {
 
