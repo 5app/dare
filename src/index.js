@@ -17,10 +17,19 @@ const clone = require('tricks/object/clone');
 
 module.exports = Dare;
 
+/**
+ * Dare
+ * Sets up a new instance of Dare
+ *
+ * @param {object} options - Initial options defining the instance
+ * @returns {object} instance of dare
+ */
 function Dare(options) {
 
 	// Overwrite default properties
 	this.options = options || {};
+
+	return this;
 
 }
 
@@ -72,6 +81,13 @@ Dare.prototype.table_handler = require('./table_handler');
 
 Dare.prototype.response_handler = require('./response_handler');
 
+/**
+ * Dare.after
+ * Defines where the instance goes looking to apply post execution handlers and potentially mutate the response
+ *
+ * @param {object|Array} resp - Response object
+ * @returns {object} response data formatted or not
+ */
 Dare.prototype.after = function(resp) {
 
 	// Define the after handler
@@ -90,7 +106,12 @@ Dare.prototype.after = function(resp) {
 
 };
 
-// Create an instance
+/**
+ * Use
+ * Creates a new instance of Dare and merges new options with the base options
+ * @param {object} options - set of instance options
+ * @returns {object} Instance of Dare
+ */
 Dare.prototype.use = function(options = {}) {
 
 	const inst = Object.create(this);
@@ -104,6 +125,14 @@ Dare.prototype.use = function(options = {}) {
 
 };
 
+/**
+ * Dare.sql
+ * Prepares and processes SQL statements
+ *
+ * @param {string} sql - SQL string containing the query
+ * @param {Array<Array, string, number, boolean>} prepared - List of prepared statement values
+ * @returns {Promise<object|Array>} Returns response object or array of values
+ */
 Dare.prototype.sql = async function sql(sql, prepared) {
 
 	prepared = prepared || [];
@@ -114,7 +143,16 @@ Dare.prototype.sql = async function sql(sql, prepared) {
 
 };
 
-
+/**
+ * Dare.get
+ * Triggers a DB SELECT request to rerieve records from the database.
+ *
+ * @param {string} table - Name of the table to query
+ * @param {Array} fields - Fields array to return
+ * @param {object} filter - Filter Object to query
+ * @param {object} opts - An Options object containing all other request options
+ * @returns {Promise<object|Array>} Results
+ */
 Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 
 	// Get Request Object
@@ -142,6 +180,7 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 
 	if (!('notfound' in opts)) {
 
+		// Default handler is called when there are no results on a request for a single item
 		opts.notfound = () => {
 
 			throw new DareError(DareError.NOT_FOUND);
@@ -161,7 +200,8 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 };
 
 /**
- * GetCount
+ * Dare.getCount
+ * Returns the total number of results which match the conditions
  *
  * @param {string} table - Name of the table to query
  * @param {object} filter - Filter Object to query
@@ -211,7 +251,16 @@ Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
 
 };
 
-
+/**
+ * Dare.patch
+ * Updates records matching the conditions
+ *
+ * @param {string} table - Name of the table to query
+ * @param {object} filter - Filter Object to query
+ * @param {object} body - Body containing new data
+ * @param {object} opts - An Options object containing all other request options
+ * @returns {Promise<object>} Affected Rows statement
+ */
 Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 
 	// Get Request Object
@@ -265,12 +314,14 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 };
 
 
-/*
+/**
+ * Dare.post
  * Insert new data into database
- * @table string
- * @post object
- * @opts object
- * return Promise
+ *
+ * @param {string} table - Name of the table to query
+ * @param {object} body - Body containing new data
+ * @param {object} opts - An Options object containing all other request options
+ * @returns {Promise<object>} Affected Rows statement
  */
 
 Dare.prototype.post = async function post(table, body, opts = {}) {
@@ -391,12 +442,14 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 };
 
 
-/*
- * Delete a record
- * @table string
- * @query object
- * @opts object
- * return Promise
+/**
+ * Dare.del
+ * Delete a record matching condition
+ *
+ * @param {string} table - Name of the table to query
+ * @param {object} filter - Filter Object to query
+ * @param {object} opts - An Options object containing all other request options
+ * @returns {Promise<object>} Affected Rows statement
  */
 Dare.prototype.del = async function del(table, filter, opts = {}) {
 
