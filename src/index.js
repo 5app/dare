@@ -258,7 +258,8 @@ Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
  * @param {string} table - Name of the table to query
  * @param {object} filter - Filter Object to query
  * @param {object} body - Body containing new data
- * @param {object} opts - An Options object containing all other request options
+ * @param {object} [opts] - An Options object containing all other request options
+ * @param {number} [opts.limit=1] - Number of items to change
  * @returns {Promise<object>} Affected Rows statement
  */
 Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
@@ -319,8 +320,10 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
  * Insert new data into database
  *
  * @param {string} table - Name of the table to query
- * @param {object} body - Body containing new data
- * @param {object} opts - An Options object containing all other request options
+ * @param {object|Array<objects>} body - Body containing new data
+ * @param {object} [opts] - An Options object containing all other request options
+ * @param {Array} [opts.duplicate_keys_update] - An array of fields to update on presence of duplicate key constraints
+ * @param {string} [opts.duplicate_keys] - 'ignore' to prevent throwing Duplicate key errors
  * @returns {Promise<object>} Affected Rows statement
  */
 
