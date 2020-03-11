@@ -178,16 +178,8 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 	// Define method
 	opts.method = 'get';
 
-	if (!('notfound' in opts)) {
-
-		// Default handler is called when there are no results on a request for a single item
-		opts.notfound = () => {
-
-			throw new DareError(DareError.NOT_FOUND);
-
-		};
-
-	}
+	// Set default notfound handler
+	setDefaultNotFoundHandler(opts);
 
 	const _this = this.use(opts);
 
@@ -270,6 +262,9 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	// Define method
 	opts.method = 'patch';
 
+	// Set default notfound handler
+	setDefaultNotFoundHandler(opts);
+
 	const _this = this.use(opts);
 
 	const req = await _this.format_request(opts);
@@ -308,7 +303,7 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 
 	let resp = await this.sql(sql, preparedValues);
 
-	resp = mustAffectRows(resp);
+	resp = mustAffectRows(resp, opts.notfound);
 
 	return _this.after(resp);
 
@@ -462,6 +457,9 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 	// Delete
 	opts.method = 'del';
 
+	// Set default notfound handler
+	setDefaultNotFoundHandler(opts);
+
 	const _this = this.use(opts);
 
 	const req = await _this.format_request(opts);
@@ -490,7 +488,7 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 
 	let resp = await this.sql(sql, a);
 
-	resp = mustAffectRows(resp);
+	resp = mustAffectRows(resp, opts.notfound);
 
 	return _this.after(resp);
 
@@ -545,11 +543,16 @@ function serialize(obj, separator, delimiter) {
 
 }
 
-function mustAffectRows(result) {
+function mustAffectRows(result, notfound) {
 
 	if (result.affectedRows === 0) {
 
-		throw new DareError(DareError.NOT_FOUND);
+		if (typeof notfound === 'function') {
+
+			return notfound();
+
+		}
+		return notfound;
 
 	}
 	return result;
@@ -635,3 +638,25 @@ function unAliasFields(tableSchema = {}, field) {
 
 }
 
+/**
+ * SetDefaultNotFoundHandler
+ * As the name suggests
+ * @param {object} opts - request options
+ * @returns {void}
+ */
+function setDefaultNotFoundHandler(opts) {
+
+	if (!('notfound' in opts)) {
+
+		// Default handler is called when there are no results on a request for a single item
+		opts.notfound = () => {
+
+			throw new DareError(DareError.NOT_FOUND);
+
+		};
+
+	}
+
+	return opts;
+
+}

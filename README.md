@@ -644,6 +644,44 @@ This generates `INSERT INTO user (name, profession) VALUES ('Andrew', 'Mad Scien
 | duplicate_keys_update | Array(field1, field2, ...) | Appends `ON DUPLICATE KEYS UPDATE field1=VALUES(field1)`
 
 
+## dare.patch(table, filter, body[, options])
+
+Updates records within the `table` with the `body` object when they match `filter`.
+
+| property | Type              | Description
+|----------|-------------------|----------------
+| table    | string            | Name of the table to insert into
+| filter   | Object            | Filter object of the results
+| body     | Object            | Post Object to apply
+| options  | Hash (key=>Value) | Additional Options
+
+
+### Patch options (additional)
+
+| Prop          | Type      | Description
+|---------------|-----------|----------------
+| notfound      | *         | Value to return when there are no affected rows. If it's a function the function will be called. Default throws `DareError.NOT_FOUND`
+| limit         | number    | Default: `1`. Limit the number of results which can be affected by patch
+
+
+## dare.del(table, filter[, options])
+
+Deletes records within the `table` when they match `filter`.
+
+| property | Type              | Description
+|----------|-------------------|----------------
+| table    | string            | Name of the table to insert into
+| filter   | Object            | Filter object of the results
+| options  | Hash (key=>Value) | Additional Options
+
+
+### Patch options (additional)
+
+| Prop          | Type      | Description
+|---------------|-----------|----------------
+| notfound      | *         | Value to return when there are no affected rows. If it's a function the function will be called. Default throws `DareError.NOT_FOUND`
+| limit         | number    | Default: `1`. Limit the number of results which can be affected by patch
+
 
 
 # Additional Options
