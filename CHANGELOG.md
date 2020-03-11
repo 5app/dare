@@ -1,3 +1,10 @@
+# [0.43.0](https://github.com/5app/dare/compare/v0.42.0...v0.43.0) (2020-03-11)
+
+
+### Features
+
+* **opt.notfound:** adds opts.notfound, fixes [#131](https://github.com/5app/dare/issues/131) ([cd38a65](https://github.com/5app/dare/commit/cd38a6524ea3649b781cd9a833137c8e0b7d96c0))
+
 # [0.42.0](https://github.com/5app/dare/compare/v0.41.2...v0.42.0) (2020-02-21)
 
 
