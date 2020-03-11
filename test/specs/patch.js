@@ -46,7 +46,7 @@ describe('patch', () => {
 
 	it('should throw an exception if affectedRows: 0', () => {
 
-		dare.sql = () => Promise.resolve({affectedRows: 0});
+		dare.sql = async () => ({affectedRows: 0});
 
 		const test = dare
 			.patch('groups', {id: 20000}, {name: 'name'});
@@ -54,6 +54,19 @@ describe('patch', () => {
 		return expect(test)
 			.to.be.eventually.rejectedWith(DareError)
 			.and.have.property('code', DareError.NOT_FOUND);
+
+	});
+
+	it('should throw an exception if affectedRows: 0', async () => {
+
+		const notfound = false;
+
+		dare.sql = async () => ({affectedRows: 0});
+
+		const test = await dare
+			.patch('groups', {id: 20000}, {name: 'name'}, {notfound});
+
+		expect(test).to.equal(notfound);
 
 	});
 

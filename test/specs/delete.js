@@ -47,11 +47,21 @@ describe('del', () => {
 
 		dare.sql = async () => ({affectedRows: 0});
 
-		const test = dare.del('groups', {name: 'name'}, {id: 20000});
+		const test = dare.del('groups', {id: 20000});
 
 		return expect(test)
 			.to.be.eventually.rejectedWith(DareError)
 			.and.have.property('code', DareError.NOT_FOUND);
+
+	});
+
+	it('should return opts.notfound if affectedRows: 0', async () => {
+
+		const notfound = false;
+		dare.sql = async () => ({affectedRows: 0});
+
+		const test = await dare.del('groups', {id: 20000}, {notfound});
+		return expect(test).to.equal(notfound);
 
 	});
 
