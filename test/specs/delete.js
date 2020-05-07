@@ -130,7 +130,11 @@ describe('del', () => {
 		dare.options = {
 			del: {
 				// Augment the request
-				'default': async req => req.filter.id = 1
+				async default(req) {
+
+					req.filter.id = 1;
+
+				}
 			}
 		};
 

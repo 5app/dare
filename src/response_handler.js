@@ -120,7 +120,11 @@ function formatHandler(item) {
 					}
 
 					const obj = {};
-					keys.forEach((label, index) => obj[label] = values[index]);
+					keys.forEach((label, index) => {
+
+						obj[label] = values[index];
+
+					});
 					formatHandler(obj);
 					a.push(obj);
 
