@@ -224,6 +224,26 @@ describe('patch', () => {
 
 	});
 
+	it('should apply the request.duplicate_keys', async () => {
+
+		dare.execute = (query, callback) => {
+
+			// Limit: 1
+			sqlEqual(query, 'UPDATE IGNORE test SET `name` = \'name\' WHERE id = 1 LIMIT 1');
+			callback(null, {success: true});
+
+		};
+
+		return dare
+			.patch({
+				table: 'test',
+				filter: {id: 1},
+				body: {name: 'name'},
+				duplicate_keys: 'ignore'
+			});
+
+	});
+
 	it('should use table aliases', async () => {
 
 		dare.execute = (query, callback) => {

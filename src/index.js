@@ -251,6 +251,7 @@ Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
  * @param {object} filter - Filter Object to query
  * @param {object} body - Body containing new data
  * @param {object} [opts] - An Options object containing all other request options
+ * @param {string} [opts.duplicate_keys] - 'ignore' to prevent throwing Duplicate key errors
  * @param {number} [opts.limit=1] - Number of items to change
  * @returns {Promise<object>} Affected Rows statement
  */
@@ -293,8 +294,16 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 
 	});
 
+	// If ignore duplicate keys is stated as ignore
+	let exec = '';
+	if (req.duplicate_keys && req.duplicate_keys.toString().toLowerCase() === 'ignore') {
+
+		exec = 'IGNORE ';
+
+	}
+
 	// Construct a db update
-	const sql = `UPDATE ${req.table}
+	const sql = `UPDATE ${exec}${req.table}
 			SET
 				${serialize(assignments, '=', ',')}
 			WHERE

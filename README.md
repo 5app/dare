@@ -660,8 +660,9 @@ Updates records within the `table` with the `body` object when they match `filte
 
 | Prop          | Type      | Description
 |---------------|-----------|----------------
-| notfound      | *         | Value to return when there are no affected rows. If it's a function the function will be called. Default throws `DareError.NOT_FOUND`
+| duplicate_keys | 'ignore' | Adds keyword `IGNORE`, e.g. `UPDATE IGNORE table ...`
 | limit         | number    | Default: `1`. Limit the number of results which can be affected by patch
+| notfound      | *         | Value to return when there are no affected rows. If it's a function the function will be called. Default throws `DareError.NOT_FOUND`
 
 
 ## dare.del(table, filter[, options])
