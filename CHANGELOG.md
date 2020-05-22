@@ -1,3 +1,10 @@
+# [0.44.0](https://github.com/5app/dare/compare/v0.43.0...v0.44.0) (2020-05-22)
+
+
+### Features
+
+* **patch:** adds patch:option.duplicate_keys='ignore' ([8808c1a](https://github.com/5app/dare/commit/8808c1aa458e9e875f5220bca11d20cd36dbef77))
+
 # [0.43.0](https://github.com/5app/dare/compare/v0.42.0...v0.43.0) (2020-03-11)
 
 
