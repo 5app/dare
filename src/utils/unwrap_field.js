@@ -42,17 +42,12 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 			/*
 			 * Deal with math and operators against a number...
 			 */
-			if (str) {
+			const int_x = str.match(/(.*)(\s(\*|\/|>|<|=|<=|>=|<>|!=)\s[0-9.]+)$/i);
 
-				// Split out operator and number
-				const int_x = str.match(/(.*)(\s(\*|\/|>|<|=|<=|>=|<>|!=)\s[0-9.]+)$/i);
+			if (int_x) {
 
-				if (int_x) {
-
-					str = int_x[1];
-					suffix = int_x[2] + suffix;
-
-				}
+				str = int_x[1];
+				suffix = int_x[2] + suffix;
 
 			}
 

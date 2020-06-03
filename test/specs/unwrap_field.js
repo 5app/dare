@@ -20,6 +20,8 @@ describe('utils/unwrap_field', () => {
 		'EXTRACT(YEAR_MONTH FROM field)',
 		'IF(field, "yes", "no")',
 		'IF(field = 1, "yes", "no")',
+		'IF(field > 1, "yes", "no")',
+		'IF(field < 1, "yes", "no")',
 		'IF(field >= 1, "yes", "no")',
 		'IF(field <= 1, "yes", "no")',
 		'IF(field != 1, "yes", "no")',
