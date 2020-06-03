@@ -1,3 +1,11 @@
+# [0.45.0](https://github.com/5app/dare/compare/v0.44.0...v0.45.0) (2020-06-03)
+
+
+### Features
+
+* **operators:** support for =,!=,<>,>,<,<=,>= operators ([3c5cd43](https://github.com/5app/dare/commit/3c5cd43a6aea989cd65d5b4322e21edf35830968))
+* **operators:** support for =,!=,<>,>,<,<=,>= operators ([4088719](https://github.com/5app/dare/commit/4088719f6bf5f262aaf112a8c6ee9a1cde2ac919))
+
 # [0.44.0](https://github.com/5app/dare/compare/v0.43.0...v0.44.0) (2020-05-22)
 
 
