@@ -40,13 +40,12 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 
 
 			/*
-			 * Deal with math on string
-			 * testing for * (multiplication for now) and only when inside a round as a precaution
+			 * Deal with math and operators against a number...
 			 */
-			if (str && m[1].toLowerCase() === 'round(') {
+			if (str) {
 
-				// Split out multiplication
-				const int_x = str.match(/(.*)(\s[*/]\s[0-9.]+)$/i);
+				// Split out operator and number
+				const int_x = str.match(/(.*)(\s(\*|\/|>|<|=|<=|>=|<>|!=)\s[0-9.]+)$/i);
 
 				if (int_x) {
 

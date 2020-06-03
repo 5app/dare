@@ -19,6 +19,11 @@ describe('utils/unwrap_field', () => {
 		'MAX(DAY(field))',
 		'EXTRACT(YEAR_MONTH FROM field)',
 		'IF(field, "yes", "no")',
+		'IF(field = 1, "yes", "no")',
+		'IF(field >= 1, "yes", "no")',
+		'IF(field <= 1, "yes", "no")',
+		'IF(field != 1, "yes", "no")',
+		'IF(field <> 1, "yes", "no")',
 		'COALESCE(field, "")',
 		'NULLIF(field, "is null")',
 		'ROUND(field, 2)',
@@ -47,10 +52,15 @@ describe('utils/unwrap_field', () => {
 	[
 		'field(',
 		'CONCAT(field, secret)',
+		'IF(field < field2, "yes", "no")',
+		'IF(field IS NOT NULL, "yes", "no")',
+		'IF(field < "string", "yes", "no")',
+		'IF(field <<< 123, "yes", "no")',
+		'IF(field<123, "yes", "no")',
 		'DATE_FORMAT(field, '
 	].forEach(test => {
 
-		it(`where ${JSON.stringify(test)}`, () => {
+		it(`errors: ${JSON.stringify(test)}`, () => {
 
 			// Expect the formatted list of fields to be identical to the inputted value
 			expect(unwrap_field.bind(null, test)).to.throw(DareError);
