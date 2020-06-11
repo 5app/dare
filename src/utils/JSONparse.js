@@ -18,7 +18,7 @@ module.exports = value => {
 		);
 
 	}
-	catch (e) {
+	catch {
 		// Continue
 	}
 
