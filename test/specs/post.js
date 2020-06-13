@@ -30,10 +30,11 @@ describe('post', () => {
 
 	it('should generate an INSERT statement and execute dare.execute', async () => {
 
-		dare.execute = (query, callback) => {
+		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(query, 'INSERT INTO test (`id`) VALUES (1)');
-			callback(null, {id: 1});
+			sqlEqual(sql, 'INSERT INTO test (`id`) VALUES (?)');
+			expect(values).to.deep.equal([1]);
+			return {id: 1};
 
 		};
 
@@ -46,13 +47,14 @@ describe('post', () => {
 
 	it('should accept an Array of records to insert', async () => {
 
-		dare.execute = (query, callback) => {
+		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(query, `
+			sqlEqual(sql, `
 				INSERT INTO test (\`id\`, \`name\`, \`field\`)
-				VALUES (1, '1', DEFAULT), (2, '2', 'extra')
+				VALUES (?, ?, DEFAULT), (?, ?, ?)
 			`);
-			callback(null, []);
+			expect(values).to.deep.equal([1, '1', 2, '2', 'extra']);
+			return [];
 
 		};
 
@@ -66,11 +68,12 @@ describe('post', () => {
 
 		let called;
 
-		dare.execute = (query, callback) => {
+		dare.execute = async ({sql, values}) => {
 
 			called = 1;
-			sqlEqual(query, 'INSERT IGNORE INTO test (`id`) VALUES (1)');
-			callback(null, {});
+			sqlEqual(sql, 'INSERT IGNORE INTO test (`id`) VALUES (?)');
+			expect(values).to.deep.equal([1]);
+			return {};
 
 		};
 
@@ -85,11 +88,12 @@ describe('post', () => {
 
 		let called;
 
-		dare.execute = (query, callback) => {
+		dare.execute = async ({sql, values}) => {
 
 			called = 1;
-			sqlEqual(query, 'INSERT INTO test (`id`, `name`, `age`) VALUES (1, \'name\', 38) ON DUPLICATE KEY UPDATE name=VALUES(name), age=VALUES(age)');
-			callback(null, {});
+			sqlEqual(sql, 'INSERT INTO test (`id`, `name`, `age`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), age=VALUES(age)');
+			expect(values).to.deep.equal([1, 'name', 38]);
+			return {};
 
 		};
 
@@ -102,11 +106,13 @@ describe('post', () => {
 
 	it('should understand a request object', async () => {
 
-		dare.execute = (query, callback) => {
+		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(query, 'INSERT INTO test (`name`) VALUES (\'name\')');
-			callback(null, {success: true});
+			sqlEqual(sql, 'INSERT INTO test (`name`) VALUES (?)');
+			expect(values).to.deep.equal(['name']);
+
+			return {success: true};
 
 		};
 
@@ -120,10 +126,11 @@ describe('post', () => {
 
 	it('should trigger pre handler, options.post.[table]', async () => {
 
-		dare.execute = (query, callback) => {
+		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(query, 'INSERT INTO tbl (`name`) VALUES (\'andrew\')');
-			callback(null, {success: true});
+			sqlEqual(sql, 'INSERT INTO tbl (`name`) VALUES (?)');
+			expect(values).to.deep.equal(['andrew']);
+			return {success: true};
 
 		};
 
@@ -149,10 +156,11 @@ describe('post', () => {
 
 	it('should trigger pre handler, options.post.default, and wait for Promise to resolve', async () => {
 
-		dare.execute = (query, callback) => {
+		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(query, 'INSERT INTO tbl (`name`) VALUES (\'andrew\')');
-			callback(null, {success: true});
+			sqlEqual(sql, 'INSERT INTO tbl (`name`) VALUES (?)');
+			expect(values).to.deep.equal(['andrew']);
+			return {success: true};
 
 		};
 
@@ -229,29 +237,28 @@ describe('post', () => {
 
 		[
 			{
-				given: 'field',
-				expect: '\'field\''
+				input: 'field'
 			},
 			{
-				given: null,
-				expect: 'null'
+				input: null
 			}
-		].forEach(({given, expect}) => {
+		].forEach(({input}) => {
 
-			it(`should convert ${given} to ${expect}`, async () => {
+			it(`should pass ${input}`, async () => {
 
-				dare.execute = (query, callback) => {
+				dare.execute = async ({sql, values}) => {
 
 					// Limit: 1
-					sqlEqual(query, `INSERT INTO test (\`name\`) VALUES (${expect})`);
-					callback(null, {success: true});
+					sqlEqual(sql, 'INSERT INTO test (`name`) VALUES (?)');
+					expect(values).to.deep.equal([input]);
+					return {success: true};
 
 				};
 
 				return dare
 					.post({
 						table: 'test',
-						body: {name: given}
+						body: {name: input}
 					});
 
 			});
@@ -280,13 +287,14 @@ describe('post', () => {
 					}
 				};
 
-				const expect = JSON.stringify(given);
+				const output = JSON.stringify(given);
 
-				dare.execute = (query, callback) => {
+				dare.execute = async ({sql, values}) => {
 
 					// Limit: 1
-					sqlEqual(query, `INSERT INTO test (\`meta\`) VALUES ('${expect}')`);
-					callback(null, {success: true});
+					sqlEqual(sql, 'INSERT INTO test (`meta`) VALUES (?)');
+					expect(values).to.deep.equal([output]);
+					return {success: true};
 
 				};
 

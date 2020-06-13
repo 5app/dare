@@ -3,6 +3,7 @@
 // Test Generic DB functions
 const sqlEqual = require('../lib/sql-equal');
 
+const id = 1;
 describe('getCount', () => {
 
 	let dare;
@@ -27,15 +28,16 @@ describe('getCount', () => {
 
 	it('should generate a SELECT statement and execute dare.execute', async () => {
 
-		dare.execute = async query => {
+		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(query, 'SELECT COUNT(DISTINCT a.id) AS \'count\' FROM test a WHERE a.id = 1 LIMIT 1');
+			sqlEqual(sql, 'SELECT COUNT(DISTINCT a.id) AS \'count\' FROM test a WHERE a.id = ? LIMIT 1');
+			expect(values).to.deep.equal([id]);
 			return [{count}];
 
 		};
 
 		const resp = await dare
-			.getCount('test', {id: 1});
+			.getCount('test', {id});
 
 		expect(resp).to.eql(count);
 
@@ -43,7 +45,7 @@ describe('getCount', () => {
 
 	it('should remove the groupby to the fields section', async () => {
 
-		dare.execute = async query => {
+		dare.execute = async ({sql, values}) => {
 
 			const expected = `
 				SELECT COUNT(DISTINCT DATE(a.created_time)) AS 'count'
@@ -51,7 +53,8 @@ describe('getCount', () => {
 				LIMIT 1
 			`;
 
-			sqlEqual(query, expected);
+			sqlEqual(sql, expected);
+			expect(values).to.deep.equal([]);
 
 			return [{count}];
 
@@ -70,7 +73,7 @@ describe('getCount', () => {
 
 	it('should apply multiple groupby', async () => {
 
-		dare.execute = async query => {
+		dare.execute = async ({sql, values}) => {
 
 			const expected = `
 				SELECT COUNT(DISTINCT DATE(a.created_time), a.name) AS 'count'
@@ -78,7 +81,8 @@ describe('getCount', () => {
 				LIMIT 1
 			`;
 
-			sqlEqual(query, expected);
+			sqlEqual(sql, expected);
+			expect(values).to.deep.equal([]);
 
 			return [{count}];
 

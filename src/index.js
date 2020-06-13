@@ -42,9 +42,6 @@ Dare.prototype.group_concat = '$$';
 // Set the Max Limit for SELECT statements
 Dare.prototype.MAX_LIMIT = null;
 
-// Default prepare statement.
-Dare.prototype.prepare = require('./utils/prepare');
-
 // Set default table_alias handler
 Dare.prototype.table_alias_handler = function(name) {
 
@@ -130,16 +127,12 @@ Dare.prototype.use = function(options = {}) {
  * Prepares and processes SQL statements
  *
  * @param {string} sql - SQL string containing the query
- * @param {Array<Array, string, number, boolean>} prepared - List of prepared statement values
+ * @param {Array<Array, string, number, boolean>} values - List of prepared statement values
  * @returns {Promise<object|Array>} Returns response object or array of values
  */
-Dare.prototype.sql = async function sql(sql, prepared) {
+Dare.prototype.sql = async function sql(sql, values) {
 
-	prepared = prepared || [];
-
-	const sql_prepared = this.prepare(sql, prepared);
-
-	return promisify(this.execute)(sql_prepared);
+	return promisify(this.execute)({sql, values});
 
 };
 

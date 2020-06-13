@@ -29,11 +29,12 @@ describe('del', () => {
 
 	it('should generate an DELETE statement and execute dare.execute', async () => {
 
-		dare.execute = (query, callback) => {
+		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(query, 'DELETE FROM test WHERE id = 1 LIMIT 1');
-			callback(null, {success: true});
+			sqlEqual(sql, 'DELETE FROM test WHERE id = ? LIMIT 1');
+			expect(values).to.deep.equal([1]);
+			return {success: true};
 
 		};
 
@@ -67,11 +68,12 @@ describe('del', () => {
 
 	it('should use table aliases', async () => {
 
-		dare.execute = (query, callback) => {
+		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(query, 'DELETE FROM tablename WHERE id = 1 LIMIT 1');
-			callback(null, {success: true});
+			sqlEqual(sql, 'DELETE FROM tablename WHERE id = ? LIMIT 1');
+			expect(values).to.deep.equal([1]);
+			return {success: true};
 
 		};
 
@@ -91,10 +93,11 @@ describe('del', () => {
 
 	it('should trigger pre handler, options.del.[table]', async () => {
 
-		dare.execute = (query, callback) => {
+		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(query, 'DELETE FROM tbl WHERE id = 1 LIMIT 1');
-			callback(null, {success: true});
+			sqlEqual(sql, 'DELETE FROM tbl WHERE id = ? LIMIT 1');
+			expect(values).to.deep.equal([1]);
+			return {success: true};
 
 		};
 
@@ -120,10 +123,11 @@ describe('del', () => {
 
 	it('should trigger pre handler, options.del.default, and wait for Promise to resolve', async () => {
 
-		dare.execute = (query, callback) => {
+		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(query, 'DELETE FROM tbl WHERE id = 1 LIMIT 1');
-			callback(null, {success: true});
+			sqlEqual(sql, 'DELETE FROM tbl WHERE id = ? LIMIT 1');
+			expect(values).to.deep.equal([1]);
+			return {success: true};
 
 		};
 
