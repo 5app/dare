@@ -4,7 +4,7 @@
   "description": "Database to REST, REST to Database",
   "main": "src/index.js",
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=10.0.0"
   },
   "scripts": {
     "pretest": "npm run lint",
@@ -51,6 +51,7 @@
     "coveralls": "^3.0.9",
     "eslint": "^7.0.0",
     "eslint-config-5app": "^0.12.0",
+    "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-security": "^1.4.0",
     "husky": "^4.0.0",
