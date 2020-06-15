@@ -380,4 +380,24 @@ describe('patch', () => {
 
 	});
 
+
+	it('should allow complex filters', async () => {
+
+		dare.execute = (query, callback) => {
+
+			sqlEqual(query, 'UPDATE tbl SET `name` = \'andrew\' WHERE id = 1 AND (NOT number < \'100\' OR number IS NULL) LIMIT 1');
+			callback(null, {success: true});
+
+		};
+
+		await dare
+			.patch({
+				table: 'tbl',
+				filter: {id: 1, '-number': '..100'},
+				body: {name: 'andrew'}
+			});
+
+
+	});
+
 });
