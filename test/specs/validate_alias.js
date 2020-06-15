@@ -28,18 +28,7 @@ describe('validate table alias', () => {
 
 			it(`should not accept ${key} as a valid table references`, () => {
 
-				try {
-
-					validate_alias(key);
-
-				}
-				catch (e) {
-
-					return;
-
-				}
-
-				throw new Error('is not valid alias');
+				expect(() => validate_alias(key)).to.throw(Error);
 
 			});
 

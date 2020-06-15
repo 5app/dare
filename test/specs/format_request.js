@@ -3,7 +3,7 @@
  * Takes a simple request object and explodes it into a more comprehensive object using the schema
  */
 
-const error = require('../../src/utils/error');
+const DareError = require('../../src/utils/error');
 
 describe('format_request', () => {
 
@@ -31,7 +31,7 @@ describe('format_request', () => {
 	it('should return a promise', () => {
 
 		const fn = dare.format_request().catch(() => {
-			// Ignore errors
+			// Ignore DareErrors
 		});
 
 		expect(fn).to.have.property('then');
@@ -71,26 +71,18 @@ describe('format_request', () => {
 
 		});
 
-		it('should throw an error if falsly on root table', async () => {
+		it('should throw an DareError if falsly on root table', async () => {
 
 			dare.table_alias_handler = () => (false);
 
-			try {
+			const test = dare.format_request({
+				table: 'private',
+				fields: ['id']
+			});
 
-				await dare.format_request({
-					table: 'private',
-					fields: ['id']
-				});
-
-				throw new Error('expected fail');
-
-			}
-			catch (err) {
-
-				expect(err.code).to.eql(error.INVALID_REFERENCE);
-				expect(err).to.have.property('message');
-
-			}
+			return expect(test)
+				.to.be.eventually.rejectedWith(DareError)
+				.and.have.property('code', DareError.INVALID_REFERENCE);
 
 		});
 
@@ -132,7 +124,7 @@ describe('format_request', () => {
 
 		});
 
-		describe('should throw error', () => {
+		describe('should throw DareError', () => {
 
 			[
 				10,
@@ -145,21 +137,13 @@ describe('format_request', () => {
 				[{'asset': ['DATE(id)']}]
 			].forEach(fields => {
 
-				it(`invalid: ${JSON.stringify(fields)}`, async () => {
+				it(`invalid: ${JSON.stringify(fields)}`, () => {
 
-					try {
+					const test = dare.format_request(Object.assign({}, options, {fields}));
 
-						await dare.format_request(Object.assign({}, options, {fields}));
-
-						throw new Error('expected failure');
-
-					}
-					catch (err) {
-
-						expect(err.code).to.eql(error.INVALID_REFERENCE);
-						expect(err).to.have.property('message');
-
-					}
+					return expect(test)
+						.to.be.eventually.rejectedWith(DareError)
+						.and.have.property('code', DareError.INVALID_REFERENCE);
 
 				});
 
@@ -216,20 +200,13 @@ describe('format_request', () => {
 
 				['nonsense', 0, -1, NaN, {}, null].forEach(limit => {
 
-					it(`invalid: ${limit} (${typeof limit})`, async () => {
+					it(`invalid: ${limit} (${typeof limit})`, () => {
 
-						try {
+						const test = dare.format_request(Object.assign({}, options, {limit}));
 
-							await dare.format_request(Object.assign({}, options, {limit}));
-							throw new Error('should not get here');
-
-						}
-						catch (err) {
-
-							expect(err.code).to.eql(error.INVALID_LIMIT);
-							expect(err).to.have.property('message');
-
-						}
+						return expect(test)
+							.to.be.eventually.rejectedWith(DareError)
+							.and.have.property('code', DareError.INVALID_LIMIT);
 
 					});
 
@@ -259,23 +236,16 @@ describe('format_request', () => {
 				});
 
 
-				it('should throw an error if limit is above MAX_LIMIT', async () => {
+				it('should throw an DareError if limit is above MAX_LIMIT', () => {
 
 					// Update the length
 					dare.MAX_LIMIT = limit - 1;
 
-					try {
+					const test = dare.format_request(Object.assign({}, options, {limit}));
 
-						await dare.format_request(Object.assign({}, options, {limit}));
-						throw new Error('should not get here');
-
-					}
-					catch (err) {
-
-						expect(err.code).to.eql(error.INVALID_LIMIT);
-						expect(err).to.have.property('message');
-
-					}
+					return expect(test)
+						.to.be.eventually.rejectedWith(DareError)
+						.and.have.property('code', DareError.INVALID_LIMIT);
 
 				});
 
@@ -299,20 +269,13 @@ describe('format_request', () => {
 
 				['nonsense', -1, NaN, {}, null].forEach(start => {
 
-					it(`invalid: ${start} (${typeof start})`, async () => {
+					it(`invalid: ${start} (${typeof start})`, () => {
 
-						try {
+						const test = dare.format_request(Object.assign({}, options, {start}));
 
-							await dare.format_request(Object.assign({}, options, {start}));
-							throw new Error('expected failure');
-
-						}
-						catch (err) {
-
-							expect(err.code).to.eql(error.INVALID_START);
-							expect(err).to.have.property('message');
-
-						}
+						return expect(test)
+							.to.be.eventually.rejectedWith(DareError)
+							.and.have.property('code', DareError.INVALID_START);
 
 					});
 
@@ -347,28 +310,21 @@ describe('format_request', () => {
 
 		});
 
-		describe('should throw an error, when:', () => {
+		describe('should throw an DareError, when:', () => {
 
 			[-1, 101, {}, 'parenthisis(snap', '; ', 'SUM(SE-LECT 1)'].forEach(groupby => {
 
-				it(`invalid: ${groupby} (${typeof groupby})`, async () => {
+				it(`invalid: ${groupby} (${typeof groupby})`, () => {
 
-					try {
+					const test = dare.format_request({
+						table: 'table',
+						fields: ['id'],
+						groupby
+					});
 
-						await dare.format_request({
-							table: 'table',
-							fields: ['id'],
-							groupby
-						});
-						throw new Error('expected failure');
-
-					}
-					catch (err) {
-
-						expect(err.code).to.eql(error.INVALID_REFERENCE);
-						expect(err).to.have.property('message');
-
-					}
+					return expect(test)
+						.to.be.eventually.rejectedWith(DareError)
+						.and.have.property('code', DareError.INVALID_REFERENCE);
 
 				});
 
@@ -420,7 +376,7 @@ describe('format_request', () => {
 
 		});
 
-		describe('should throw an error', () => {
+		describe('should throw an DareError', () => {
 
 			[
 				-1,
@@ -431,24 +387,17 @@ describe('format_request', () => {
 				['name ASC', 'id WEST']
 			].forEach(orderby => {
 
-				it(`invalid: ${orderby} (${typeof orderby})`, async () => {
+				it(`invalid: ${orderby} (${typeof orderby})`, () => {
 
-					try {
+					const test = dare.format_request({
+						table: 'table',
+						fields: ['id'],
+						orderby
+					});
 
-						await dare.format_request({
-							table: 'table',
-							fields: ['id'],
-							orderby
-						});
-						throw new Error('exepected failure');
-
-					}
-					catch (err) {
-
-						expect(err.code).to.eql(error.INVALID_REFERENCE);
-						expect(err).to.have.property('message');
-
-					}
+					return expect(test)
+						.to.be.eventually.rejectedWith(DareError)
+						.and.have.property('code', DareError.INVALID_REFERENCE);
 
 				});
 
@@ -595,13 +544,13 @@ describe('format_request', () => {
 					[
 						{prop: []},
 						'prop',
-						'IS NULL',
+						'AND false',
 						[]
 					],
 					[
 						{'-prop': []},
 						'prop',
-						'IS NOT NULL',
+						'AND true',
 						[]
 					],
 					[
@@ -642,9 +591,12 @@ describe('format_request', () => {
 					]
 				];
 
-				a.forEach(test => {
+				a.forEach(async test => {
 
 					const [filter, prop, condition, values] = test;
+
+					// Clone filter
+					const filter_cloned = JSON.parse(JSON.stringify(filter));
 
 					it(`should transform condition ${JSON.stringify(filter)} -> ${JSON.stringify(condition)}`, async () => {
 
@@ -658,11 +610,23 @@ describe('format_request', () => {
 
 					});
 
+					it(`should not mutate the filters ${JSON.stringify(filter)}`, async () => {
+
+						await dare.format_request({
+							table,
+							fields: ['id'],
+							[condition_type]: filter
+						});
+
+						expect(filter).to.deep.eql(filter_cloned);
+
+					});
+
 				});
 
 			});
 
-			describe('should throw error', () => {
+			describe('should throw DareError', () => {
 
 				[
 					true,
@@ -681,24 +645,17 @@ describe('format_request', () => {
 					}
 				].forEach(filter => {
 
-					it(`invalid: ${JSON.stringify(filter)}`, async () => {
+					it(`invalid: ${JSON.stringify(filter)}`, () => {
 
-						try {
+						const test = dare.format_request({
+							table: 'activityEvents',
+							fields: ['id'],
+							[condition_type]: filter
+						});
 
-							await dare.format_request({
-								table: 'activityEvents',
-								fields: ['id'],
-								[condition_type]: filter
-							});
-							throw new Error('expected failure');
-
-						}
-						catch (err) {
-
-							expect(err.code).to.eql(error.INVALID_REFERENCE);
-							expect(err).to.have.property('message');
-
-						}
+						return expect(test)
+							.to.be.eventually.rejectedWith(DareError)
+							.and.have.property('code', DareError.INVALID_REFERENCE);
 
 					});
 
@@ -845,7 +802,7 @@ describe('format_request', () => {
 
 		describe('Permittable tables: table_alias returns falsly', () => {
 
-			it('should throw an error if falsly on join table', async () => {
+			it('should throw an DareError if falsly on join table', () => {
 
 				dare.options = {
 					schema
@@ -853,26 +810,18 @@ describe('format_request', () => {
 
 				dare.table_alias_handler = table_alias => ({'public': 'public'}[table_alias]);
 
-				try {
+				const test = dare.format_request({
+					table: 'public',
+					fields: [
+						{
+							asset: ['name']
+						}
+					]
+				});
 
-					await dare.format_request({
-						table: 'public',
-						fields: [
-							{
-								asset: ['name']
-							}
-						]
-					});
-
-					throw new Error('expected failure');
-
-				}
-				catch (err) {
-
-					expect(err.code).to.eql(error.INVALID_REFERENCE);
-					expect(err).to.have.property('message');
-
-				}
+				return expect(test)
+					.to.be.eventually.rejectedWith(DareError)
+					.and.have.property('code', DareError.INVALID_REFERENCE);
 
 			});
 
@@ -883,7 +832,7 @@ describe('format_request', () => {
 
 	describe('scheme', () => {
 
-		it('should throw an error when there are two tables with an undefined relationship', async () => {
+		it('should throw an DareError when there are two tables with an undefined relationship', () => {
 
 			// Redefine the structure
 			dare.options = {
@@ -894,26 +843,19 @@ describe('format_request', () => {
 			};
 
 			// The table country has no relationship with assets
-			try {
+			const test = dare.format_request({
+				table: 'asset',
+				fields: [
+					'name',
+					{
+						'comments': ['name']
+					}
+				]
+			});
 
-				await dare.format_request({
-					table: 'asset',
-					fields: [
-						'name',
-						{
-							'comments': ['name']
-						}
-					]
-				});
-				throw new Error('expected failure');
-
-			}
-			catch (err) {
-
-				expect(err.code).to.eql(error.INVALID_REFERENCE);
-				expect(err).to.have.property('message', 'Could not understand field \'comments\'');
-
-			}
+			return expect(test)
+				.to.be.eventually.rejectedWith(DareError, 'Could not understand field \'comments\'')
+				.and.have.property('code', DareError.INVALID_REFERENCE);
 
 		});
 
@@ -1064,23 +1006,16 @@ describe('format_request', () => {
 				method: 'get'
 			};
 
-			try {
+			const test = dare.format_request({
+				method,
+				table: 'users',
+				fields: [
+					'name'
+				]
+			});
 
-				await dare.format_request({
-					method,
-					table: 'users',
-					fields: [
-						'name'
-					]
-				});
-				throw new Error('expected failure');
-
-			}
-			catch (err) {
-
-				expect(err.message).to.eql(msg);
-
-			}
+			return expect(test)
+				.to.be.eventually.rejectedWith(Error, msg);
 
 		});
 
@@ -1185,15 +1120,16 @@ describe('format_request', () => {
 
 		});
 
-		it('should await the response from a promise', async () => {
+		it('should await the response from a promise', () => {
 
+			const msg = 'snap';
 			dare.options = {
 				get: {
 					users() {
 
 						return new Promise((resolve, reject) => {
 
-							setTimeout(() => reject(Error('snap')));
+							setTimeout(() => reject(new Error(msg)));
 
 						});
 
@@ -1202,23 +1138,16 @@ describe('format_request', () => {
 				method: 'get'
 			};
 
-			try {
+			const test = dare.format_request({
+				method,
+				table: 'users',
+				fields: [
+					'name'
+				]
+			});
 
-				await dare.format_request({
-					method,
-					table: 'users',
-					fields: [
-						'name'
-					]
-				});
-				throw new Error('expected failure');
-
-			}
-			catch (err) {
-
-				expect(err.message).to.eql('snap');
-
-			}
+			return expect(test)
+				.to.be.eventually.rejectedWith(Error, msg);
 
 		});
 

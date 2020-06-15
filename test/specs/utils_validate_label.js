@@ -29,18 +29,7 @@ describe('validate field label', () => {
 
 			it(`should not accept ${key} as a valid field label`, () => {
 
-				try {
-
-					validate_label(key);
-
-				}
-				catch (e) {
-
-					return;
-
-				}
-
-				throw new Error('is not valid alias');
+				expect(() => validate_label(key)).to.throw(Error);
 
 			});
 

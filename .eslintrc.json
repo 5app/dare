@@ -1,16 +1,15 @@
 {
 	"root": true,
 	"extends": [
-		"5app",
-		"eslint:all"
+		"plugin:node/recommended",
+		"eslint:all",
+		"5app"
 	],
 	"plugins": [
 		"promise",
 		"security"
 	],
 	"rules": {
-		"array-bracket-newline": [2, "consistent"],
-		"array-element-newline": [2, "consistent"],
 		"arrow-body-style": [2, "as-needed"],
 		"callback-return": 0,
 		"capitalized-comments": 2,
@@ -19,10 +18,12 @@
 		"complexity": 0,
 		"consistent-return": 0,
 		"curly": 0,
+		"default-param-last": 0,
 		"dot-location": [2, "property"],
 		"eol-last": 0,
 		"func-names": 0,
 		"func-style": 0,
+		"function-call-argument-newline": 0,
 		"function-paren-newline": 0,
 		"guard-for-in": 0,
 		"handle-callback-err": 0,
@@ -77,6 +78,8 @@
 		"strict": 2,
 		"template-curly-spacing": 2,
 		"wrap-regex": 0,
+
+		"linebreak-style": 0,
 
 		"promise/prefer-await-to-then": 2,
 		"security/detect-unsafe-regex": 2

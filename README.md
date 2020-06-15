@@ -6,6 +6,7 @@
 [![NPM Version](https://img.shields.io/npm/v/dare.svg)](https://www.npmjs.com/package/dare)
 [![Known Vulnerabilities](https://snyk.io/test/github/5app/dare/badge.svg)](https://snyk.io/test/github/5app/dare)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+[![codebeat badge](https://codebeat.co/badges/718b30e2-76fa-4c61-b770-751b22c5ea5e)](https://codebeat.co/projects/github-com-5app-dare-master)
 
 
 
@@ -15,31 +16,25 @@ Dare is a lovely API for generating SQL out of structured JS Object. It can be u
 
 This is a simple setup to get started with, it'll make a basic SELECT query.
 
-```javascript
+```js
 // Require the module
 const Dare = require('dare');
-const sqlConn = require('./someSqlConnection');
+const sqlConn = require('./mySqlConn');
 
 // Initiate it
 const dare = new Dare();
 
 // Define a module for connecting
 dare.execute = async (sql) => {
-	// Connect to DB, and execute the `sql`,
-	// resolve with a successResponse or throw an errorResponse
+	// Execute query...
 	return sqlConn.execute(sql);
 };
 
 // Make a request
-dare.get('users', ['name'], {id: 1}).then((resp) => {
+const resp = await dare.get('users', ['name'], {id: 1});
+// SELECT id, name FROM users WHERE id = 1 LIMIT 1;
 
-	// This would have run...
-	// SELECT id, name FROM users WHERE id = 1 LIMIT 1;
-	// And returned a single record as the response...
-
-	console.log(`Hi ${resp.name}');
-});
-
+console.log(`Hi ${resp.name}');
 ```
 
 
@@ -57,7 +52,7 @@ npm i dare --save
 
 Create an instance of Dare with some options
 
-```javascript
+```js
 const Dare = require('dare');
 
 const options = {
@@ -80,11 +75,17 @@ The schema is used to define the structure of your SQL database. You can refer t
 
 e.g.
 
-```javascript
-{
-	users: {Field Definitions, ...},
-	country: {Field Definitions, ...}
-}
+```js
+const dare = new Dare({
+	schema: {
+		users: {
+			// user field defitions
+		},
+		country: {
+			// country field defitions
+		}
+	}
+});
 ```
 
 ### Relationships
@@ -92,16 +93,18 @@ e.g.
 In the example below the fields `users.country_id` defines a relationship with `country.id` which is used to construct SQL JOIN Conditions.
 
 
-```javascript
-	...
+```js
+const dare = new Dare({
 	schema : {
 		users: {
-			// table columns
+			// users fields...
 			country_id: 'country.id'
 		},
-		country: {...}
+		country: {
+			// country fields...
+		}
 	}
-	...
+});
 ```
 
 ### Field Definition
@@ -117,20 +120,70 @@ Fields can reference other table fields, this is used to construct relationships
 
 Defining the `type` introduces additional features.
 
-*currently this is limited to datetime*
+**`datatime`**
 
-E.g. in the example the type is defined as 'datetime', a conditional filter short hand for `created_time: 2017` would be expanded too `created_time BETWEEN '2017-01-01T00:00:00' AND '2017-12-31T23:59:59`
+Setting value to 'datetime', a conditional filter short hand for `created_time: 2017` would be expanded to `created_time BETWEEN '2017-01-01T00:00:00' AND '2017-12-31T23:59:59`
 
-```javascript
-    ...
-	schema : {
+```js
+const dare = new Dare({
+	schema: {
 		users: {
 			created_time: {
 				type: 'datetime'
 			}
-		},
-    ...
+		}
+	}
+});
 ```
+
+**`json`**
+
+Serializes Objects and Deserializes JSON strings in `get`, `post` and `patch` operations.
+
+e.g.
+
+Schema: field definition...
+```js
+const dare = new Dare({
+	schema: {
+		users: {
+			meta: {
+				// Define a field meta with data type of json
+				type: 'json'
+			}
+		}
+	}
+});
+```
+
+Example set and get
+```js
+	// Arbitary object...
+	const meta = {
+		prop1: 1,
+		prop2: 2
+	};
+
+	// For a field named `meta`
+	const {insertId: id} = await dare.post('users', {meta});
+	// The value is run through JSON.stringify before insertion
+	// INSERT INOT users (meta) VALUES('{"prop1": 1, "prop2": 2}')
+
+
+	...
+
+	// The value is desiralized, when accessed via get...
+	const {meta} = await dare.get('users', ['meta'], {id});
+
+	// e.g...
+	console.log(meta);
+	// Object({
+	// 	prop1: 1,
+	// 	prop2: 2
+	// });
+
+```
+
 
 #### field handler
 
@@ -140,8 +193,8 @@ E.g.
 
 This will manipulate the request and response to create the property `avatar_url` on the fly.
 
-```javascript
-    ...
+```js
+const dare = new Dare({
 	schema: {
 		users: {
 			avatar_url(fields) {
@@ -150,8 +203,9 @@ This will manipulate the request and response to create the property `avatar_url
 
 				return (item) => `/images/avatars/${item.id}`;
 			}
-		},
-    ...
+		}
+	}
+});
 ```
 
 #### field alias
@@ -159,20 +213,52 @@ This will manipulate the request and response to create the property `avatar_url
 To alias a field, so that you can use a name different to the db column name, assign it a string name of the field in the current table. e.g. `emailAddress: 'email'`
 
 
-```javascript
-    ...
+```js
+const dare = new Dare({
 	schema: {
 		users: {
 			emailAddress: 'email'
-		},
-    ...
+		}
+	}
+});
 ```
 
 For example this will allow us to use the alias `emailAddress` in our api (see below), but the SQL generated will refer to it with it's true field name "`email`".
 
-```javascript
+```js
 dare.get('users', ['emailAddress'], {emailAddress: 'andrew@%'});
 // SELECT email AS emailAddress FROM users WHERE email LIKE 'andrew@%'
+```
+
+#### field readable/writeable
+
+A flag to control access to a field
+
+```js
+const dare = new Dare({
+	schema: {
+		users: {
+			id: {
+				writeable: false // non-writeable
+			},
+			password: false // non-readable + non-writeable
+		}
+	}
+})
+```
+
+With the above `writeable`/`readable` field definitions an error is thrown whenever attempting to access the field e.g.
+
+```js
+dare.get('users', ['password'], {id: 123});
+// throws {code: INVALID_REFERENCE}
+```
+
+Or when trying to modify a field through `post` or `patch` methods, e.g.
+
+```js
+dare.patch('users', {id: 321}, {id: 1337});
+// throws {code: INVALID_REFERENCE}
 ```
 
 
@@ -192,7 +278,7 @@ The `dare.get` method is used to build and execute a `SELECT ...` SQL statement.
 
 e.g.
 
-```javascript
+```js
 dare.get('table', ['name'], {id: 1});
 // SELECT name FROM table WHERE id = 1 LIMIT 1;
 ```
@@ -203,7 +289,7 @@ Alternatively a options Object can be used instead.
 
 e.g.
 
-```javascript
+```js
 dare.get({
 	table: 'users',
 	fields: ['name'],
@@ -229,33 +315,44 @@ The array items can also be Objects.
 
 #### Aliased Items and Formatting (objects)
 
-It's sometimes appropriate to alias a field definition, if it's to be renamed, or when using SQL Functions and operators to manipulate the response. E.g. Below we're using the DATE functin to format the date, and we're aliasing it so it will be returned with prop key `_date`.
+It's sometimes appropriate to alias a field definition, if it's to be renamed, or when using SQL Functions and operators to manipulate the response. E.g. Below we're using the `DATE` function to format the `created_date`, and we're aliasing it so it will be returned with prop key `_date`.
 
-```javascript
+```js
+dare.get('users',
 	[
 	  'name',
 	  {
 	  	'_date': 'DATE(created_date)'
 	  }
 	]
-
-	// sql: SELECT name, DATE(created_date) AS _date ...
+);
+// sql: SELECT name, DATE(created_date) AS _date ...
 ```
 
-Here are some common operations
+*Pattern*:
+
+`FUNCTION_NAME([FIELD_PREFIX]? field_name [, ADDITIONAL_PARAMETERS]*)`
+
+- *FUNCTION_NAME*: uppercase, no spaces
+- *FIELD_PREFIX*: optional, uppercase
+- *field_name*: db field reference
+- *ADDITIONAL_PARAMETERS*: optional, prefixed with `,`, (uppercase, digit or quoted string)
+
+*e.g.*
 
 Field Defition | Description
 --|--
 `FORMAT(field, 2, 'de_DE')` | Rounding to 2 decimal places and convert to a string with German formatting.
 `CONCAT(ROUND(field * 100), '%')` | Multiplying a number by 100. Rounding to 2 decimal places and appending a '%' to the end to convert a decimal value to a percentage.
+`DATE_FORMAT(field, "%Y-%m-%dT%T.%fZ")` | Format date field
 
-Please note some functions and operations are not available.
+In the case of `ROUND()` there is an allowance for `field * [digit]` pattern.
 
 #### Nesting Fields
 
 Objects entries which have Objects as value. In this case they shall attempt to get data from accross multiple tables.
 
-```javascript
+```js
 
 	[
 		'name',
@@ -269,7 +366,7 @@ Objects entries which have Objects as value. In this case they shall attempt to 
 
 The SQL this creates renames the fields and then recreates the structured format that was requested. So with the above request: a typical response would have the following structure...
 
-```javascript
+```js
 	{
 		name: 'Andrew',
 		country: {
@@ -288,7 +385,7 @@ The Filter Object is a Fields=>Value object literal, defining the SQL condition 
 
 e.g.
 
-```javascript
+```js
 
 	{
 		id: 1,
@@ -302,7 +399,7 @@ e.g.
 The filter object can contain nested objects (Similar too the Fields Object). Nested objects define conditions on Relational tables.
 
 
-```javascript
+```js
 	{
 		country: {
 			name: 'UK'
@@ -375,7 +472,7 @@ The Join Object is a Fields=>Value object literal. It accepts similar syntax to 
 
 e.g.
 
-```javascript
+```js
 
 	join: {
 		county: {
@@ -392,7 +489,7 @@ To facilitate scenarios where the optional JOIN tables records are dependent on 
 
 The following statement includes all results from the main table, but does not append the country data unless it is within the continent of 'Europe'
 
-```javascript
+```js
 
 	join: {
 		county: {
@@ -410,6 +507,82 @@ The following statement includes all results from the main table, but does not a
 	// ...
 ```
 
+### Pagination `limit` and `start`
+
+The limit and start property are simply applied to the SQL query and can be used to paginate the resultset.
+
+```js
+dare.get({
+	table: 'table',
+	fields: ['name'],
+	limit: 10, // Return only 10 rows
+	start: 20, // Start in the 20th
+});
+// SELECT name FROM table LIMIT 10 OFFSET 20;
+```
+
+### No `limit` set and `notfound`
+Dare returns a single item when no `limit` is set. When the item is not found Dare rejects the request with `DareError.NOT_FOUND`. To override this default behaviour simply set the `notfound`. e.g.
+
+```js
+const resp = await dare.get({
+	table: 'table',
+	fields: ['name'],
+	filter: {name: 'Nameless'}
+	notfound: null
+});
+
+// SELECT name FROM table WHERE name = 'Nameless' LIMIT 1;
+// -- found 0 rows
+console.log(resp); // null
+
+```
+
+## dare.getCount(table[, filter][, options])
+
+The `dare.getCount` method builds and executes a `SELECT ...` SQL statement. It returns the number of results which match the request options. And is useful when constructing pagination.
+
+| property | Type              | Description
+|----------|-------------------|----------------
+| table    | string            | Name of the table to access
+| filter   | Hash (key=>Value) | Query Object
+| options  | Hash (key=>Value) | Additional Options
+
+e.g.
+
+```js
+const count = await dare.getCount('profile', {first_name: 'Andrew'});
+// SELECT COUNT(DISTINCT id) FROM profile WHERE name = 'Andrew' LIMIT 1;
+```
+
+## dare.getCount(options Object)
+
+Using an options Object allows for  `date.getCount(options)` to be paired with a request to `dare.get(options)`.
+
+e.g.
+
+```js
+const requestOptions = {
+	table: 'profile',
+	filter: {
+		first_name: 'Andrew'
+	},
+	limit: 10
+};
+
+// Get the first 10 items, and the number of possible rows
+const [items, foundRows] = await Promise.all([
+
+	// Make a request for members matching the condition 
+	dare.get(requestOptions)
+
+	// Get the number of possible results
+	dare.getCount(requestOptions)
+]);
+```
+
+
+
 ## dare.post(table, body[, options])
 
 The `dare.post` method is used to build and execute an `INSERT ...` SQL statement.
@@ -422,7 +595,7 @@ The `dare.post` method is used to build and execute an `INSERT ...` SQL statemen
 
 e.g.
 
-```javascript
+```js
 dare.post('user', {name: 'Andrew', profession: 'Mad scientist'});
 // INSERT INTO table (name, profession) VALUES('Andrew', 'Mad scientist')
 ```
@@ -433,7 +606,7 @@ Alternatively a options Object can be used instead.
 
 e.g.
 
-```javascript
+```js
 dare.post({
 	table: 'user',
 	body: {
@@ -450,7 +623,7 @@ The body can be an Array of objects.
 
 e.g.
 
-```javascript
+```js
 dare.post({
 	table: 'user',
 	body: [{
@@ -472,6 +645,45 @@ This generates `INSERT INTO user (name, profession) VALUES ('Andrew', 'Mad Scien
 | duplicate_keys_update | Array(field1, field2, ...) | Appends `ON DUPLICATE KEYS UPDATE field1=VALUES(field1)`
 
 
+## dare.patch(table, filter, body[, options])
+
+Updates records within the `table` with the `body` object when they match `filter`.
+
+| property | Type              | Description
+|----------|-------------------|----------------
+| table    | string            | Name of the table to insert into
+| filter   | Object            | Filter object of the results
+| body     | Object            | Post Object to apply
+| options  | Hash (key=>Value) | Additional Options
+
+
+### Patch options (additional)
+
+| Prop          | Type      | Description
+|---------------|-----------|----------------
+| duplicate_keys | 'ignore' | Adds keyword `IGNORE`, e.g. `UPDATE IGNORE table ...`
+| limit         | number    | Default: `1`. Limit the number of results which can be affected by patch
+| notfound      | *         | Value to return when there are no affected rows. If it's a function the function will be called. Default throws `DareError.NOT_FOUND`
+
+
+## dare.del(table, filter[, options])
+
+Deletes records within the `table` when they match `filter`.
+
+| property | Type              | Description
+|----------|-------------------|----------------
+| table    | string            | Name of the table to insert into
+| filter   | Object            | Filter object of the results
+| options  | Hash (key=>Value) | Additional Options
+
+
+### Patch options (additional)
+
+| Prop          | Type      | Description
+|---------------|-----------|----------------
+| notfound      | *         | Value to return when there are no affected rows. If it's a function the function will be called. Default throws `DareError.NOT_FOUND`
+| limit         | number    | Default: `1`. Limit the number of results which can be affected by patch
+
 
 
 # Additional Options
@@ -482,7 +694,7 @@ Table can have alias's this is useful when the context changes.
 
 E.g. Define 'author' as an alternative for 'users'
 
-```javascript
+```js
 	table_alias: {
 		author: 'users'
 	}
@@ -490,7 +702,7 @@ E.g. Define 'author' as an alternative for 'users'
 
 Example implementation...
 
-```javascript
+```js
 dare.get({
 	table: comments,
 	fields: {
@@ -511,7 +723,7 @@ In order to both: show all relationship on the join table AND filter the main re
 E.g. Include all the tags associated with users AND only show users whom include the tag "Andrew"
 
 
-```javascript
+```js
 dare.get({
 	table: 'users',
 	fields: ['name', {'tags': ['name']}],
@@ -532,7 +744,7 @@ This will get all users who contain atleast the tags 'Andrew', as well as return
 
 This will create a required join to include another table as a dependency.
 
-```javascript
+```js
 	table_conditions: {
 		users: 'country'
 	}
@@ -564,7 +776,7 @@ This handler is executed after the request and is useful for logging or manipula
 
 E.g. log an update to the users table
 
-```javascript
+```js
 afterPatch: {
 	users(resp) {
 		// Get the original request filter...
@@ -587,7 +799,7 @@ Of course there are scenarios where you want to capture a previous existing valu
 
 E.g. here is an example using the before handlers to capture the original value of a field and redefine define the after handler on this instance....
 
-```javascript
+```js
 ...
 patch: {
 	async users(options) {
@@ -650,3 +862,27 @@ const dare = new Dare();
 dare.MAX_LIMIT = 1000000;
 ```
 
+
+### Post format the response
+
+The `dare.response_row_handler` is a little helper to format or redirect the response data as it's being processed. Using this approach to post-processing should give better performance on large datasets.
+
+E.g.
+
+```js
+// create a new dare instance to avoid polluting the others.
+dare = dare.use(); 
+
+// Define a response_row_handler on the new instance...
+dare.response_row_handler = (item) => {
+	// rudimentary write out as CSV.
+	res.write(Object.keys(item).join(',') + '\n');
+
+	// Do not return anything unless you want to include it in `data` (see below)
+};
+
+// Execute the query
+const data = await dare.get('users', ['name'], {limit: 10000000});
+
+console.log(data.length === 0); // empty array
+```

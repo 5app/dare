@@ -20,7 +20,18 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 
 			// Split out comma variables
 			let int_m;
-			while ((int_m = str.match(/(.*)(,\s*((["'])?[a-z0-9%_\s]*\4))$/i))) {
+			while ((int_m = str.match(/(.*)(,\s*((["'])?[a-z0-9%._\s-]*\4))$/i))) {
+
+				/*
+				 * Is there an unquoted parameter
+				 * Ensure there are no lowercase strings (e.g. column names)
+				 */
+				if (!int_m[4] && int_m[3] && int_m[3].match(/[a-z]/)) {
+
+					// Is this a valid field
+					throw new DareError(DareError.INVALID_REFERENCE, `The field definition '${expression}' is invalid.`);
+
+				}
 
 				str = int_m[1];
 				suffix = int_m[2] + suffix;
@@ -29,27 +40,21 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 
 
 			/*
-			 * Deal with math on string
-			 * testing for * (multiplication for now) and only when inside a round as a precaution
+			 * Deal with math and operators against a number...
 			 */
-			if (str && m[1].toLowerCase() === 'round(') {
+			const int_x = str.match(/(.*)(\s(\*|\/|>|<|=|<=|>=|<>|!=)\s[0-9.]+)$/i);
 
-				// Split out multiplication
-				const int_x = str.match(/(.*)(\s[*/]\s[0-9.]+)$/i);
+			if (int_x) {
 
-				if (int_x) {
-
-					str = int_x[1];
-					suffix = int_x[2] + suffix;
-
-				}
+				str = int_x[1];
+				suffix = int_x[2] + suffix;
 
 			}
 
 		}
 
 		// Remove any additional prefix in a function.. i.e. "YEAR_MONTH FROM " from "EXTRACT(YEAR_MONTH FROM field)"
-		if (prefix && str && (m = str.match(/^[a-z_\s]+\s/i))) {
+		if (prefix && str && (m = str.match(/^[A-Z_\s]+\s/))) {
 
 			prefix += m[0];
 			str = str.slice(m[0].length);

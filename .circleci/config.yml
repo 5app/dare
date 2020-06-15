@@ -1,11 +1,14 @@
 aliases:
-  - &store_test_results
-    path: /tmp/test-results
-
-defaults: &defaults
-  working_directory: ~/repo
-  docker:
-    - image: circleci/node:8.4.0
+  - &dir ~/repo
+  - &defaults
+    working_directory: *dir
+    docker:
+      - image: circleci/node:lts
+  - &attach_workspace
+    attach_workspace:
+      at: *dir
+  - &cache-key
+    key: dependency-cache-{{ checksum "package.json" }}
 
 version: 2
 jobs:
@@ -14,22 +17,19 @@ jobs:
     steps:
       - checkout
       - persist_to_workspace:
-          root: ~/repo
+          root: *dir
           paths:
             - .
 
   test:
     <<: *defaults
     steps:
-      - attach_workspace:
-          at: ~/repo
+      - *attach_workspace
       - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
-      - run:
-          name: install dependencies with npm
-          command: npm install
+          <<: *cache-key
+      - run: npm install
       - save_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          <<: *cache-key
           paths:
             - ./node_modules
       - run:
@@ -39,17 +39,17 @@ jobs:
           command: |
             mkdir /tmp/test-results
             npm run test:ci
-      - store_test_results: *store_test_results
+      - store_test_results:
+          path: /tmp/test-results
       - persist_to_workspace:
-          root: ~/repo
+          root: *dir
           paths:
             - node_modules
 
   release:
     <<: *defaults
     steps:
-      - attach_workspace:
-          at: ~/repo
+      - *attach_workspace
       - checkout
       - run: npm run semantic-release
 

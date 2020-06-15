@@ -103,7 +103,6 @@ describe('Field Reducer', () => {
 				}]
 			]
 
-
 		].forEach(test => {
 
 			const input = test[0]; // Test request fields array to process
@@ -165,6 +164,45 @@ describe('Field Reducer', () => {
 
 		// Expect the formatted list of fields to be identical to the inputted value
 		expect(f[0]).to.have.property('generated_field', 'another_field');
+
+	});
+
+	it('should format datetime fields', () => {
+
+		const table_schema = {
+			created: {
+				type: 'datetime'
+			}
+		};
+
+		// Curry the field_reducer
+		const fr = field_reducer.call({}, 'created', {}, table_schema);
+
+		// Call the field with the
+		const f = ['created'].reduce(fr, []);
+
+		// Expect the formatted list of fields to be identical to the inputted value
+		expect(f[0]).to.have.property('created', 'DATE_FORMAT(created,\'%Y-%m-%dT%TZ\')');
+
+	});
+
+	it('should format type=json fields', () => {
+
+		const table_schema = {
+			meta: {
+				type: 'json'
+			}
+		};
+
+		// Curry the field_reducer
+		const fr = field_reducer.call({}, 'meta', {}, table_schema);
+
+		// Call the field with the
+		const f = ['meta'].reduce(fr, []);
+
+		// Expect the formatted list of fields to be identical to the inputted value
+		expect(f[0])
+			.to.have.property('meta');
 
 	});
 

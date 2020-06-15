@@ -4,6 +4,7 @@
  */
 
 const unwrap_field = require('../../src/utils/unwrap_field');
+const DareError = require('../../src/utils/error');
 
 describe('utils/unwrap_field', () => {
 
@@ -11,11 +12,20 @@ describe('utils/unwrap_field', () => {
 	[
 		'field',
 		'DATE(field)',
+		'DATE_FORMAT(field, "%Y-%m-%dT%T.%fZ")',
+		'DATE_SUB(field, INTERVAL 10 DAY)',
 		'COUNT(DISTINCT field)',
 		'GROUP_CONCAT(DISTINCT field)',
 		'MAX(DAY(field))',
 		'EXTRACT(YEAR_MONTH FROM field)',
 		'IF(field, "yes", "no")',
+		'IF(field = 1, "yes", "no")',
+		'IF(field > 1, "yes", "no")',
+		'IF(field < 1, "yes", "no")',
+		'IF(field >= 1, "yes", "no")',
+		'IF(field <= 1, "yes", "no")',
+		'IF(field != 1, "yes", "no")',
+		'IF(field <> 1, "yes", "no")',
 		'COALESCE(field, "")',
 		'NULLIF(field, "is null")',
 		'ROUND(field, 2)',
@@ -35,6 +45,27 @@ describe('utils/unwrap_field', () => {
 
 			// Expect the formatted list of fields to be identical to the inputted value
 			expect(unwrapped.field).to.eql('field');
+
+		});
+
+	});
+
+	// Should unwrap SQL Formating to underlying column name
+	[
+		'field(',
+		'CONCAT(field, secret)',
+		'IF(field < field2, "yes", "no")',
+		'IF(field IS NOT NULL, "yes", "no")',
+		'IF(field < "string", "yes", "no")',
+		'IF(field <<< 123, "yes", "no")',
+		'IF(field<123, "yes", "no")',
+		'DATE_FORMAT(field, '
+	].forEach(test => {
+
+		it(`errors: ${JSON.stringify(test)}`, () => {
+
+			// Expect the formatted list of fields to be identical to the inputted value
+			expect(unwrap_field.bind(null, test)).to.throw(DareError);
 
 		});
 

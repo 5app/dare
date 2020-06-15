@@ -50,7 +50,7 @@ describe('get - request object', () => {
 
 			const expected = `
 
-				SELECT a.created_time, COUNT(*) AS '_count', c.id AS 'asset.id', c.name AS 'asset.name', DATE(c.updated_time) AS 'asset.last_updated'
+				SELECT DATE_FORMAT(a.created_time, '%Y-%m-%dT%TZ') AS 'created_time', COUNT(*) AS '_count', c.id AS 'asset.id', c.name AS 'asset.name', DATE(c.updated_time) AS 'asset.last_updated'
 				FROM activityEvents a
 					LEFT JOIN activitySession b ON (b.id = a.session_id)
 					LEFT JOIN apps c ON (c.id = a.ref_id)
@@ -167,6 +167,49 @@ describe('get - request object', () => {
 			});
 
 			expect(resp).to.be.an('array');
+
+		});
+
+
+		it('should allow multiple definitions of the same thing', async () => {
+
+			dare.sql = async query => {
+
+				const key = 'email1,users_email.email,users_email.emailnest';
+
+				expect(query).to.contain(key);
+
+				return [{
+					[key]: '["a@b.com","a@b.com","a@b.com"]'
+				}];
+
+			};
+
+			/*
+			 * We should get back both structures
+			 */
+			const res = await dare.get({
+				table: 'users',
+				fields: [
+					{
+						'email1': 'users_email.email'
+					},
+					{
+						'users_email': ['email']
+					},
+					{
+						'users_email': {
+							'emailnest': 'email'
+						}
+					}
+				]
+			});
+
+			expect(res).to.have.property('email1');
+			expect(res.users_email)
+				.to.have.property('email');
+			expect(res.users_email)
+				.to.have.property('emailnest');
 
 		});
 

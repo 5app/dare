@@ -26,6 +26,32 @@ describe('get', () => {
 
 	});
 
+	it('should not mutate the request object', async () => {
+
+		const original = {
+			table: 'test',
+			fields: ['id', 'name'],
+			groupby: ['name'],
+			limit: 10,
+			orderby: ['name']
+		};
+
+		dare.execute = async () => ([]);
+
+		const request = {...original};
+
+		await dare
+			.get(request);
+
+		// Check shallow clone
+		expect(request).to.deep.equal(original);
+
+		// Check deep clone
+		expect(request).to.have.deep.property('fields', ['id', 'name']);
+		expect(request).to.have.deep.property('orderby', ['name']);
+
+	});
+
 	describe('Simple arguments', () => {
 
 		const basic_record = {
@@ -51,6 +77,7 @@ describe('get', () => {
 
 			const resp = await dare
 				.get('test', basic_fields, {id: 1});
+
 
 			expect(resp).to.be.a('object');
 			expect(resp).to.eql(basic_record);
@@ -141,55 +168,48 @@ describe('get', () => {
 
 		});
 
-		it('should throw an error if limit is invalid', async () => {
+		it('should throw an error if limit is invalid', () => {
 
+			const test = dare.get('test', basic_fields, {id: 1}, {limit: 0});
 
-			try {
-
-				await dare.get('test', basic_fields, {id: 1}, {limit: 0});
-				throw new Error('expected failure');
-
-			}
-			catch (err) {
-
-				expect(err).to.have.property('code', DareError.INVALID_LIMIT);
-
-			}
+			return expect(test)
+				.to.be.eventually.rejectedWith(DareError)
+				.and.have.property('code', DareError.INVALID_LIMIT);
 
 		});
 
-		it('should throw an error if limit is invalid', async () => {
+		it('should throw an error if limit is invalid', () => {
 
-			try {
+			const test = dare.get('test', basic_fields, {id: 1}, {limit: null});
 
-				await dare.get('test', basic_fields, {id: 1}, {limit: null});
-				throw new Error('expected failure');
-
-			}
-			catch (err) {
-
-				expect(err).to.have.property('code', DareError.INVALID_LIMIT);
-
-			}
+			return expect(test)
+				.to.be.eventually.rejectedWith(DareError)
+				.and.have.property('code', DareError.INVALID_LIMIT);
 
 		});
 
 
-		it('should throw an error where no limit was defined and an empty resultset was returned.', async () => {
+		it('should throw an error where no limit was defined and an empty resultset was returned.', () => {
 
 			dare.execute = (query, callback) => callback(null, []);
 
-			try {
+			const test = dare.get('test', basic_fields, {id: 1});
 
-				await dare.get('test', basic_fields, {id: 1});
-				throw new Error('expected failure');
+			return expect(test)
+				.to.be.eventually.rejectedWith(DareError)
+				.and.have.property('code', DareError.NOT_FOUND);
 
-			}
-			catch (err) {
+		});
 
-				expect(err).to.have.property('code', 'NOT_FOUND');
+		it('should return value of notfound where no limit was defined and an empty resultset was returned.', async () => {
 
-			}
+			dare.execute = (query, callback) => callback(null, []);
+
+			const notfound = 'whoops';
+
+			const value = await dare.get('test', basic_fields, {id: 1}, {notfound});
+
+			expect(value).to.equal(notfound);
 
 		});
 
@@ -283,35 +303,23 @@ describe('get', () => {
 
 		});
 
-		it('should throw an error if fields is an empty array', async () => {
+		it('should throw an error if fields is an empty array', () => {
 
-			try {
+			const test = dare.get('test', [], {id: 1}, {groupby: 'id'});
 
-				await dare.get('test', [], {id: 1}, {groupby: 'id'});
-				throw new Error('expected failure');
-
-			}
-			catch (err) {
-
-				expect(err).to.have.property('code', DareError.INVALID_REQUEST);
-
-			}
+			return expect(test)
+				.to.be.eventually.rejectedWith(DareError)
+				.and.have.property('code', DareError.INVALID_REQUEST);
 
 		});
 
-		it('should throw an error if missing fields on an unknown schema', async () => {
+		it('should throw an error if missing fields on an unknown schema', () => {
 
-			try {
+			const test = dare.get('test', {id: 1}, {groupby: 'id'});
 
-				await dare.get('test', {id: 1}, {groupby: 'id'});
-				throw new Error('expected failure');
-
-			}
-			catch (err) {
-
-				expect(err).to.have.property('code', DareError.INVALID_REQUEST);
-
-			}
+			return expect(test)
+				.to.be.eventually.rejectedWith(DareError)
+				.and.have.property('code', DareError.INVALID_REQUEST);
 
 		});
 

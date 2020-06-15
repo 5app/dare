@@ -104,23 +104,12 @@ describe('table_handler', () => {
 			// Do nothing
 		};
 
-		try {
-
-			dare.table_handler({
-				table: 'emails',
-				alias: 'peeps'
-			});
-
-		}
-		catch (e) {
-
-			expect(e).to.be.instanceof(DareError);
-			expect(e).to.have.property('code', DareError.INVALID_IMPLEMENTATION);
-			return;
-
-		}
-
-		throw new Error('Should have thrown an exception');
+		expect(() => dare.table_handler({
+			table: 'emails',
+			alias: 'peeps'
+		}))
+			.to.throw(DareError)
+			.and.to.have.property('code', DareError.INVALID_IMPLEMENTATION);
 
 	});
 

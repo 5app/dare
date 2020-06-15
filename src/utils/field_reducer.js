@@ -1,8 +1,11 @@
 const checkFormat = require('./unwrap_field');
 const checkLabel = require('./validate_label');
 const checkKey = require('./validate_field');
+const DareError = require('./error');
 const fieldRelativePath = require('./field_relative');
 const getFieldAttributes = require('./field_attributes');
+const jsonParse = require('./JSONparse');
+
 
 // Return a reducer function
 module.exports = function fieldReducer(current_address, join, table_schema = {}) {
@@ -37,11 +40,6 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
 				join[key].fields = [];
 
 			}
-			else if (!Array.isArray(join[key].fields)) {
-
-				join[key].fields = [join[key].fields];
-
-			}
 
 			join[key].fields.push(d);
 			return true;
@@ -68,8 +66,13 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
 
 					}
 
+					/*
+					 * This key=>value object refers to another table as the value is an object itself
+					 * Add the object to the join table...
+					 */
 					join[key] = join[key] || {};
-					join[key].fields = value;
+					join[key].fields = join[key].fields || [];
+					join[key].fields.push(...(Array.isArray(value) ? value : [value]));
 
 				}
 				else {
@@ -151,7 +154,14 @@ function fieldMapping(field, label, tableSchema, fieldsArray) {
 	const {field_name, prefix, suffix} = checkFormat(field);
 
 	// Get the schema entry for the field
-	const {handler, alias} = getFieldAttributes(tableSchema[field_name]);
+	const {handler, alias, type, readable} = getFieldAttributes(tableSchema[field_name]);
+
+	// Is this readable?
+	if (readable === false) {
+
+		throw new DareError(DareError.INVALID_REFERENCE, `Field '${field_name}' is not readable`);
+
+	}
 
 	// Does this field have a handler in the schema
 	if (handler) {
@@ -164,17 +174,35 @@ function fieldMapping(field, label, tableSchema, fieldsArray) {
 	}
 
 	// Does the field map to another key name...
-	else if (alias) {
+	if (alias) {
 
 		// Use the original name, defined by the key_definition
-		return {
-			[label]: rewrap_field(alias, prefix, suffix)
-		};
+		field = rewrap_field(alias, prefix, suffix);
+
+	}
+
+
+	// Default format datetime field as an ISO string...
+	if (type === 'datetime' && !prefix) {
+
+		field = `DATE_FORMAT(${field},'%Y-%m-%dT%TZ')`;
+
+	}
+
+	// Default format datetime field as an ISO string...
+	else if (type === 'json' && !prefix) {
+
+		// Add a function of the same name to retro-format the field
+		fieldsArray.push({
+			[label]: item => jsonParse(item[label]) || {}
+		});
+
+		// Continue...
 
 	}
 
 	// If this is a object-field definition
-	else if (isObj) {
+	if (isObj || label !== field) {
 
 		// Add the field to the array
 		return {

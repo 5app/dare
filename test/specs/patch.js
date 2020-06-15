@@ -44,62 +44,162 @@ describe('patch', () => {
 
 	});
 
+	it('should throw an exception if affectedRows: 0', () => {
+
+		dare.sql = async () => ({affectedRows: 0});
+
+		const test = dare
+			.patch('groups', {id: 20000}, {name: 'name'});
+
+		return expect(test)
+			.to.be.eventually.rejectedWith(DareError)
+			.and.have.property('code', DareError.NOT_FOUND);
+
+	});
+
 	it('should throw an exception if affectedRows: 0', async () => {
 
-		dare.sql = () => Promise.resolve({affectedRows: 0});
+		const notfound = false;
 
-		try {
+		dare.sql = async () => ({affectedRows: 0});
 
-			await dare
-				.patch('groups', {id: 20000}, {name: 'name'});
+		const test = await dare
+			.patch('groups', {id: 20000}, {name: 'name'}, {notfound});
 
-			throw new Error('expected failure');
-
-		}
-		catch (err) {
-
-			expect(err.code).to.eql(DareError.NOT_FOUND);
-
-		}
+		expect(test).to.equal(notfound);
 
 	});
 
 
-	[
-		{
-			given: 'field',
-			expect: '\'field\''
-		},
-		{
-			given: null,
-			expect: 'null'
-		},
-		{
-			given: {
-				obj: 'be stringified'
+	describe('validate formatting of input values', () => {
+
+		[
+			{
+				given: 'field',
+				expect: '\'field\''
 			},
-			expect: '\'{"obj":"be stringified"}\''
-		}
-	].forEach(({given, expect}) => {
+			{
+				given: null,
+				expect: 'null'
+			}
+		].forEach(({given, expect}) => {
 
-		it(`should convert ${given} to ${expect}`, async () => {
+			it(`should convert ${given} to ${expect}`, async () => {
 
-			dare.execute = (query, callback) => {
+				dare.execute = (query, callback) => {
 
-				// Limit: 1
-				sqlEqual(query, `UPDATE test SET \`name\` = ${expect} WHERE id = 1 LIMIT 1`);
-				callback(null, {success: true});
+					// Limit: 1
+					sqlEqual(query, `UPDATE test SET \`name\` = ${expect} WHERE id = 1 LIMIT 1`);
+					callback(null, {success: true});
 
-			};
+				};
 
-			return dare
-				.patch({
-					table: 'test',
-					filter: {id: 1},
-					body: {name: given}
+				return dare
+					.patch({
+						table: 'test',
+						filter: {id: 1},
+						body: {name: given}
+					});
+
+			});
+
+		});
+
+
+		[
+			{
+				key: 'value'
+			},
+			[
+				1, 2, 3
+			]
+		].forEach(given => {
+
+			it(`should throw an exception, given ${JSON.stringify(given)}`, async () => {
+
+				const call = dare
+					.patch({
+						table: 'test',
+						filter: {id: 1},
+						body: {name: given}
+					});
+
+				return expect(call).to.be.eventually
+					.rejectedWith(DareError, 'Field \'name\' does not accept objects as values')
+					.and.have.property('code', DareError.INVALID_VALUE);
+
+			});
+
+		});
+
+
+		describe('type=json', () => {
+
+			beforeEach(() => {
+
+				dare.options = {
+					schema: {
+						'test': {
+							meta: {
+								type: 'json'
+							}
+						}
+					}
+				};
+
+			});
+
+			// Invalid inputs...
+			['string', true, false, 0, NaN, a => a]
+				.forEach(given => {
+
+					it(`should throw an exception, given ${given}`, async () => {
+
+						const call = dare
+							.patch({
+								table: 'test',
+								filter: {id: 1},
+								body: {meta: given}
+							});
+
+						return expect(call).to.be.eventually
+							.rejectedWith(DareError, 'Field \'meta\' must be an object')
+							.and.have.property('code', DareError.INVALID_VALUE);
+
+					});
+
+				});
+
+			// Valid inputs
+			[{}, [], null]
+				.forEach(given => {
+
+
+					it(`should accept typeof object, given ${JSON.stringify(given)}`, async () => {
+
+						const expect = given ? `'${JSON.stringify(given)}'` : 'null';
+
+						dare.execute = (query, callback) => {
+
+							// Limit: 1
+							sqlEqual(query, `UPDATE test SET \`meta\` = ${expect} WHERE id = 1 LIMIT 1`);
+							callback(null, {success: true});
+
+						};
+
+						return dare
+							.patch({
+								table: 'test',
+								filter: {id: 1},
+								body: {meta: given}
+							});
+
+					});
+
 				});
 
 		});
+
 
 	});
 
@@ -120,6 +220,26 @@ describe('patch', () => {
 				filter: {id: 1},
 				body: {name: 'name'},
 				limit: 11
+			});
+
+	});
+
+	it('should apply the request.duplicate_keys', async () => {
+
+		dare.execute = (query, callback) => {
+
+			// Limit: 1
+			sqlEqual(query, 'UPDATE IGNORE test SET `name` = \'name\' WHERE id = 1 LIMIT 1');
+			callback(null, {success: true});
+
+		};
+
+		return dare
+			.patch({
+				table: 'test',
+				filter: {id: 1},
+				body: {name: 'name'},
+				duplicate_keys: 'ignore'
 			});
 
 	});
@@ -223,21 +343,14 @@ describe('patch', () => {
 			}
 		};
 
-		try {
+		const test = dare.patch({
+			table: 'tbl',
+			filter: {id: 1},
+			body: {name: 'name'}
+		});
 
-			await dare
-				.patch({
-					table: 'tbl',
-					filter: {id: 1},
-					body: {name: 'name'}
-				});
-
-		}
-		catch (err) {
-
-			expect(err).to.have.property('message', msg);
-
-		}
+		return expect(test)
+			.to.be.eventually.rejectedWith(Error, msg);
 
 	});
 
@@ -264,6 +377,26 @@ describe('patch', () => {
 
 
 		expect(resp).to.eql(skip);
+
+	});
+
+
+	it('should allow complex filters', async () => {
+
+		dare.execute = (query, callback) => {
+
+			sqlEqual(query, 'UPDATE tbl SET `name` = \'andrew\' WHERE id = 1 AND (NOT number < \'100\' OR number IS NULL) LIMIT 1');
+			callback(null, {success: true});
+
+		};
+
+		await dare
+			.patch({
+				table: 'tbl',
+				filter: {id: 1, '-number': '..100'},
+				body: {name: 'andrew'}
+			});
+
 
 	});
 

@@ -47,19 +47,21 @@ describe('del', () => {
 
 		dare.sql = async () => ({affectedRows: 0});
 
-		try {
+		const test = dare.del('groups', {id: 20000});
 
-			await dare
-				.del('groups', {name: 'name'}, {id: 20000});
+		return expect(test)
+			.to.be.eventually.rejectedWith(DareError)
+			.and.have.property('code', DareError.NOT_FOUND);
 
-			throw new Error('Should not be called');
+	});
 
-		}
-		catch (err) {
+	it('should return opts.notfound if affectedRows: 0', async () => {
 
-			expect(err.code).to.eql(DareError.NOT_FOUND);
+		const notfound = false;
+		dare.sql = async () => ({affectedRows: 0});
 
-		}
+		const test = await dare.del('groups', {id: 20000}, {notfound});
+		return expect(test).to.equal(notfound);
 
 	});
 
@@ -128,7 +130,11 @@ describe('del', () => {
 		dare.options = {
 			del: {
 				// Augment the request
-				'default': async req => req.filter.id = 1
+				async default(req) {
+
+					req.filter.id = 1;
+
+				}
 			}
 		};
 
@@ -140,7 +146,7 @@ describe('del', () => {
 
 	});
 
-	it('should trigger pre handler, and handle errors being thrown', async () => {
+	it('should trigger pre handler, and handle errors being thrown', () => {
 
 		const msg = 'test';
 
@@ -155,20 +161,13 @@ describe('del', () => {
 			}
 		};
 
-		try {
+		const test = dare.del({
+			table: 'tbl',
+			filter: {id: 2}
+		});
 
-			await dare.del({
-				table: 'tbl',
-				filter: {id: 2}
-			});
-			throw new Error('should not be called');
-
-		}
-		catch (e) {
-
-			expect(e.message).to.eql(msg);
-
-		}
+		return expect(test)
+			.to.be.eventually.rejectedWith(Error, msg);
 
 	});
 

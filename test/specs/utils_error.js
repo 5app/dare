@@ -15,7 +15,7 @@ describe('utils/error', () => {
 
 		// Expect the formatted list of fields to be identical to the inputted value
 		expect(error).to.have.property('code', 'INVALID_REFERENCE');
-		expect(error).to.have.property('status', 500);
+		expect(error).to.have.property('status', 400);
 		expect(error).to.have.property('message', 'Invalid request');
 
 	});

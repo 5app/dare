@@ -1,19 +1,21 @@
 {
   "name": "dare",
-  "version": "0.32.0",
+  "version": "0.45.0",
   "description": "Database to REST, REST to Database",
   "main": "src/index.js",
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=10.0.0"
   },
   "scripts": {
-    "test": "npm run lint && npm run spec && ((nyc report --reporter=text-lcov | coveralls) || exit 0)",
+    "pretest": "npm run lint",
+    "test": "npm run spec && ((nyc report --reporter=text-lcov | coveralls) || exit 0)",
     "test:ci": "eslint ./ && nyc mocha test/specs/**/*.js --reporter mocha-circleci-reporter && (nyc report --reporter=text-lcov | coveralls)",
     "spec": "nyc mocha test/specs/**/*.js",
     "semantic-release": "semantic-release",
     "lint": "eslint ./",
     "lint-fix": "eslint --fix ./",
     "lint-diff": "LIST=`git diff-index --name-only HEAD | grep '.*\\.js$';`; if [ \"$LIST\" ]; then eslint $LIST; fi",
+    "lint-diff-fix": "LIST=`git diff-index --name-only HEAD | grep '.*\\.js$';`; if [ \"$LIST\" ]; then eslint --fix $LIST; fi",
     "precommit-msg": "echo 'Running pre-commit checks... (skip using --no-verify)' && exit 0"
   },
   "pre-commit": [
@@ -40,21 +42,38 @@
     "src/"
   ],
   "devDependencies": {
-    "@semantic-release/changelog": "^3.0.4",
-    "@semantic-release/git": "^7.0.14",
+    "@commitlint/cli": "^8.3.5",
+    "@commitlint/config-conventional": "^8.3.4",
+    "@semantic-release/changelog": "^5.0.1",
+    "@semantic-release/git": "^9.0.0",
     "chai": "^4.2.0",
-    "coveralls": "^3.0.4",
-    "eslint": "^6.0.1",
-    "eslint-config-5app": "^0.6.5",
+    "chai-as-promised": "^7.1.1",
+    "coveralls": "^3.1.0",
+    "eslint": "^7.2.0",
+    "eslint-config-5app": "^0.12.0",
+    "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-security": "^1.4.0",
-    "mocha": "^6.1.4",
+    "husky": "^4.2.5",
+    "mocha": "^8.0.0",
     "mocha-circleci-reporter": "0.0.3",
-    "nyc": "^14.0.0",
+    "nyc": "^15.1.0",
     "pre-commit": "^1.2.2",
-    "semantic-release": "^15.13.18"
+    "semantic-release": "^17.0.8"
   },
-  "dependencies": {},
+  "dependencies": {
+    "tricks": "^1.12.0"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E  HUSKY_GIT_PARAMS"
+    }
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
   "release": {
     "branch": "master",
     "prepare": [

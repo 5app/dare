@@ -14,27 +14,43 @@ module.exports = fieldDefinition => {
 
 	}
 
-	const attributes = {};
-
 	if (typeof fieldDefinition === 'string' && !fieldDefinition.includes('.')) {
 
 		// This is an alias reference, the name is an alias of another
-		attributes.alias = fieldDefinition;
+		return {
+			alias: fieldDefinition
+		};
 
 	}
-	else if ((typeof fieldDefinition === 'string' && fieldDefinition.includes('.')) || Array.isArray(fieldDefinition)) {
+
+	if ((typeof fieldDefinition === 'string' && fieldDefinition.includes('.')) || Array.isArray(fieldDefinition)) {
 
 		// This is an reference to another table, this field can be used in a table join
-		attributes.references = fieldDefinition;
+		return {
+			references: fieldDefinition
+		};
 
 	}
-	else if (typeof fieldDefinition === 'function') {
+
+	if (typeof fieldDefinition === 'function') {
 
 		// This is a generated field
-		attributes.handler = fieldDefinition;
+		return {
+			handler: fieldDefinition
+		};
 
 	}
 
-	return attributes;
+	if (fieldDefinition === false) {
+
+		// Mark as inaccessible
+		return {
+			readable: false,
+			writeable: false
+		};
+
+	}
+
+	return {};
 
 };
