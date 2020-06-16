@@ -1,6 +1,5 @@
 # Database and REST (dare)
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/5app/dare.svg)](https://greenkeeper.io/)
 [![Coverage Status](https://coveralls.io/repos/github/5app/dare/badge.svg)](https://coveralls.io/github/5app/dare)
 [![CircleCI](https://circleci.com/gh/5app/dare.svg?style=shield)](https://circleci.com/gh/5app/dare)
 [![NPM Version](https://img.shields.io/npm/v/dare.svg)](https://www.npmjs.com/package/dare)
