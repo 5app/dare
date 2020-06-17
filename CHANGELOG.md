@@ -1,3 +1,10 @@
+## [0.45.1](https://github.com/5app/dare/compare/v0.45.0...v0.45.1) (2020-06-15)
+
+
+### Bug Fixes
+
+* fix rendering of SQL conditions in patch and delete ([18ba1ea](https://github.com/5app/dare/commit/18ba1ea2c3ffdf1778f8272b6824c9c11c41bf3e))
+
 # [0.45.0](https://github.com/5app/dare/compare/v0.44.0...v0.45.0) (2020-06-03)
 
 

@@ -283,7 +283,7 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	const sql_query = req._filter.map(([field, condition, values]) => {
 
 		preparedValues.push(...values);
-		return `${field} ${condition}`;
+		return formCondition(field, condition);
 
 	});
 
@@ -478,7 +478,7 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 	const sql_query = req._filter.map(([field, condition, values]) => {
 
 		a.push(...values);
-		return `${field} ${condition}`;
+		return formCondition(field, condition);
 
 	});
 
@@ -660,5 +660,13 @@ function setDefaultNotFoundHandler(opts) {
 	}
 
 	return opts;
+
+}
+
+
+function formCondition(field, condition) {
+
+	// Insert the field name in place
+	return condition.includes('$$') ? condition.replace(/\$\$/g, field) : `${field} ${condition}`;
 
 }
