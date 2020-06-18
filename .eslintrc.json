@@ -8,17 +8,18 @@
 		"promise",
 		"security"
 	],
+	"env": {
+		"node": true,
+		"es2020": true
+	},
 	"rules": {
 		"arrow-body-style": [2, "as-needed"],
 		"capitalized-comments": 2,
 		"comma-dangle": 2,
 		"no-empty-function": 2,
-		"no-magic-numbers": 0,
 		"no-param-reassign": 0,
 		"multiline-comment-style": [2, "starred-block"],
 		"padded-blocks": 2,
-		"require-atomic-updates": 0,
-		"require-await": 0,
 		"linebreak-style": 0,
 
 		"newline-per-chained-call": 2,
