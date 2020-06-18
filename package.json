@@ -1,6 +1,6 @@
 {
   "name": "dare",
-  "version": "0.45.1",
+  "version": "0.46.0",
   "description": "Database to REST, REST to Database",
   "main": "src/index.js",
   "engines": {
@@ -75,7 +75,9 @@
     ]
   },
   "release": {
-    "branches": ["main"],
+    "branches": [
+      "main"
+    ],
     "prepare": [
       "@semantic-release/changelog",
       "@semantic-release/npm",

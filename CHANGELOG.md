@@ -1,3 +1,10 @@
+# [0.46.0](https://github.com/5app/dare/compare/v0.45.1...v0.46.0) (2020-06-18)
+
+
+### Features
+
+* **sql:** pass through '{sql, values}' to execute function ([#139](https://github.com/5app/dare/issues/139)) ([46f22e4](https://github.com/5app/dare/commit/46f22e4f07f672f45746e1576bb3cfa68026ca38))
+
 ## [0.45.1](https://github.com/5app/dare/compare/v0.45.0...v0.45.1) (2020-06-15)
 
 
