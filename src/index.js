@@ -4,8 +4,6 @@ const getHandler = require('./get');
 
 const DareError = require('./utils/error');
 
-const promisify = require('./utils/promisify');
-
 const validateBody = require('./utils/validate_body');
 
 const getFieldAttributes = require('./utils/field_attributes');
@@ -34,7 +32,11 @@ function Dare(options) {
 }
 
 // Set default function
-Dare.prototype.execute = (query, callback) => callback(new DareError(DareError.INVALID_SETUP, 'Define dare.execute to continue'));
+Dare.prototype.execute = async () => {
+
+	throw new DareError(DareError.INVALID_SETUP, 'Define dare.execute to continue');
+
+};
 
 // Group concat
 Dare.prototype.group_concat = '$$';
@@ -140,7 +142,7 @@ Dare.prototype.sql = async function sql(sql, values) {
 
 	}
 
-	return promisify(this.execute)(req);
+	return this.execute(req);
 
 };
 

@@ -402,10 +402,11 @@ describe('patch', () => {
 
 	it('should allow complex filters', async () => {
 
-		dare.execute = (query, callback) => {
+		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(query, 'UPDATE tbl SET `name` = \'andrew\' WHERE id = 1 AND (NOT number < \'100\' OR number IS NULL) LIMIT 1');
-			callback(null, {success: true});
+			sqlEqual(sql, 'UPDATE tbl SET `name` = ? WHERE id = ? AND (NOT number < ? OR number IS NULL) LIMIT 1');
+			expect(values).to.deep.equal(['andrew', 1, '100']);
+			return {success: true};
 
 		};
 
