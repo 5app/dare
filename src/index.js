@@ -132,7 +132,15 @@ Dare.prototype.use = function(options = {}) {
  */
 Dare.prototype.sql = async function sql(sql, values) {
 
-	return promisify(this.execute)({sql, values});
+	let req = {sql, values};
+
+	if (typeof sql === 'object') {
+
+		req = sql;
+
+	}
+
+	return promisify(this.execute)(req);
 
 };
 
