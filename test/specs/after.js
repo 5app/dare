@@ -40,7 +40,7 @@ describe('after Handler', () => {
 		beforeEach(() => {
 
 			dare.after = () => 'called';
-			dare.execute = (sql, cb) => cb(null, [{}]);
+			dare.execute = async () => ([{}]);
 
 		});
 
@@ -156,11 +156,7 @@ describe('after Handler', () => {
 					}
 				});
 
-				d.execute = (sql, callback) => {
-
-					callback(null, [{id: 1}]);
-
-				};
+				d.execute = async () => ([{id: 1}]);
 
 				try {
 
@@ -205,7 +201,7 @@ describe('after Handler', () => {
 			dare.options.del = preHandlers;
 
 			// Overwrite execute
-			dare.execute = (sql, cb) => cb(null, [{}]);
+			dare.execute = async () => ([{}]);
 
 			// This will be overriden
 			dare.after_handler = () => {

@@ -4,8 +4,6 @@ const getHandler = require('./get');
 
 const DareError = require('./utils/error');
 
-const promisify = require('./utils/promisify');
-
 const validateBody = require('./utils/validate_body');
 
 const getFieldAttributes = require('./utils/field_attributes');
@@ -34,16 +32,17 @@ function Dare(options) {
 }
 
 // Set default function
-Dare.prototype.execute = (query, callback) => callback(new DareError(DareError.INVALID_SETUP, 'Define dare.execute to continue'));
+Dare.prototype.execute = async () => {
+
+	throw new DareError(DareError.INVALID_SETUP, 'Define dare.execute to continue');
+
+};
 
 // Group concat
 Dare.prototype.group_concat = '$$';
 
 // Set the Max Limit for SELECT statements
 Dare.prototype.MAX_LIMIT = null;
-
-// Default prepare statement.
-Dare.prototype.prepare = require('./utils/prepare');
 
 // Set default table_alias handler
 Dare.prototype.table_alias_handler = function(name) {
@@ -130,16 +129,20 @@ Dare.prototype.use = function(options = {}) {
  * Prepares and processes SQL statements
  *
  * @param {string} sql - SQL string containing the query
- * @param {Array<Array, string, number, boolean>} prepared - List of prepared statement values
+ * @param {Array<Array, string, number, boolean>} values - List of prepared statement values
  * @returns {Promise<object|Array>} Returns response object or array of values
  */
-Dare.prototype.sql = async function sql(sql, prepared) {
+Dare.prototype.sql = async function sql(sql, values) {
 
-	prepared = prepared || [];
+	let req = {sql, values};
 
-	const sql_prepared = this.prepare(sql, prepared);
+	if (typeof sql === 'object') {
 
-	return promisify(this.execute)(sql_prepared);
+		req = sql;
+
+	}
+
+	return this.execute(req);
 
 };
 

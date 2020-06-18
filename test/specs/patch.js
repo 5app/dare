@@ -5,6 +5,9 @@ const sqlEqual = require('../lib/sql-equal');
 
 const DareError = require('../../src/utils/error');
 
+const id = 1;
+const name = 'name';
+
 describe('patch', () => {
 
 	let dare;
@@ -30,26 +33,30 @@ describe('patch', () => {
 
 	it('should generate an UPDATE statement and execute dare.execute', async () => {
 
-		dare.execute = (query, callback) => {
+
+		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(query, 'UPDATE test SET `name` = \'name\' WHERE id = 1 LIMIT 1');
-			callback(null, {success: true});
+			sqlEqual(sql, 'UPDATE test SET `name` = ? WHERE id = ? LIMIT 1');
+			expect(values).to.deep.equal([name, id]);
+
+			return {success: true};
 
 		};
 
 		const resp = await dare
-			.patch('test', {id: 1}, {name: 'name'});
+			.patch('test', {id}, {name});
 		expect(resp).to.have.property('success', true);
 
 	});
 
 	it('should throw an exception if affectedRows: 0', () => {
 
+
 		dare.sql = async () => ({affectedRows: 0});
 
 		const test = dare
-			.patch('groups', {id: 20000}, {name: 'name'});
+			.patch('groups', {id: 20000}, {name});
 
 		return expect(test)
 			.to.be.eventually.rejectedWith(DareError)
@@ -64,7 +71,7 @@ describe('patch', () => {
 		dare.sql = async () => ({affectedRows: 0});
 
 		const test = await dare
-			.patch('groups', {id: 20000}, {name: 'name'}, {notfound});
+			.patch('groups', {id: 20000}, {name}, {notfound});
 
 		expect(test).to.equal(notfound);
 
@@ -74,31 +81,28 @@ describe('patch', () => {
 	describe('validate formatting of input values', () => {
 
 		[
-			{
-				given: 'field',
-				expect: '\'field\''
-			},
-			{
-				given: null,
-				expect: 'null'
-			}
-		].forEach(({given, expect}) => {
+			'field',
+			null
+		].forEach(input => {
 
-			it(`should convert ${given} to ${expect}`, async () => {
+			it(`should convert ${input}`, async () => {
 
-				dare.execute = (query, callback) => {
+				const id = 1;
+
+				dare.execute = async ({sql, values}) => {
 
 					// Limit: 1
-					sqlEqual(query, `UPDATE test SET \`name\` = ${expect} WHERE id = 1 LIMIT 1`);
-					callback(null, {success: true});
+					sqlEqual(sql, 'UPDATE test SET `input` = ? WHERE id = ? LIMIT 1');
+					expect(values).to.deep.equal([input, id]);
+					return {success: true};
 
 				};
 
 				return dare
 					.patch({
 						table: 'test',
-						filter: {id: 1},
-						body: {name: given}
+						filter: {id},
+						body: {input}
 					});
 
 			});
@@ -113,15 +117,15 @@ describe('patch', () => {
 			[
 				1, 2, 3
 			]
-		].forEach(given => {
+		].forEach(input => {
 
-			it(`should throw an exception, given ${JSON.stringify(given)}`, async () => {
+			it(`should throw an exception, given ${JSON.stringify(input)}`, async () => {
 
 				const call = dare
 					.patch({
 						table: 'test',
-						filter: {id: 1},
-						body: {name: given}
+						filter: {id},
+						body: {name: input}
 					});
 
 				return expect(call).to.be.eventually
@@ -158,7 +162,7 @@ describe('patch', () => {
 						const call = dare
 							.patch({
 								table: 'test',
-								filter: {id: 1},
+								filter: {id},
 								body: {meta: given}
 							});
 
@@ -172,26 +176,28 @@ describe('patch', () => {
 
 			// Valid inputs
 			[{}, [], null]
-				.forEach(given => {
+				.forEach(input => {
 
 
-					it(`should accept typeof object, given ${JSON.stringify(given)}`, async () => {
+					it(`should accept typeof object, given ${JSON.stringify(input)}`, async () => {
 
-						const expect = given ? `'${JSON.stringify(given)}'` : 'null';
+						const id = 1;
+						const meta = input ? JSON.stringify(input) : null;
 
-						dare.execute = (query, callback) => {
+						dare.execute = async ({sql, values}) => {
 
 							// Limit: 1
-							sqlEqual(query, `UPDATE test SET \`meta\` = ${expect} WHERE id = 1 LIMIT 1`);
-							callback(null, {success: true});
+							sqlEqual(sql, 'UPDATE test SET `meta` = ? WHERE id = ? LIMIT 1');
+							expect(values).to.deep.equal([meta, id]);
+							return {success: true};
 
 						};
 
 						return dare
 							.patch({
 								table: 'test',
-								filter: {id: 1},
-								body: {meta: given}
+								filter: {id},
+								body: {meta: input}
 							});
 
 					});
@@ -206,39 +212,44 @@ describe('patch', () => {
 
 	it('should apply the request.limit', async () => {
 
-		dare.execute = (query, callback) => {
+		const limit = 11;
+
+		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(query, 'UPDATE test SET `name` = \'name\' WHERE id = 1 LIMIT 11');
-			callback(null, {success: true});
+			sqlEqual(sql, 'UPDATE test SET `name` = ? WHERE id = ? LIMIT 11');
+			expect(values).to.deep.equal([name, id]);
+
+			return {success: true};
 
 		};
 
 		return dare
 			.patch({
 				table: 'test',
-				filter: {id: 1},
-				body: {name: 'name'},
-				limit: 11
+				filter: {id},
+				body: {name},
+				limit
 			});
 
 	});
 
 	it('should apply the request.duplicate_keys', async () => {
 
-		dare.execute = (query, callback) => {
+		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(query, 'UPDATE IGNORE test SET `name` = \'name\' WHERE id = 1 LIMIT 1');
-			callback(null, {success: true});
+			sqlEqual(sql, 'UPDATE IGNORE test SET `name` = ? WHERE id = ? LIMIT 1');
+			expect(values).to.deep.equal([name, id]);
+			return {success: true};
 
 		};
 
 		return dare
 			.patch({
 				table: 'test',
-				filter: {id: 1},
-				body: {name: 'name'},
+				filter: {id},
+				body: {name},
 				duplicate_keys: 'ignore'
 			});
 
@@ -246,11 +257,12 @@ describe('patch', () => {
 
 	it('should use table aliases', async () => {
 
-		dare.execute = (query, callback) => {
+		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(query, 'UPDATE tablename SET `name` = \'name\' WHERE id = 1 LIMIT 1');
-			callback(null, {success: true});
+			sqlEqual(sql, 'UPDATE tablename SET `name` = ? WHERE id = ? LIMIT 1');
+			expect(values).to.deep.equal([name, id]);
+			return {success: true};
 
 		};
 
@@ -263,8 +275,8 @@ describe('patch', () => {
 		return dare
 			.patch({
 				table: 'test',
-				filter: {id: 1},
-				body: {name: 'name'}
+				filter: {id},
+				body: {name}
 			});
 
 	});
@@ -272,10 +284,14 @@ describe('patch', () => {
 
 	it('should trigger pre handler, options.patch.[table]', async () => {
 
-		dare.execute = (query, callback) => {
+		const newName = 'andrew';
 
-			sqlEqual(query, 'UPDATE tbl SET `name` = \'andrew\' WHERE id = 1 LIMIT 1');
-			callback(null, {success: true});
+		dare.execute = async ({sql, values}) => {
+
+			sqlEqual(sql, 'UPDATE tbl SET `name` = ? WHERE id = ? LIMIT 1');
+			expect(values).to.deep.equal([newName, id]);
+
+			return {success: true};
 
 		};
 
@@ -284,7 +300,7 @@ describe('patch', () => {
 				'tbl': req => {
 
 					// Augment the request
-					req.body.name = 'andrew';
+					req.body.name = newName;
 
 				}
 			}
@@ -293,8 +309,8 @@ describe('patch', () => {
 		return dare
 			.patch({
 				table: 'tbl',
-				filter: {id: 1},
-				body: {name: 'name'}
+				filter: {id},
+				body: {name}
 			});
 
 	});
@@ -302,10 +318,13 @@ describe('patch', () => {
 
 	it('should trigger pre handler, options.patch.default, and wait for Promise to resolve', async () => {
 
-		dare.execute = (query, callback) => {
+		const newName = 'andrew';
 
-			sqlEqual(query, 'UPDATE tbl SET `name` = \'andrew\' WHERE id = 1 LIMIT 1');
-			callback(null, {success: true});
+		dare.execute = async ({sql, values}) => {
+
+			sqlEqual(sql, 'UPDATE tbl SET `name` = ? WHERE id = ? LIMIT 1');
+			expect(values).to.deep.equal([newName, id]);
+			return {success: true};
 
 		};
 
@@ -313,7 +332,7 @@ describe('patch', () => {
 			patch: {
 				'default': async req => {
 
-					req.body.name = 'andrew';
+					req.body.name = newName;
 
 				}
 			}
@@ -322,8 +341,8 @@ describe('patch', () => {
 		return dare
 			.patch({
 				table: 'tbl',
-				filter: {id: 1},
-				body: {name: 'name'}
+				filter: {id},
+				body: {name}
 			});
 
 	});
@@ -345,8 +364,8 @@ describe('patch', () => {
 
 		const test = dare.patch({
 			table: 'tbl',
-			filter: {id: 1},
-			body: {name: 'name'}
+			filter: {id},
+			body: {name}
 		});
 
 		return expect(test)
@@ -371,8 +390,8 @@ describe('patch', () => {
 		const resp = await dare
 			.patch({
 				table: 'tbl',
-				filter: {id: 1},
-				body: {name: 'name'}
+				filter: {id},
+				body: {name}
 			});
 
 
@@ -383,10 +402,11 @@ describe('patch', () => {
 
 	it('should allow complex filters', async () => {
 
-		dare.execute = (query, callback) => {
+		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(query, 'UPDATE tbl SET `name` = \'andrew\' WHERE id = 1 AND (NOT number < \'100\' OR number IS NULL) LIMIT 1');
-			callback(null, {success: true});
+			sqlEqual(sql, 'UPDATE tbl SET `name` = ? WHERE id = ? AND (NOT number < ? OR number IS NULL) LIMIT 1');
+			expect(values).to.deep.equal(['andrew', 1, '100']);
+			return {success: true};
 
 		};
 

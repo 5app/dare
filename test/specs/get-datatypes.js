@@ -24,7 +24,7 @@ describe('get - datatypes', () => {
 
 		const created_time = '2019-09-03T12:00:00Z';
 
-		dare.execute = async query => {
+		dare.execute = async ({sql, values}) => {
 
 			const expected = `
 				SELECT DATE_FORMAT(a.created_time,'%Y-%m-%dT%TZ') AS 'created_time'
@@ -32,7 +32,8 @@ describe('get - datatypes', () => {
 				LIMIT 1
 			`;
 
-			sqlEqual(query, expected);
+			sqlEqual(sql, expected);
+			expect(values).to.deep.equal([]);
 
 			return [{created_time}];
 
@@ -55,7 +56,7 @@ describe('get - datatypes', () => {
 			const meta = {param: 1};
 			const metaString = JSON.stringify(meta);
 
-			dare.execute = async query => {
+			dare.execute = async ({sql, values}) => {
 
 				const expected = `
 					SELECT a.meta
@@ -63,7 +64,8 @@ describe('get - datatypes', () => {
 					LIMIT 1
 				`;
 
-				sqlEqual(query, expected);
+				sqlEqual(sql, expected);
+				expect(values).to.deep.equal([]);
 
 				return [{meta: metaString}];
 
@@ -83,7 +85,7 @@ describe('get - datatypes', () => {
 
 		it('should return an empty object if response value is falsy', async () => {
 
-			dare.execute = async query => {
+			dare.execute = async ({sql, values}) => {
 
 				const expected = `
 					SELECT a.meta
@@ -91,7 +93,8 @@ describe('get - datatypes', () => {
 					LIMIT 1
 				`;
 
-				sqlEqual(query, expected);
+				sqlEqual(sql, expected);
+				expect(values).to.deep.equal([]);
 
 				return [{meta: null}];
 

@@ -23,10 +23,10 @@ const sqlConn = require('./mySqlConn');
 // Initiate it
 const dare = new Dare();
 
-// Define a module for connecting
-dare.execute = async (sql) => {
-	// Execute query...
-	return sqlConn.execute(sql);
+// Define the handler dare.execute for handing database requests
+dare.execute = async ({sql, values}) => {
+	// Execute query using prepared statements
+	return sqlConn.execute(sql, values);
 };
 
 // Make a request

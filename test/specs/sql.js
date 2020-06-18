@@ -2,13 +2,18 @@
 describe('sql', () => {
 
 	let dare;
+	const query = 'SELECT 1';
+	const values = [1];
+
 
 	beforeEach(() => {
 
 		dare = new Dare();
-		dare.execute = () => {
 
-			throw new Error('Should not execute');
+		dare.execute = async ({sql, values}) => {
+
+			expect(sql).to.equal(query);
+			return values[0];
 
 		};
 
@@ -20,24 +25,16 @@ describe('sql', () => {
 
 	});
 
-	it('should trigger execute and resolve callback', async () => {
+	it('should trigger execute from a string', async () => {
 
-		dare.execute = (sql, callback) => {
-
-			callback(null, 1);
-
-		};
-
-		const res = await dare.sql('SELECT 1');
-		expect(res).to.eql(1);
+		const res = await dare.sql(query, values);
+		expect(res).to.eql(values[0]);
 
 	});
 
-	it('should trigger execute and resolve promise', async () => {
+	it('should trigger execute from an Object<sql, values>', async () => {
 
-		dare.execute = () => Promise.resolve(1);
-
-		const res = await dare.sql('SELECT 1');
+		const res = await dare.sql({sql: query, values});
 		expect(res).to.eql(1);
 
 	});
@@ -45,9 +42,14 @@ describe('sql', () => {
 	it('should trigger execute and reject a promise', () => {
 
 		const msg = 'test';
-		dare.execute = () => Promise.reject(new Error(msg));
 
-		const test = dare.sql('SELECT 1');
+		dare.execute = async () => {
+
+			throw new Error(msg);
+
+		};
+
+		const test = dare.sql(query);
 
 		return expect(test)
 			.to.be.eventually.rejectedWith(Error, msg);
