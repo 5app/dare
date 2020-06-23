@@ -1,3 +1,10 @@
+## [0.46.1](https://github.com/5app/dare/compare/v0.46.0...v0.46.1) (2020-06-23)
+
+
+### Bug Fixes
+
+* **alias:** fix labelling of aliased fields, fixes [#142](https://github.com/5app/dare/issues/142) ([c79820c](https://github.com/5app/dare/commit/c79820c0cb1e3e7f69d62da070dfe7f92185d38f))
+
 # [0.46.0](https://github.com/5app/dare/compare/v0.45.1...v0.46.0) (2020-06-18)
 
 
