@@ -14,6 +14,9 @@ describe('field alias', () => {
 				'users': {
 					'emailAddress': 'email',
 					'country_id': 'country.id'
+				},
+				'comments': {
+					'user_id': 'users.id'
 				}
 			}
 		});
@@ -83,7 +86,74 @@ describe('field alias', () => {
 
 		});
 
+		it('cross table alias referencing', async () => {
+
+			let sql;
+
+			// Stub the execute function
+			dare.sql = _sql => {
+
+				sql = _sql;
+				return [];
+
+			};
+
+			await dare.get({
+				table: 'comments',
+				fields: [
+					// Label the field by it's name
+					{
+						'Email Field': 'users.email'
+					},
+					// Label the field by an alias name
+					{
+						'Email Alias': 'users.emailAddress'
+					},
+					// Label a field definition using alias name
+					{
+						'email_field': 'LOWER(users.email)'
+					},
+					// Label a field definition using alias name
+					{
+						'email_alias': 'LOWER(users.emailAddress)'
+					}
+				],
+				filter: {
+					// Filter the results using the aliased name as the key
+					users: {
+						'emailAddress': 'andrew%',
+
+						// Should not map a reference, even though it has a similar string structure
+						'country_id': 1
+					}
+				},
+				join: {
+					users: {
+						// Should equally apply the alias mapping to joins
+						'-emailAddress': null,
+
+						// Should not map a reference, even though it has a similar string structure
+						'-country_id': null
+					}
+				},
+				limit
+			});
+
+			expect(sql).to.contain('email AS \'Email Field\'');
+			expect(sql).to.contain('email AS \'Email Alias\'');
+			expect(sql).to.contain('LOWER(b.email) AS \'email_field\'');
+			expect(sql).to.contain('LOWER(b.email) AS \'email_alias\'');
+
+			expect(sql).to.contain('email LIKE ?');
+			expect(sql).to.contain('country_id = ?');
+			expect(sql).to.contain('email IS NOT NULL');
+			expect(sql).to.contain('country_id IS NOT NULL');
+
+
+		});
+
 	});
+
 
 	describe('patch - UPDATE', () => {
 

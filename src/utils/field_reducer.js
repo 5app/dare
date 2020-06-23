@@ -151,7 +151,7 @@ function fieldMapping(field, label, tableSchema, fieldsArray) {
 	}
 
 	// Extract the underlying field
-	const {field_name, prefix, suffix} = checkFormat(field);
+	const {field_name, prefix, suffix, field_path} = checkFormat(field);
 
 	// Get the schema entry for the field
 	const {handler, alias, type, readable} = getFieldAttributes(tableSchema[field_name]);
@@ -177,7 +177,7 @@ function fieldMapping(field, label, tableSchema, fieldsArray) {
 	if (alias) {
 
 		// Use the original name, defined by the key_definition
-		field = rewrap_field(alias, prefix, suffix);
+		field = rewrap_field((field_path ? `${field_path}.` : '') + alias, prefix, suffix);
 
 	}
 
