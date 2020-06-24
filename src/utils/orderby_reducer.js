@@ -2,8 +2,9 @@ const fieldUnwrap = require('./unwrap_field');
 const fieldRelativePath = require('./field_relative');
 const mapReduce = require('./map_reduce');
 const orderbyUnwrap = require('./orderby_unwrap');
+const getFieldAttributes = require('./field_attributes');
 
-module.exports = (current_path, join) => mapReduce(entry => {
+module.exports = (current_path, join, tableSchema) => mapReduce(entry => {
 
 	let field = entry;
 	let direction = '';
@@ -17,6 +18,10 @@ module.exports = (current_path, join) => mapReduce(entry => {
 
 	// Get the field address
 	const item = fieldUnwrap(field);
+
+	// Add direction
+	item.direction = direction;
+
 	const address = fieldRelativePath(current_path, item.field);
 
 	// Get the parent of the field
@@ -24,8 +29,18 @@ module.exports = (current_path, join) => mapReduce(entry => {
 
 	if (address_split.length <= 1) {
 
+		// Get the alias
+		const {alias} = getFieldAttributes(tableSchema[item.field_name]);
+
+		if (alias) {
+
+			// This is an alias column, override the field
+			item.field = alias;
+
+		}
+
 		// Persist the field...
-		return entry;
+		return fieldWrap(item);
 
 	}
 
@@ -46,7 +61,7 @@ module.exports = (current_path, join) => mapReduce(entry => {
 	item.field = address_split.join('.');
 
 	// Add to orderby
-	a.push(fieldWrap(item) + direction);
+	a.push(fieldWrap(item));
 
 	// Update orderby
 	join[key].orderby = a;
@@ -59,6 +74,6 @@ module.exports = (current_path, join) => mapReduce(entry => {
 
 function fieldWrap(item) {
 
-	return item.prefix + item.field + item.suffix;
+	return item.prefix + item.field + item.suffix + item.direction;
 
 }
