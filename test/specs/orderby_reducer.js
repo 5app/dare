@@ -37,6 +37,13 @@ describe('Orderby Reducer', () => {
 				['DATE(b_table.b_field) desc'],
 				[],
 				['DATE(b_field) DESC']
+			],
+
+			// Alias Test
+			[
+				['aliasField', 'b_table.aliasField'],
+				['field'],
+				['aliasField']
 			]
 
 		].forEach(test => {
@@ -52,7 +59,7 @@ describe('Orderby Reducer', () => {
 				const joined = {};
 
 				// Curry the field_reducer
-				const reducer = orderby_reducer('', joined);
+				const reducer = orderby_reducer('', joined, {aliasField: 'field'});
 
 				// Call the field with the
 				const f = input.reduce(reducer, []);

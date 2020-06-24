@@ -208,7 +208,7 @@ async function format_specs(options) {
 	if (options.orderby) {
 
 		// Reduce
-		options.orderby = toArray(options.orderby).reduce(orderbyReducer(options.field_alias_path || `${options.alias}.`, joined), []);
+		options.orderby = toArray(options.orderby).reduce(orderbyReducer(options.field_alias_path || `${options.alias}.`, joined, table_schema), []);
 
 	}
 
