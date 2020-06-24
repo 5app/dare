@@ -427,12 +427,6 @@ function prepCondition(field, value, key_definition, negate) {
 
 		}
 
-		/*
-		 * Extract values from SQL Functions
-		 * Put the values back on the condition
-		 */
-		condition = rewrapFunctionValues(values, condition);
-
 		if (negate) {
 
 			condition = `(NOT ${condition} OR $$ IS NULL)`;
@@ -576,36 +570,5 @@ function toArray(a) {
 
 	}
 	return a;
-
-}
-
-function rewrapFunctionValues(values, condition) {
-
-	const date_sub_regex = new RegExp(/^(DATE_SUB\()(.*)(,[a-z0-9\s]*\))/i);
-
-	values.forEach((value, index) => {
-
-		const m = value.match(date_sub_regex);
-
-		if (m) {
-
-			values[index] = m[2];
-			let i = 0;
-			condition = condition.replace(/\?/g, () => {
-
-				if (i++ === index) {
-
-					return `${m[1]}?${m[3]}`;
-
-				}
-				return '?';
-
-			});
-
-		}
-
-	});
-
-	return condition;
 
 }
