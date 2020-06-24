@@ -1,3 +1,10 @@
+## [0.46.2](https://github.com/5app/dare/compare/v0.46.1...v0.46.2) (2020-06-24)
+
+
+### Bug Fixes
+
+* **alias:** fix labelling of aliased orderby, fixes [#142](https://github.com/5app/dare/issues/142) ([1fa8f10](https://github.com/5app/dare/commit/1fa8f10b72d6f6ded3dec26784a3cb950a61ff14))
+
 ## [0.46.1](https://github.com/5app/dare/compare/v0.46.0...v0.46.1) (2020-06-23)
 
 
