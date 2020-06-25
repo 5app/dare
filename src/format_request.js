@@ -154,6 +154,7 @@ async function format_specs(options) {
 
 		const _join = {};
 		const join = options.join;
+		const joins = [];
 
 		// Filter must be an object with key=>values
 		if (typeof join !== 'object') {
@@ -163,7 +164,7 @@ async function format_specs(options) {
 		}
 
 		// Explore the filter for any table joins
-		for (const key in join) {
+		for (let key in join) {
 
 			const value = join[key];
 
@@ -179,7 +180,27 @@ async function format_specs(options) {
 			}
 			else {
 
+				// Store the filtered value
 				_join[key] = value;
+
+				let negate = false;
+
+				// Does this have a negate operator?
+				if (key.substring(0, 1) === '-') {
+
+					// Mark as negative filter
+					negate = true;
+
+					// Strip the key
+					key = key.substring(1);
+
+				}
+
+				// Check this is a path
+				checkKey(key);
+
+				const key_definition = table_schema[key];
+				joins.push(prepCondition(key, value, key_definition, negate));
 
 			}
 
@@ -187,6 +208,8 @@ async function format_specs(options) {
 
 		// Set the reduced condtions
 		options.join = _join;
+
+		options._join = joins;
 
 	}
 
@@ -212,50 +235,11 @@ async function format_specs(options) {
 
 	}
 
-	// Update the joined tables
-	options.joined = joined;
-	this.table_handler(options);
-	delete options.joined;
-
 	// Update the filters to be an array
 	options._filter = filters.length ? filters : null;
 
 	// Update the fields
 	options.fields = fields;
-
-	// Join
-	if (options.join) {
-
-		const _join = [];
-		const join = options.join;
-
-		for (let key in join) {
-
-			const value = join[key];
-
-			let negate = false;
-
-			// Does this have a negate operator?
-			if (key.substring(0, 1) === '-') {
-
-				// Mark as negative filter
-				negate = true;
-
-				// Strip the key
-				key = key.substring(1);
-
-			}
-
-			// Check this is a path
-			checkKey(key);
-
-			const key_definition = table_schema[key];
-			_join.push(prepCondition(key, value, key_definition, negate));
-
-		}
-		options._join = _join;
-
-	}
 
 	// Set default limit
 	limit(options, this.MAX_LIMIT);
@@ -272,14 +256,10 @@ async function format_specs(options) {
 			// Furnish the join table a little more...
 			const join_object = Object.assign(joined[alias], {
 				alias,
-				field_alias_path: `${options.field_alias_path + alias}.`
+				field_alias_path: `${options.field_alias_path + alias}.`,
+				table: this.table_alias_handler(alias)
 			});
 
-			if (!join_object.table) {
-
-				join_object.table = this.table_alias_handler(alias);
-
-			}
 
 			/*
 			 * Do the smart bit...

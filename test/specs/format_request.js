@@ -940,38 +940,6 @@ describe('format_request', () => {
 
 	});
 
-	describe('table conditional dependencies', () => {
-
-		it('should automatically require join another table', async () => {
-
-			dare.options = {
-				schema: {
-					userDomain: {
-						// Define a relationship
-						user_id: 'users.id'
-					}
-				},
-				table_conditions: {
-					users: 'userDomain'
-				}
-			};
-
-			const resp = await dare.format_request({
-				method,
-				table: 'users',
-				fields: [
-					'name'
-				]
-			});
-
-			const join = resp._joins[0];
-			expect(join).to.have.property('table', 'userDomain');
-			expect(join).to.have.property('required_join', true);
-
-		});
-
-	});
-
 	describe('method table handlers', () => {
 
 		it('should pass through exceptions raised in the method handlers', async () => {

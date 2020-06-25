@@ -56,11 +56,7 @@ Dare.prototype.unique_alias_index = 0;
 
 Dare.prototype.get_unique_alias = function(iterate = 1) {
 
-	if (iterate) {
-
-		this.unique_alias_index += iterate;
-
-	}
+	this.unique_alias_index += iterate;
 	const i = this.unique_alias_index;
 	const str = String.fromCharCode(96 + i);
 	if (i <= 26) {
@@ -75,8 +71,6 @@ Dare.prototype.get_unique_alias = function(iterate = 1) {
 Dare.prototype.format_request = require('./format_request');
 
 Dare.prototype.join_handler = require('./join_handler');
-
-Dare.prototype.table_handler = require('./table_handler');
 
 Dare.prototype.response_handler = require('./response_handler');
 
