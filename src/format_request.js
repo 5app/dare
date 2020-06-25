@@ -152,7 +152,6 @@ async function format_specs(options) {
 	// Format conditional joins
 	if (options.join) {
 
-		const _join = {};
 		const join = options.join;
 		const joins = [];
 
@@ -180,9 +179,6 @@ async function format_specs(options) {
 			}
 			else {
 
-				// Store the filtered value
-				_join[key] = value;
-
 				let negate = false;
 
 				// Does this have a negate operator?
@@ -205,9 +201,6 @@ async function format_specs(options) {
 			}
 
 		}
-
-		// Set the reduced condtions
-		options.join = _join;
 
 		options._join = joins;
 
