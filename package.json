@@ -14,8 +14,8 @@
     "semantic-release": "semantic-release",
     "lint": "eslint ./",
     "lint-fix": "eslint --fix ./",
-    "lint-diff": "LIST=`git diff-index --name-only HEAD | grep '.*\\.js$';`; if [ \"$LIST\" ]; then eslint $LIST; fi",
-    "lint-diff-fix": "LIST=`git diff-index --name-only HEAD | grep '.*\\.js$';`; if [ \"$LIST\" ]; then eslint --fix $LIST; fi",
+    "lint-diff": "LIST=`git diff-index --name-only --diff-filter=d HEAD | grep '.*\\.js$';`; if [ \"$LIST\" ]; then eslint $LIST; fi",
+    "lint-diff-fix": "LIST=`git diff-index --name-only --diff-filter=d HEAD | grep '.*\\.js$';`; if [ \"$LIST\" ]; then eslint --fix $LIST; fi",
     "precommit-msg": "echo 'Running pre-commit checks... (skip using --no-verify)' && exit 0"
   },
   "pre-commit": [
