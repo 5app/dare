@@ -4,10 +4,7 @@ const DareError = require('./utils/error');
 const fieldReducer = require('./utils/field_reducer');
 const groupbyReducer = require('./utils/groupby_reducer');
 const orderbyReducer = require('./utils/orderby_reducer');
-const checkKey = require('./utils/validate_field');
-const checkTableAlias = require('./utils/validate_alias');
-const formatDateTime = require('./utils/format_datetime');
-const getFieldAttributes = require('./utils/field_attributes');
+const reduceConditions = require('./format/reducer_conditions');
 
 
 module.exports = function(options) {
@@ -66,60 +63,26 @@ async function format_specs(options) {
 	const schema = this.options.schema || {};
 	const table_schema = schema[options.table] || {};
 
+	// Create a shared object to provide nested objects
 	const joined = {};
-	const filters = [];
 
 	// Format filters
-	{
+	if (options.filter) {
 
-		const filter = options.filter || {};
+		/**
+		 * Extract netsted Handler
+		 * @param {string} key - Key to extract
+		 * @param {*} value - Value to extract
+		 */
+		const extract = (key, value) => {
 
-		// Filter must be an object with key=>values
-		if (typeof filter !== 'object') {
+			joined[key] = joined[key] || {};
+			joined[key].filter = {...joined[key].filter, ...value};
 
-			throw new DareError(DareError.INVALID_REFERENCE, `The filter '${filter}' is invalid.`);
+		};
 
-		}
-
-		// Explore the filter for any table joins
-		for (let key in filter) {
-
-			const value = filter[key];
-
-			if (value && typeof value === 'object' && !Array.isArray(value)) {
-
-				// Check this is a path
-				checkTableAlias(key);
-
-				// Add it to the join table
-				joined[key] = joined[key] || {};
-				joined[key].filter = Object.assign(joined[key].filter || {}, value);
-
-			}
-			else {
-
-				let negate = false;
-
-				// Does this have a negate operator?
-				if (key.substring(0, 1) === '-') {
-
-					// Mark as negative filter
-					negate = true;
-
-					// Strip the key
-					key = key.substring(1);
-
-				}
-
-				// Check this is a path
-				checkKey(key);
-
-				const key_definition = table_schema[key];
-				filters.push(prepCondition(key, value, key_definition, negate));
-
-			}
-
-		}
+		const arr = reduceConditions(options.filter, {extract, propName: 'filter', table_schema});
+		options._filter = arr.length ? arr : null;
 
 	}
 
@@ -152,57 +115,19 @@ async function format_specs(options) {
 	// Format conditional joins
 	if (options.join) {
 
-		const join = options.join;
-		const joins = [];
+		/**
+		 * Extract Handler
+		 * @param {string} key - Key to extract
+		 * @param {*} value - Value to extract
+		 */
+		const extract = (key, value) => {
 
-		// Filter must be an object with key=>values
-		if (typeof join !== 'object') {
+			joined[key] = joined[key] || {};
+			joined[key].join = {...joined[key].join, ...value};
 
-			throw new DareError(DareError.INVALID_REFERENCE, `The join '${join}' is invalid.`);
+		};
 
-		}
-
-		// Explore the filter for any table joins
-		for (let key in join) {
-
-			const value = join[key];
-
-			if (value && typeof value === 'object' && !Array.isArray(value)) {
-
-				// Check this is a path
-				checkTableAlias(key);
-
-				// Add it to the join table
-				joined[key] = joined[key] || {};
-				joined[key].join = Object.assign(joined[key].join || {}, value);
-
-			}
-			else {
-
-				let negate = false;
-
-				// Does this have a negate operator?
-				if (key.substring(0, 1) === '-') {
-
-					// Mark as negative filter
-					negate = true;
-
-					// Strip the key
-					key = key.substring(1);
-
-				}
-
-				// Check this is a path
-				checkKey(key);
-
-				const key_definition = table_schema[key];
-				joins.push(prepCondition(key, value, key_definition, negate));
-
-			}
-
-		}
-
-		options._join = joins;
+		options._join = reduceConditions(options.join, {extract, propName: 'join', table_schema});
 
 	}
 
@@ -227,9 +152,6 @@ async function format_specs(options) {
 		options.orderby = toArray(options.orderby).reduce(orderbyReducer(options.field_alias_path || `${options.alias}.`, joined, table_schema), []);
 
 	}
-
-	// Update the filters to be an array
-	options._filter = filters.length ? filters : null;
 
 	// Update the fields
 	options.fields = fields;
@@ -351,184 +273,6 @@ function limit(opts, MAX_LIMIT) {
 
 }
 
-function prepCondition(field, value, key_definition, negate) {
-
-	const {type, alias} = getFieldAttributes(key_definition);
-
-	if (alias) {
-
-		// The key definition says the key is an alias
-		field = alias;
-
-	}
-
-	if (type === 'datetime') {
-
-		value = formatDateTime(value);
-
-	}
-
-	// Set the default negate operator, if appropriate
-	negate = negate ? 'NOT ' : '';
-
-	/*
-	 * Range
-	 * A range is denoted by two dots, e.g 1..10
-	 */
-	let condition;
-	let values;
-	const a = (typeof value === 'string') && value.split('..');
-
-	if (a.length === 2) {
-
-		if (a[0] && a[1]) {
-
-			condition = 'BETWEEN ? AND ?';
-			values = a;
-
-		}
-		else if (a[0]) {
-
-			condition = '$$ > ?';
-			values = [a[0]];
-
-		}
-		else {
-
-			condition = '$$ < ?';
-			values = [a[1]];
-
-		}
-
-		if (negate) {
-
-			condition = `(NOT ${condition} OR $$ IS NULL)`;
-			negate = '';
-
-		}
-
-	}
-
-	// Not match
-	else if (typeof value === 'string' && value[0] === '!') {
-
-		condition = 'LIKE ?';
-		values = [value.slice(1)];
-		negate = 'NOT ';
-
-	}
-
-	// String partial match
-	else if (typeof value === 'string' && value.match('%')) {
-
-		condition = 'LIKE ?';
-		values = [value];
-
-	}
-
-	// Null
-	else if (value === null) {
-
-		condition = `IS ${negate}NULL`;
-		values = [];
-		negate = ''; // Already negated
-
-	}
-
-	// Add to the array of items
-	else if (Array.isArray(value) && value.length > 0) {
-
-		// Sub
-		const sub_values = [];
-		const conds = [];
-
-		// Clone the values
-		value = [...value];
-
-		// Filter the results of the array...
-		value = value.filter(item => {
-
-			// Remove the items which can't in group statement...
-			if (item !== null && !(typeof item === 'string' && item.match('%'))) {
-
-				return true;
-
-			}
-
-			// Put into a separate list...
-			sub_values.push(item);
-
-			return false;
-
-		});
-
-		// Use the `IN(...)` for items which can be grouped...
-		if (value.length) {
-
-			conds.push(`${negate}IN (${value.map(() => '?')})`);
-
-		}
-
-		// Other Values which can't be grouped ...
-		if (sub_values.length) {
-
-			// Cond
-			sub_values.forEach(item => {
-
-				const [, cond, values] = prepCondition(null, item, key_definition, negate);
-
-				// Add to condition
-				conds.push(cond);
-
-				// Add Values
-				value.push(...values);
-
-			});
-
-		}
-
-		if (conds.length === 1) {
-
-			condition = conds[0];
-
-		}
-		else {
-
-			// Join...
-			condition = `(${conds.map(cond => `$$ ${cond}`).join(negate ? ' AND ' : ' OR ')})`;
-
-		}
-
-		negate = ''; // Already negated
-
-		values = value;
-
-	}
-
-	/*
-	 * Request filter includes empty array of possible values
-	 * @todo break execution and return empty resultset.
-	 * This workaround adds SQL `...AND false` to the conditions which makes the response empty
-	 */
-	else if (Array.isArray(value) && value.length === 0) {
-
-		// If the filter array is empty, then if negated ignore it (... AND true), else exclude everything (... AND false)
-		condition = `AND ${Boolean(negate)}`;
-		values = [];
-		negate = ''; // Already negated
-
-	}
-	else {
-
-		condition = '= ?';
-		values = [value];
-		negate = negate ? '!' : '';
-
-	}
-
-	return [field, negate + condition, values];
-
-}
 
 function toArray(a) {
 
