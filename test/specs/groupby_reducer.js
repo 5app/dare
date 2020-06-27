@@ -45,9 +45,16 @@ describe('Groupby Reducer', () => {
 
 				// Set joined...
 				const joined = {};
+				const current_path = '';
+				const extract = (key, value) => {
+
+					joined[key] = joined[key] || {groupby: []};
+					joined[key].groupby.push(...value);
+
+				};
 
 				// Curry the field_reducer
-				const reducer = groupby_reducer('', joined);
+				const reducer = groupby_reducer({current_path, extract});
 
 				// Call the field with the
 				const f = input.reduce(reducer, []);

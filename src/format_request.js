@@ -66,22 +66,47 @@ async function format_specs(options) {
 	// Create a shared object to provide nested objects
 	const joined = {};
 
+	/**
+	 * Extract nested Handler
+	 * @param {string} propName - Type of item
+	 * @param {string} defaultValue - Default primitive value
+	 * @param {string} key - Key to extract
+	 * @param {*} value - Value to extract
+	 * @returns {void} - Nothing
+	 */
+	function extractJoined(propName, defaultValue, key, value) {
+
+		if (!joined[key]) {
+
+			joined[key] = {};
+
+		}
+
+		// Set default...
+		joined[key][propName] = joined[key][propName] || defaultValue;
+
+		// Handle differently
+		if (Array.isArray(defaultValue)) {
+
+			joined[key][propName].push(...value);
+
+		}
+		else {
+
+			joined[key][propName] = {...joined[key][propName], ...value};
+
+		}
+
+	}
+
 	// Format filters
 	if (options.filter) {
 
-		/**
-		 * Extract netsted Handler
-		 * @param {string} key - Key to extract
-		 * @param {*} value - Value to extract
-		 */
-		const extract = (key, value) => {
-
-			joined[key] = joined[key] || {};
-			joined[key].filter = {...joined[key].filter, ...value};
-
-		};
+		// Define the handler for saving nest join information
+		const extract = extractJoined.bind(null, 'filter', {});
 
 		const arr = reduceConditions(options.filter, {extract, propName: 'filter', table_schema});
+
 		options._filter = arr.length ? arr : null;
 
 	}
@@ -115,17 +140,8 @@ async function format_specs(options) {
 	// Format conditional joins
 	if (options.join) {
 
-		/**
-		 * Extract Handler
-		 * @param {string} key - Key to extract
-		 * @param {*} value - Value to extract
-		 */
-		const extract = (key, value) => {
-
-			joined[key] = joined[key] || {};
-			joined[key].join = {...joined[key].join, ...value};
-
-		};
+		// Define the handler for saving nest join information
+		const extract = extractJoined.bind(null, 'join', {});
 
 		options._join = reduceConditions(options.join, {extract, propName: 'join', table_schema});
 
@@ -137,8 +153,15 @@ async function format_specs(options) {
 	 */
 	if (options.groupby) {
 
-		// Explode the group formatter...
-		options.groupby = toArray(options.groupby).reduce(groupbyReducer(options.field_alias_path || `${options.alias}.`, joined), []);
+		// Define the handler for saving nest join information
+		const extract = extractJoined.bind(null, 'groupby', []);
+
+		// Reducer
+		const reducer = groupbyReducer({current_path: options.field_alias_path || `${options.alias}.`, extract, table_schema});
+
+		// Reduce
+		options.groupby = toArray(options.groupby).reduce(reducer, []);
+
 
 	}
 
@@ -148,8 +171,14 @@ async function format_specs(options) {
 	 */
 	if (options.orderby) {
 
+		// Define the handler for saving nest join information
+		const extract = extractJoined.bind(null, 'orderby', []);
+
+		// Reducer
+		const reducer = orderbyReducer({current_path: options.field_alias_path || `${options.alias}.`, extract, table_schema});
+
 		// Reduce
-		options.orderby = toArray(options.orderby).reduce(orderbyReducer(options.field_alias_path || `${options.alias}.`, joined, table_schema), []);
+		options.orderby = toArray(options.orderby).reduce(reducer, []);
 
 	}
 

@@ -4,7 +4,7 @@ const mapReduce = require('./map_reduce');
 const orderbyUnwrap = require('./orderby_unwrap');
 const getFieldAttributes = require('./field_attributes');
 
-module.exports = (current_path, join, tableSchema) => mapReduce(entry => {
+module.exports = ({current_path, extract, table_schema}) => mapReduce(entry => {
 
 	let field = entry;
 	let direction = '';
@@ -30,7 +30,7 @@ module.exports = (current_path, join, tableSchema) => mapReduce(entry => {
 	if (address_split.length <= 1) {
 
 		// Get the alias
-		const {alias} = getFieldAttributes(tableSchema[item.field_name]);
+		const {alias} = getFieldAttributes(table_schema[item.field_name]);
 
 		if (alias) {
 
@@ -47,24 +47,15 @@ module.exports = (current_path, join, tableSchema) => mapReduce(entry => {
 	// Create a groupby in the associate model
 	const key = address_split.shift();
 
-	// Set up a join table...
-	if (!join[key]) {
-
-		join[key] = {};
-
-	}
-
-	// Get/Set groupby
-	const a = (join[key].orderby || []);
-
 	// Replace the field
 	item.field = address_split.join('.');
 
 	// Add to orderby
-	a.push(fieldWrap(item));
+	const value = fieldWrap(item);
 
-	// Update orderby
-	join[key].orderby = a;
+	// Extract
+	extract(key, [value]);
+
 	/*
 	 * Dont return anything
 	 * So it wont be included in the reduce list...

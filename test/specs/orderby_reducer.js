@@ -58,8 +58,17 @@ describe('Orderby Reducer', () => {
 				// Set joined...
 				const joined = {};
 
+				const table_schema = {aliasField: 'field'};
+				const current_path = '';
+				const extract = (key, value) => {
+
+					joined[key] = joined[key] || {orderby: []};
+					joined[key].orderby.push(...value);
+
+				};
+
 				// Curry the field_reducer
-				const reducer = orderby_reducer('', joined, {aliasField: 'field'});
+				const reducer = orderby_reducer({current_path, extract, table_schema});
 
 				// Call the field with the
 				const f = input.reduce(reducer, []);
