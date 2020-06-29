@@ -64,6 +64,13 @@ async function format_specs(options) {
 	const schema = this.options.schema || {};
 	const table_schema = schema[options.table] || {};
 
+
+	// Set the prefix if not already
+	options.field_alias_path = options.field_alias_path || '';
+
+	// Current Path
+	const current_path = options.field_alias_path || `${options.alias}.`;
+
 	// Create a shared object to provide nested objects
 	const joined = {};
 
@@ -113,9 +120,6 @@ async function format_specs(options) {
 
 	}
 
-	// Set the prefix if not already
-	options.field_alias_path = options.field_alias_path || '';
-
 	// Format fields
 	if (options.fields) {
 
@@ -126,11 +130,11 @@ async function format_specs(options) {
 
 		}
 
-		// Extract nested fields hander
+		// Extract nested fields handler
 		const extract = extractJoined.bind(null, 'fields', true);
 
 		// Set reducer options
-		const reducer = fieldReducer({current_path: options.field_alias_path, extract, table_schema, dareInstance});
+		const reducer = fieldReducer({current_path, extract, table_schema, dareInstance});
 
 		// Return array of immediate props
 		options.fields = toArray(options.fields).reduce(reducer, []);
@@ -140,7 +144,7 @@ async function format_specs(options) {
 	// Format conditional joins
 	if (options.join) {
 
-		// Extract nested joins hander
+		// Extract nested joins handler
 		const extract = extractJoined.bind(null, 'join', false);
 
 		// Return array of immediate props
@@ -154,11 +158,11 @@ async function format_specs(options) {
 	 */
 	if (options.groupby) {
 
-		// Extract nested groupby hander
+		// Extract nested groupby handler
 		const extract = extractJoined.bind(null, 'groupby', true);
 
 		// Set reducer options
-		const reducer = groupbyReducer({current_path: options.field_alias_path || `${options.alias}.`, extract, table_schema});
+		const reducer = groupbyReducer({current_path, extract, table_schema});
 
 		// Return array of immediate props
 		options.groupby = toArray(options.groupby).reduce(reducer, []);
@@ -172,11 +176,11 @@ async function format_specs(options) {
 	 */
 	if (options.orderby) {
 
-		// Extract nested orderby hander
+		// Extract nested orderby handler
 		const extract = extractJoined.bind(null, 'orderby', true);
 
 		// Set reducer options
-		const reducer = orderbyReducer({current_path: options.field_alias_path || `${options.alias}.`, extract, table_schema});
+		const reducer = orderbyReducer({current_path, extract, table_schema});
 
 		// Return array of immediate props
 		options.orderby = toArray(options.orderby).reduce(reducer, []);
