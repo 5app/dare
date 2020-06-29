@@ -60,6 +60,7 @@ async function format_request(options = {}) {
 
 async function format_specs(options) {
 
+	const dareInstance = this;
 	const schema = this.options.schema || {};
 	const table_schema = schema[options.table] || {};
 
@@ -102,9 +103,10 @@ async function format_specs(options) {
 	// Format filters
 	if (options.filter) {
 
-		// Define the handler for saving nest join information
+		// Extract nested filters hander
 		const extract = extractJoined.bind(null, 'filter', false);
 
+		// Return array of immediate props
 		const arr = reduceConditions(options.filter, {extract, propName: 'filter', table_schema});
 
 		options._filter = arr.length ? arr : null;
@@ -124,12 +126,13 @@ async function format_specs(options) {
 
 		}
 
-
+		// Extract nested fields hander
 		const extract = extractJoined.bind(null, 'fields', true);
 
-		const reducer = fieldReducer.call(this, {current_path: options.field_alias_path, extract, table_schema});
+		// Set reducer options
+		const reducer = fieldReducer({current_path: options.field_alias_path, extract, table_schema, dareInstance});
 
-		// Filter out nested fields
+		// Return array of immediate props
 		options.fields = toArray(options.fields).reduce(reducer, []);
 
 	}
@@ -137,9 +140,10 @@ async function format_specs(options) {
 	// Format conditional joins
 	if (options.join) {
 
-		// Define the handler for saving nest join information
+		// Extract nested joins hander
 		const extract = extractJoined.bind(null, 'join', false);
 
+		// Return array of immediate props
 		options._join = reduceConditions(options.join, {extract, propName: 'join', table_schema});
 
 	}
@@ -150,13 +154,13 @@ async function format_specs(options) {
 	 */
 	if (options.groupby) {
 
-		// Define the handler for saving nest join information
+		// Extract nested groupby hander
 		const extract = extractJoined.bind(null, 'groupby', true);
 
-		// Reducer
+		// Set reducer options
 		const reducer = groupbyReducer({current_path: options.field_alias_path || `${options.alias}.`, extract, table_schema});
 
-		// Reduce
+		// Return array of immediate props
 		options.groupby = toArray(options.groupby).reduce(reducer, []);
 
 
@@ -168,13 +172,13 @@ async function format_specs(options) {
 	 */
 	if (options.orderby) {
 
-		// Define the handler for saving nest join information
+		// Extract nested orderby hander
 		const extract = extractJoined.bind(null, 'orderby', true);
 
-		// Reducer
+		// Set reducer options
 		const reducer = orderbyReducer({current_path: options.field_alias_path || `${options.alias}.`, extract, table_schema});
 
-		// Reduce
+		// Return array of immediate props
 		options.orderby = toArray(options.orderby).reduce(reducer, []);
 
 	}

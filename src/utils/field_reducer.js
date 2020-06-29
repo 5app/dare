@@ -7,8 +7,16 @@ const getFieldAttributes = require('./field_attributes');
 const jsonParse = require('./JSONparse');
 
 
-// Return a reducer function
-module.exports = function fieldReducer({current_path, extract, table_schema}) {
+/**
+ * Return a reducer function deriving local props and nested props
+ * @param {object} opts - Options
+ * @param {string} opts.current_path - Current address path of the resource
+ * @param {Function} opts.extract - Function for handling the extraction of content
+ * @param {object} opts.table_schema - Table schema/Data model
+ * @param {object} opts.dareInstance - Instance of Dare which is calling this
+ * @returns {Function} Fields Reducer function
+ */
+module.exports = function fieldReducer({current_path, extract, table_schema, dareInstance}) {
 
 	const addToJoin = (field, label) => {
 
@@ -100,7 +108,7 @@ module.exports = function fieldReducer({current_path, extract, table_schema}) {
 
 			}
 
-			fieldsArray.push(fieldMapping.call(this, field, null, table_schema, fieldsArray));
+			fieldsArray.push(fieldMapping(field, null, table_schema, fieldsArray, dareInstance));
 
 		}
 
@@ -120,9 +128,10 @@ module.exports = function fieldReducer({current_path, extract, table_schema}) {
  * @param {string|null} label - Optional label, or null
  * @param {object} tableSchema - Schema of the current table
  * @param {Array} fieldsArray - An array of all the fields to use with generated functions
+ * @param {object} dareInstance - An instance of the current Dare object
  * @returns {string|object} The augemented field expression
  */
-function fieldMapping(field, label, tableSchema, fieldsArray) {
+function fieldMapping(field, label, tableSchema, fieldsArray, dareInstance) {
 
 	// Try to return an object
 	const isObj = Boolean(label);
@@ -153,7 +162,7 @@ function fieldMapping(field, label, tableSchema, fieldsArray) {
 
 		// Execute the handler, add the response to the field list
 		return {
-			[label]: handler.call(this, fieldsArray)
+			[label]: handler.call(dareInstance, fieldsArray)
 		};
 
 	}
