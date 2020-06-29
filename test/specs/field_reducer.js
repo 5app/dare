@@ -114,11 +114,26 @@ describe('Field Reducer', () => {
 			const inst = {};
 
 			// Details about the current table...
-			const alias = 'something.asset.';
+			const current_path = 'something.asset.';
+			const table_schema = {};
 			const joined = {};
+			const extract = (key, value) => {
+
+				if (!(key in joined)) {
+
+					joined[key] = {fields: value};
+
+				}
+				else {
+
+					joined[key].fields.push(...value);
+
+				}
+
+			};
 
 			// Curry the field_reducer
-			const fr = field_reducer.call(inst, alias, joined);
+			const fr = field_reducer.call(inst, {current_path, extract, table_schema});
 
 
 			it(`where ${JSON.stringify(input)}`, () => {
@@ -156,8 +171,10 @@ describe('Field Reducer', () => {
 			}
 		};
 
+		const current_path = 'alias';
+
 		// Curry the field_reducer
-		const fr = field_reducer.call({}, 'alias', {}, table_schema);
+		const fr = field_reducer.call({}, {current_path, table_schema});
 
 		// Call the field with the
 		const f = ['generated_field'].reduce(fr, []);
@@ -175,8 +192,10 @@ describe('Field Reducer', () => {
 			}
 		};
 
+		const current_path = 'created';
+
 		// Curry the field_reducer
-		const fr = field_reducer.call({}, 'created', {}, table_schema);
+		const fr = field_reducer.call({}, {current_path, table_schema});
 
 		// Call the field with the
 		const f = ['created'].reduce(fr, []);
@@ -194,8 +213,10 @@ describe('Field Reducer', () => {
 			}
 		};
 
+		const current_path = 'created';
+
 		// Curry the field_reducer
-		const fr = field_reducer.call({}, 'meta', {}, table_schema);
+		const fr = field_reducer.call({}, {current_path, table_schema});
 
 		// Call the field with the
 		const f = ['meta'].reduce(fr, []);
@@ -212,8 +233,10 @@ describe('Field Reducer', () => {
 			fieldAlias: 'field'
 		};
 
+		const current_path = 'joinTable.';
+
 		// Curry the field_reducer
-		const fr = field_reducer.call({}, 'joinTable.', {}, table_schema);
+		const fr = field_reducer.call({}, {current_path, table_schema});
 
 		// Call the field with the
 		const f = [{

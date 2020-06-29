@@ -115,25 +115,22 @@ async function format_specs(options) {
 	options.field_alias_path = options.field_alias_path || '';
 
 	// Format fields
-	let fields = options.fields;
-	if (fields) {
+	if (options.fields) {
 
 		// Fields must be an array, or a dictionary (aka object)
-		if (typeof fields !== 'object') {
+		if (typeof options.fields !== 'object') {
 
-			throw new DareError(DareError.INVALID_REFERENCE, `The field definition '${fields}' is invalid.`);
-
-		}
-
-		// Make the fields an array
-		if (!Array.isArray(fields)) {
-
-			fields = [fields];
+			throw new DareError(DareError.INVALID_REFERENCE, `The field definition '${options.fields}' is invalid.`);
 
 		}
 
-		// Filter out child fields
-		fields = fields.reduce(fieldReducer.call(this, options.field_alias_path, joined, table_schema), []);
+
+		const extract = extractJoined.bind(null, 'fields', true);
+
+		const reducer = fieldReducer.call(this, {current_path: options.field_alias_path, extract, table_schema});
+
+		// Filter out nested fields
+		options.fields = toArray(options.fields).reduce(reducer, []);
 
 	}
 
@@ -182,8 +179,6 @@ async function format_specs(options) {
 
 	}
 
-	// Update the fields
-	options.fields = fields;
 
 	// Set default limit
 	limit(options, this.MAX_LIMIT);

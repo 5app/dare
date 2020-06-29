@@ -8,7 +8,7 @@ const jsonParse = require('./JSONparse');
 
 
 // Return a reducer function
-module.exports = function fieldReducer(current_address, join, table_schema = {}) {
+module.exports = function fieldReducer({current_path, extract, table_schema}) {
 
 	const addToJoin = (field, label) => {
 
@@ -21,27 +21,17 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
 		 * Then we'd break down the new address "parent.tbl.field" => "parent.tbl." => "parent."
 		 * And see that that actually the path is the bit we've removed... aka tbl.field
 		 */
-		const path = fieldRelativePath(current_address, address);
+		const path = fieldRelativePath(current_path, address);
 		const relative = path.split('.');
 
 		if (relative.length > 1) {
 
 			const key = relative[0];
-			const d = label ? {[label]: field} : field;
+			const value = label ? {[label]: field} : field;
 
-			if (!join[key]) {
+			// Extract nested field
+			extract(key, [value]);
 
-				join[key] = {};
-
-			}
-
-			if (!join[key].fields) {
-
-				join[key].fields = [];
-
-			}
-
-			join[key].fields.push(d);
 			return true;
 
 		}
@@ -66,13 +56,8 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
 
 					}
 
-					/*
-					 * This key=>value object refers to another table as the value is an object itself
-					 * Add the object to the join table...
-					 */
-					join[key] = join[key] || {};
-					join[key].fields = join[key].fields || [];
-					join[key].fields.push(...(Array.isArray(value) ? value : [value]));
+					// Extract nested field
+					extract(key, (Array.isArray(value) ? value : [value]));
 
 				}
 				else {
