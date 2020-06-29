@@ -5,6 +5,7 @@ const fieldReducer = require('./format/field_reducer');
 const groupbyReducer = require('./format/groupby_reducer');
 const orderbyReducer = require('./format/orderby_reducer');
 const reduceConditions = require('./format/reducer_conditions');
+const limitClause = require('./format/limit_clause');
 
 
 /**
@@ -49,7 +50,7 @@ async function format_request(options = {}, dareInstance) {
 
 	/**
 	 * Call bespoke table handler
-	 * This may modify the incoming options object
+	 * This may modify the incoming options object, ammend after handler, etc...
 	 */
 	{
 
@@ -204,8 +205,12 @@ async function format_request(options = {}, dareInstance) {
 
 
 	// Set default limit
-	limit(options, dareInstance.MAX_LIMIT);
+	{
 
+		const limits = limitClause(options, dareInstance.MAX_LIMIT);
+		Object.assign(options, limits);
+
+	}
 
 	// Joins
 	{
@@ -271,52 +276,6 @@ async function format_request(options = {}, dareInstance) {
 	}
 
 	return options;
-
-}
-
-
-function limit(opts, MAX_LIMIT) {
-
-	if (opts.limit === undefined) {
-
-		opts.limit = 1;
-		opts.single = true;
-
-	}
-
-	else {
-
-		let limit = opts.limit;
-		if (typeof limit === 'string' && limit.match(/^\d+$/)) {
-
-			limit = +opts.limit;
-
-		}
-		if (isNaN(limit) || (MAX_LIMIT && limit > MAX_LIMIT) || limit < 1) {
-
-			throw new DareError(DareError.INVALID_LIMIT, `Out of bounds limit value: '${limit}'`);
-
-		}
-
-	}
-
-	let start = opts.start;
-
-	if (start !== undefined) {
-
-		if (typeof start === 'string' && start.match(/^\d+$/)) {
-
-			start = +opts.start;
-
-		}
-		if (typeof start !== 'number' || isNaN(start) || start < 0) {
-
-			throw new DareError(DareError.INVALID_START, `Out of bounds start value: '${start}'`);
-
-		}
-		opts.start = start;
-
-	}
 
 }
 

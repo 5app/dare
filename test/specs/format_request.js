@@ -257,7 +257,7 @@ describe('format_request', () => {
 
 			describe('should accept', () => {
 
-				['90', 90, '99', 1].forEach(start => {
+				['90', 90, '99', 1, null].forEach(start => {
 
 					it(`valid: ${start} (${typeof start})`, async () => dare.format_request(Object.assign({}, options, {start})));
 
@@ -267,7 +267,7 @@ describe('format_request', () => {
 
 			describe('should ignore', () => {
 
-				['nonsense', -1, NaN, {}, null].forEach(start => {
+				['nonsense', -1, NaN, {}].forEach(start => {
 
 					it(`invalid: ${start} (${typeof start})`, () => {
 
