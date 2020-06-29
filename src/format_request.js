@@ -7,62 +7,77 @@ const orderbyReducer = require('./format/orderby_reducer');
 const reduceConditions = require('./format/reducer_conditions');
 
 
+/**
+ * Format Request initiation
+ *
+ * @param {object} options - Options object
+ * @returns {object} Formatted options
+ */
 module.exports = function(options) {
 
-	return format_request.call(this, options);
+	return format_request(options, this);
 
 };
 
-async function format_request(options = {}) {
+/**
+ * Format Request
+ *
+ * @param {object} options - Current iteration
+ * @param {object} dareInstance - Instance of Dare
+ * @returns {object} formatted object with all the joins
+ */
+async function format_request(options = {}, dareInstance) {
 
 	// Use the alias to find the real table name
 	if (!options.alias) {
 
 		const alias = options.table;
 		options.alias = alias;
-		options.table = this.table_alias_handler(alias);
+		options.table = dareInstance.table_alias_handler(alias);
 
 	}
+
+	// Set the table
+	const {table} = options;
 
 	// Reject when the table is not recognised
-	if (!options.table) {
+	if (!table) {
 
-		throw new DareError(DareError.INVALID_REFERENCE, `Unrecognized reference '${options.table}'`);
-
-	}
-
-	// Call bespoke table handler
-	const method = this.options.method;
-	const table = options.table;
-	const handlers = this.options[method] || {};
-	let handler;
-
-	if (table in handlers) {
-
-		handler = handlers[table];
-
-	}
-	else if ('default' in handlers) {
-
-		handler = handlers.default;
-
-	}
-	if (handler) {
-
-		// Trigger the handler which alters the options...
-		await handler.call(this, options);
+		throw new DareError(DareError.INVALID_REFERENCE, `Unrecognized reference '${table}'`);
 
 	}
 
-	return format_specs.call(this, options);
+	/**
+	 * Call bespoke table handler
+	 * This may modify the incoming options object
+	 */
+	{
 
-}
+		const {method} = dareInstance.options;
+		const handlers = dareInstance.options[method] || {};
+		let handler;
 
-async function format_specs(options) {
+		if (table in handlers) {
 
-	const dareInstance = this;
-	const schema = this.options.schema || {};
-	const table_schema = schema[options.table] || {};
+			handler = handlers[table];
+
+		}
+		else if ('default' in handlers) {
+
+			handler = handlers.default;
+
+		}
+		if (handler) {
+
+			// Trigger the handler which alters the options...
+			await handler.call(dareInstance, options);
+
+		}
+
+	}
+
+	const {schema = {}} = dareInstance.options;
+	const table_schema = schema[table] || {};
 
 
 	// Set the prefix if not already
@@ -189,7 +204,7 @@ async function format_specs(options) {
 
 
 	// Set default limit
-	limit(options, this.MAX_LIMIT);
+	limit(options, dareInstance.MAX_LIMIT);
 
 
 	// Joins
@@ -203,8 +218,8 @@ async function format_specs(options) {
 			// Furnish the join table a little more...
 			const join_object = Object.assign(joined[alias], {
 				alias,
-				field_alias_path: `${options.field_alias_path + alias}.`,
-				table: this.table_alias_handler(alias)
+				field_alias_path: `${options.field_alias_path}${alias}.`,
+				table: dareInstance.table_alias_handler(alias)
 			});
 
 
@@ -212,7 +227,7 @@ async function format_specs(options) {
 			 * Do the smart bit...
 			 * Augment the join object, with additional 'conditions'
 			 */
-			const new_join_object = this.join_handler(join_object, options);
+			const new_join_object = dareInstance.join_handler(join_object, options);
 
 			// Reject if the join handler returned a falsy value
 			if (!new_join_object) {
@@ -244,7 +259,7 @@ async function format_specs(options) {
 				join_object.parent = options;
 
 				// Format join...
-				return format_request.call(this, join_object);
+				return format_request(join_object, dareInstance);
 
 			});
 
