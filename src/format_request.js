@@ -69,12 +69,12 @@ async function format_specs(options) {
 	/**
 	 * Extract nested Handler
 	 * @param {string} propName - Type of item
-	 * @param {string} defaultValue - Default primitive value
+	 * @param {boolean} isArray - Is array, otherwise expect object
 	 * @param {string} key - Key to extract
 	 * @param {*} value - Value to extract
 	 * @returns {void} - Nothing
 	 */
-	function extractJoined(propName, defaultValue, key, value) {
+	function extractJoined(propName, isArray, key, value) {
 
 		if (!joined[key]) {
 
@@ -83,10 +83,10 @@ async function format_specs(options) {
 		}
 
 		// Set default...
-		joined[key][propName] = joined[key][propName] || defaultValue;
+		joined[key][propName] = joined[key][propName] || (isArray ? [] : {});
 
 		// Handle differently
-		if (Array.isArray(defaultValue)) {
+		if (isArray) {
 
 			joined[key][propName].push(...value);
 
@@ -103,7 +103,7 @@ async function format_specs(options) {
 	if (options.filter) {
 
 		// Define the handler for saving nest join information
-		const extract = extractJoined.bind(null, 'filter', {});
+		const extract = extractJoined.bind(null, 'filter', false);
 
 		const arr = reduceConditions(options.filter, {extract, propName: 'filter', table_schema});
 
@@ -141,7 +141,7 @@ async function format_specs(options) {
 	if (options.join) {
 
 		// Define the handler for saving nest join information
-		const extract = extractJoined.bind(null, 'join', {});
+		const extract = extractJoined.bind(null, 'join', false);
 
 		options._join = reduceConditions(options.join, {extract, propName: 'join', table_schema});
 
@@ -154,7 +154,7 @@ async function format_specs(options) {
 	if (options.groupby) {
 
 		// Define the handler for saving nest join information
-		const extract = extractJoined.bind(null, 'groupby', []);
+		const extract = extractJoined.bind(null, 'groupby', true);
 
 		// Reducer
 		const reducer = groupbyReducer({current_path: options.field_alias_path || `${options.alias}.`, extract, table_schema});
@@ -172,7 +172,7 @@ async function format_specs(options) {
 	if (options.orderby) {
 
 		// Define the handler for saving nest join information
-		const extract = extractJoined.bind(null, 'orderby', []);
+		const extract = extractJoined.bind(null, 'orderby', true);
 
 		// Reducer
 		const reducer = orderbyReducer({current_path: options.field_alias_path || `${options.alias}.`, extract, table_schema});
