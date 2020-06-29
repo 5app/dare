@@ -1,9 +1,9 @@
 
 
 const DareError = require('./utils/error');
-const fieldReducer = require('./utils/field_reducer');
-const groupbyReducer = require('./utils/groupby_reducer');
-const orderbyReducer = require('./utils/orderby_reducer');
+const fieldReducer = require('./format/field_reducer');
+const groupbyReducer = require('./format/groupby_reducer');
+const orderbyReducer = require('./format/orderby_reducer');
 const reduceConditions = require('./format/reducer_conditions');
 
 

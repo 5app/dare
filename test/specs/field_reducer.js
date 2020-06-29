@@ -3,7 +3,7 @@
  * Extract the fields from the current dataset
  */
 
-const field_reducer = require('../../src/utils/field_reducer');
+const field_reducer = require('../../src/format/field_reducer');
 
 describe('Field Reducer', () => {
 

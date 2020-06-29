@@ -3,7 +3,7 @@
  * Extract the fields from the current dataset
  */
 
-const groupby_reducer = require('../../src/utils/groupby_reducer');
+const groupby_reducer = require('../../src/format/groupby_reducer');
 
 describe('Groupby Reducer', () => {
 

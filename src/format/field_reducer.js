@@ -1,10 +1,10 @@
-const checkFormat = require('./unwrap_field');
-const checkLabel = require('./validate_label');
-const checkKey = require('./validate_field');
-const DareError = require('./error');
-const fieldRelativePath = require('./field_relative');
-const getFieldAttributes = require('./field_attributes');
-const jsonParse = require('./JSONparse');
+const checkFormat = require('../utils/unwrap_field');
+const checkLabel = require('../utils/validate_label');
+const checkKey = require('../utils//validate_field');
+const DareError = require('../utils//error');
+const fieldRelativePath = require('../utils/field_relative');
+const getFieldAttributes = require('../utils/field_attributes');
+const jsonParse = require('../utils/JSONparse');
 
 
 /**

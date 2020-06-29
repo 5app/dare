@@ -1,7 +1,7 @@
 
-const fieldUnwrap = require('./unwrap_field');
-const fieldRelativePath = require('./field_relative');
-const mapReduce = require('./map_reduce');
+const fieldUnwrap = require('../utils/unwrap_field');
+const fieldRelativePath = require('../utils/field_relative');
+const mapReduce = require('../utils/map_reduce');
 
 module.exports = function groupbyReducer({current_path, extract}) {
 

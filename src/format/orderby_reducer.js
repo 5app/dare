@@ -1,8 +1,8 @@
-const fieldUnwrap = require('./unwrap_field');
-const fieldRelativePath = require('./field_relative');
-const mapReduce = require('./map_reduce');
-const orderbyUnwrap = require('./orderby_unwrap');
-const getFieldAttributes = require('./field_attributes');
+const fieldUnwrap = require('../utils/unwrap_field');
+const fieldRelativePath = require('../utils/field_relative');
+const mapReduce = require('../utils/map_reduce');
+const orderbyUnwrap = require('../utils/orderby_unwrap');
+const getFieldAttributes = require('../utils/field_attributes');
 
 module.exports = ({current_path, extract, table_schema}) => mapReduce(entry => {
 
