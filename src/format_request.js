@@ -6,7 +6,7 @@ const groupbyReducer = require('./format/groupby_reducer');
 const orderbyReducer = require('./format/orderby_reducer');
 const reduceConditions = require('./format/reducer_conditions');
 const limitClause = require('./format/limit_clause');
-const joinHandler = require('./join_handler');
+const joinHandler = require('./format/join_handler');
 
 
 /**

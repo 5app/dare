@@ -1,4 +1,4 @@
-const joinHandler = require('../../src/join_handler');
+const joinHandler = require('../../src/format/join_handler');
 
 describe('join_handler', () => {
 

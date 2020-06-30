@@ -1,4 +1,4 @@
-const getFieldAttributes = require('./utils/field_attributes');
+const getFieldAttributes = require('../utils/field_attributes');
 
 /**
  * Join Handler
