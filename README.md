@@ -737,18 +737,6 @@ dare.get({
 This will get all users who contain atleast the tags 'Andrew', as well as returning all the other tags.
 
 
-## Table Conditions
-
-	options.table_conditions[table] => reference
-
-This will create a required join to include another table as a dependency.
-
-```js
-	table_conditions: {
-		users: 'country'
-	}
-```
-
 ## Method Table Handlers
 
 	options[method][table] = handler Function

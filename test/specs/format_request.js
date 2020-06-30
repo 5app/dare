@@ -257,7 +257,7 @@ describe('format_request', () => {
 
 			describe('should accept', () => {
 
-				['90', 90, '99', 1].forEach(start => {
+				['90', 90, '99', 1, null].forEach(start => {
 
 					it(`valid: ${start} (${typeof start})`, async () => dare.format_request(Object.assign({}, options, {start})));
 
@@ -267,7 +267,7 @@ describe('format_request', () => {
 
 			describe('should ignore', () => {
 
-				['nonsense', -1, NaN, {}, null].forEach(start => {
+				['nonsense', -1, NaN, {}].forEach(start => {
 
 					it(`invalid: ${start} (${typeof start})`, () => {
 
@@ -570,24 +570,6 @@ describe('format_request', () => {
 						'date',
 						'(NOT $$ > ? OR $$ IS NULL)',
 						['1981-12-05T00:00:00']
-					],
-					[
-						{'prop': '..DATE_SUB(1981-12-05T00:00:00, interval 30 day)'},
-						'prop',
-						'$$ < DATE_SUB(?, interval 30 day)',
-						['1981-12-05T00:00:00']
-					],
-					[
-						{'prop': 'DATE_SUB(1981-12-05T00:00:00, interval 30 day)..'},
-						'prop',
-						'$$ > DATE_SUB(?, interval 30 day)',
-						['1981-12-05T00:00:00']
-					],
-					[
-						{'prop': 'DATE_SUB(1981-12-05T00:00:00, interval 30 day)..DATE_SUB(1981-12-05T00:00:00, interval 90 day)'},
-						'prop',
-						'BETWEEN DATE_SUB(?, interval 30 day) AND DATE_SUB(?, interval 90 day)',
-						['1981-12-05T00:00:00', '1981-12-05T00:00:00']
 					]
 				];
 
@@ -953,38 +935,6 @@ describe('format_request', () => {
 					}
 				]
 			});
-
-		});
-
-	});
-
-	describe('table conditional dependencies', () => {
-
-		it('should automatically require join another table', async () => {
-
-			dare.options = {
-				schema: {
-					userDomain: {
-						// Define a relationship
-						user_id: 'users.id'
-					}
-				},
-				table_conditions: {
-					users: 'userDomain'
-				}
-			};
-
-			const resp = await dare.format_request({
-				method,
-				table: 'users',
-				fields: [
-					'name'
-				]
-			});
-
-			const join = resp._joins[0];
-			expect(join).to.have.property('table', 'userDomain');
-			expect(join).to.have.property('required_join', true);
 
 		});
 

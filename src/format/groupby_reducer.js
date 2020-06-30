@@ -1,9 +1,9 @@
 
-const fieldUnwrap = require('./unwrap_field');
-const fieldRelativePath = require('./field_relative');
-const mapReduce = require('./map_reduce');
+const fieldUnwrap = require('../utils/unwrap_field');
+const fieldRelativePath = require('../utils/field_relative');
+const mapReduce = require('../utils/map_reduce');
 
-module.exports = function groupbyReducer(current_path, join) {
+module.exports = function groupbyReducer({current_path, extract}) {
 
 	return mapReduce(field => {
 
@@ -24,24 +24,14 @@ module.exports = function groupbyReducer(current_path, join) {
 		// Create a groupby in the associate model
 		const key = address_split.shift();
 
-		// Set up a join table...
-		if (!join[key]) {
-
-			join[key] = {};
-
-		}
-
-		// Get/Set groupby
-		const a = (join[key].groupby || []);
-
 		// Replace the field
 		item.field = address_split.join('.');
 
 		// Add to groupby
-		a.push(fieldWrap(item));
+		const value = fieldWrap(item);
 
-		// Update groupby
-		join[key].groupby = a;
+		// Extract
+		extract(key, [value]);
 
 		/*
 		 * Dont return anything

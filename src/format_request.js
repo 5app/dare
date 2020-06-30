@@ -1,192 +1,176 @@
 
 
 const DareError = require('./utils/error');
-const fieldReducer = require('./utils/field_reducer');
-const groupbyReducer = require('./utils/groupby_reducer');
-const orderbyReducer = require('./utils/orderby_reducer');
-const checkKey = require('./utils/validate_field');
-const checkTableAlias = require('./utils/validate_alias');
-const formatDateTime = require('./utils/format_datetime');
-const getFieldAttributes = require('./utils/field_attributes');
+const fieldReducer = require('./format/field_reducer');
+const groupbyReducer = require('./format/groupby_reducer');
+const orderbyReducer = require('./format/orderby_reducer');
+const reduceConditions = require('./format/reducer_conditions');
+const limitClause = require('./format/limit_clause');
 
 
+/**
+ * Format Request initiation
+ *
+ * @param {object} options - Options object
+ * @returns {object} Formatted options
+ */
 module.exports = function(options) {
 
-	return format_request.call(this, options);
+	return format_request(options, this);
 
 };
 
-async function format_request(options = {}) {
+/**
+ * @typedef {object} Dare
+ * @param {object} options - instance options
+ * @param {Function} table_alias_handler - The db table this references
+ */
+
+/**
+ * Format Request
+ *
+ * @param {object} options - Current iteration
+ * @param {Dare} dareInstance - Instance of Dare
+ * @returns {object} formatted object with all the joins
+ */
+async function format_request(options = {}, dareInstance) {
 
 	// Use the alias to find the real table name
 	if (!options.alias) {
 
 		const alias = options.table;
 		options.alias = alias;
-		options.table = this.table_alias_handler(alias);
+		options.table = dareInstance.table_alias_handler(alias);
 
 	}
+
+	// Set the table
+	const {table} = options;
 
 	// Reject when the table is not recognised
-	if (!options.table) {
+	if (!table) {
 
-		throw new DareError(DareError.INVALID_REFERENCE, `Unrecognized reference '${options.table}'`);
-
-	}
-
-	// Call bespoke table handler
-	const method = this.options.method;
-	const table = options.table;
-	const handlers = this.options[method] || {};
-	let handler;
-
-	if (table in handlers) {
-
-		handler = handlers[table];
-
-	}
-	else if ('default' in handlers) {
-
-		handler = handlers.default;
-
-	}
-	if (handler) {
-
-		// Trigger the handler which alters the options...
-		await handler.call(this, options);
+		throw new DareError(DareError.INVALID_REFERENCE, `Unrecognized reference '${table}'`);
 
 	}
 
-	return format_specs.call(this, options);
-
-}
-
-async function format_specs(options) {
-
-	const schema = this.options.schema || {};
-	const table_schema = schema[options.table] || {};
-
-	const joined = {};
-	const filters = [];
-
-	// Format filters
+	/**
+	 * Call bespoke table handler
+	 * This may modify the incoming options object, ammend after handler, etc...
+	 */
 	{
 
-		const filter = options.filter || {};
+		const {method} = dareInstance.options;
+		const handlers = dareInstance.options[method] || {};
+		let handler;
 
-		// Filter must be an object with key=>values
-		if (typeof filter !== 'object') {
+		if (table in handlers) {
 
-			throw new DareError(DareError.INVALID_REFERENCE, `The filter '${filter}' is invalid.`);
+			handler = handlers[table];
 
 		}
+		else if ('default' in handlers) {
 
-		// Explore the filter for any table joins
-		for (let key in filter) {
+			handler = handlers.default;
 
-			const value = filter[key];
+		}
+		if (handler) {
 
-			if (value && typeof value === 'object' && !Array.isArray(value)) {
-
-				// Check this is a path
-				checkTableAlias(key);
-
-				// Add it to the join table
-				joined[key] = joined[key] || {};
-				joined[key].filter = Object.assign(joined[key].filter || {}, value);
-
-			}
-			else {
-
-				let negate = false;
-
-				// Does this have a negate operator?
-				if (key.substring(0, 1) === '-') {
-
-					// Mark as negative filter
-					negate = true;
-
-					// Strip the key
-					key = key.substring(1);
-
-				}
-
-				// Check this is a path
-				checkKey(key);
-
-				const key_definition = table_schema[key];
-				filters.push(prepCondition(key, value, key_definition, negate));
-
-			}
+			// Trigger the handler which alters the options...
+			await handler.call(dareInstance, options);
 
 		}
 
 	}
+
+	const {schema = {}} = dareInstance.options;
+	const table_schema = schema[table] || {};
+
 
 	// Set the prefix if not already
 	options.field_alias_path = options.field_alias_path || '';
 
+	// Current Path
+	const current_path = options.field_alias_path || `${options.alias}.`;
+
+	// Create a shared object to provide nested objects
+	const joined = {};
+
+	/**
+	 * Extract nested Handler
+	 * @param {string} propName - Type of item
+	 * @param {boolean} isArray - Is array, otherwise expect object
+	 * @param {string} key - Key to extract
+	 * @param {*} value - Value to extract
+	 * @returns {void} - Nothing
+	 */
+	function extractJoined(propName, isArray, key, value) {
+
+		if (!joined[key]) {
+
+			joined[key] = {};
+
+		}
+
+		// Set default...
+		joined[key][propName] = joined[key][propName] || (isArray ? [] : {});
+
+		// Handle differently
+		if (isArray) {
+
+			joined[key][propName].push(...value);
+
+		}
+		else {
+
+			joined[key][propName] = {...joined[key][propName], ...value};
+
+		}
+
+	}
+
+	// Format filters
+	if (options.filter) {
+
+		// Extract nested filters hander
+		const extract = extractJoined.bind(null, 'filter', false);
+
+		// Return array of immediate props
+		const arr = reduceConditions(options.filter, {extract, propName: 'filter', table_schema});
+
+		options._filter = arr.length ? arr : null;
+
+	}
+
 	// Format fields
-	let fields = options.fields;
-	if (fields) {
+	if (options.fields) {
 
 		// Fields must be an array, or a dictionary (aka object)
-		if (typeof fields !== 'object') {
+		if (typeof options.fields !== 'object') {
 
-			throw new DareError(DareError.INVALID_REFERENCE, `The field definition '${fields}' is invalid.`);
-
-		}
-
-		// Make the fields an array
-		if (!Array.isArray(fields)) {
-
-			fields = [fields];
+			throw new DareError(DareError.INVALID_REFERENCE, `The field definition '${options.fields}' is invalid.`);
 
 		}
 
-		// Filter out child fields
-		fields = fields.reduce(fieldReducer.call(this, options.field_alias_path, joined, table_schema), []);
+		// Extract nested fields handler
+		const extract = extractJoined.bind(null, 'fields', true);
+
+		// Set reducer options
+		const reducer = fieldReducer({current_path, extract, table_schema, dareInstance});
+
+		// Return array of immediate props
+		options.fields = toArray(options.fields).reduce(reducer, []);
 
 	}
 
 	// Format conditional joins
 	if (options.join) {
 
-		const _join = {};
-		const join = options.join;
+		// Extract nested joins handler
+		const extract = extractJoined.bind(null, 'join', false);
 
-		// Filter must be an object with key=>values
-		if (typeof join !== 'object') {
-
-			throw new DareError(DareError.INVALID_REFERENCE, `The join '${join}' is invalid.`);
-
-		}
-
-		// Explore the filter for any table joins
-		for (const key in join) {
-
-			const value = join[key];
-
-			if (value && typeof value === 'object' && !Array.isArray(value)) {
-
-				// Check this is a path
-				checkTableAlias(key);
-
-				// Add it to the join table
-				joined[key] = joined[key] || {};
-				joined[key].join = Object.assign(joined[key].join || {}, value);
-
-			}
-			else {
-
-				_join[key] = value;
-
-			}
-
-		}
-
-		// Set the reduced condtions
-		options.join = _join;
+		// Return array of immediate props
+		options._join = reduceConditions(options.join, {extract, propName: 'join', table_schema});
 
 	}
 
@@ -196,8 +180,15 @@ async function format_specs(options) {
 	 */
 	if (options.groupby) {
 
-		// Explode the group formatter...
-		options.groupby = toArray(options.groupby).reduce(groupbyReducer(options.field_alias_path || `${options.alias}.`, joined), []);
+		// Extract nested groupby handler
+		const extract = extractJoined.bind(null, 'groupby', true);
+
+		// Set reducer options
+		const reducer = groupbyReducer({current_path, extract, table_schema});
+
+		// Return array of immediate props
+		options.groupby = toArray(options.groupby).reduce(reducer, []);
+
 
 	}
 
@@ -207,59 +198,25 @@ async function format_specs(options) {
 	 */
 	if (options.orderby) {
 
-		// Reduce
-		options.orderby = toArray(options.orderby).reduce(orderbyReducer(options.field_alias_path || `${options.alias}.`, joined, table_schema), []);
+		// Extract nested orderby handler
+		const extract = extractJoined.bind(null, 'orderby', true);
+
+		// Set reducer options
+		const reducer = orderbyReducer({current_path, extract, table_schema});
+
+		// Return array of immediate props
+		options.orderby = toArray(options.orderby).reduce(reducer, []);
 
 	}
 
-	// Update the joined tables
-	options.joined = joined;
-	this.table_handler(options);
-	delete options.joined;
-
-	// Update the filters to be an array
-	options._filter = filters.length ? filters : null;
-
-	// Update the fields
-	options.fields = fields;
-
-	// Join
-	if (options.join) {
-
-		const _join = [];
-		const join = options.join;
-
-		for (let key in join) {
-
-			const value = join[key];
-
-			let negate = false;
-
-			// Does this have a negate operator?
-			if (key.substring(0, 1) === '-') {
-
-				// Mark as negative filter
-				negate = true;
-
-				// Strip the key
-				key = key.substring(1);
-
-			}
-
-			// Check this is a path
-			checkKey(key);
-
-			const key_definition = table_schema[key];
-			_join.push(prepCondition(key, value, key_definition, negate));
-
-		}
-		options._join = _join;
-
-	}
 
 	// Set default limit
-	limit(options, this.MAX_LIMIT);
+	{
 
+		const limits = limitClause(options, dareInstance.MAX_LIMIT);
+		Object.assign(options, limits);
+
+	}
 
 	// Joins
 	{
@@ -272,20 +229,16 @@ async function format_specs(options) {
 			// Furnish the join table a little more...
 			const join_object = Object.assign(joined[alias], {
 				alias,
-				field_alias_path: `${options.field_alias_path + alias}.`
+				field_alias_path: `${options.field_alias_path}${alias}.`,
+				table: dareInstance.table_alias_handler(alias)
 			});
 
-			if (!join_object.table) {
-
-				join_object.table = this.table_alias_handler(alias);
-
-			}
 
 			/*
 			 * Do the smart bit...
 			 * Augment the join object, with additional 'conditions'
 			 */
-			const new_join_object = this.join_handler(join_object, options);
+			const new_join_object = dareInstance.join_handler(join_object, options);
 
 			// Reject if the join handler returned a falsy value
 			if (!new_join_object) {
@@ -317,7 +270,7 @@ async function format_specs(options) {
 				join_object.parent = options;
 
 				// Format join...
-				return format_request.call(this, join_object);
+				return format_request(join_object, dareInstance);
 
 			});
 
@@ -333,236 +286,6 @@ async function format_specs(options) {
 }
 
 
-function limit(opts, MAX_LIMIT) {
-
-	if (opts.limit === undefined) {
-
-		opts.limit = 1;
-		opts.single = true;
-
-	}
-
-	else {
-
-		let limit = opts.limit;
-		if (typeof limit === 'string' && limit.match(/^\d+$/)) {
-
-			limit = +opts.limit;
-
-		}
-		if (isNaN(limit) || (MAX_LIMIT && limit > MAX_LIMIT) || limit < 1) {
-
-			throw new DareError(DareError.INVALID_LIMIT, `Out of bounds limit value: '${limit}'`);
-
-		}
-
-	}
-
-	let start = opts.start;
-
-	if (start !== undefined) {
-
-		if (typeof start === 'string' && start.match(/^\d+$/)) {
-
-			start = +opts.start;
-
-		}
-		if (typeof start !== 'number' || isNaN(start) || start < 0) {
-
-			throw new DareError(DareError.INVALID_START, `Out of bounds start value: '${start}'`);
-
-		}
-		opts.start = start;
-
-	}
-
-}
-
-function prepCondition(field, value, key_definition, negate) {
-
-	const {type, alias} = getFieldAttributes(key_definition);
-
-	if (alias) {
-
-		// The key definition says the key is an alias
-		field = alias;
-
-	}
-
-	if (type === 'datetime') {
-
-		value = formatDateTime(value);
-
-	}
-
-	// Set the default negate operator, if appropriate
-	negate = negate ? 'NOT ' : '';
-
-	/*
-	 * Range
-	 * A range is denoted by two dots, e.g 1..10
-	 */
-	let condition;
-	let values;
-	const a = (typeof value === 'string') && value.split('..');
-
-	if (a.length === 2) {
-
-		if (a[0] && a[1]) {
-
-			condition = 'BETWEEN ? AND ?';
-			values = a;
-
-		}
-		else if (a[0]) {
-
-			condition = '$$ > ?';
-			values = [a[0]];
-
-		}
-		else {
-
-			condition = '$$ < ?';
-			values = [a[1]];
-
-		}
-
-		/*
-		 * Extract values from SQL Functions
-		 * Put the values back on the condition
-		 */
-		condition = rewrapFunctionValues(values, condition);
-
-		if (negate) {
-
-			condition = `(NOT ${condition} OR $$ IS NULL)`;
-			negate = '';
-
-		}
-
-	}
-
-	// Not match
-	else if (typeof value === 'string' && value[0] === '!') {
-
-		condition = 'LIKE ?';
-		values = [value.slice(1)];
-		negate = 'NOT ';
-
-	}
-
-	// String partial match
-	else if (typeof value === 'string' && value.match('%')) {
-
-		condition = 'LIKE ?';
-		values = [value];
-
-	}
-
-	// Null
-	else if (value === null) {
-
-		condition = `IS ${negate}NULL`;
-		values = [];
-		negate = ''; // Already negated
-
-	}
-
-	// Add to the array of items
-	else if (Array.isArray(value) && value.length > 0) {
-
-		// Sub
-		const sub_values = [];
-		const conds = [];
-
-		// Clone the values
-		value = [...value];
-
-		// Filter the results of the array...
-		value = value.filter(item => {
-
-			// Remove the items which can't in group statement...
-			if (item !== null && !(typeof item === 'string' && item.match('%'))) {
-
-				return true;
-
-			}
-
-			// Put into a separate list...
-			sub_values.push(item);
-
-			return false;
-
-		});
-
-		// Use the `IN(...)` for items which can be grouped...
-		if (value.length) {
-
-			conds.push(`${negate}IN (${value.map(() => '?')})`);
-
-		}
-
-		// Other Values which can't be grouped ...
-		if (sub_values.length) {
-
-			// Cond
-			sub_values.forEach(item => {
-
-				const [, cond, values] = prepCondition(null, item, key_definition, negate);
-
-				// Add to condition
-				conds.push(cond);
-
-				// Add Values
-				value.push(...values);
-
-			});
-
-		}
-
-		if (conds.length === 1) {
-
-			condition = conds[0];
-
-		}
-		else {
-
-			// Join...
-			condition = `(${conds.map(cond => `$$ ${cond}`).join(negate ? ' AND ' : ' OR ')})`;
-
-		}
-
-		negate = ''; // Already negated
-
-		values = value;
-
-	}
-
-	/*
-	 * Request filter includes empty array of possible values
-	 * @todo break execution and return empty resultset.
-	 * This workaround adds SQL `...AND false` to the conditions which makes the response empty
-	 */
-	else if (Array.isArray(value) && value.length === 0) {
-
-		// If the filter array is empty, then if negated ignore it (... AND true), else exclude everything (... AND false)
-		condition = `AND ${Boolean(negate)}`;
-		values = [];
-		negate = ''; // Already negated
-
-	}
-	else {
-
-		condition = '= ?';
-		values = [value];
-		negate = negate ? '!' : '';
-
-	}
-
-	return [field, negate + condition, values];
-
-}
-
 function toArray(a) {
 
 	if (typeof a === 'string') {
@@ -576,36 +299,5 @@ function toArray(a) {
 
 	}
 	return a;
-
-}
-
-function rewrapFunctionValues(values, condition) {
-
-	const date_sub_regex = new RegExp(/^(DATE_SUB\()(.*)(,[a-z0-9\s]*\))/i);
-
-	values.forEach((value, index) => {
-
-		const m = value.match(date_sub_regex);
-
-		if (m) {
-
-			values[index] = m[2];
-			let i = 0;
-			condition = condition.replace(/\?/g, () => {
-
-				if (i++ === index) {
-
-					return `${m[1]}?${m[3]}`;
-
-				}
-				return '?';
-
-			});
-
-		}
-
-	});
-
-	return condition;
 
 }

@@ -1,14 +1,22 @@
-const checkFormat = require('./unwrap_field');
-const checkLabel = require('./validate_label');
-const checkKey = require('./validate_field');
-const DareError = require('./error');
-const fieldRelativePath = require('./field_relative');
-const getFieldAttributes = require('./field_attributes');
-const jsonParse = require('./JSONparse');
+const checkFormat = require('../utils/unwrap_field');
+const checkLabel = require('../utils/validate_label');
+const checkKey = require('../utils//validate_field');
+const DareError = require('../utils//error');
+const fieldRelativePath = require('../utils/field_relative');
+const getFieldAttributes = require('../utils/field_attributes');
+const jsonParse = require('../utils/JSONparse');
 
 
-// Return a reducer function
-module.exports = function fieldReducer(current_address, join, table_schema = {}) {
+/**
+ * Return a reducer function deriving local props and nested props
+ * @param {object} opts - Options
+ * @param {string} opts.current_path - Current address path of the resource
+ * @param {Function} opts.extract - Function for handling the extraction of content
+ * @param {object} opts.table_schema - Table schema/Data model
+ * @param {object} opts.dareInstance - Instance of Dare which is calling this
+ * @returns {Function} Fields Reducer function
+ */
+module.exports = function fieldReducer({current_path, extract, table_schema, dareInstance}) {
 
 	const addToJoin = (field, label) => {
 
@@ -21,27 +29,17 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
 		 * Then we'd break down the new address "parent.tbl.field" => "parent.tbl." => "parent."
 		 * And see that that actually the path is the bit we've removed... aka tbl.field
 		 */
-		const path = fieldRelativePath(current_address, address);
+		const path = fieldRelativePath(current_path, address);
 		const relative = path.split('.');
 
 		if (relative.length > 1) {
 
 			const key = relative[0];
-			const d = label ? {[label]: field} : field;
+			const value = label ? {[label]: field} : field;
 
-			if (!join[key]) {
+			// Extract nested field
+			extract(key, [value]);
 
-				join[key] = {};
-
-			}
-
-			if (!join[key].fields) {
-
-				join[key].fields = [];
-
-			}
-
-			join[key].fields.push(d);
 			return true;
 
 		}
@@ -66,13 +64,8 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
 
 					}
 
-					/*
-					 * This key=>value object refers to another table as the value is an object itself
-					 * Add the object to the join table...
-					 */
-					join[key] = join[key] || {};
-					join[key].fields = join[key].fields || [];
-					join[key].fields.push(...(Array.isArray(value) ? value : [value]));
+					// Extract nested field
+					extract(key, (Array.isArray(value) ? value : [value]));
 
 				}
 				else {
@@ -115,7 +108,7 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
 
 			}
 
-			fieldsArray.push(fieldMapping.call(this, field, null, table_schema, fieldsArray));
+			fieldsArray.push(fieldMapping(field, null, table_schema, fieldsArray, dareInstance));
 
 		}
 
@@ -135,9 +128,10 @@ module.exports = function fieldReducer(current_address, join, table_schema = {})
  * @param {string|null} label - Optional label, or null
  * @param {object} tableSchema - Schema of the current table
  * @param {Array} fieldsArray - An array of all the fields to use with generated functions
+ * @param {object} dareInstance - An instance of the current Dare object
  * @returns {string|object} The augemented field expression
  */
-function fieldMapping(field, label, tableSchema, fieldsArray) {
+function fieldMapping(field, label, tableSchema, fieldsArray, dareInstance) {
 
 	// Try to return an object
 	const isObj = Boolean(label);
@@ -168,7 +162,7 @@ function fieldMapping(field, label, tableSchema, fieldsArray) {
 
 		// Execute the handler, add the response to the field list
 		return {
-			[label]: handler.call(this, fieldsArray)
+			[label]: handler.call(dareInstance, fieldsArray)
 		};
 
 	}

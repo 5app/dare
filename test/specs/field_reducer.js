@@ -3,10 +3,13 @@
  * Extract the fields from the current dataset
  */
 
-const field_reducer = require('../../src/utils/field_reducer');
+const field_reducer = require('../../src/format/field_reducer');
 
 describe('Field Reducer', () => {
 
+
+	// Mock instance of Dare
+	const dareInstance = {};
 
 	describe('should split the current fields belonging to the current and joined tables', () => {
 
@@ -109,16 +112,27 @@ describe('Field Reducer', () => {
 			const expected = test[1] || test[0]; // Test expected || or return the test request untouched
 			const expect_join_fields = test[2]; // Expect Joined fields
 
-
-			// Mock instance of Dare
-			const inst = {};
-
 			// Details about the current table...
-			const alias = 'something.asset.';
+			const current_path = 'something.asset.';
+			const table_schema = {};
 			const joined = {};
+			const extract = (key, value) => {
+
+				if (!(key in joined)) {
+
+					joined[key] = {fields: value};
+
+				}
+				else {
+
+					joined[key].fields.push(...value);
+
+				}
+
+			};
 
 			// Curry the field_reducer
-			const fr = field_reducer.call(inst, alias, joined);
+			const fr = field_reducer({current_path, extract, table_schema, dareInstance});
 
 
 			it(`where ${JSON.stringify(input)}`, () => {
@@ -151,13 +165,16 @@ describe('Field Reducer', () => {
 		const table_schema = {
 			generated_field() {
 
+				expect(this).to.be.equal(dareInstance);
 				return 'another_field';
 
 			}
 		};
 
+		const current_path = 'alias';
+
 		// Curry the field_reducer
-		const fr = field_reducer.call({}, 'alias', {}, table_schema);
+		const fr = field_reducer({current_path, table_schema, dareInstance});
 
 		// Call the field with the
 		const f = ['generated_field'].reduce(fr, []);
@@ -175,8 +192,10 @@ describe('Field Reducer', () => {
 			}
 		};
 
+		const current_path = 'created';
+
 		// Curry the field_reducer
-		const fr = field_reducer.call({}, 'created', {}, table_schema);
+		const fr = field_reducer({current_path, table_schema, dareInstance});
 
 		// Call the field with the
 		const f = ['created'].reduce(fr, []);
@@ -194,8 +213,10 @@ describe('Field Reducer', () => {
 			}
 		};
 
+		const current_path = 'created';
+
 		// Curry the field_reducer
-		const fr = field_reducer.call({}, 'meta', {}, table_schema);
+		const fr = field_reducer({current_path, table_schema, dareInstance});
 
 		// Call the field with the
 		const f = ['meta'].reduce(fr, []);
@@ -212,8 +233,10 @@ describe('Field Reducer', () => {
 			fieldAlias: 'field'
 		};
 
+		const current_path = 'joinTable.';
+
 		// Curry the field_reducer
-		const fr = field_reducer.call({}, 'joinTable.', {}, table_schema);
+		const fr = field_reducer({current_path, table_schema, dareInstance});
 
 		// Call the field with the
 		const f = [{
