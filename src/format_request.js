@@ -21,10 +21,16 @@ module.exports = function(options) {
 };
 
 /**
+ * @typedef {object} Dare
+ * @param {object} options - instance options
+ * @param {Function} table_alias_handler - The db table this references
+ */
+
+/**
  * Format Request
  *
  * @param {object} options - Current iteration
- * @param {object} dareInstance - Instance of Dare
+ * @param {Dare} dareInstance - Instance of Dare
  * @returns {object} formatted object with all the joins
  */
 async function format_request(options = {}, dareInstance) {

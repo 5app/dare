@@ -1,18 +1,12 @@
 const getFieldAttributes = require('./utils/field_attributes');
 
-/*
- * Deciding on how to connect two tables depends on which one holds the connection
- * The join_handler here looks at the schema of both tables to find one which has a reference field to the other.
+/**
+ * Join Handler
+ * Obtain the table join conditions which says how two tables reference one another
+ * @param {object} join_object - The object being joined
+ * @param {object} root_object - The root object, for which we want the join_object too attach
+ * @returns {object} An updated join_object with new join_conditions attached
  */
-
-function tidy(value, index, self) {
-
-	// Remove empty and duplicate values
-	return value && self.indexOf(value) === index;
-
-}
-
-
 module.exports = function(join_object, root_object) {
 
 	const schema = this.options.schema;
@@ -45,6 +39,7 @@ module.exports = function(join_object, root_object) {
 	const a = [joinAlias, joinTable].filter(tidy);
 	const b = [rootAlias, rootTable].filter(tidy);
 
+	// Looks at the schema of both tables to find one which has a reference field to the other.
 	for (const _a of a) {
 
 		for (const _b of b) {
@@ -72,7 +67,7 @@ module.exports = function(join_object, root_object) {
 
 	}
 
-	// Crawl the schema for a link table, ... we're only going for a single Kevin Bacon.
+	// Crawl the schema for an intermediate table which is linked to both tables. link table, ... we're only going for a single Kevin Bacon. More than that and the process will deem this operation too hard.
 	for (const linkTable in schema) {
 
 		// Well, this would be silly otherwise...
@@ -174,5 +169,12 @@ function invert(o) {
 
 	}
 	return r;
+
+}
+
+function tidy(value, index, self) {
+
+	// Remove empty and duplicate values
+	return value && self.indexOf(value) === index;
 
 }
