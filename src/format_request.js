@@ -6,6 +6,7 @@ const groupbyReducer = require('./format/groupby_reducer');
 const orderbyReducer = require('./format/orderby_reducer');
 const reduceConditions = require('./format/reducer_conditions');
 const limitClause = require('./format/limit_clause');
+const joinHandler = require('./join_handler');
 
 
 /**
@@ -235,10 +236,10 @@ async function format_request(options = {}, dareInstance) {
 
 
 			/*
-			 * Do the smart bit...
-			 * Augment the join object, with additional 'conditions'
+			 * Join referrencing
+			 * Create the join_conditions which link two tables together
 			 */
-			const new_join_object = dareInstance.join_handler(join_object, options);
+			const new_join_object = joinHandler(join_object, options, dareInstance);
 
 			// Reject if the join handler returned a falsy value
 			if (!new_join_object) {

@@ -5,11 +5,12 @@ const getFieldAttributes = require('./utils/field_attributes');
  * Obtain the table join conditions which says how two tables reference one another
  * @param {object} join_object - The object being joined
  * @param {object} root_object - The root object, for which we want the join_object too attach
+ * @param {object} dareInstance - Dare Instance
  * @returns {object} An updated join_object with new join_conditions attached
  */
-module.exports = function(join_object, root_object) {
+module.exports = function(join_object, root_object, dareInstance) {
 
-	const schema = this.options.schema;
+	const {schema} = dareInstance.options;
 
 	const {table: rootTable, alias: _rootAlias} = root_object;
 	const {table: joinTable, alias: _joinAlias} = join_object;
@@ -103,7 +104,7 @@ module.exports = function(join_object, root_object) {
 		 * Also give this link table a unique Alias
 		 */
 		return Object.assign({
-			alias: this.get_unique_alias(),
+			alias: dareInstance.get_unique_alias(),
 			table: linkTable,
 			joins: [
 				Object.assign(join_object, join_conditions)
