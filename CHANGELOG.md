@@ -1,3 +1,10 @@
+## [0.46.3](https://github.com/5app/dare/compare/v0.46.2...v0.46.3) (2020-06-30)
+
+
+### Bug Fixes
+
+* **refactor:** Tidies code and deprecates features ([#146](https://github.com/5app/dare/issues/146)) ([2192521](https://github.com/5app/dare/commit/21925211c97bd310a5899be592b0640a851b42d4))
+
 ## [0.46.2](https://github.com/5app/dare/compare/v0.46.1...v0.46.2) (2020-06-24)
 
 
