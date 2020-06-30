@@ -9,7 +9,7 @@ const DareError = require('../utils/error');
  * @param {number} MAX_LIMIT - Max limit on instance
  * @returns {void}
  */
-module.exports = function limitClause({limit, start = 0}, MAX_LIMIT) {
+module.exports = function limitClause({limit, start}, MAX_LIMIT) {
 
 	let single;
 	if (limit === undefined) {
