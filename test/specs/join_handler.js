@@ -1,4 +1,4 @@
-
+const joinHandler = require('../../src/format/join_handler');
 
 describe('join_handler', () => {
 
@@ -16,7 +16,7 @@ describe('join_handler', () => {
 
 	it('join handler should be defined in instances of Dare', () => {
 
-		expect(dare).to.have.property('join_handler');
+		expect(joinHandler).to.be.a('function');
 
 	});
 
@@ -42,7 +42,7 @@ describe('join_handler', () => {
 			alias: 'parent'
 		};
 
-		const join = dare.join_handler(child_object, parent_object);
+		const join = joinHandler(child_object, parent_object, dare);
 
 		expect(child_object).to.eql(join);
 
@@ -79,7 +79,7 @@ describe('join_handler', () => {
 			alias: 'child'
 		};
 
-		const join = dare.join_handler(parent_object, child_object);
+		const join = joinHandler(parent_object, child_object, dare);
 
 		expect(parent_object).to.eql(join);
 
@@ -119,7 +119,7 @@ describe('join_handler', () => {
 			table: 'grandparent'
 		};
 
-		const join = dare.join_handler(child_object, grandparent_object);
+		const join = joinHandler(child_object, grandparent_object, dare);
 
 		expect(join).to.deep.equal({
 			table: 'parent',
@@ -185,7 +185,7 @@ describe('join_handler', () => {
 			};
 
 			// Join the recipient table based upon the
-			const recipient_join = dare.join_handler(recipient, message);
+			const recipient_join = joinHandler(recipient, message, dare);
 
 			expect(recipient_join).to.deep.equal({
 				table: 'person',
@@ -203,7 +203,7 @@ describe('join_handler', () => {
 			};
 
 			// Join the recipient table based upon the
-			const author_join = dare.join_handler(author, message);
+			const author_join = joinHandler(author, message, dare);
 
 			expect(author_join).to.deep.equal({
 				table: 'person',
@@ -238,7 +238,7 @@ describe('join_handler', () => {
 			};
 
 			// Join the recipient table based upon the
-			const author_join = dare.join_handler(message, author);
+			const author_join = joinHandler(message, author, dare);
 
 			expect(author_join).to.deep.equal({
 				table: 'message',
@@ -250,7 +250,7 @@ describe('join_handler', () => {
 			});
 
 			// Join the recipient table based upon the
-			const recipient_join = dare.join_handler(message, recipient);
+			const recipient_join = joinHandler(message, recipient, dare);
 
 			expect(recipient_join).to.deep.equal({
 				table: 'message',
@@ -285,7 +285,7 @@ describe('join_handler', () => {
 			};
 
 			// Join the recipient table based upon the
-			const author_join = dare.join_handler(message, author);
+			const author_join = joinHandler(message, author, dare);
 
 			expect(author_join).to.deep.equal({
 				table: 'message',
@@ -297,7 +297,7 @@ describe('join_handler', () => {
 			});
 
 			// Join the recipient table based upon the
-			const recipient_join = dare.join_handler(message, recipient);
+			const recipient_join = joinHandler(message, recipient, dare);
 
 			expect(recipient_join).to.deep.equal({
 				table: 'message',
@@ -329,7 +329,7 @@ describe('join_handler', () => {
 			};
 
 			// Join the recipient table based upon the
-			const recipient_join = dare.join_handler(recipient, messageB);
+			const recipient_join = joinHandler(recipient, messageB, dare);
 
 			expect(recipient_join).to.deep.equal({
 				table: 'person',
@@ -360,7 +360,7 @@ describe('join_handler', () => {
 			};
 
 			// Join the recipient table based upon the
-			const recipient_join = dare.join_handler(join_object, root_object);
+			const recipient_join = joinHandler(join_object, root_object, dare);
 
 			expect(recipient_join).to.deep.equal({
 				table: 'message',
@@ -393,7 +393,7 @@ describe('join_handler', () => {
 			};
 
 			// Join the recipient table based upon the
-			const recipient_join = dare.join_handler(recipient, message);
+			const recipient_join = joinHandler(recipient, message, dare);
 
 			expect(recipient_join).to.deep.equal({
 				table: 'person',

@@ -70,8 +70,6 @@ Dare.prototype.get_unique_alias = function(iterate = 1) {
 
 Dare.prototype.format_request = require('./format_request');
 
-Dare.prototype.join_handler = require('./join_handler');
-
 Dare.prototype.response_handler = require('./response_handler');
 
 /**
