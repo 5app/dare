@@ -85,7 +85,7 @@ module.exports = function fieldReducer({current_path, extract, table_schema, dar
 
 					}
 
-					fieldsArray.push(fieldMapping(value, key, table_schema, fieldsArray));
+					fieldsArray.push(fieldMapping(value, key, table_schema, fieldsArray, dareInstance));
 
 				}
 

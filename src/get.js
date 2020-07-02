@@ -11,8 +11,8 @@ module.exports = async function(opts) {
 	// Reset the alias
 	this.unique_alias_index = 0;
 
-	// Set the table_response_handlers
-	this.response_handlers = this.response_handlers || [];
+	// Set the generate_fields array
+	this.generated_fields = this.generated_fields || [];
 
 	// Define the buildQuery
 	this.buildQuery = buildQuery;
@@ -432,10 +432,13 @@ function traverse(item, is_subquery) {
 			// Have we got a generated field?
 			if (typeof expression === 'function') {
 
-				// Add this to the list
-				this.response_handlers.push(
-					setField.bind(this, !item.root && item.alias, label, expression)
-				);
+				// Add for post processing
+				this.generated_fields.push({
+					label,
+					field_alias_path: item.field_alias_path,
+					handler: expression
+				});
+
 				return;
 
 			}
@@ -546,18 +549,6 @@ function prepField(field) {
 		return [expression, label];
 
 	}
-
-}
-
-function setField(table, field, handler, obj) {
-
-	if (table) {
-
-		obj = obj[table];
-
-	}
-
-	obj[field] = handler.call(this, obj);
 
 }
 
