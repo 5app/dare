@@ -14,19 +14,17 @@ module.exports = function responseHandler(resp) {
 		let item = formatHandler(row);
 
 		// Add generate fields for generating fields etc...
-		if (this.generated_fields) {
 
-			this.generated_fields.forEach(obj => {
+		this.generated_fields.forEach(obj => {
 
-				// Split the address of the item up...
-				const address = obj.field_alias_path.split('.').filter(Boolean);
+			// Split the address of the item up...
+			const address = obj.field_alias_path.split('.').filter(Boolean);
 
-				// Generate the fields handler
-				generatedFieldsHandler({...obj, address, item}, dareInstance);
+			// Generate the fields handler
+			generatedFieldsHandler({...obj, address, item}, dareInstance);
 
-			});
+		});
 
-		}
 
 		// Add custom response_row_handler, for handling the record
 		if (this.response_row_handler) {

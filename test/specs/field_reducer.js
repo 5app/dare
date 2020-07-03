@@ -7,9 +7,16 @@ const field_reducer = require('../../src/format/field_reducer');
 
 describe('Field Reducer', () => {
 
+	let dareInstance;
 
 	// Mock instance of Dare
-	const dareInstance = {};
+	beforeEach(() => {
+
+		dareInstance = {
+			generated_fields: []
+		};
+
+	});
 
 	describe('should split the current fields belonging to the current and joined tables', () => {
 
@@ -113,7 +120,7 @@ describe('Field Reducer', () => {
 			const expect_join_fields = test[2]; // Expect Joined fields
 
 			// Details about the current table...
-			const current_path = 'something.asset.';
+			const field_alias_path = 'something.asset.';
 			const table_schema = {};
 			const joined = {};
 			const extract = (key, value) => {
@@ -132,7 +139,7 @@ describe('Field Reducer', () => {
 			};
 
 			// Curry the field_reducer
-			const fr = field_reducer({current_path, extract, table_schema, dareInstance});
+			const fr = field_reducer({field_alias_path, extract, table_schema, dareInstance});
 
 
 			it(`where ${JSON.stringify(input)}`, () => {
@@ -171,10 +178,10 @@ describe('Field Reducer', () => {
 			}
 		};
 
-		const current_path = 'alias';
+		const field_alias_path = 'alias';
 
 		// Curry the field_reducer
-		const fr = field_reducer({current_path, table_schema, dareInstance});
+		const fr = field_reducer({field_alias_path, table_schema, dareInstance});
 
 		// Call the field with the
 		const f = ['generated_field'].reduce(fr, []);
@@ -192,10 +199,10 @@ describe('Field Reducer', () => {
 			}
 		};
 
-		const current_path = 'created';
+		const field_alias_path = 'created';
 
 		// Curry the field_reducer
-		const fr = field_reducer({current_path, table_schema, dareInstance});
+		const fr = field_reducer({field_alias_path, table_schema, dareInstance});
 
 		// Call the field with the
 		const f = ['created'].reduce(fr, []);
@@ -213,17 +220,26 @@ describe('Field Reducer', () => {
 			}
 		};
 
-		const current_path = 'created';
+		const field_alias_path = 'created';
 
 		// Curry the field_reducer
-		const fr = field_reducer({current_path, table_schema, dareInstance});
+		const fr = field_reducer({field_alias_path, table_schema, dareInstance});
+
 
 		// Call the field with the
 		const f = ['meta'].reduce(fr, []);
 
 		// Expect the formatted list of fields to be identical to the inputted value
 		expect(f[0])
-			.to.have.property('meta');
+			.to.equal('meta');
+
+		const [postProcessing] = dareInstance.generated_fields;
+
+		expect(postProcessing).to.be.a('object');
+
+		expect(postProcessing).to.have.property('label', 'meta');
+		expect(postProcessing).to.have.property('field_alias_path', field_alias_path);
+		expect(postProcessing).to.have.property('handler');
 
 	});
 
@@ -233,10 +249,10 @@ describe('Field Reducer', () => {
 			fieldAlias: 'field'
 		};
 
-		const current_path = 'joinTable.';
+		const field_alias_path = 'joinTable.';
 
 		// Curry the field_reducer
-		const fr = field_reducer({current_path, table_schema, dareInstance});
+		const fr = field_reducer({field_alias_path, table_schema, dareInstance});
 
 		// Call the field with the
 		const f = [{

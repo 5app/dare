@@ -11,9 +11,6 @@ module.exports = async function(opts) {
 	// Reset the alias
 	this.unique_alias_index = 0;
 
-	// Set the generate_fields array
-	this.generated_fields = this.generated_fields || [];
-
 	// Define the buildQuery
 	this.buildQuery = buildQuery;
 
@@ -428,20 +425,6 @@ function traverse(item, is_subquery) {
 
 		// Yes, believe it or not but some queries do have them...
 		item.fields.map(prepField).forEach(([expression, label]) => {
-
-			// Have we got a generated field?
-			if (typeof expression === 'function') {
-
-				// Add for post processing
-				this.generated_fields.push({
-					label,
-					field_alias_path: item.field_alias_path,
-					handler: expression
-				});
-
-				return;
-
-			}
 
 			fields.push(field_format(expression, label, sql_alias, item.field_alias_path));
 

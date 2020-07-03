@@ -110,6 +110,9 @@ Dare.prototype.use = function(options = {}) {
 	// Create a new options, merging inheritted and new
 	inst.options = extend(clone(this.options), options);
 
+	// Set the generate_fields array
+	inst.generated_fields = [];
+
 	// Set SQL level states
 	inst.unique_alias_index = 0;
 	return inst;
