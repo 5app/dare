@@ -527,7 +527,7 @@ describe('get - request object', () => {
 
 	describe('generated fields', () => {
 
-		it('should allow bespoke fields to be defined in the schema', async () => {
+		beforeEach(() => {
 
 			// Create handler for 'asset.thumbnail'
 			dare.options = {
@@ -549,7 +549,7 @@ describe('get - request object', () => {
 						}
 					},
 					'picture': {
-						image(fields) {
+						url(fields) {
 
 							// Update the current fields array to include any dependencies missing
 							if (fields.indexOf('id') === -1) {
@@ -566,8 +566,50 @@ describe('get - request object', () => {
 				}
 			};
 
+		});
+
+		it('should allow generated fields to be rendered in the response', async () => {
+
 			// Stub the execute function
 			dare.sql = () =>
+				// Ensure that there is no thumbnail field requested.
+				Promise.resolve([{
+					'id': 1,
+					'name': 'Andrew',
+					'picture.id': 100
+				}]);
+
+			const resp = await dare.get({
+				table: 'assets',
+				fields: [
+					'name',
+					'thumbnail',
+					{
+						picture: ['url']
+					}
+				],
+				meta: {
+					root: 'http://example.com'
+				}
+			});
+
+			expect(resp).to.deep.equal({
+				id: 1,
+				name: 'Andrew',
+				thumbnail: '/asset/1/thumbnail',
+				picture: {
+					id: 100,
+					url: 'http://example.com/picture/100/image'
+				}
+			});
+
+		});
+
+		it.skip('should allow generated fields to be rendered in the response', async () => {
+
+			// Stub the execute function
+			dare.sql = () =>
+
 				// Ensure that there is no thumbnail field requested.
 				Promise.resolve([{
 					'id': 1,
@@ -582,7 +624,7 @@ describe('get - request object', () => {
 					'name',
 					'thumbnail',
 					{
-						picture: ['image']
+						pictureUrl: 'picture.url'
 					}
 				],
 				meta: {
@@ -591,13 +633,13 @@ describe('get - request object', () => {
 			});
 
 			expect(resp).to.deep.equal({
-				id: 1,
+				id: 1, // Required as part of the generated field
 				name: 'Andrew',
 				thumbnail: '/asset/1/thumbnail',
 				picture: {
-					id: 100,
-					image: 'http://example.com/picture/100/image'
-				}
+					id: 100 // Required as part of the generated field
+				},
+				pictureUrl: 'http://example.com/picture/100/image'
 			});
 
 		});

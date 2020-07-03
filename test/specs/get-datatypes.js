@@ -83,6 +83,42 @@ describe('get - datatypes', () => {
 
 		});
 
+		it('should JSON parse a nested field with object if type=json', async () => {
+
+			const meta = {param: 1};
+			const metaString = JSON.stringify(meta);
+
+			dare.execute = async ({sql, values}) => {
+
+				const expected = `
+					SELECT b.meta AS 'users.meta'
+					FROM users_email a
+					LEFT JOIN users b ON (b.id = a.user_id)
+					LIMIT 1
+				`;
+
+				sqlEqual(sql, expected);
+				expect(values).to.deep.equal([]);
+
+				return [{users: {meta: metaString}}];
+
+			};
+
+			const resp = await dare
+				.get({
+					table: 'users_email',
+					fields: [{
+						users: ['meta']
+					}]
+				});
+
+			expect(resp)
+				.to.have.property('users')
+				.to.have.property('meta')
+				.to.deep.equal(meta);
+
+		});
+
 		it('should return an empty object if response value is falsy', async () => {
 
 			dare.execute = async ({sql, values}) => {
@@ -114,5 +150,45 @@ describe('get - datatypes', () => {
 
 	});
 
-});
+	describe('type=function', () => {
 
+		it('should construct a generated function, which can be labelled', async () => {
+
+			const id = 123;
+
+			dare.execute = async ({sql, values}) => {
+
+				const expected = `
+					SELECT b.id AS 'users.id'
+					FROM users_email a
+					LEFT JOIN users b ON (b.id = a.user_id)
+					LIMIT 1
+				`;
+
+				sqlEqual(sql, expected);
+				expect(values).to.deep.equal([]);
+
+				return [{users: {id}}];
+
+			};
+
+			const resp = await dare
+				.get({
+					table: 'users_email',
+					fields: [{
+						users: [{
+							'URL': 'url'
+						}]
+					}]
+				});
+
+			expect(resp)
+				.to.have.property('users')
+				.to.have.property('URL', `/user/${id}`);
+
+
+		});
+
+	});
+
+});

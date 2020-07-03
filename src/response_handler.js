@@ -5,18 +5,26 @@ const JSONparse = require('./utils/JSONparse');
 // Response
 module.exports = function responseHandler(resp) {
 
+	const dareInstance = this;
+
 	// Iterate over the response array and trigger formatting
 	return resp.reduce((items, row, index) => {
 
 		// Expand row...
 		let item = formatHandler(row);
 
-		// Add response handlers for generated fields etc...
-		if (this.response_handlers) {
+		// Add generate fields for generating fields etc...
 
-			this.response_handlers.forEach(callback => callback(item));
+		this.generated_fields.forEach(obj => {
 
-		}
+			// Split the address of the item up...
+			const address = obj.field_alias_path.split('.').filter(Boolean);
+
+			// Generate the fields handler
+			generatedFieldsHandler({...obj, address, item}, dareInstance);
+
+		});
+
 
 		// Add custom response_row_handler, for handling the record
 		if (this.response_row_handler) {
@@ -169,5 +177,44 @@ function explodeKeyValue(obj, a, value) {
 	obj[key] = explodeKeyValue(obj[key], a, value);
 
 	return obj;
+
+}
+
+/**
+ * Generate Fields Handler
+ * @param {object} obj - Request Object
+ * @param {string} obj.label - Name of the property to be created
+ * @param {Function} obj.handler - Function to process the request
+ * @param {Array} obj.address - Paths of the item
+ * @param {obj} obj.item - Obj where the new prop will be appended
+ * @param {obj} dareInstance - Dare Instance
+ * @returns {void} Modifies the incoming request with new props
+ */
+function generatedFieldsHandler({label, handler, address, item}, dareInstance) {
+
+	if (address.length === 0) {
+
+		item[label] = handler.call(dareInstance, item);
+		return;
+
+	}
+
+	// Get the current position in the address
+	const [modelname] = address;
+
+	// Shift the item off the address, creating a new address
+	const next_address = address.slice(1);
+
+	// Get the nested object
+	const nested = item[modelname];
+
+	// Assuming it's a valid resource...
+	if (nested) {
+
+		// And treat single and array items the same for simplicity
+		(Array.isArray(nested) ? nested : [nested])
+			.forEach(item => generatedFieldsHandler({label, handler, address: next_address, item}, dareInstance));
+
+	}
 
 }

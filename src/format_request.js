@@ -91,6 +91,8 @@ async function format_request(options = {}, dareInstance) {
 	// Set the prefix if not already
 	options.field_alias_path = options.field_alias_path || '';
 
+	const {field_alias_path} = options;
+
 	// Current Path
 	const current_path = options.field_alias_path || `${options.alias}.`;
 
@@ -157,7 +159,7 @@ async function format_request(options = {}, dareInstance) {
 		const extract = extractJoined.bind(null, 'fields', true);
 
 		// Set reducer options
-		const reducer = fieldReducer({current_path, extract, table_schema, dareInstance});
+		const reducer = fieldReducer({field_alias_path, extract, table_schema, dareInstance});
 
 		// Return array of immediate props
 		options.fields = toArray(options.fields).reduce(reducer, []);

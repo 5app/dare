@@ -10,13 +10,13 @@ const jsonParse = require('../utils/JSONparse');
 /**
  * Return a reducer function deriving local props and nested props
  * @param {object} opts - Options
- * @param {string} opts.current_path - Current address path of the resource
+ * @param {string} opts.field_alias_path - Current address path of the resource
  * @param {Function} opts.extract - Function for handling the extraction of content
  * @param {object} opts.table_schema - Table schema/Data model
  * @param {object} opts.dareInstance - Instance of Dare which is calling this
  * @returns {Function} Fields Reducer function
  */
-module.exports = function fieldReducer({current_path, extract, table_schema, dareInstance}) {
+module.exports = function fieldReducer({field_alias_path, extract, table_schema, dareInstance}) {
 
 	const addToJoin = (field, label) => {
 
@@ -29,7 +29,7 @@ module.exports = function fieldReducer({current_path, extract, table_schema, dar
 		 * Then we'd break down the new address "parent.tbl.field" => "parent.tbl." => "parent."
 		 * And see that that actually the path is the bit we've removed... aka tbl.field
 		 */
-		const path = fieldRelativePath(current_path, address);
+		const path = fieldRelativePath(field_alias_path, address);
 		const relative = path.split('.');
 
 		if (relative.length > 1) {
@@ -85,7 +85,13 @@ module.exports = function fieldReducer({current_path, extract, table_schema, dar
 
 					}
 
-					fieldsArray.push(fieldMapping(value, key, table_schema, fieldsArray));
+					const formattedField = fieldMapping(value, key, table_schema, fieldsArray, field_alias_path, dareInstance);
+
+					if (formattedField) {
+
+						fieldsArray.push(formattedField);
+
+					}
 
 				}
 
@@ -108,7 +114,13 @@ module.exports = function fieldReducer({current_path, extract, table_schema, dar
 
 			}
 
-			fieldsArray.push(fieldMapping(field, null, table_schema, fieldsArray, dareInstance));
+			const formattedField = fieldMapping(field, null, table_schema, fieldsArray, field_alias_path, dareInstance);
+
+			if (formattedField) {
+
+				fieldsArray.push(formattedField);
+
+			}
 
 		}
 
@@ -128,10 +140,11 @@ module.exports = function fieldReducer({current_path, extract, table_schema, dar
  * @param {string|null} label - Optional label, or null
  * @param {object} tableSchema - Schema of the current table
  * @param {Array} fieldsArray - An array of all the fields to use with generated functions
+ * @param {string} field_alias_path - Current address path of the resource
  * @param {object} dareInstance - An instance of the current Dare object
  * @returns {string|object} The augemented field expression
  */
-function fieldMapping(field, label, tableSchema, fieldsArray, dareInstance) {
+function fieldMapping(field, label, tableSchema, fieldsArray, field_alias_path, dareInstance) {
 
 	// Try to return an object
 	const isObj = Boolean(label);
@@ -160,9 +173,26 @@ function fieldMapping(field, label, tableSchema, fieldsArray, dareInstance) {
 	// Does this field have a handler in the schema
 	if (handler) {
 
+		// Generated fields
+		const generated_field = handler.call(dareInstance, fieldsArray);
+
+		// Is the generated field completely abstract?
+		if (typeof generated_field === 'function') {
+
+			// Add for post processing
+			dareInstance.generated_fields.push({
+				label,
+				field_alias_path,
+				handler: generated_field
+			});
+
+			return;
+
+		}
+
 		// Execute the handler, add the response to the field list
 		return {
-			[label]: handler.call(dareInstance, fieldsArray)
+			[label]: generated_field
 		};
 
 	}
@@ -186,9 +216,11 @@ function fieldMapping(field, label, tableSchema, fieldsArray, dareInstance) {
 	// Default format datetime field as an ISO string...
 	else if (type === 'json' && !prefix) {
 
-		// Add a function of the same name to retro-format the field
-		fieldsArray.push({
-			[label]: item => jsonParse(item[label]) || {}
+		// Add for post processing
+		dareInstance.generated_fields.push({
+			label,
+			field_alias_path,
+			handler: item => jsonParse(item[label]) || {}
 		});
 
 		// Continue...

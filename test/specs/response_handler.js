@@ -125,6 +125,80 @@ describe('response_handler', () => {
 
 	});
 
+	it('should transform a deep linked nested array with generated fields', () => {
+
+		const handler = row => row.id + 2;
+
+		// Create a list of generated fields
+		dare.generated_fields = [
+			{
+				label: 'generated',
+				field_alias_path: '',
+				handler
+			},
+			{
+				label: 'generated2',
+				field_alias_path: 'asset.',
+				handler
+			},
+			{
+				label: 'generated3',
+				field_alias_path: 'asset.collection.',
+				handler
+			},
+			{
+				label: 'generated4',
+				field_alias_path: 'asset.collection.assoc.',
+				handler
+			},
+			{
+				label: 'willnotappear',
+				field_alias_path: 'doesnotmatch.',
+				handler
+			}
+		];
+
+		const data = dare.response_handler([{
+			'field': 'value',
+			'id': 1,
+			'asset.id': 10,
+			'asset.collection[id,name,assoc.id,assoc.name]': '[["1","a","1a","aa"],["2","b","1b","ba"]]',
+			'asset.name': 'name'
+		}]);
+
+		expect(data).to.be.an('array');
+		expect(data[0]).to.deep.equal({
+			id: 1,
+			generated: 3,
+			field: 'value',
+			asset: {
+				id: 10,
+				generated2: 12,
+				name: 'name',
+				collection: [{
+					id: '1',
+					generated3: '12',
+					name: 'a',
+					assoc: {
+						id: '1a',
+						generated4: '1a2',
+						name: 'aa'
+					}
+				}, {
+					id: '2',
+					generated3: '22',
+					name: 'b',
+					assoc: {
+						id: '1b',
+						generated4: '1b2',
+						name: 'ba'
+					}
+				}]
+			}
+		});
+
+	});
+
 	it('should return empty value if it cannot be interpretted', () => {
 
 		/*
@@ -194,6 +268,7 @@ describe('response_handler', () => {
 
 
 });
+
 
 describe('response_row_handler', () => {
 

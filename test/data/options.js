@@ -25,6 +25,20 @@ module.exports = {
 				type: 'json'
 			},
 
+			/**
+			 * Url generated
+			 * @param {Array} fields - Array of current fields
+			 * @returns {string|Function} Can return a function or a field definition.
+			 */
+			url(fields) {
+
+				// This is a generated function
+				fields.push('id');
+
+				return ({id}) => `/user/${id}`;
+
+			},
+
 			/*
 			 * Date Type
 			 */
