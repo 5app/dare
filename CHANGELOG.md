@@ -1,3 +1,10 @@
+## [0.46.4](https://github.com/5app/dare/compare/v0.46.3...v0.46.4) (2020-07-03)
+
+
+### Bug Fixes
+
+* **ci:** ensure PR's have semantic titles ([d409c8a](https://github.com/5app/dare/commit/d409c8a715c48111bf07ce46c9a7c675ebf49cee))
+
 ## [0.46.3](https://github.com/5app/dare/compare/v0.46.2...v0.46.3) (2020-06-30)
 
 
