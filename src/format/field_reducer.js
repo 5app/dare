@@ -47,7 +47,7 @@ module.exports = function fieldReducer({field_alias_path, extract, table_schema,
 	};
 
 	// Handle each field property
-	return (fieldsArray, field) => {
+	return (fieldsArray, field, index, originalArray) => {
 
 		if (typeof field !== 'string') {
 
@@ -85,7 +85,7 @@ module.exports = function fieldReducer({field_alias_path, extract, table_schema,
 
 					}
 
-					const formattedField = fieldMapping(value, key, table_schema, fieldsArray, field_alias_path, dareInstance);
+					const formattedField = fieldMapping(value, key, table_schema, fieldsArray, field_alias_path, originalArray, dareInstance);
 
 					if (formattedField) {
 
@@ -114,7 +114,7 @@ module.exports = function fieldReducer({field_alias_path, extract, table_schema,
 
 			}
 
-			const formattedField = fieldMapping(field, null, table_schema, fieldsArray, field_alias_path, dareInstance);
+			const formattedField = fieldMapping(field, null, table_schema, fieldsArray, field_alias_path, originalArray, dareInstance);
 
 			if (formattedField) {
 
@@ -139,12 +139,13 @@ module.exports = function fieldReducer({field_alias_path, extract, table_schema,
  * @param {string} field - Field expression
  * @param {string|null} label - Optional label, or null
  * @param {object} tableSchema - Schema of the current table
- * @param {Array} fieldsArray - An array of all the fields to use with generated functions
+ * @param {Array} fieldsArray - The current constructed array of fields
  * @param {string} field_alias_path - Current address path of the resource
+ * @param {Array} originalArray - The original fields array as requested
  * @param {object} dareInstance - An instance of the current Dare object
  * @returns {string|object} The augemented field expression
  */
-function fieldMapping(field, label, tableSchema, fieldsArray, field_alias_path, dareInstance) {
+function fieldMapping(field, label, tableSchema, fieldsArray, field_alias_path, originalArray, dareInstance) {
 
 	// Try to return an object
 	const isObj = Boolean(label);
@@ -173,17 +174,26 @@ function fieldMapping(field, label, tableSchema, fieldsArray, field_alias_path, 
 	// Does this field have a handler in the schema
 	if (handler) {
 
+		const requiredFields = [];
+
 		// Generated fields
-		const generated_field = handler.call(dareInstance, fieldsArray);
+		const generated_field = handler.call(dareInstance, requiredFields);
+
+		// Remove the required_fields which are already in the request
+		const extraFields = arrayDiff(requiredFields, [...originalArray, ...fieldsArray]);
+
+		// Add extra fields to the array
+		fieldsArray.push(...extraFields);
 
 		// Is the generated field completely abstract?
 		if (typeof generated_field === 'function') {
 
 			// Add for post processing
-			dareInstance.generated_fields.push({
+			dareInstance.generated_fields.unshift({
 				label,
 				field_alias_path,
-				handler: generated_field
+				handler: generated_field,
+				extraFields
 			});
 
 			return;
@@ -256,5 +266,17 @@ function rewrap_field(field_name, prefix, suffix) {
 function isEmpty(value) {
 
 	return !value || (Array.isArray(value) ? value : Object.keys(value)).length === 0;
+
+}
+
+/**
+ * Array Differ - Return all the items from A which do not exist in B
+ * @param {Array} a - Array
+ * @param {Array} b - Array
+ * @returns {Array} Reduce array, with matches removed
+ */
+function arrayDiff(a, b) {
+
+	return a.filter(item => !b.includes(item));
 
 }

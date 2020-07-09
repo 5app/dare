@@ -537,14 +537,19 @@ describe('get - request object', () => {
 						thumbnail(fields) {
 
 							// Update the current fields array to include any dependencies missing
-							if (fields.indexOf('id') === -1) {
-
-								fields.push('id');
-
-							}
+							fields.push('id');
 
 							// Return either a SQL string or a function to run on the response object
 							return obj => `/asset/${obj.id}/thumbnail`;
+
+						},
+						url(fields) {
+
+							// Update the current fields array to include any dependencies missing
+							fields.push('id');
+
+							// Return either a SQL string or a function to run on the response object
+							return obj => `/asset/${obj.id}/url`;
 
 						}
 					},
@@ -552,11 +557,7 @@ describe('get - request object', () => {
 						url(fields) {
 
 							// Update the current fields array to include any dependencies missing
-							if (fields.indexOf('id') === -1) {
-
-								fields.push('id');
-
-							}
+							fields.push('id');
 
 							// Return either a SQL string or a function to run on the response object
 							return obj => `${this.options.meta.root}/picture/${obj.id}/image`;
@@ -584,6 +585,7 @@ describe('get - request object', () => {
 				fields: [
 					'name',
 					'thumbnail',
+					'url',
 					{
 						picture: ['url']
 					}
@@ -594,11 +596,10 @@ describe('get - request object', () => {
 			});
 
 			expect(resp).to.deep.equal({
-				id: 1,
 				name: 'Andrew',
 				thumbnail: '/asset/1/thumbnail',
+				url: '/asset/1/url',
 				picture: {
-					id: 100,
 					url: 'http://example.com/picture/100/image'
 				}
 			});
@@ -633,11 +634,9 @@ describe('get - request object', () => {
 			});
 
 			expect(resp).to.deep.equal({
-				id: 1, // Required as part of the generated field
 				name: 'Andrew',
 				thumbnail: '/asset/1/thumbnail',
 				picture: {
-					id: 100 // Required as part of the generated field
 				},
 				pictureUrl: 'http://example.com/picture/100/image'
 			});
