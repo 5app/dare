@@ -187,14 +187,23 @@ function explodeKeyValue(obj, a, value) {
  * @param {Function} obj.handler - Function to process the request
  * @param {Array} obj.address - Paths of the item
  * @param {obj} obj.item - Obj where the new prop will be appended
+ * @param {obj} obj.extraFields - List of fields which can be removed from the response
  * @param {obj} dareInstance - Dare Instance
  * @returns {void} Modifies the incoming request with new props
  */
-function generatedFieldsHandler({label, handler, address, item}, dareInstance) {
+function generatedFieldsHandler({label, handler, address, item, extraFields = []}, dareInstance) {
 
 	if (address.length === 0) {
 
 		item[label] = handler.call(dareInstance, item);
+
+		// Remove the extra fields
+		extraFields.forEach(field => {
+
+			delete item[field];
+
+		});
+
 		return;
 
 	}
@@ -213,7 +222,7 @@ function generatedFieldsHandler({label, handler, address, item}, dareInstance) {
 
 		// And treat single and array items the same for simplicity
 		(Array.isArray(nested) ? nested : [nested])
-			.forEach(item => generatedFieldsHandler({label, handler, address: next_address, item}, dareInstance));
+			.forEach(item => generatedFieldsHandler({label, handler, extraFields, address: next_address, item}, dareInstance));
 
 	}
 

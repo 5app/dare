@@ -129,32 +129,39 @@ describe('response_handler', () => {
 
 		const handler = row => row.id + 2;
 
+		const extraFields = ['id'];
+
 		// Create a list of generated fields
 		dare.generated_fields = [
 			{
 				label: 'generated',
 				field_alias_path: '',
-				handler
+				handler,
+				extraFields
 			},
 			{
 				label: 'generated2',
 				field_alias_path: 'asset.',
-				handler
+				handler,
+				extraFields
 			},
 			{
 				label: 'generated3',
 				field_alias_path: 'asset.collection.',
-				handler
+				handler,
+				extraFields: []
 			},
 			{
 				label: 'generated4',
 				field_alias_path: 'asset.collection.assoc.',
-				handler
+				handler,
+				extraFields
 			},
 			{
 				label: 'willnotappear',
 				field_alias_path: 'doesnotmatch.',
-				handler
+				handler,
+				extraFields
 			}
 		];
 
@@ -168,11 +175,9 @@ describe('response_handler', () => {
 
 		expect(data).to.be.an('array');
 		expect(data[0]).to.deep.equal({
-			id: 1,
 			generated: 3,
 			field: 'value',
 			asset: {
-				id: 10,
 				generated2: 12,
 				name: 'name',
 				collection: [{
@@ -180,7 +185,6 @@ describe('response_handler', () => {
 					generated3: '12',
 					name: 'a',
 					assoc: {
-						id: '1a',
 						generated4: '1a2',
 						name: 'aa'
 					}
@@ -189,7 +193,6 @@ describe('response_handler', () => {
 					generated3: '22',
 					name: 'b',
 					assoc: {
-						id: '1b',
 						generated4: '1b2',
 						name: 'ba'
 					}
