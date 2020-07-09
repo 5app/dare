@@ -9,6 +9,7 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 		let suffix = '';
 		let prefix = '';
 
+		// Match a function, "STRING_DENOTES_FUNCTION(.*)"
 		while ((m = str.match(/^([a-z_]+\()(.*)(\))$/i))) {
 
 			// Change the string to match the inner string...
@@ -18,8 +19,17 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 			prefix += m[1];
 			suffix = m[3] + suffix;
 
-			// Split out comma variables
 			let int_m;
+
+			// Remove suffix tweaks
+			if ((int_m = str.match(/(.*)(\s+(ORDER BY 1))\s*$/))) {
+
+				suffix = int_m[3] + suffix;
+				str = int_m[1];
+
+			}
+
+			// Split out comma variables
 			while ((int_m = str.match(/(.*)(,\s*((["'])?[a-z0-9%._\s-]*\4))$/i))) {
 
 				/*

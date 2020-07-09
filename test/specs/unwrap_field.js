@@ -16,6 +16,7 @@ describe('utils/unwrap_field', () => {
 		'DATE_SUB(field, INTERVAL 10 DAY)',
 		'COUNT(DISTINCT field)',
 		'GROUP_CONCAT(DISTINCT field)',
+		'GROUP_CONCAT(DISTINCT field ORDER BY 1)',
 		'MAX(DAY(field))',
 		'EXTRACT(YEAR_MONTH FROM field)',
 		'IF(field, "yes", "no")',
