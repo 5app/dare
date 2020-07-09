@@ -542,6 +542,15 @@ describe('get - request object', () => {
 							// Return either a SQL string or a function to run on the response object
 							return obj => `/asset/${obj.id}/thumbnail`;
 
+						},
+						url(fields) {
+
+							// Update the current fields array to include any dependencies missing
+							fields.push('id');
+
+							// Return either a SQL string or a function to run on the response object
+							return obj => `/asset/${obj.id}/url`;
+
 						}
 					},
 					'picture': {
@@ -576,6 +585,7 @@ describe('get - request object', () => {
 				fields: [
 					'name',
 					'thumbnail',
+					'url',
 					{
 						picture: ['url']
 					}
@@ -588,6 +598,7 @@ describe('get - request object', () => {
 			expect(resp).to.deep.equal({
 				name: 'Andrew',
 				thumbnail: '/asset/1/thumbnail',
+				url: '/asset/1/url',
 				picture: {
 					url: 'http://example.com/picture/100/image'
 				}

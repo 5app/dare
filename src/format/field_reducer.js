@@ -180,7 +180,7 @@ function fieldMapping(field, label, tableSchema, fieldsArray, field_alias_path, 
 		const generated_field = handler.call(dareInstance, requiredFields);
 
 		// Remove the required_fields which are already in the request
-		const extraFields = arrayDiff(requiredFields, originalArray);
+		const extraFields = arrayDiff(requiredFields, [...originalArray, ...fieldsArray]);
 
 		// Add extra fields to the array
 		fieldsArray.push(...extraFields);
@@ -189,7 +189,7 @@ function fieldMapping(field, label, tableSchema, fieldsArray, field_alias_path, 
 		if (typeof generated_field === 'function') {
 
 			// Add for post processing
-			dareInstance.generated_fields.push({
+			dareInstance.generated_fields.unshift({
 				label,
 				field_alias_path,
 				handler: generated_field,
