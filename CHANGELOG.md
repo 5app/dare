@@ -1,3 +1,11 @@
+## [0.46.5](https://github.com/5app/dare/compare/v0.46.4...v0.46.5) (2020-07-09)
+
+
+### Bug Fixes
+
+* **fields:** support GROUP_CONCAT(... ORDER BY 1) ([97ee8f2](https://github.com/5app/dare/commit/97ee8f29ff2e7c918d30073d1f26c58da3a4588b))
+* **generated-functions:** remove extraneous fields ([#151](https://github.com/5app/dare/issues/151)) ([f0b6c6a](https://github.com/5app/dare/commit/f0b6c6ae09b4ae0b7ebfa4c9b28f9d119db5f56c)), closes [#150](https://github.com/5app/dare/issues/150) [#150](https://github.com/5app/dare/issues/150)
+
 ## [0.46.4](https://github.com/5app/dare/compare/v0.46.3...v0.46.4) (2020-07-03)
 
 
