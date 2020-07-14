@@ -22,9 +22,9 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 			let int_m;
 
 			// Remove suffix tweaks
-			if ((int_m = str.match(/(.*)(\s+(ORDER BY 1))\s*$/))) {
+			if ((int_m = str.match(/(.*)(\s+ORDER BY 1)\s*$/))) {
 
-				suffix = int_m[3] + suffix;
+				suffix = int_m[2] + suffix;
 				str = int_m[1];
 
 			}
