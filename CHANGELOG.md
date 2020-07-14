@@ -1,3 +1,10 @@
+## [0.46.6](https://github.com/5app/dare/compare/v0.46.5...v0.46.6) (2020-07-14)
+
+
+### Bug Fixes
+
+* **fields:** support GROUP_CONCAT(... ORDER BY 1) ([5a27157](https://github.com/5app/dare/commit/5a27157f96133344af0276689003ccecc54051f1))
+
 ## [0.46.5](https://github.com/5app/dare/compare/v0.46.4...v0.46.5) (2020-07-09)
 
 
