@@ -252,8 +252,8 @@ async function format_request(options = {}, dareInstance) {
 
 			// Help the GET parser
 
-			// Does this contain a nested filter?
-			join_object.has_filter = new_join_object.has_filter = !!join_object.filter;
+			// Does this contain a nested filter, orderby or groupby?
+			join_object.has_filter = new_join_object.has_filter = Boolean(join_object.filter || join_object.orderby || join_object.groupby);
 
 			// Does this contain nested fields
 			join_object.has_fields = new_join_object.has_fields = !!(Array.isArray(join_object.fields) ? join_object.fields.length : join_object.fields);

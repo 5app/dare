@@ -96,6 +96,34 @@ const limit = 5;
 
 		});
 
+		it('should join on tables which do not return fields', async () => {
+
+			dare.sql = async sql => {
+
+				const expected = `
+					SELECT a.email
+					FROM users_email a
+					LEFT JOIN users b ON(b.id = a.user_id)
+					${SQL_EXPR} b.name
+					LIMIT 5
+				`;
+
+				expectSQLEqual(sql, expected);
+				return [{}];
+
+			};
+
+			return dare.get({
+				table: 'users_email',
+				fields: ['email'],
+				[prop]: [
+					'users.name'
+				],
+				limit
+			});
+
+		});
+
 	});
 
 });
