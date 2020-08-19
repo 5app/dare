@@ -1,3 +1,10 @@
+## [0.46.7](https://github.com/5app/dare/compare/v0.46.6...v0.46.7) (2020-08-19)
+
+
+### Bug Fixes
+
+* **orderby/groupby:** Ensures these joins are not cropped from the query [#152](https://github.com/5app/dare/issues/152) ([#153](https://github.com/5app/dare/issues/153)) ([2174dcc](https://github.com/5app/dare/commit/2174dcc3a45c5a2a4f3ebc811d6c8571193476ea))
+
 ## [0.46.6](https://github.com/5app/dare/compare/v0.46.5...v0.46.6) (2020-07-14)
 
 
