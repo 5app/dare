@@ -104,7 +104,7 @@ const limit = 5;
 					SELECT a.email
 					FROM users_email a
 					LEFT JOIN users b ON(b.id = a.user_id)
-					${SQL_EXPR} \`name\`
+					${SQL_EXPR} b.name
 					LIMIT 5
 				`;
 
