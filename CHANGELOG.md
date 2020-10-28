@@ -1,3 +1,10 @@
+# [0.47.0](https://github.com/5app/dare/compare/v0.46.7...v0.47.0) (2020-10-28)
+
+
+### Features
+
+* shorthand nested filter keys ([86c90f8](https://github.com/5app/dare/commit/86c90f8dba7233a071ff8aec283336a6415649e6))
+
 ## [0.46.7](https://github.com/5app/dare/compare/v0.46.6...v0.46.7) (2020-08-19)
 
 
