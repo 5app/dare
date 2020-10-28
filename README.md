@@ -406,6 +406,14 @@ The filter object can contain nested objects (Similar too the Fields Object). Ne
 	}
 ```
 
+OR shorthand, nested subkeys are represented with a '.'
+
+```
+	{
+		'country.name': 'UK'
+	}
+```
+
 Creates the following SQL JOIN Condition
 
 ```sql

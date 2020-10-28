@@ -29,7 +29,19 @@ module.exports = function reduceConditions(filter, {extract, propName, table_sch
 	// Explore the filter for any table joins
 	for (let key in filter) {
 
-		const value = filter[key];
+		let value = filter[key];
+
+		// Explode -key.path:value
+		const {rootKey, negate, subKey} = stripKey(key);
+
+		// Update rootKey, this is stripped of negation prefix and sub paths
+		key = rootKey;
+
+		if (subKey) {
+
+			value = {[`${negate ? '-' : ''}${subKey}`]: value};
+
+		}
 
 		if (value && typeof value === 'object' && !Array.isArray(value)) {
 
@@ -41,19 +53,6 @@ module.exports = function reduceConditions(filter, {extract, propName, table_sch
 
 		}
 		else {
-
-			let negate = false;
-
-			// Does this have a negate operator?
-			if (key.substring(0, 1) === '-') {
-
-				// Mark as negative filter
-				negate = true;
-
-				// Strip the key
-				key = key.substring(1);
-
-			}
 
 			// Check this is a path
 			checkKey(key);
@@ -68,6 +67,32 @@ module.exports = function reduceConditions(filter, {extract, propName, table_sch
 	return filterArr;
 
 };
+
+/**
+ * Strip the key, removing the negate prefix, and any shorthand nested properties
+ * @param {string} key - Full length key, e.g. table, field, or `-root.path`
+ * @returns {object} Containing the parts of the key
+ */
+function stripKey(key) {
+
+	let negate = false;
+
+	// Does this have a negate operator?
+	if (key.substring(0, 1) === '-') {
+
+		// Mark as negative filter
+		negate = true;
+
+		// Strip the key
+		key = key.substring(1);
+
+	}
+
+	const [rootKey, subKey] = key.split(/\.(.*)/);
+
+	return {rootKey, subKey, negate};
+
+}
 
 function prepCondition(field, value, key_definition, negate) {
 

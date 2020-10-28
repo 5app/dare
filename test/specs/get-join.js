@@ -256,6 +256,33 @@ describe('get - request object', () => {
 
 			});
 
+			it('valid: shorthand nested filter keys', async () => {
+
+				dare.sql = (sql, prepared) => {
+
+					expect(sql).to.contain('.type = ?');
+					expect(sql).to.contain('.name != ?');
+					expect(prepared).to.contain('mobile');
+					expect(prepared).to.contain('me');
+
+					return Promise.resolve([]);
+
+				};
+
+				return dare.get({
+					table: 'activityEvents',
+					fields: [
+						'id'
+					],
+					filter: {
+						'-asset.name': 'me',
+						'asset.type': 'mobile'
+					},
+					limit
+				});
+
+			});
+
 		});
 
 	});
