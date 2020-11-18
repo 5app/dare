@@ -229,6 +229,27 @@ dare.get('users', ['emailAddress'], {emailAddress: 'andrew@%'});
 // SELECT email AS emailAddress FROM users WHERE email LIKE 'andrew@%'
 ```
 
+The aliasing can also be used for common functions and define fields on another table to abstract away some of the complexity in your relational schema and provide a cleaner api interface.
+
+e.g. 
+```js
+const dare = new Dare({
+	schema: {
+		users: {
+			emailAddress: {
+				// Explicitly define the alias
+				// Reference the email define on another table, we can also wrap in SQL functions.
+				alias: 'LOWER(usersEmails.email)'
+			}
+		},
+		// Any cross table join needs fields to map
+		usersEmails: {
+			user_id: ['users.id']
+		}
+	}
+});
+
+
 #### field readable/writeable
 
 A flag to control access to a field
