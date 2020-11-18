@@ -1,3 +1,10 @@
+# [0.48.0](https://github.com/5app/dare/compare/v0.47.0...v0.48.0) (2020-11-18)
+
+
+### Features
+
+* **alias:** provide cross table field aliasing ([607c83f](https://github.com/5app/dare/commit/607c83f72c1b25bf1281bef96c5074d4a66207e5))
+
 # [0.47.0](https://github.com/5app/dare/compare/v0.46.7...v0.47.0) (2020-10-28)
 
 
