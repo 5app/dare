@@ -18,34 +18,6 @@ const jsonParse = require('../utils/JSONparse');
  */
 module.exports = function fieldReducer({field_alias_path, extract, table_schema, dareInstance}) {
 
-	const addToJoin = (field, label) => {
-
-		// Get the full address of the field from the expression
-		const address = checkFormat(field).field;
-
-		/*
-		 * Does the path exist at the end of the current_address
-		 * e.g. Our current address might be grandparent.parent.
-		 * Then we'd break down the new address "parent.tbl.field" => "parent.tbl." => "parent."
-		 * And see that that actually the path is the bit we've removed... aka tbl.field
-		 */
-		const path = fieldRelativePath(field_alias_path, address);
-		const relative = path.split('.');
-
-		if (relative.length > 1) {
-
-			const key = relative[0];
-			const value = label ? {[label]: field} : field;
-
-			// Extract nested field
-			extract(key, [value]);
-
-			return true;
-
-		}
-
-	};
-
 	// Handle each field property
 	return (fieldsArray, field, index, originalArray) => {
 
@@ -78,14 +50,7 @@ module.exports = function fieldReducer({field_alias_path, extract, table_schema,
 					// Check errors in the key field
 					checkLabel(key);
 
-					// Check the new value field parents, aka `parent_table.field`
-					if (addToJoin(value, key)) {
-
-						continue;
-
-					}
-
-					const formattedField = fieldMapping(value, key, table_schema, fieldsArray, field_alias_path, originalArray, dareInstance);
+					const formattedField = fieldMapping({field: value, label: key, table_schema, fieldsArray, field_alias_path, originalArray, dareInstance, extract});
 
 					if (formattedField) {
 
@@ -104,17 +69,7 @@ module.exports = function fieldReducer({field_alias_path, extract, table_schema,
 			// Check errors in the key field
 			checkKey(field);
 
-			/*
-			 * This is also a field, so check that its a valid field
-			 * + If it contains a nested value: create a join.
-			 */
-			if (addToJoin(field)) {
-
-				return fieldsArray;
-
-			}
-
-			const formattedField = fieldMapping(field, null, table_schema, fieldsArray, field_alias_path, originalArray, dareInstance);
+			const formattedField = fieldMapping({field, table_schema, fieldsArray, field_alias_path, originalArray, dareInstance, extract});
 
 			if (formattedField) {
 
@@ -136,16 +91,55 @@ module.exports = function fieldReducer({field_alias_path, extract, table_schema,
  * Maps the field expression to an entry in the schema and formats the entry
  * Invokes generated functions with access to modify the fieldsArray
  *
- * @param {string} field - Field expression
- * @param {string|null} label - Optional label, or null
- * @param {object} tableSchema - Schema of the current table
- * @param {Array} fieldsArray - The current constructed array of fields
- * @param {string} field_alias_path - Current address path of the resource
- * @param {Array} originalArray - The original fields array as requested
- * @param {object} dareInstance - An instance of the current Dare object
+ * @param {object} opts - Object
+ * @param {string} opts.field - Field expression
+ * @param {string|null} opts.label - Optional label, or null
+ * @param {Array} opts.fieldsArray - The current constructed array of fields
+ * @param {Array} opts.originalArray - The original fields array as requested
+ * @param {string} opts.field_alias_path - Current address path of the resource
+ * @param {Function} opts.extract - Function for handling the extraction of content
+ * @param {object} opts.table_schema - Schema of the current table
+ * @param {object} opts.dareInstance - An instance of the current Dare object
  * @returns {string|object} The augemented field expression
  */
-function fieldMapping(field, label, tableSchema, fieldsArray, field_alias_path, originalArray, dareInstance) {
+function fieldMapping({field, label, fieldsArray, originalArray, field_alias_path, extract, table_schema, dareInstance}) {
+
+	// Extract the underlying field
+	const {field_name, prefix, suffix, field_path, field: address} = checkFormat(field);
+
+	/*
+	 * Is this part of another table?
+	 * Does a path exist at the end of the current_address
+	 * Then we should add this to a join instead, i.e. use extract
+	 */
+	{
+
+		/**
+		 * Get the relative path
+		 * e.g. Our current address might be grandparent.parent.
+		 * Then we'd break down the new address "parent.tbl.field" => "parent.tbl." => "parent."
+		 * And see that the path is actually the bit we've removed... aka tbl.field
+		 */
+		const path = fieldRelativePath(field_alias_path, address);
+		const relative = path.split('.');
+
+		if (relative.length > 1) {
+
+			/*
+			 * This field isnt' part of this table
+			 * So lets extract this field with the table key
+			 */
+			const key = relative[0];
+			const value = label ? {[label]: field} : field;
+
+			// Extract nested field
+			extract(key, [value]);
+
+			return;
+
+		}
+
+	}
 
 	// Try to return an object
 	const isObj = Boolean(label);
@@ -158,11 +152,9 @@ function fieldMapping(field, label, tableSchema, fieldsArray, field_alias_path, 
 
 	}
 
-	// Extract the underlying field
-	const {field_name, prefix, suffix, field_path} = checkFormat(field);
 
 	// Get the schema entry for the field
-	const {handler, alias, type, readable} = getFieldAttributes(tableSchema[field_name]);
+	const {handler, alias, type, readable} = getFieldAttributes(table_schema[field_name]);
 
 	// Is this readable?
 	if (readable === false) {
@@ -207,11 +199,17 @@ function fieldMapping(field, label, tableSchema, fieldsArray, field_alias_path, 
 
 	}
 
-	// Does the field map to another key name...
+	/*
+	 * Does the field map to another field Definition
+	 * An alias can map to another field name, point to a field in another model, or to a generated field
+	 */
 	if (alias) {
 
-		// Use the original name, defined by the key_definition
-		field = rewrap_field((field_path ? `${field_path}.` : '') + alias, prefix, suffix);
+		// Rewrap the field with the alias target value
+		const field = rewrap_field((field_path ? `${field_path}.` : '') + alias, prefix, suffix);
+
+		// And rerun this function
+		return fieldMapping({field, label, fieldsArray, originalArray, field_alias_path, extract, table_schema, dareInstance});
 
 	}
 

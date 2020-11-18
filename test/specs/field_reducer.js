@@ -111,7 +111,28 @@ describe('Field Reducer', () => {
 				[{
 					'Field': 'asset.field'
 				}]
+			],
+			/*
+			 * Alias to another
+			 * Taps into an alias on the current model which maps to another table field
+			 */
+			[
+				['crossTableAlias'],
+				[],
+				[{
+					'crossTableAlias': 'b_table.realField'
+				}]
+			],
+			[
+				[{
+					'Field': 'COUNT(crossTableAlias)'
+				}],
+				[],
+				[{
+					'Field': 'COUNT(b_table.realField)'
+				}]
 			]
+
 
 		].forEach(test => {
 
@@ -121,7 +142,11 @@ describe('Field Reducer', () => {
 
 			// Details about the current table...
 			const field_alias_path = 'something.asset.';
-			const table_schema = {};
+			const table_schema = {
+				crossTableAlias: {
+					alias: 'b_table.realField'
+				}
+			};
 			const joined = {};
 			const extract = (key, value) => {
 
