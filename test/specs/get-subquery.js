@@ -16,13 +16,13 @@ const options = {
 
 		// Define a table to associate datasets
 		assetCollections: {
-			asset_id: 'assets.id',
-			collection_id: 'collections.id'
+			asset_id: ['assets.id'],
+			collection_id: ['collections.id']
 		},
 
 		// Collection children
 		collectionChildren: {
-			collection_id: 'collections.id'
+			collection_id: ['collections.id']
 		}
 	}
 };
@@ -303,7 +303,7 @@ describe('get - subquery', () => {
 		dare.options = {
 			schema: {
 				userEmails: {
-					user_id: 'users.id'
+					user_id: ['users.id']
 				}
 			}
 		};

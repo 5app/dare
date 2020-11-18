@@ -27,7 +27,7 @@ describe('join_handler', () => {
 			schema: {
 				parent: {},
 				child: {
-					parent_id: 'parent.id'
+					parent_id: ['parent.id']
 				}
 			}
 		};
@@ -64,7 +64,7 @@ describe('join_handler', () => {
 			schema: {
 				parent: {},
 				child: {
-					parent_id: 'parent.id'
+					parent_id: ['parent.id']
 				}
 			}
 		};
@@ -101,10 +101,10 @@ describe('join_handler', () => {
 			schema: {
 				grandparent: {},
 				parent: {
-					grand_id: 'grandparent.gid'
+					grand_id: ['grandparent.gid']
 				},
 				child: {
-					parent_id: 'parent.id'
+					parent_id: ['parent.id']
 				}
 			}
 		};
@@ -148,8 +148,8 @@ describe('join_handler', () => {
 				schema: {
 
 					message: {
-						from_id: 'author.id',
-						to_id: 'recipient.id'
+						from_id: ['author.id'],
+						to_id: ['recipient.id']
 					},
 
 					person: {},
@@ -314,8 +314,8 @@ describe('join_handler', () => {
 		it('messageB.recipient: using unreferenced aliases', () => {
 
 			dare.options.schema.messageB = {
-				to_id: 'person.id',
-				from_id: 'author.id'
+				to_id: ['person.id'],
+				from_id: ['author.id']
 			};
 
 			const recipient = {
@@ -345,8 +345,8 @@ describe('join_handler', () => {
 		it('recipient.messageB: using unreferenced aliases', () => {
 
 			dare.options.schema.message = {
-				from_id: 'author.id',
-				to_id: 'person.id'
+				from_id: ['author.id'],
+				to_id: ['person.id']
 			};
 
 			const join_object = {

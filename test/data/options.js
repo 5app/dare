@@ -16,7 +16,7 @@ module.exports = {
 			 * Field reference
 			 * The users.country_id references the country.id column, this is used for making joins
 			 */
-			country_id: 'country.id',
+			country_id: ['country.id'],
 
 			/*
 			 * JSON data type
@@ -82,7 +82,7 @@ module.exports = {
 			session_id: {
 				references: 'activitySession.id'
 			},
-			ref_id: 'apps.id',
+			ref_id: ['apps.id'],
 
 			/*
 			 * Date Type
@@ -98,7 +98,7 @@ module.exports = {
 		},
 
 		assetDomains: {
-			asset_id: 'apps.id',
+			asset_id: ['apps.id'],
 
 			/*
 			 * Date Type

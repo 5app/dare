@@ -19,7 +19,7 @@ describe('after Handler', () => {
 
 				},
 				'emails': {
-					user_id: 'users.id'
+					user_id: ['users.id']
 				}
 			},
 			meta: {

@@ -98,7 +98,9 @@ describe('format_request', () => {
 
 			dare.options = {
 				schema: {
-					'asset': {tbl_id: 'tbl.id'}
+					'asset': {
+						tbl_id: ['tbl.id']
+					}
 				}
 			};
 
@@ -727,7 +729,7 @@ describe('format_request', () => {
 				name: {}
 			},
 			events: {
-				asset_id: 'asset.id'
+				asset_id: ['asset.id']
 			}
 		};
 
@@ -876,8 +878,8 @@ describe('format_request', () => {
 				schema: {
 					asset: {name: {}},
 					assetType: {
-						// References can be as simple as a string to another [table].[field]
-						asset_id: 'asset.id'
+						// References can be as simple as an string<array> to another [table].[field]
+						asset_id: ['asset.id']
 					},
 					comments: {
 						name: {},
@@ -912,10 +914,10 @@ describe('format_request', () => {
 				schema: {
 					street: {
 						// References can be as simple as a string to another [table].[field]
-						town_id: 'town.id'
+						town_id: ['town.id']
 					},
 					town: {
-						country_id: 'country.id'
+						country_id: ['country.id']
 					},
 					country: {}
 				}
@@ -1005,7 +1007,7 @@ describe('format_request', () => {
 				schema: {
 					users: {},
 					comments: {
-						'user_id': 'users.id'
+						'user_id': ['users.id']
 					}
 				},
 				get: {

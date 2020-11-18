@@ -560,7 +560,7 @@ describe('get - request object', () => {
 			dare.options = {
 				schema: {
 					'assets': {
-						picture_id: 'picture.id',
+						picture_id: ['picture.id'],
 						thumbnail(fields) {
 
 							// Update the current fields array to include any dependencies missing
