@@ -137,7 +137,23 @@ Dare.prototype.sql = async function sql(sql, values) {
 
 	}
 
-	return this.execute(req);
+	try {
+
+		return await this.execute(req);
+
+	}
+	catch (e) {
+
+		// Is this an error we recognize?
+		if (e.code in DareError) {
+
+			throw new DareError(e.code, e.sqlMessage);
+
+		}
+
+		throw e;
+
+	}
 
 };
 

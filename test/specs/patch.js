@@ -8,9 +8,9 @@ const DareError = require('../../src/utils/error');
 const id = 1;
 const name = 'name';
 
-describe('patch', () => {
+let dare;
 
-	let dare;
+describe('patch', () => {
 
 	beforeEach(() => {
 
@@ -64,7 +64,7 @@ describe('patch', () => {
 
 	});
 
-	it('should throw an exception if affectedRows: 0', async () => {
+	it('should throw notfound option, if affectedRows: 0', async () => {
 
 		const notfound = false;
 
@@ -74,6 +74,29 @@ describe('patch', () => {
 			.patch('groups', {id: 20000}, {name}, {notfound});
 
 		expect(test).to.equal(notfound);
+
+	});
+
+	it('should interpret a MySQL ER_DUP_ENTRY errors', async () => {
+
+		const email = 'same@here.com';
+		const message = 'Duplicate entry \'email\' for key \'email_unique\'';
+
+		dare.execute = async () => {
+
+			const err = new Error();
+			err.code = 'ER_DUP_ENTRY';
+			err.sqlMessage = message;
+			throw err;
+
+		};
+
+		const test = dare
+			.patch('members', {id: 20000}, {email});
+
+		return expect(test)
+			.to.be.eventually.rejectedWith(DareError)
+			.and.have.property('code', DareError.ER_DUP_ENTRY);
 
 	});
 
