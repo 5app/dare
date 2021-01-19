@@ -1,3 +1,10 @@
+# [0.49.0](https://github.com/5app/dare/compare/v0.48.0...v0.49.0) (2021-01-19)
+
+
+### Features
+
+* expose DareError object ([89e85e4](https://github.com/5app/dare/commit/89e85e478fb35707f7a4ad506077d6982b9961ae))
+
 # [0.48.0](https://github.com/5app/dare/compare/v0.47.0...v0.48.0) (2020-11-18)
 
 
