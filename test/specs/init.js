@@ -21,6 +21,12 @@ describe('Dare', () => {
 
 	});
 
+	it('should export the DareError object', () => {
+
+		expect(Dare.DareError).to.eql(DareError);
+
+	});
+
 	it('should throw errors if dare.execute is not defined', () => {
 
 		const dare = new Dare();

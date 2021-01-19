@@ -15,6 +15,11 @@ const clone = require('tricks/object/clone');
 
 module.exports = Dare;
 
+/*
+ * Export Dare Error object
+ */
+module.exports.DareError = DareError;
+
 /**
  * Dare
  * Sets up a new instance of Dare
