@@ -902,3 +902,37 @@ const data = await dare.get('users', ['name'], {limit: 10000000});
 
 console.log(data.length === 0); // empty array
 ```
+
+
+### Overriding table schema per operation
+
+You can override the schema per operation using the `schema` option:
+
+E.g.
+
+```js
+const dare = new Dare({
+  schema: {
+    my_table: {
+      write_protected_field: {
+        type: 'datetime',
+        writeable: false,
+      },
+    },
+  }
+});
+
+await dare.patch({
+  table: 'my_table',
+  body: {
+    write_protected_field: 'new value,
+  },
+  schema: {
+    my_table: {
+      write_protected_field: {
+        writeable: true,
+      },
+    },
+  },
+});
+```
