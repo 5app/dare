@@ -1,3 +1,10 @@
+# [0.50.0](https://github.com/5app/dare/compare/v0.49.0...v0.50.0) (2021-01-25)
+
+
+### Features
+
+* allow overriding the schema per operation ([472cedd](https://github.com/5app/dare/commit/472cedd4acb4847f00bc61b65a9445c19aa481bc))
+
 # [0.49.0](https://github.com/5app/dare/compare/v0.48.0...v0.49.0) (2021-01-19)
 
 
