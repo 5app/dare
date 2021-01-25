@@ -284,7 +284,7 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	validateBody(req.body);
 
 	// Get the schema
-	const tableSchema = this.options.schema && this.options.schema[req.table];
+	const tableSchema = _this.options.schema && _this.options.schema[req.table];
 
 	// Prepare post
 	const {assignments, preparedValues} = prepareSet(req.body, tableSchema);
@@ -376,7 +376,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	}
 
 	// Get the schema
-	const tableSchema = this.options.schema && this.options.schema[req.table];
+	const tableSchema = _this.options.schema && _this.options.schema[req.table];
 
 	// Capture keys
 	const fields = [];
