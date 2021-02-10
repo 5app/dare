@@ -148,6 +148,26 @@ describe('get', () => {
 
 		});
 
+		it('should ignore $suffixing', async () => {
+
+			const name = 'And%';
+			const name$and = '%drew';
+			dare.execute = async ({sql, values}) => {
+
+				sqlEqual(sql, 'SELECT a.id, a.name, a.prop FROM test a WHERE a.name LIKE ? AND a.name LIKE ? LIMIT 5');
+				expect(values).to.deep.equal([name, name$and]);
+
+				return [basic_record, basic_record];
+
+			};
+
+			const resp = await dare
+				.get('test', basic_fields.concat(['prop$ignore']), {name, name$and}, {limit: 5});
+
+			expect(resp).to.be.a('array');
+
+		});
+
 		it('should have an overidable limit', async () => {
 
 			dare.execute = async ({sql, values}) => {

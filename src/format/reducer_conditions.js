@@ -54,8 +54,8 @@ module.exports = function reduceConditions(filter, {extract, propName, table_sch
 		}
 		else {
 
-			// Check this is a path
-			checkKey(key);
+			// Format key and validate path
+			key = checkKey(key);
 
 			const key_definition = table_schema[key];
 			filterArr.push(prepCondition(key, value, key_definition, negate));

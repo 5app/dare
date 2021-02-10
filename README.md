@@ -452,6 +452,7 @@ The type of value affects the choice of SQL Condition syntax to use. For example
 | name    | 'Andrew'                  | string         | `name = 'Andrew'`
 | name    | 'And%'                    | Pattern        | `name LIKE 'And%'`
 | -name   | 'And%'                    | Pattern        | `name NOT LIKE 'And%'`
+| name$1  | any                  	  | any            | e.g. `name LIKE '%And%` $suffixing gives `name` alternative unique object key values, useful when writing `name LIKE %X% AND name LIKE %Y%`
 | tag     | [1, 'a']                  | Array values   | `tag IN (1, 'a')`
 | -tag    | [1, 'a']                  | Array values   | `tag NOT IN (1, 'a')`
 | -status | ['deleted', null]         | Array values   | `(status NOT IN ('deleted') AND status IS NOT NULL)` Mixed type including `null`

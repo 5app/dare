@@ -1,6 +1,6 @@
 const checkFormat = require('../utils/unwrap_field');
 const checkLabel = require('../utils/validate_label');
-const checkKey = require('../utils//validate_field');
+const checkKey = require('../utils/validate_field');
 const DareError = require('../utils//error');
 const fieldRelativePath = require('../utils/field_relative');
 const getFieldAttributes = require('../utils/field_attributes');
@@ -67,7 +67,7 @@ module.exports = function fieldReducer({field_alias_path, extract, table_schema,
 		else {
 
 			// Check errors in the key field
-			checkKey(field);
+			field = checkKey(field);
 
 			const formattedField = fieldMapping({field, table_schema, fieldsArray, field_alias_path, originalArray, dareInstance, extract});
 
