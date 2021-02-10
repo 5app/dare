@@ -1,3 +1,10 @@
+# [0.51.0](https://github.com/5app/dare/compare/v0.50.0...v0.51.0) (2021-02-10)
+
+
+### Features
+
+* ignore suffix on field property ([b7f9d19](https://github.com/5app/dare/commit/b7f9d190cda8a34643d9f7b68cea7eb809f3bd41))
+
 # [0.50.0](https://github.com/5app/dare/compare/v0.49.0...v0.50.0) (2021-01-25)
 
 
