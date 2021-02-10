@@ -570,6 +570,13 @@ describe('format_request', () => {
 						'date',
 						'(NOT $$ > ? OR $$ IS NULL)',
 						['1981-12-05T00:00:00']
+					],
+					[
+						// Should ignore $ (suffixing) keys
+						{'prop$asdasd': null},
+						'prop',
+						'IS NULL',
+						[]
 					]
 				];
 

@@ -131,6 +131,12 @@ describe('Field Reducer', () => {
 				[{
 					'Field': 'COUNT(b_table.realField)'
 				}]
+			],
+
+			// Should ignore trailing $suffix
+			[
+				['field$suffix'],
+				['field']
 			]
 
 

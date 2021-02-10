@@ -4,7 +4,11 @@ const validate_alias = require('./validate_alias');
 module.exports = function validate_field(key) {
 
 	const a = key.split('.');
-	const field = a.pop();
+
+	const field = a
+		.pop()
+		// Remove any alias suffix from the key
+		.replace(/\$.*$/, '');
 
 	const reg = /^([a-z_]+)$/i;
 
@@ -16,12 +20,15 @@ module.exports = function validate_field(key) {
 	}
 
 	// Validate the path
-	const path = a.join('.');
 
-	if (path) {
+	if (a.length) {
+
+		const path = a.join('.');
 
 		validate_alias(path);
 
 	}
+
+	return [...a, field].join('.');
 
 };
