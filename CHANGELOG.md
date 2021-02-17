@@ -1,3 +1,10 @@
+# [0.52.0](https://github.com/5app/dare/compare/v0.51.0...v0.52.0) (2021-02-17)
+
+
+### Features
+
+* **filter:** sql not exists ([#168](https://github.com/5app/dare/issues/168)) ([047fafa](https://github.com/5app/dare/commit/047fafa9e04c8ae0d00978f1586d335a15f8c207)), closes [#167](https://github.com/5app/dare/issues/167)
+
 # [0.51.0](https://github.com/5app/dare/compare/v0.50.0...v0.51.0) (2021-02-10)
 
 
