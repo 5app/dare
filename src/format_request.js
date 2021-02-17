@@ -233,7 +233,8 @@ async function format_request(options = {}, dareInstance) {
 			const join_object = Object.assign(joined[alias], {
 				alias,
 				field_alias_path: `${options.field_alias_path}${alias}.`,
-				table: dareInstance.table_alias_handler(alias)
+				table: dareInstance.table_alias_handler(alias),
+				negate: alias.startsWith('-')
 			});
 
 

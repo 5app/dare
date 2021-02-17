@@ -144,8 +144,13 @@ function buildQuery(opts) {
 	let sql_fields;
 	let alias;
 
+	if (opts.negate && fields.length === 0) {
 
-	if (is_subquery) {
+		sql_fields = [1];
+
+	}
+
+	else if (is_subquery) {
 
 		// Generate a Group Concat statement of the result
 		const address = opts.field_alias_path || opts._joins[0].field_alias_path;
@@ -329,6 +334,27 @@ function traverse(item, is_subquery) {
 			});
 
 			// The rest has been handled in the sub-query
+			return resp;
+
+		}
+
+
+		/**
+		 * If this is a negate join...
+		 * NOT EXIST (SELECT 1 FROM alias WHERE join_conditions)
+		 */
+		if (item.negate && !is_subquery) {
+
+			// Mark as another subquery
+			item.is_subquery = true;
+
+			// Create sub_query
+			const sub_query = this.buildQuery(item);
+
+			// Update the filters
+			sql_values.push(...sub_query.values);
+			sql_filter.push(`NOT EXISTS (${sub_query.sql})`);
+
 			return resp;
 
 		}
