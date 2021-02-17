@@ -275,8 +275,45 @@ describe('get - request object', () => {
 						'id'
 					],
 					filter: {
-						'-asset.name': 'me',
+						'asset.-name': 'me',
 						'asset.type': 'mobile'
+					},
+					limit
+				});
+
+			});
+
+			it('should negate nested conditions', async () => {
+
+				dare.sql = (sql, prepared) => {
+
+					expectSQLEqual(sql, `
+						SELECT a.id FROM activityEvents a
+						WHERE
+							a.a = ?
+							AND a.b = ?
+							AND NOT EXISTS (
+								SELECT 1 FROM apps b
+								WHERE b.id = a.ref_id AND b.name = ?
+								LIMIT 1
+							)
+						LIMIT 5`);
+
+					expect(prepared).to.deep.equal([1, 3, 2]);
+
+					return Promise.resolve([]);
+
+				};
+
+				return dare.get({
+					table: 'activityEvents',
+					fields: [
+						'id'
+					],
+					filter: {
+						'a': 1,
+						'-asset.name': 2,
+						'b': 3
 					},
 					limit
 				});

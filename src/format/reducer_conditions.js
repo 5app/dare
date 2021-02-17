@@ -32,14 +32,14 @@ module.exports = function reduceConditions(filter, {extract, propName, table_sch
 		let value = filter[key];
 
 		// Explode -key.path:value
-		const {rootKey, negate, subKey} = stripKey(key);
+		const {rootKey, rootKeyRaw, negate, subKey} = stripKey(key);
 
 		// Update rootKey, this is stripped of negation prefix and sub paths
 		key = rootKey;
 
 		if (subKey) {
 
-			value = {[`${negate ? '-' : ''}${subKey}`]: value};
+			value = {[subKey]: value};
 
 		}
 
@@ -49,7 +49,7 @@ module.exports = function reduceConditions(filter, {extract, propName, table_sch
 			checkTableAlias(key);
 
 			// Add it to the join table
-			extract(key, value);
+			extract(rootKeyRaw, value);
 
 		}
 		else {
@@ -75,22 +75,24 @@ module.exports = function reduceConditions(filter, {extract, propName, table_sch
  */
 function stripKey(key) {
 
+	const [rootKeyRaw, subKey] = key.split(/\.(.*)/);
+
 	let negate = false;
 
+	let rootKey = rootKeyRaw;
+
 	// Does this have a negate operator?
-	if (key.substring(0, 1) === '-') {
+	if (rootKeyRaw.substring(0, 1) === '-') {
 
 		// Mark as negative filter
 		negate = true;
 
 		// Strip the key
-		key = key.substring(1);
+		rootKey = rootKeyRaw.substring(1);
 
 	}
 
-	const [rootKey, subKey] = key.split(/\.(.*)/);
-
-	return {rootKey, subKey, negate};
+	return {rootKey, rootKeyRaw, subKey, negate};
 
 }
 

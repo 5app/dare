@@ -463,6 +463,27 @@ The type of value affects the choice of SQL Condition syntax to use. For example
 | -flag   | null                      | null           | `flag IS NOT NULL`
 
 
+
+#### Negate entire joins (NOT EXISTS)
+
+If there is a nested section on a filter which should act to exclude items from the resultset. Then it can be appropriate to use `-` in front of the table name.
+
+Example: Retrieve all users who are *not* in the 'admin' team....
+```js
+dare.get({
+	table: 'users',
+	fields: ['name'],
+	filter: {
+		-team: {name: 'admin'}
+	}
+});
+
+// SELECT u.name FROM users u WHERE NOT EXISTS (SELECT 1 FROM team t WHERE name = 'admin' AND t.user_id = u.id)...
+```
+
+note: this is very different from having the negation on the field definition, i.e.  `-name:'admin'`, which is described in Filter Syntax.
+
+
 ### Group by `groupby`
 
 `groupby` accepts the same format as a single `field` expression. It can be a single value or an array of multiple expressions. I.e.
