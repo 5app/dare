@@ -275,7 +275,7 @@ describe('get - request object', () => {
 						'id'
 					],
 					filter: {
-						'-asset.name': 'me',
+						'asset.-name': 'me',
 						'asset.type': 'mobile'
 					},
 					limit

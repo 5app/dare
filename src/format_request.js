@@ -135,7 +135,7 @@ async function format_request(options = {}, dareInstance) {
 	// Format filters
 	if (options.filter) {
 
-		// Extract nested filters hander
+		// Extract nested filters handler
 		const extract = extractJoined.bind(null, 'filter', false);
 
 		// Return array of immediate props
