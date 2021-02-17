@@ -3,5 +3,6 @@
   "automerge": true,
   "extends": [
     "config:base"
-  ]
+	],
+	"ignoreDeps": ["husky"]
 }

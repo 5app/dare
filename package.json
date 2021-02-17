@@ -54,7 +54,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-security": "^1.4.0",
-    "husky": "^5.0.0",
+    "husky": "^4.3.8",
     "mocha": "^8.0.0",
     "mocha-circleci-reporter": "0.0.3",
     "nyc": "^15.1.0",
