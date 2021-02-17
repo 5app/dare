@@ -1,3 +1,10 @@
+## [0.52.1](https://github.com/5app/dare/compare/v0.52.0...v0.52.1) (2021-02-17)
+
+
+### Bug Fixes
+
+* **filter:** not exists assign to implicit join ([4bcce14](https://github.com/5app/dare/commit/4bcce148d2fffec97f15eb21c4a47fb01fce939e))
+
 # [0.52.0](https://github.com/5app/dare/compare/v0.51.0...v0.52.0) (2021-02-17)
 
 
