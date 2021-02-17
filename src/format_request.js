@@ -233,8 +233,7 @@ async function format_request(options = {}, dareInstance) {
 			const join_object = Object.assign(joined[alias], {
 				alias,
 				field_alias_path: `${options.field_alias_path}${alias}.`,
-				table: dareInstance.table_alias_handler(alias),
-				negate: alias.startsWith('-')
+				table: dareInstance.table_alias_handler(alias)
 			});
 
 
@@ -250,6 +249,9 @@ async function format_request(options = {}, dareInstance) {
 				throw new DareError(DareError.INVALID_REFERENCE, `Could not understand field '${alias}'`);
 
 			}
+
+			// Mark the join object to negate
+			new_join_object.negate = alias.startsWith('-');
 
 			// Help the GET parser
 
