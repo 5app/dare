@@ -71,7 +71,7 @@ describe('post', () => {
 		dare.execute = async ({sql, values}) => {
 
 			called = 1;
-			sqlEqual(sql, 'INSERT IGNORE INTO test (`id`) VALUES (?)');
+			sqlEqual(sql, 'INSERT INTO test (`id`) VALUES (?) ON DUPLICATE KEY UPDATE _rowid=_rowid');
 			expect(values).to.deep.equal([1]);
 			return {};
 
@@ -79,6 +79,26 @@ describe('post', () => {
 
 		await dare
 			.post('test', {id: 1}, {duplicate_keys: 'ignore'});
+
+		expect(called).to.eql(1);
+
+	});
+
+	it('should accept option.ignore=true', async () => {
+
+		let called;
+
+		dare.execute = async ({sql, values}) => {
+
+			called = 1;
+			sqlEqual(sql, 'INSERT IGNORE INTO test (`id`) VALUES (?)');
+			expect(values).to.deep.equal([1]);
+			return {};
+
+		};
+
+		await dare
+			.post('test', {id: 1}, {ignore: true});
 
 		expect(called).to.eql(1);
 

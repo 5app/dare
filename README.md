@@ -691,7 +691,7 @@ This generates `INSERT INTO user (name, profession) VALUES ('Andrew', 'Mad Scien
 
 | Prop          | Type             | Description
 |---------------|------------------|----------------
-| duplicate_keys | 'ignore'         | Inserts SQL 'IGNORE' option
+| duplicate_keys | 'ignore'         | Appends `ON DUPLICATE KEYS UPDATE _rowid=_rowid`
 | duplicate_keys_update | Array(field1, field2, ...) | Appends `ON DUPLICATE KEYS UPDATE field1=VALUES(field1)`
 
 
