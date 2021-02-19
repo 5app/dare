@@ -1,3 +1,10 @@
+# [0.53.0](https://github.com/5app/dare/compare/v0.52.1...v0.53.0) (2021-02-19)
+
+
+### Features
+
+* show more errors when duplicate_key='ignore' is set ([#170](https://github.com/5app/dare/issues/170)) ([d523bc8](https://github.com/5app/dare/commit/d523bc8a3abf7514a857ef7302589744cc56e0d6))
+
 ## [0.52.1](https://github.com/5app/dare/compare/v0.52.0...v0.52.1) (2021-02-17)
 
 
