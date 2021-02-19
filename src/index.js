@@ -368,12 +368,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	}
 
 	// If ignore duplicate keys is stated as ignore
-	let exec = '';
-	if (req.duplicate_keys && req.duplicate_keys.toString().toLowerCase() === 'ignore') {
-
-		exec = 'IGNORE';
-
-	}
+	const exec = req.ignore ? 'IGNORE' : '';
 
 	// Get the schema
 	const tableSchema = _this.options.schema && _this.options.schema[req.table];
@@ -436,7 +431,17 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	const unAliaser = field => unAliasFields(tableSchema, field);
 
 	// Options
-	const on_duplicate_keys_update = (req.duplicate_keys_update && onDuplicateKeysUpdate(req.duplicate_keys_update.map(unAliaser))) || '';
+	let on_duplicate_keys_update = '';
+	if (req.duplicate_keys_update) {
+
+		on_duplicate_keys_update = onDuplicateKeysUpdate(req.duplicate_keys_update.map(unAliaser));
+
+	}
+	else if (req.duplicate_keys && req.duplicate_keys.toString().toLowerCase() === 'ignore') {
+
+		on_duplicate_keys_update = `${onDuplicateKeysUpdate()}_rowid=_rowid`;
+
+	}
 
 	// Construct a db update
 	const sql = `INSERT ${exec} INTO ${req.table}
@@ -571,7 +576,7 @@ function mustAffectRows(result, notfound) {
 
 }
 
-function onDuplicateKeysUpdate(keys) {
+function onDuplicateKeysUpdate(keys = []) {
 
 	const s = keys.map(name => `${name}=VALUES(${name})`).join(',');
 
