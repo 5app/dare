@@ -27,6 +27,8 @@ describe('utils/unwrap_field', () => {
 		'IF(field <= 1, "yes", "no")',
 		'IF(field != 1, "yes", "no")',
 		'IF(field <> 1, "yes", "no")',
+		'IF(field = "string", "yes", "no")',
+		'IF(field != \'string\', "yes", "no")',
 		'COALESCE(field, "")',
 		'NULLIF(field, "is null")',
 		'ROUND(field, 2)',
@@ -57,7 +59,8 @@ describe('utils/unwrap_field', () => {
 		'CONCAT(field, secret)',
 		'IF(field < field2, "yes", "no")',
 		'IF(field IS NOT NULL, "yes", "no")',
-		'IF(field < "string", "yes", "no")',
+		'IF(field < "string"str, "yes", "no")',
+		'IF(field = \'string", "yes", "no")',
 		'IF(field <<< 123, "yes", "no")',
 		'IF(field<123, "yes", "no")',
 		'DATE_FORMAT(field, '

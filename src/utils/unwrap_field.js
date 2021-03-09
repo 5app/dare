@@ -50,9 +50,9 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 
 
 			/*
-			 * Deal with math and operators against a number...
+			 * Deal with math and operators against a value
 			 */
-			const int_x = str.match(/(.*)(\s(\*|\/|>|<|=|<=|>=|<>|!=)\s[0-9.]+)$/i);
+			const int_x = str.match(/(.*)(\s(\*|\/|>|<|=|<=|>=|<>|!=)\s([0-9.]+|((["'])[a-z0-9%._\s-]*\6)))$/i);
 
 			if (int_x) {
 
