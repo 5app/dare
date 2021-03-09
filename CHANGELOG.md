@@ -1,3 +1,10 @@
+# [0.54.0](https://github.com/5app/dare/compare/v0.53.0...v0.54.0) (2021-03-09)
+
+
+### Features
+
+* **fields:** support SQL IF(field = 'string', ...) field definition ([912dd79](https://github.com/5app/dare/commit/912dd795988bbe7a6164225a079c6883d88d9150))
+
 # [0.53.0](https://github.com/5app/dare/compare/v0.52.1...v0.53.0) (2021-02-19)
 
 
