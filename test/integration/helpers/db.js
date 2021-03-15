@@ -4,9 +4,6 @@ const mysql = require('mysql2/promise');
 // Initiates the mysql connection
 class DB {
 
-	constructor() {
-		//
-	}
 	async init(mysqlSettings) {
 
 		this.conn = await mysql.createConnection({

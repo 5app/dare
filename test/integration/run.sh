@@ -12,23 +12,19 @@ set -e
 
 CURR_SCRIPT_RELATIVE="${BASH_SOURCE[0]}"
 CURR_DIR_RELATIVE="$(dirname "${CURR_SCRIPT_RELATIVE}")"
-INTEGRATION_TEST_DIR="$(cd "${CURR_DIR_RELATIVE}" >/dev/null 2>&1 && pwd)"
-echo "INTEGRATION_TEST_DIR=${INTEGRATION_TEST_DIR}/"
+INTEGRATION_TEST_DIR="$(cd "${CURR_DIR_RELATIVE}" >/dev/null 2>&1 && pwd)/"
+echo "INTEGRATION_TEST_DIR=${INTEGRATION_TEST_DIR}"
 # Changing to this dir means docker-compose will use the correct docker-compose.yml file.
 # As an alternative we could pass the file with -f flag, but then we have to remember to add it to every
 # docker-compose command (including those invoked from within nodejs/mocha beforeEach).
 # Could always move the docker-compose file to the root (dashboardV2/)
 cd "$INTEGRATION_TEST_DIR" || exit 1
 
-echo "cd ${INTEGRATION_TEST_DIR}"
-
 MYSQL_ROOT_USER="root"
 MYSQL_ROOT_PASSWORD="test_pass"
-PRE_MIGRATION_SQL_PATH="/docker-entrypoint-initdb.d/data.sql"
-TEMPLATE_DB="template_testdb"
 
-export TEST_DB_SCHEMA_PATH="${INTEGRATION_TEST_DIR}/data/schema.sql"
-export TEST_DB_DATA_PATH="${INTEGRATION_TEST_DIR}/data/data.sql"
+export TEST_DB_SCHEMA_PATH="${INTEGRATION_TEST_DIR}data/schema.sql"
+export TEST_DB_DATA_PATH="${INTEGRATION_TEST_DIR}data/data.sql"
 export TEST_STATE_CLEANUP_MODE=${TEST_STATE_CLEANUP_MODE:-remove}
 export MYSQL_USER="mysqluser"
 export MYSQL_PASSWORD="password"
@@ -36,7 +32,6 @@ export MYSQL_HOST="127.0.0.1"
 export MYSQL_PORT=3308
 
 export TZ="UTC"
-export LOGS_LEVEL="${LOGS_LEVEL:-error}"
 
 docker-compose up -d || {
   echo 'docker-compose failed'
@@ -55,7 +50,7 @@ for dep in mysql; do
     # maybe it's this? https://stackoverflow.com/questions/6877012/incrementing-a-variable-triggers-exit-in-bash-4-but-not-in-bash-3
     # why is circle running two versions of bash!?!?
     i=$((i + 1))
-	echo "count $i";
+	echo "pending $i";
     sleep 2
     if [[ "$i" -gt '20' ]]; then
       echo "${dep} failed to start. Final status: $(docker inspect --format='{{.State.Health.Status}}' "dare_${dep}")"
@@ -64,7 +59,6 @@ for dep in mysql; do
     fi
   done
   echo "${dep} up"
-  sleep 5
 done
 
 echo 'building template db...'
@@ -74,10 +68,6 @@ mysql="docker-compose exec -e MYSQL_PWD=${MYSQL_ROOT_PASSWORD} -T mysql mysql -u
 echo '...'
 
 $mysql <<INITDB
-DROP DATABASE IF EXISTS ${TEMPLATE_DB};
-CREATE DATABASE ${TEMPLATE_DB};
-USE ${TEMPLATE_DB};
-SOURCE ${PRE_MIGRATION_SQL_PATH};
 GRANT ALL PRIVILEGES ON *.* TO '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}' WITH GRANT OPTION;
 INITDB
 

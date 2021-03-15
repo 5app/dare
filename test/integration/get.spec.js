@@ -1,5 +1,5 @@
 const Dare = require('../../src');
-const db = require('./helpers/db');
+const {db} = global;
 
 // Connect to db
 
