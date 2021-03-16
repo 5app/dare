@@ -1,3 +1,4 @@
+const Dare = require('../../src/');
 const DareError = require('../../src/utils/error');
 
 describe('validate_body', () => {

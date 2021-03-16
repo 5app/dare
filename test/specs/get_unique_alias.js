@@ -1,4 +1,4 @@
-
+const Dare = require('../../src/');
 
 describe('get_unique_alias', () => {
 

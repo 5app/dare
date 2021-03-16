@@ -1,4 +1,4 @@
-
+const Dare = require('../../src/');
 const clone = require('tricks/object/clone');
 const DareError = require('../../src/utils/error');
 

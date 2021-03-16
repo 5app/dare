@@ -1,3 +1,4 @@
+const Dare = require('../../src/');
 /*
  * Format Request
  * Takes a simple request object and explodes it into a more comprehensive object using the schema

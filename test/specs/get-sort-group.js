@@ -1,3 +1,5 @@
+const Dare = require('../../src/');
+
 const options = require('../data/options');
 
 // Test Generic DB functions

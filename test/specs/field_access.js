@@ -1,3 +1,4 @@
+const Dare = require('../../src/');
 // Test whether fields can be declared as immutable and unreadable
 const DareError = require('../../src/utils/error');
 

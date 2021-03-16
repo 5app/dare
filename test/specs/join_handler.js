@@ -1,3 +1,4 @@
+const Dare = require('../../src/');
 const joinHandler = require('../../src/format/join_handler');
 
 describe('join_handler', () => {

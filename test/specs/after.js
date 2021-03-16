@@ -1,4 +1,4 @@
-
+const Dare = require('../../src/');
 
 describe('after Handler', () => {
 

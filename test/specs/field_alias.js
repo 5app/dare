@@ -1,3 +1,4 @@
+const Dare = require('../../src/');
 
 // Create a schema
 

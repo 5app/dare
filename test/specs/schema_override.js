@@ -1,3 +1,5 @@
+const Dare = require('../../src/');
+
 describe('schema override', () => {
 
 	let dare;

@@ -1,4 +1,4 @@
-
+const Dare = require('../../src/');
 
 // Test Generic DB functions
 const expectSQLEqual = require('../lib/sql-equal');
