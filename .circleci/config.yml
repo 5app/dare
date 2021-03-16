@@ -20,6 +20,43 @@ executors:
     docker:
       - image: cimg/node:lts
 
+  ubuntu-machine:
+    working_directory: *dir
+    machine:
+      # locally we use docker-compose to manage the services for our integration tests,
+      # and we use the mysql cli (docker-compose exec) to import data for each test.
+      # this means, we can't use docker as our executor.
+      # The alternative (Docker-in-docker via circle-ci) requires some oddities for mounting
+      # volumes and networking, so using a real VM is the easiest option:
+      # https://circleci.com/docs/2.0/docker-compose/#using-docker-compose-with-docker-executor
+      image: ubuntu-1604:202007-01
+      docker_layer_caching: true
+
+
+################################
+# Commands
+
+commands:
+
+  install_node:
+    description: Install Node
+    steps:
+      - run:
+          # $BASH_ENV contains the path to a file which is sourced on every step,
+          # so we add exporting the NVM_DIR var and sourcing the nvm.sh bootstrapper to it.
+          # This way, it bootstraps the same nvm install on every subsequent step,
+          # including the next one which installs the right version of node.
+          name: Setup nvm
+          command: |
+            echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
+            echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> $BASH_ENV
+      - run:
+          name: Install node@14
+          command: |
+            nvm install v14
+            nvm alias default v14
+            node --version
+
 
 ################################
 # Jobs
@@ -29,15 +66,6 @@ jobs:
     executor: node
     steps:
       - checkout
-      - persist_to_workspace:
-          root: *dir
-          paths:
-            - .
-
-  test:
-    executor: node
-    steps:
-      - *attach_workspace
       - restore_cache:
           keys:
             - *cache-key
@@ -47,6 +75,15 @@ jobs:
           key: *cache-key
           paths:
             - ./node_modules
+      - persist_to_workspace:
+          root: *dir
+          paths:
+            - .
+
+  test:
+    executor: node
+    steps:
+      - *attach_workspace
       - run:
           environment:
             MOCHA_FILE: /tmp/test-results/mocha.xml
@@ -56,10 +93,15 @@ jobs:
             npm run test:ci
       - store_test_results:
           path: /tmp/test-results
-      - persist_to_workspace:
-          root: *dir
-          paths:
-            - node_modules
+
+  integration:
+    executor: ubuntu-machine
+    steps:
+      - install_node
+      - *attach_workspace
+      - run:
+          name: Run integration tests
+          command: npm run test:integration -- --exit --timeout=4000
 
   release:
     executor: node
@@ -80,7 +122,11 @@ workflows:
       - test:
           requires:
             - checkout_code
+      - integration:
+          requires:
+            - checkout_code
       - release:
           context: org-global
           requires:
             - test
+            - integration
