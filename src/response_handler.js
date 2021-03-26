@@ -85,7 +85,7 @@ function formatHandler(item) {
 		else {
 
 			// This has multiple parts
-			const r = /^([a-z0-9.\s_-]*)\[(.*?)\]$/i;
+			const r = /^([\w.\s-]*)\[(.*?)\]$/;
 			const m = label.match(r);
 
 			if (!m) {

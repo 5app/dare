@@ -2,6 +2,7 @@
 	"root": true,
 	"extends": [
 		"plugin:node/recommended",
+		"plugin:clean-regex/recommended",
 		"5app"
 	],
 	"plugins": [
