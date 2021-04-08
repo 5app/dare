@@ -78,7 +78,7 @@ async function format_request(options = {}, dareInstance) {
 		if (handler) {
 
 			// Trigger the handler which alters the options...
-			await handler.call(dareInstance, options);
+			await handler.call(dareInstance, options, dareInstance);
 
 		}
 

@@ -1109,6 +1109,36 @@ describe('format_request', () => {
 
 		});
 
+		it('should provide the instance of dare in the request', () => {
+
+			let dareInstance;
+			let that;
+
+			dare.options = {
+				get: {
+					users(options, _dareInstance) {
+
+						dareInstance = _dareInstance;
+						that = this;
+
+					}
+				},
+				method: 'get'
+			};
+
+			dare.format_request({
+				method,
+				table: 'users',
+				fields: [
+					'name'
+				]
+			});
+
+			expect(dareInstance).to.equal(dare);
+			expect(that).to.equal(dare);
+
+		});
+
 	});
 
 });
