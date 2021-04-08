@@ -1,3 +1,10 @@
+# [0.55.0](https://github.com/5app/dare/compare/v0.54.0...v0.55.0) (2021-04-08)
+
+
+### Features
+
+* **handlers:** pass dare instance in second parameters ([ba0ef40](https://github.com/5app/dare/commit/ba0ef40f1c297ceadc7da416a63d14be8cde6809))
+
 # [0.54.0](https://github.com/5app/dare/compare/v0.53.0...v0.54.0) (2021-03-09)
 
 
