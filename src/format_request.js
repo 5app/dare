@@ -34,7 +34,13 @@ module.exports = function(options) {
  * @param {Dare} dareInstance - Instance of Dare
  * @returns {object} formatted object with all the joins
  */
-async function format_request(options = {}, dareInstance) {
+async function format_request(options, dareInstance) {
+
+	if (!options) {
+
+		throw new DareError(DareError.INVALID_REQUEST, `Invalid options '${options}'`);
+
+	}
 
 	// Use the alias to find the real table name
 	if (!options.alias) {
