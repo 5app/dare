@@ -1,3 +1,10 @@
+## [0.55.1](https://github.com/5app/dare/compare/v0.55.0...v0.55.1) (2021-04-28)
+
+
+### Bug Fixes
+
+* throw error when calling format_request with falsy value ([7e34410](https://github.com/5app/dare/commit/7e344101473b310f479787c2cd2c5a2437e1795c))
+
 # [0.55.0](https://github.com/5app/dare/compare/v0.54.0...v0.55.0) (2021-04-08)
 
 
