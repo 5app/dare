@@ -29,13 +29,15 @@ describe('format_request', () => {
 
 	});
 
-	it('should return a promise', () => {
+	it('should require arguments and return a promise', () => {
 
-		const fn = dare.format_request().catch(() => {
-			// Ignore DareErrors
-		});
+		const fn = dare.format_request();
 
 		expect(fn).to.have.property('then');
+
+		return expect(fn)
+			.to.be.eventually.rejectedWith(DareError)
+			.and.have.property('code', DareError.INVALID_REQUEST);
 
 	});
 
