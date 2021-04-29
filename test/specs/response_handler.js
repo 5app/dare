@@ -45,7 +45,8 @@ describe('response_handler', () => {
 		const data = dare.response_handler([{
 			'field': 'value',
 			'assoc.id,assoc.name': '["1","a"]',
-			'a,b': Buffer.from('["1","2"]')
+			'a,b': Buffer.from('["1","2"]'),
+			'ignore,null': null
 		}]);
 
 		expect(data).to.be.an('array');
@@ -60,6 +61,7 @@ describe('response_handler', () => {
 		});
 
 	});
+
 
 	it('should given a nested dataset', () => {
 
