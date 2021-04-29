@@ -74,11 +74,19 @@ function formatHandler(item) {
 			// Lets split the value up
 			value = JSONparse(value);
 
-			label.split(',').forEach((label, index) => {
+			/*
+			 * Ensure this is an Array
+			 * Subqueries may return NULL if they do not match any records
+			 */
+			if (Array.isArray(value)) {
 
-				explodeKeyValue(item, label.split('.'), value[index]);
+				label.split(',').forEach((label, index) => {
 
-			});
+					explodeKeyValue(item, label.split('.'), value[index]);
+
+				});
+
+			}
 
 		}
 
