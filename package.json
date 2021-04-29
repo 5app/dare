@@ -1,6 +1,6 @@
 {
   "name": "dare",
-  "version": "0.55.1",
+  "version": "0.55.2",
   "description": "Database to REST, REST to Database",
   "main": "src/index.js",
   "engines": {

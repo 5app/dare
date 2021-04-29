@@ -1,3 +1,10 @@
+## [0.55.2](https://github.com/5app/dare/compare/v0.55.1...v0.55.2) (2021-04-29)
+
+
+### Bug Fixes
+
+* **subquery:** fix null subquery response ([b20fe7b](https://github.com/5app/dare/commit/b20fe7b8829c20fc468e868ce056dea0f4dcb46a))
+
 ## [0.55.1](https://github.com/5app/dare/compare/v0.55.0...v0.55.1) (2021-04-28)
 
 
