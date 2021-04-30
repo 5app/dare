@@ -2,7 +2,7 @@ const DareError = require('./error');
 
 module.exports = function validate_label(label) {
 
-	const reg = /^[^'"?`]+$/i;
+	const reg = /^[^'"?`]+$/;
 
 	// Capture errors in the key
 	if (!label.match(reg)) {
