@@ -1,3 +1,10 @@
+## [0.55.3](https://github.com/5app/dare/compare/v0.55.2...v0.55.3) (2021-04-30)
+
+
+### Bug Fixes
+
+* **suffixing:** model names with $ in nested fields handling ([fdaffd7](https://github.com/5app/dare/commit/fdaffd796ca1cc38479ff90ee8f084d023f9cc95))
+
 ## [0.55.2](https://github.com/5app/dare/compare/v0.55.1...v0.55.2) (2021-04-29)
 
 
