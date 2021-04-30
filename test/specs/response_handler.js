@@ -98,6 +98,7 @@ describe('response_handler', () => {
 			'field': 'value',
 			'asset.id': 1,
 			'asset.collection[id,name,assoc.id,assoc.name]': '[["1","a","a1","aa"],["2","b","b1","ba"]]',
+			'asset$planb.collection[id,name]': '[["1","a"],["2","b"]]',
 			'asset.name': 'name'
 		}]);
 
@@ -121,6 +122,15 @@ describe('response_handler', () => {
 						id: 'b1',
 						name: 'ba'
 					}
+				}]
+			},
+			'asset$planb': {
+				collection: [{
+					id: '1',
+					name: 'a'
+				}, {
+					id: '2',
+					name: 'b'
 				}]
 			}
 		});

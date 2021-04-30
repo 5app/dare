@@ -93,7 +93,7 @@ function formatHandler(item) {
 		else {
 
 			// This has multiple parts
-			const r = /^([a-z0-9.\s_-]*)\[(.*?)\]$/i;
+			const r = /^([a-z0-9.$\s_-]*)\[(.*?)\]$/i;
 			const m = label.match(r);
 
 			if (!m) {
