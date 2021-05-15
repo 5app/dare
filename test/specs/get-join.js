@@ -670,7 +670,7 @@ describe('get - request object', () => {
 
 		});
 
-		it.skip('should allow generated fields to be rendered in the response', async () => {
+		it('should allow generated fields to be restructured in the reponse', async () => {
 
 			// Stub the execute function
 			dare.sql = () =>
@@ -700,8 +700,6 @@ describe('get - request object', () => {
 			expect(resp).to.deep.equal({
 				name: 'Andrew',
 				thumbnail: '/asset/1/thumbnail',
-				picture: {
-				},
 				pictureUrl: 'http://example.com/picture/100/image'
 			});
 

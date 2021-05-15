@@ -140,6 +140,7 @@ describe('response_handler', () => {
 	it('should transform a deep linked nested array with generated fields', () => {
 
 		const handler = row => row.id + 2;
+		const field = 'something';
 
 		const extraFields = ['id'];
 
@@ -147,30 +148,35 @@ describe('response_handler', () => {
 		dare.generated_fields = [
 			{
 				label: 'generated',
+				field,
 				field_alias_path: '',
 				handler,
 				extraFields
 			},
 			{
 				label: 'generated2',
+				field,
 				field_alias_path: 'asset.',
 				handler,
 				extraFields
 			},
 			{
 				label: 'generated3',
+				field,
 				field_alias_path: 'asset.collection.',
 				handler,
 				extraFields: []
 			},
 			{
 				label: 'generated4',
+				field,
 				field_alias_path: 'asset.collection.assoc.',
 				handler,
 				extraFields
 			},
 			{
 				label: 'willnotappear',
+				field,
 				field_alias_path: 'doesnotmatch.',
 				handler,
 				extraFields
@@ -210,6 +216,76 @@ describe('response_handler', () => {
 					}
 				}]
 			}
+		});
+
+	});
+
+	it('should transform a nested arrays to single root level', () => {
+
+		const empty = 'empty';
+		const handler = row => (row.id ? row.id + 2 : empty);
+
+		const extraFields = ['id', 'name'];
+
+		// Create a list of generated fields
+		dare.generated_fields = [
+			{
+				label: 'LabelA',
+				field: 'a.id',
+				field_alias_path: '',
+				handler,
+				extraFields
+			},
+			{
+				label: 'LabelB',
+				field: 'b.id',
+				field_alias_path: '',
+				handler,
+				extraFields
+			},
+			{
+				label: 'LabelC',
+				field: 'c.id',
+				field_alias_path: '',
+				handler,
+				extraFields
+			},
+			{
+				label: 'LabelD',
+				field: 'd.id',
+				field_alias_path: '',
+				handler,
+				extraFields
+			},
+			{
+				label: 'LabelE',
+				field: 'e.id',
+				field_alias_path: '',
+				handler,
+				extraFields
+			}
+		];
+
+		const data = dare.response_handler([{
+			'a[id,name]': '[["1","a"]]',
+			'b[id,name]': '[["1","a"],["2","b"]]',
+			'c[id,name]': '[]',
+			'd[id,name]': '[[]]',
+			'e[id,name]': null
+		}]);
+
+		expect(data).to.be.an('array');
+		expect(data[0]).to.deep.equal({
+			// @todo remove this b prop.
+			b: [{
+				id: '2',
+				name: 'b'
+			}],
+			LabelA: '12',
+			LabelB: '12',
+			LabelC: empty,
+			LabelD: empty,
+			LabelE: empty
 		});
 
 	});
