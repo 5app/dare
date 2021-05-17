@@ -1,3 +1,10 @@
+## [0.55.4](https://github.com/5app/dare/compare/v0.55.3...v0.55.4) (2021-05-17)
+
+
+### Bug Fixes
+
+* **generated:** fix referencing a nested generated field ([10fcec9](https://github.com/5app/dare/commit/10fcec904e4fb035de6effeceed1e1030d1575a7))
+
 ## [0.55.3](https://github.com/5app/dare/compare/v0.55.2...v0.55.3) (2021-04-30)
 
 
