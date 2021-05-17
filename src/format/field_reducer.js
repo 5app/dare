@@ -183,6 +183,7 @@ function fieldMapping({field, label, fieldsArray, originalArray, field_alias_pat
 			// Add for post processing
 			dareInstance.generated_fields.unshift({
 				label,
+				field,
 				field_alias_path,
 				handler: generated_field,
 				extraFields
@@ -192,7 +193,10 @@ function fieldMapping({field, label, fieldsArray, originalArray, field_alias_pat
 
 		}
 
-		// Execute the handler, add the response to the field list
+		/**
+		 * Otherwise the generated field has returned a string
+		 * Return the string
+		 */
 		return {
 			[label]: generated_field
 		};
@@ -227,6 +231,7 @@ function fieldMapping({field, label, fieldsArray, originalArray, field_alias_pat
 		// Add for post processing
 		dareInstance.generated_fields.push({
 			label,
+			field,
 			field_alias_path,
 			handler: item => jsonParse(item[label]) || {}
 		});
