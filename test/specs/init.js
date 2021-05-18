@@ -21,6 +21,23 @@ describe('Dare', () => {
 
 	});
 
+	it('should define legacy options {schema}', () => {
+
+		const schema = {
+			tableA: {}
+		};
+		const dare = new Dare({
+			schema
+		});
+		expect(dare.options).to.have.property('schema', schema);
+
+		// But should still construct a model
+		expect(dare.options)
+			.to.have.property('models')
+			.to.deep.eql({'tableA': {schema: {}}});
+
+	});
+
 	it('should export the DareError object', () => {
 
 		expect(Dare.DareError).to.eql(DareError);

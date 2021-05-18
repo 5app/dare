@@ -27,10 +27,13 @@ module.exports.DareError = DareError;
  * @param {object} options - Initial options defining the instance
  * @returns {object} instance of dare
  */
-function Dare(options) {
+function Dare(options = {}) {
+
+	// Backwards compatibility for {schema}
+	migrateToModels(options);
 
 	// Overwrite default properties
-	this.options = options || {};
+	this.options = options;
 
 	return this;
 
@@ -111,6 +114,9 @@ Dare.prototype.after = function(resp) {
 Dare.prototype.use = function(options = {}) {
 
 	const inst = Object.create(this);
+
+	// Backwards compatibility for {schema}
+	migrateToModels(options);
 
 	// Create a new options, merging inheritted and new
 	inst.options = extend(clone(this.options), options);
@@ -683,5 +689,30 @@ function formCondition(field, condition) {
 
 	// Insert the field name in place
 	return condition.includes('$$') ? condition.replace(/\$\$/g, field) : `${field} ${condition}`;
+
+}
+
+/**
+ * Migrate to Models
+ * Backwards compatibility for {schema}
+ * @param {object} options - Options object
+ * @returns {void} Extends paramater
+ */
+function migrateToModels(options) {
+
+	// Legacy input...
+	if (options.schema && !options.models) {
+
+		options.models = {};
+
+		for (const table in options.schema) {
+
+			options.models[table] = {
+				schema: options.schema[table]
+			};
+
+		}
+
+	}
 
 }

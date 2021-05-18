@@ -14,146 +14,160 @@ const models = {
 	}
 };
 
+// Legacy schema
+const schema = {
+	teams: {},
+	users: {},
+	userTeams: {
+		'user_id': ['users.id'],
+		'team_id': ['teams.id']
+	}
+};
+
 // Connect to db
 
-describe('dare init tests', () => {
+[{models}, {schema}].forEach(options => {
 
-	let dare;
+	describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 
-	beforeEach(() => {
+		let dare;
 
-		// Initiate
-		dare = new Dare({models});
+		beforeEach(() => {
 
-		// Set a test instance
-		// eslint-disable-next-line arrow-body-style
-		dare.execute = query => {
+			// Initiate
+			dare = new Dare(options);
 
-			// DEBUG console.log(mysql.format(query.sql, query.values));
+			// Set a test instance
+			// eslint-disable-next-line arrow-body-style
+			dare.execute = query => {
 
-			return db.query(query);
+				// DEBUG console.log(mysql.format(query.sql, query.values));
 
-		};
+				return db.query(query);
 
-	});
+			};
 
-	it('Can insert and retrieve results ', async () => {
+		});
 
-		const username = 'A Name';
-		await dare.post('users', {username});
+		it('Can insert and retrieve results ', async () => {
 
-		const resp = await dare.get('users', ['username']);
+			const username = 'A Name';
+			await dare.post('users', {username});
 
-		expect(resp).to.have.property('username', username);
+			const resp = await dare.get('users', ['username']);
 
-	});
+			expect(resp).to.have.property('username', username);
 
-	it('Can update results', async () => {
+		});
 
-		const username = 'A Name';
-		const newName = 'New name';
-		const {insertId} = await dare.post('users', {username});
-		await dare.patch('users', {id: insertId}, {username: newName});
+		it('Can update results', async () => {
 
-		const resp = await dare.get('users', ['username']);
+			const username = 'A Name';
+			const newName = 'New name';
+			const {insertId} = await dare.post('users', {username});
+			await dare.patch('users', {id: insertId}, {username: newName});
 
-		expect(resp).to.have.property('username', newName);
+			const resp = await dare.get('users', ['username']);
 
-	});
+			expect(resp).to.have.property('username', newName);
 
-
-	it('should be able to return nested values', async () => {
-
-		const teamName = 'A Team';
-
-		// Create users, team and add the two
-		const [user, team] = await Promise.all([
-
-			// Create user
-			dare.post('users', {username: 'user123'}),
-
-			// Create team
-			dare.post('teams', {name: teamName})
-
-		]);
-
-		// Add to the pivot table
-		await dare.post('userTeams', {user_id: user.insertId, team_id: team.insertId});
+		});
 
 
-		{
+		it('should be able to return nested values', async () => {
 
-			// Same Structure
-			const resp = await dare.get({
-				table: 'users',
-				fields: [
-					{
-						'userTeams': {
-							'teams': [
-								'id',
-								'name',
-								'description'
-							]
+			const teamName = 'A Team';
+
+			// Create users, team and add the two
+			const [user, team] = await Promise.all([
+
+				// Create user
+				dare.post('users', {username: 'user123'}),
+
+				// Create team
+				dare.post('teams', {name: teamName})
+
+			]);
+
+			// Add to the pivot table
+			await dare.post('userTeams', {user_id: user.insertId, team_id: team.insertId});
+
+
+			{
+
+				// Same Structure
+				const resp = await dare.get({
+					table: 'users',
+					fields: [
+						{
+							'userTeams': {
+								'teams': [
+									'id',
+									'name',
+									'description'
+								]
+							}
 						}
-					}
-				]
-			});
-
-			expect(resp)
-				.to.deep.nested.include({'userTeams[0].teams': {
-					id: String(team.insertId),
-					name: teamName,
-					description: ''
-				}});
-
-		}
-
-		{
-
-			// Remap Structure
-			const resp = await dare.get({
-				table: 'users',
-				fields: [
-					{
-						'id': 'userTeams.teams.id',
-						'name': 'userTeams.teams.name',
-						'description': 'userTeams.teams.description'
-					}
-				]
-			});
-
-			expect(resp)
-				.to.deep.nested.equal({
-					id: String(team.insertId),
-					name: teamName,
-					description: ''
+					]
 				});
 
-		}
+				expect(resp)
+					.to.deep.nested.include({'userTeams[0].teams': {
+						id: String(team.insertId),
+						name: teamName,
+						description: ''
+					}});
+
+			}
+
+			{
+
+				// Remap Structure
+				const resp = await dare.get({
+					table: 'users',
+					fields: [
+						{
+							'id': 'userTeams.teams.id',
+							'name': 'userTeams.teams.name',
+							'description': 'userTeams.teams.description'
+						}
+					]
+				});
+
+				expect(resp)
+					.to.deep.nested.equal({
+						id: String(team.insertId),
+						name: teamName,
+						description: ''
+					});
+
+			}
 
 
-		{
+			{
 
-			// Remap Structure
-			const resp = await dare.get({
-				table: 'users',
-				fields: [
-					{
-						'id': 'userTeams.teams.id',
-						'name': 'userTeams.teams.name',
-						'description': 'userTeams.teams.description'
-					}
-				],
-				join: {
+				// Remap Structure
+				const resp = await dare.get({
+					table: 'users',
+					fields: [
+						{
+							'id': 'userTeams.teams.id',
+							'name': 'userTeams.teams.name',
+							'description': 'userTeams.teams.description'
+						}
+					],
+					join: {
 					// When there are no results we get an empty value
-					userTeams: {id: -1}
-				}
-			});
+						userTeams: {id: -1}
+					}
+				});
 
-			expect(resp)
-				.to.deep.nested.equal({});
+				expect(resp)
+					.to.deep.nested.equal({});
 
-		}
+			}
+
+		});
 
 	});
 
