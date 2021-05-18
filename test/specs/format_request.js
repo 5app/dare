@@ -18,7 +18,7 @@ describe('format_request', () => {
 
 		// Create an execution instance
 		dare = dare.use({
-			schema: {}
+			models: {}
 		});
 
 	});
@@ -100,8 +100,10 @@ describe('format_request', () => {
 		beforeEach(() => {
 
 			dare.options = {
-				schema: {
-					'asset': {tbl_id: 'tbl.id'}
+				models: {
+					'asset': {
+						schema: {tbl_id: 'tbl.id'}
+					}
 				}
 			};
 
@@ -429,23 +431,25 @@ describe('format_request', () => {
 
 		describe(condition_type, () => {
 
-			describe('should prep conditions', () => {
+			const table = 'table';
 
-				const table = 'table';
+			beforeEach(() => {
 
-				beforeEach(() => {
-
-					dare.options = {
-						schema: {
-							[table]: {
+				dare.options = {
+					models: {
+						[table]: {
+							schema: {
 								date: {
 									type: 'datetime'
 								}
 							}
 						}
-					};
+					}
+				};
 
-				});
+			});
+
+			describe('should prep conditions', () => {
 
 				const a = [
 					[
@@ -700,16 +704,6 @@ describe('format_request', () => {
 
 					it(`should augment filter values ${date}`, async () => {
 
-						dare.options = {
-							schema: {
-								[table]: {
-									date: {
-										type: 'datetime'
-									}
-								}
-							}
-						};
-
 						const resp = await dare.format_request({
 							table,
 							fields: ['id'],
@@ -732,12 +726,12 @@ describe('format_request', () => {
 
 	describe('table_alias_handler', () => {
 
-		const schema = {
+		const models = {
 			asset: {
-				name: {}
+				schema: {name: {}}
 			},
 			events: {
-				asset_id: 'asset.id'
+				schema: {asset_id: 'asset.id'}
 			}
 		};
 
@@ -745,7 +739,7 @@ describe('format_request', () => {
 		it('should use options.table_alias_handler for interpretting the table names', async () => {
 
 			dare.options = {
-				schema
+				models
 			};
 
 			dare.table_alias_handler = table => ({'events': 'events', 'alias': 'asset'}[table]);
@@ -769,7 +763,7 @@ describe('format_request', () => {
 		it('should use the options.table_alias hash if no handler is defined', async () => {
 
 			dare.options = {
-				schema,
+				models,
 				table_alias: {
 					'events': 'events',
 					'alias': 'asset'
@@ -797,7 +791,7 @@ describe('format_request', () => {
 			it('should throw an DareError if falsly on join table', () => {
 
 				dare.options = {
-					schema
+					models
 				};
 
 				dare.table_alias_handler = table_alias => ({'public': 'public'}[table_alias]);
@@ -828,9 +822,13 @@ describe('format_request', () => {
 
 			// Redefine the structure
 			dare.options = {
-				schema: {
-					asset: {name: {}},
-					comments: {name: {}}
+				models: {
+					asset: {
+						schema: {name: {}}
+					},
+					comments: {
+						schema: {name: {}}
+					}
 				}
 			};
 
@@ -855,12 +853,16 @@ describe('format_request', () => {
 
 			// Redefine the structure
 			dare.options = {
-				schema: {
-					asset: {name: {}},
+				models: {
+					asset: {
+						schema: {name: {}}
+					},
 					comments: {
-						name: {},
-						asset_id: {
-							references: 'asset.id'
+						schema: {
+							name: {},
+							asset_id: {
+								references: 'asset.id'
+							}
 						}
 					}
 				}
@@ -883,17 +885,21 @@ describe('format_request', () => {
 
 			// Redefine the structure
 			dare.options = {
-				schema: {
-					asset: {name: {}},
+				models: {
+					asset: {
+						schema: {name: {}}
+					},
 					assetType: {
 						// References can be as simple as a string to another [table].[field]
-						asset_id: 'asset.id'
+						schema: {asset_id: 'asset.id'}
 					},
 					comments: {
-						name: {},
-						asset_id: {
-							// There can also be multiple references to connect more than one table on this key...
-							references: ['asset.id', 'assetType.asset_id']
+						schema: {
+							name: {},
+							asset_id: {
+								// There can also be multiple references to connect more than one table on this key...
+								references: ['asset.id', 'assetType.asset_id']
+							}
 						}
 					}
 				}
@@ -919,13 +925,13 @@ describe('format_request', () => {
 
 			// Here the schema is a series of tables a street, belongs to 1 town and in return 1 country
 			dare.options = {
-				schema: {
+				models: {
 					street: {
 						// References can be as simple as a string to another [table].[field]
-						town_id: 'town.id'
+						schema: {town_id: 'town.id'}
 					},
 					town: {
-						country_id: 'country.id'
+						schema: {country_id: 'country.id'}
 					},
 					country: {}
 				}
@@ -1012,10 +1018,10 @@ describe('format_request', () => {
 			const removed = {removed: false};
 
 			dare.options = {
-				schema: {
-					users: {},
+				models: {
+					users: {schema: {}},
 					comments: {
-						'user_id': 'users.id'
+						schema: {'user_id': 'users.id'}
 					}
 				},
 				get: {

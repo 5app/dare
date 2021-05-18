@@ -14,12 +14,14 @@ describe('after Handler', () => {
 		 * Setup test schema
 		 */
 		dare = dare.use({
-			schema: {
+			models: {
 				'users': {
 
 				},
 				'emails': {
-					user_id: 'users.id'
+					schema: {
+						user_id: 'users.id'
+					}
 				}
 			},
 			meta: {

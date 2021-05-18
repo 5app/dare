@@ -142,10 +142,12 @@ describe('patch', () => {
 			beforeEach(() => {
 
 				dare.options = {
-					schema: {
+					models: {
 						'test': {
-							meta: {
-								type: 'json'
+							schema: {
+								meta: {
+									type: 'json'
+								}
 							}
 						}
 					}

@@ -10,7 +10,7 @@ const getFieldAttributes = require('../utils/field_attributes');
  */
 module.exports = function(join_object, root_object, dareInstance) {
 
-	const {schema} = dareInstance.options;
+	const {models} = dareInstance.options;
 
 	const {table: rootTable, alias: _rootAlias} = root_object;
 	const {table: joinTable, alias: _joinAlias} = join_object;
@@ -45,7 +45,7 @@ module.exports = function(join_object, root_object, dareInstance) {
 
 		for (const _b of b) {
 
-			join_conditions = links(schema[_a], _b) || invert_links(schema[_b], _a);
+			join_conditions = links(models[_a]?.schema, _b) || invert_links(models[_b]?.schema, _a);
 			if (join_conditions) {
 
 				break;
@@ -69,7 +69,7 @@ module.exports = function(join_object, root_object, dareInstance) {
 	}
 
 	// Crawl the schema for an intermediate table which is linked to both tables. link table, ... we're only going for a single Kevin Bacon. More than that and the process will deem this operation too hard.
-	for (const linkTable in schema) {
+	for (const linkTable in models) {
 
 		// Well, this would be silly otherwise...
 		if (linkTable === joinTable || linkTable === rootTable) {
@@ -79,9 +79,9 @@ module.exports = function(join_object, root_object, dareInstance) {
 		}
 
 		// LinkTable <> joinTable?
-		const sjt = schema[joinAlias] || schema[joinTable];
-		const jt = schema[joinAlias] ? joinAlias : joinTable;
-		const join_conditions = links(sjt, linkTable) || invert_links(schema[linkTable], jt);
+		const sjt = models[joinAlias]?.schema || models[joinTable]?.schema;
+		const jt = models[joinAlias]?.schema ? joinAlias : joinTable;
+		const join_conditions = links(sjt, linkTable) || invert_links(models[linkTable]?.schema, jt);
 
 
 		if (!join_conditions) {
@@ -91,7 +91,7 @@ module.exports = function(join_object, root_object, dareInstance) {
 		}
 
 		// RootTable <> linkTable
-		const root_conditions = links(schema[linkTable], rootTable) || invert_links(schema[rootTable], linkTable);
+		const root_conditions = links(models[linkTable]?.schema, rootTable) || invert_links(models[rootTable]?.schema, linkTable);
 
 		if (!root_conditions) {
 
@@ -118,14 +118,14 @@ module.exports = function(join_object, root_object, dareInstance) {
 
 };
 
-function links(tableObj, joinTable, flipped = false) {
+function links(tableSchema, joinTable, flipped = false) {
 
 	const map = {};
 
 	// Loop through the table fields
-	for (const field in tableObj) {
+	for (const field in tableSchema) {
 
-		const {references} = getFieldAttributes(tableObj[field]);
+		const {references} = getFieldAttributes(tableSchema[field]);
 
 		let ref = references || [];
 

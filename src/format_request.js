@@ -90,8 +90,8 @@ async function format_request(options, dareInstance) {
 
 	}
 
-	const {schema = {}} = dareInstance.options;
-	const table_schema = schema[table] || {};
+
+	const {schema: table_schema = {}} = (dareInstance.options.models && dareInstance.options.models[table]) || {};
 
 
 	// Set the prefix if not already

@@ -298,10 +298,12 @@ describe('post', () => {
 			it(`type=json: should accept object, given ${JSON.stringify(given)}`, async () => {
 
 				dare.options = {
-					schema: {
+					models: {
 						'test': {
-							meta: {
-								type: 'json'
+							schema: {
+								meta: {
+									type: 'json'
+								}
 							}
 						}
 					}

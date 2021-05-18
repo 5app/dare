@@ -2,12 +2,15 @@ const Dare = require('../../src');
 // DEBUG const mysql = require('mysql2/promise');
 
 const {db} = global;
-const schema = {
+const models = {
 	teams: {},
 	users: {},
 	userTeams: {
-		'user_id': ['users.id'],
-		'team_id': ['teams.id']
+
+		schema: {
+			'user_id': ['users.id'],
+			'team_id': ['teams.id']
+		}
 	}
 };
 
@@ -20,7 +23,7 @@ describe('dare init tests', () => {
 	beforeEach(() => {
 
 		// Initiate
-		dare = new Dare({schema});
+		dare = new Dare({models});
 
 		// Set a test instance
 		// eslint-disable-next-line arrow-body-style

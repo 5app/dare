@@ -595,37 +595,41 @@ describe('get - request object', () => {
 
 			// Create handler for 'asset.thumbnail'
 			dare.options = {
-				schema: {
+				models: {
 					'assets': {
-						picture_id: 'picture.id',
-						thumbnail(fields) {
+						schema: {
+							picture_id: 'picture.id',
+							thumbnail(fields) {
 
-							// Update the current fields array to include any dependencies missing
-							fields.push('id');
+								// Update the current fields array to include any dependencies missing
+								fields.push('id');
 
-							// Return either a SQL string or a function to run on the response object
-							return obj => `/asset/${obj.id}/thumbnail`;
+								// Return either a SQL string or a function to run on the response object
+								return obj => `/asset/${obj.id}/thumbnail`;
 
-						},
-						url(fields) {
+							},
+							url(fields) {
 
-							// Update the current fields array to include any dependencies missing
-							fields.push('id');
+								// Update the current fields array to include any dependencies missing
+								fields.push('id');
 
-							// Return either a SQL string or a function to run on the response object
-							return obj => `/asset/${obj.id}/url`;
+								// Return either a SQL string or a function to run on the response object
+								return obj => `/asset/${obj.id}/url`;
 
+							}
 						}
 					},
 					'picture': {
-						url(fields) {
+						schema: {
+							url(fields) {
 
-							// Update the current fields array to include any dependencies missing
-							fields.push('id');
+								// Update the current fields array to include any dependencies missing
+								fields.push('id');
 
-							// Return either a SQL string or a function to run on the response object
-							return obj => `${this.options.meta.root}/picture/${obj.id}/image`;
+								// Return either a SQL string or a function to run on the response object
+								return obj => `${this.options.meta.root}/picture/${obj.id}/image`;
 
+							}
 						}
 					}
 				}

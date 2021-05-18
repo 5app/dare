@@ -25,10 +25,10 @@ describe('join_handler', () => {
 
 		// Given a relationship between
 		dare.options = {
-			schema: {
+			models: {
 				parent: {},
 				child: {
-					parent_id: 'parent.id'
+					schema: {parent_id: 'parent.id'}
 				}
 			}
 		};
@@ -62,10 +62,10 @@ describe('join_handler', () => {
 
 		// Given a relationship between
 		dare.options = {
-			schema: {
+			models: {
 				parent: {},
 				child: {
-					parent_id: 'parent.id'
+					schema: {parent_id: 'parent.id'}
 				}
 			}
 		};
@@ -99,13 +99,13 @@ describe('join_handler', () => {
 
 		// Given a relationship between
 		dare.options = {
-			schema: {
+			models: {
 				grandparent: {},
 				parent: {
-					grand_id: 'grandparent.gid'
+					schema: {grand_id: 'grandparent.gid'}
 				},
 				child: {
-					parent_id: 'parent.id'
+					schema: {parent_id: 'parent.id'}
 				}
 			}
 		};
@@ -146,11 +146,13 @@ describe('join_handler', () => {
 			 * Table
 			 */
 			dare.options = {
-				schema: {
+				models: {
 
 					message: {
-						from_id: 'author.id',
-						to_id: 'recipient.id'
+						schema: {
+							from_id: 'author.id',
+							to_id: 'recipient.id'
+						}
 					},
 
 					person: {},
@@ -314,9 +316,11 @@ describe('join_handler', () => {
 
 		it('messageB.recipient: using unreferenced aliases', () => {
 
-			dare.options.schema.messageB = {
-				to_id: 'person.id',
-				from_id: 'author.id'
+			dare.options.models.messageB = {
+				schema: {
+					to_id: 'person.id',
+					from_id: 'author.id'
+				}
 			};
 
 			const recipient = {
@@ -345,9 +349,11 @@ describe('join_handler', () => {
 
 		it('recipient.messageB: using unreferenced aliases', () => {
 
-			dare.options.schema.message = {
-				from_id: 'author.id',
-				to_id: 'person.id'
+			dare.options.models.message = {
+				schema: {
+					from_id: 'author.id',
+					to_id: 'person.id'
+				}
 			};
 
 			const join_object = {
@@ -380,7 +386,7 @@ describe('join_handler', () => {
 			 * We already know from options.table_alias this is the same as a person
 			 * Redefine
 			 */
-			delete dare.options.schema.recipient;
+			delete dare.options.models.recipient;
 
 
 			const recipient = {

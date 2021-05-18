@@ -7,10 +7,12 @@ describe('schema override', () => {
 	beforeEach(() => {
 
 		dare = new Dare({
-			schema: {
+			models: {
 				users: {
-					write_protected_field: {
-						writeable: false
+					schema: {
+						write_protected_field: {
+							writeable: false
+						}
 					}
 				}
 			}
@@ -42,10 +44,12 @@ describe('schema override', () => {
 
 			const callAfterOverride = dare.patch({
 				...patchOptions,
-				schema: {
+				models: {
 					users: {
-						write_protected_field: {
-							writeable: true
+						schema: {
+							write_protected_field: {
+								writeable: true
+							}
 						}
 					}
 				}
@@ -75,10 +79,12 @@ describe('schema override', () => {
 
 			const callAfterOverride = dare.post({
 				...postOptions,
-				schema: {
+				models: {
 					users: {
-						write_protected_field: {
-							writeable: true
+						schema: {
+							write_protected_field: {
+								writeable: true
+							}
 						}
 					}
 				}
