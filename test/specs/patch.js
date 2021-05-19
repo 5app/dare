@@ -141,13 +141,11 @@ describe('patch', () => {
 
 			beforeEach(() => {
 
-				dare.options = {
-					models: {
-						'test': {
-							schema: {
-								meta: {
-									type: 'json'
-								}
+				dare.options.models = {
+					'test': {
+						schema: {
+							meta: {
+								type: 'json'
 							}
 						}
 					}
@@ -297,9 +295,9 @@ describe('patch', () => {
 
 		};
 
-		dare.options = {
-			patch: {
-				'tbl': req => {
+		dare.options.models = {
+			tbl: {
+				patch(req) {
 
 					// Augment the request
 					req.body.name = newName;
@@ -330,9 +328,9 @@ describe('patch', () => {
 
 		};
 
-		dare.options = {
-			patch: {
-				'default': async req => {
+		dare.options.models = {
+			default: {
+				async patch(req) {
 
 					req.body.name = newName;
 
@@ -353,9 +351,9 @@ describe('patch', () => {
 
 		const msg = 'snap';
 
-		dare.options = {
-			patch: {
-				'default': () => {
+		dare.options.models = {
+			default: {
+				patch() {
 
 					// Augment the request
 					throw new Error(msg);
@@ -379,9 +377,9 @@ describe('patch', () => {
 
 		const skip = 'true';
 
-		dare.options = {
-			patch: {
-				default(opts) {
+		dare.options.models = {
+			default: {
+				patch(opts) {
 
 					opts.skip = skip;
 
@@ -390,6 +388,32 @@ describe('patch', () => {
 		};
 
 		const resp = await dare
+			.patch({
+				table: 'tbl',
+				filter: {id},
+				body: {name}
+			});
+
+
+		expect(resp).to.eql(skip);
+
+	});
+
+	it('legacy: should support default patch()', async () => {
+
+		const skip = 'true';
+
+		const dare2 = dare.use({
+			patch: {
+				default(opts) {
+
+					opts.skip = skip;
+
+				}
+			}
+		});
+
+		const resp = await dare2
 			.patch({
 				table: 'tbl',
 				filter: {id},

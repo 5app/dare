@@ -700,16 +700,31 @@ function formCondition(field, condition) {
  */
 function migrateToModels(options) {
 
+	if (options.models) {
+
+		// Nothing to do
+		return;
+
+	}
+
 	// Legacy input...
-	if (options.schema && !options.models) {
+	for (const prop in options) {
 
-		options.models = {};
+		if (!['schema', 'patch', 'post', 'del', 'get'].includes(prop) || !options[prop]) {
 
-		for (const table in options.schema) {
+			continue;
 
-			options.models[table] = {
-				schema: options.schema[table]
-			};
+		}
+
+		for (const table in options[prop]) {
+
+			extend(options, {
+				models: {
+					[table]: {
+						[prop]: options[prop][table]
+					}
+				}
+			});
 
 		}
 

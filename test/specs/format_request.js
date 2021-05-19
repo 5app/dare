@@ -961,15 +961,15 @@ describe('format_request', () => {
 		it('should pass through exceptions raised in the method handlers', async () => {
 
 			const msg = 'snap';
-			dare.options = {
-				get: {
-					users() {
+			dare.options.method = method;
+			dare.options.models = {
+				users: {
+					get() {
 
 						throw Error(msg);
 
 					}
-				},
-				method: 'get'
+				}
 			};
 
 			const test = dare.format_request({
@@ -987,9 +987,10 @@ describe('format_request', () => {
 
 		it('should pass through the table scoped request', async () => {
 
-			dare.options = {
-				get: {
-					users(options) {
+			dare.options.method = method;
+			dare.options.models = {
+				users: {
+					get(options) {
 
 						// Add something to the filter...
 						options.filter = {
@@ -997,8 +998,7 @@ describe('format_request', () => {
 						};
 
 					}
-				},
-				method: 'get'
+				}
 			};
 
 			const options = await dare.format_request({
@@ -1017,21 +1017,23 @@ describe('format_request', () => {
 
 			const removed = {removed: false};
 
-			dare.options = {
-				models: {
-					users: {schema: {}},
-					comments: {
-						schema: {'user_id': 'users.id'}
-					}
-				},
-				get: {
-					users(options) {
+			dare.options.method = method;
+			dare.options.models = {
+				users: {
+					schema: {},
+					get(options) {
 
 						// Add a filter to users to only show user who haven't been removed
 						options.filter = removed;
 
+					}
+				},
+				comments: {
+					schema: {
+						// Join definition to users model
+						'user_id': 'users.id'
 					},
-					comments(options) {
+					get(options) {
 
 						/*
 						 * We show comments if the user hasn't been deleted
@@ -1048,8 +1050,7 @@ describe('format_request', () => {
 						}
 
 					}
-				},
-				method
+				}
 			};
 
 			/*
@@ -1089,9 +1090,10 @@ describe('format_request', () => {
 		it('should await the response from a promise', () => {
 
 			const msg = 'snap';
-			dare.options = {
-				get: {
-					users() {
+			dare.options.method = method;
+			dare.options.models = {
+				users: {
+					get() {
 
 						return new Promise((resolve, reject) => {
 
@@ -1100,8 +1102,7 @@ describe('format_request', () => {
 						});
 
 					}
-				},
-				method: 'get'
+				}
 			};
 
 			const test = dare.format_request({
@@ -1122,16 +1123,16 @@ describe('format_request', () => {
 			let dareInstance;
 			let that;
 
-			dare.options = {
-				get: {
-					users(options, _dareInstance) {
+			dare.options.method = method;
+			dare.options.models = {
+				users: {
+					get(options, _dareInstance) {
 
 						dareInstance = _dareInstance;
 						that = this;
 
 					}
-				},
-				method: 'get'
+				}
 			};
 
 			dare.format_request({

@@ -154,9 +154,9 @@ describe('post', () => {
 
 		};
 
-		dare.options = {
-			post: {
-				'tbl': req => {
+		dare.options.models = {
+			tbl: {
+				post(req) {
 
 					// Augment the request
 					req.body.name = 'andrew';
@@ -184,9 +184,9 @@ describe('post', () => {
 
 		};
 
-		dare.options = {
-			post: {
-				'default': async req => {
+		dare.options.models = {
+			default: {
+				async post(req) {
 
 					// Augment the request
 					req.body.name = 'andrew';
@@ -207,9 +207,9 @@ describe('post', () => {
 
 		const msg = 'snap';
 
-		dare.options = {
-			post: {
-				'default': () => {
+		dare.options.models = {
+			default: {
+				post() {
 
 					// Augment the request
 					throw new Error(msg);
@@ -232,9 +232,9 @@ describe('post', () => {
 
 		const skip = 'true';
 
-		dare.options = {
-			post: {
-				default(opts) {
+		dare.options.models = {
+			default: {
+				post(opts) {
 
 					opts.skip = skip;
 
@@ -243,6 +243,30 @@ describe('post', () => {
 		};
 
 		const resp = await dare
+			.post({
+				table: 'tbl',
+				body: {name: 'name'}
+			});
+
+		expect(resp).to.eql(skip);
+
+	});
+
+	it('legacy: options.schema, not exectute if the opts.skip request is marked', async () => {
+
+		const skip = 'true';
+
+		const dare2 = dare.use({
+			post: {
+				default(opts) {
+
+					opts.skip = skip;
+
+				}
+			}
+		});
+
+		const resp = await dare2
 			.post({
 				table: 'tbl',
 				body: {name: 'name'}

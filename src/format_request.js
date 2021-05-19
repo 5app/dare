@@ -61,6 +61,9 @@ async function format_request(options, dareInstance) {
 
 	}
 
+	// Get the model
+	const model = dareInstance.options.models?.[table] || {};
+
 	/**
 	 * Call bespoke table handler
 	 * This may modify the incoming options object, ammend after handler, etc...
@@ -68,19 +71,14 @@ async function format_request(options, dareInstance) {
 	{
 
 		const {method} = dareInstance.options;
-		const handlers = dareInstance.options[method] || {};
-		let handler;
 
-		if (table in handlers) {
+		// If the model does not define the method
+		const handler = (method in model
+			? model[method]
+			// Or use the default model
+			: dareInstance.options.models?.default?.[method]
+		);
 
-			handler = handlers[table];
-
-		}
-		else if ('default' in handlers) {
-
-			handler = handlers.default;
-
-		}
 		if (handler) {
 
 			// Trigger the handler which alters the options...
@@ -91,7 +89,7 @@ async function format_request(options, dareInstance) {
 	}
 
 
-	const {schema: table_schema = {}} = (dareInstance.options.models && dareInstance.options.models[table]) || {};
+	const {schema: table_schema = {}} = model;
 
 
 	// Set the prefix if not already
