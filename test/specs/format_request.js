@@ -41,52 +41,33 @@ describe('format_request', () => {
 
 	});
 
-	describe('aliasing', () => {
+	it('should return a structure with default values', async () => {
 
-		it('should call table_alias_handler on the given object and update the table and alias property', async () => {
+		const table = 'alias';
+		const filter = {id: 1};
+		const fields = ['name'];
 
-			const table = 'alias';
-			const filter = {id: 1};
-			const fields = ['name'];
+		const actualtable = 'table';
 
-			const actualtable = 'table';
+		dare.options.models[table] = {table: actualtable};
 
-			dare.table_alias_handler = () => actualtable;
-
-			const resp = await dare.format_request({
-				table,
-				filter,
-				fields
-			});
-
-			expect(resp).to.deep.equal({
-				fields,
-				table: actualtable,
-				alias: table,
-				field_alias_path: '',
-				filter,
-				_filter: [
-					['id', '= ?', [1]]
-				],
-				limit: 1,
-				single: true
-			});
-
+		const resp = await dare.format_request({
+			table,
+			filter,
+			fields
 		});
 
-		it('should throw an DareError if falsly on root table', async () => {
-
-			dare.table_alias_handler = () => (false);
-
-			const test = dare.format_request({
-				table: 'private',
-				fields: ['id']
-			});
-
-			return expect(test)
-				.to.be.eventually.rejectedWith(DareError)
-				.and.have.property('code', DareError.INVALID_REFERENCE);
-
+		expect(resp).to.deep.equal({
+			fields,
+			table: actualtable,
+			alias: table,
+			field_alias_path: '',
+			filter,
+			_filter: [
+				['id', '= ?', [1]]
+			],
+			limit: 1,
+			single: true
 		});
 
 	});
@@ -786,7 +767,61 @@ describe('format_request', () => {
 
 		});
 
+		it('should use model.table to name DB Table', async () => {
+
+			const table = 'events';
+
+			// Define a model called `alias`
+			models.eventAlias = {
+				// Extend the previous events
+				...models.events,
+				// Give it the name of `asset`
+				table
+			};
+
+			dare.options = {
+				models,
+				table_alias: {
+					'alias': 'asset'
+				}
+			};
+
+			const resp = await dare.format_request({
+				table: 'eventAlias',
+				filter: {
+					alias: {
+						id: 10
+					}
+				},
+				fields: [
+					{
+						alias: ['name']
+					}
+				]
+			});
+
+			expect(resp).to.have.property('table', table);
+
+		});
+
 		describe('Permittable tables: table_alias returns falsly', () => {
+
+
+			it('should throw an DareError if falsly on root table', async () => {
+
+				dare.table_alias_handler = () => (false);
+
+				const test = dare.format_request({
+					table: 'private',
+					fields: ['id']
+				});
+
+				return expect(test)
+					.to.be.eventually.rejectedWith(DareError)
+					.and.have.property('code', DareError.INVALID_REFERENCE);
+
+			});
+
 
 			it('should throw an DareError if falsly on join table', () => {
 
