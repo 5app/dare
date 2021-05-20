@@ -13,11 +13,28 @@ describe('Dare', () => {
 
 	it('should define default options', () => {
 
-		const schema = {};
+		const models = {};
+		const dare = new Dare({
+			models
+		});
+		expect(dare.options).to.have.property('models', models);
+
+	});
+
+	it('should define legacy options {schema}', () => {
+
+		const schema = {
+			tableA: {}
+		};
 		const dare = new Dare({
 			schema
 		});
 		expect(dare.options).to.have.property('schema', schema);
+
+		// But should still construct a model
+		expect(dare.options)
+			.to.have.property('models')
+			.to.deep.eql({'tableA': {schema: {}}});
 
 	});
 
@@ -47,10 +64,12 @@ describe('Dare', () => {
 		beforeEach(() => {
 
 			options = {
-				schema: {
+				models: {
 					'users': {
-						name: {
-							type: 'string'
+						schema: {
+							name: {
+								type: 'string'
+							}
 						}
 					}
 				}
@@ -72,7 +91,7 @@ describe('Dare', () => {
 			expect(dareChild.options).to.have.property('limit', 100);
 
 			// Check the child retains parent properties
-			expect(dareChild.options).to.have.property('schema');
+			expect(dareChild.options).to.have.property('models');
 			expect(dareChild.execute).to.equal(dare.execute);
 
 			// Check the parent was not affected by the child configuration
@@ -83,14 +102,16 @@ describe('Dare', () => {
 		it('should inherit but not leak when extending schema', () => {
 
 			const options2 = {
-				schema: {
+				models: {
 					'users': {
-						name: {
-							writable: false
+						schema: {
+							name: {
+								writable: false
+							}
 						}
 					},
 					'different': {
-						'fields': true
+						schema: {'fields': true}
 					}
 				}
 			};
@@ -102,18 +123,18 @@ describe('Dare', () => {
 			const dare2 = dare.use(options2);
 
 			// Should not share same objects as instance it extended
-			expect(dare.options.schema.users)
-				.to.not.equal(dare2.options.schema.users);
+			expect(dare.options.models.users)
+				.to.not.equal(dare2.options.models.users);
 
 			// Should not mutate instance it extended
-			expect(dare.options.schema.different)
+			expect(dare.options.models.different)
 				.to.be.undefined;
 
-			expect(dare.options.schema.users.name.writable)
-				.to.not.equal(dare2.options.schema.users.name.writable);
+			expect(dare.options.models.users.schema.name.writable)
+				.to.not.equal(dare2.options.models.users.schema.name.writable);
 
 			// Should merge settings for field definitiions... e.g.
-			expect(dare2.options.schema.users)
+			expect(dare2.options.models.users.schema)
 				.to.deep.equal({
 					name: {
 						type: 'string',

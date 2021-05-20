@@ -11,13 +11,17 @@ describe('field alias', () => {
 
 		// If the storage wants to use 'email', but the interface would optionally like to use 'emailAddress'
 		dare = new Dare({
-			schema: {
+			models: {
 				'users': {
-					'emailAddress': 'email',
-					'country_id': 'country.id'
+					schema: {
+						'emailAddress': 'email',
+						'country_id': 'country.id'
+					}
 				},
 				'comments': {
-					'user_id': 'users.id'
+					schema: {
+						'user_id': 'users.id'
+					}
 				}
 			}
 		});

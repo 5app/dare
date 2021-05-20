@@ -9,15 +9,17 @@ describe('field access', () => {
 	beforeEach(() => {
 
 		dare = new Dare({
-			schema: {
+			models: {
 				'users': {
+					schema: {
 
-					// Write is disabled, whilst id is readable
-					'id': {
-						writeable: false
-					},
-					// Password is not readable or writable
-					'password': false
+						// Write is disabled, whilst id is readable
+						'id': {
+							writeable: false
+						},
+						// Password is not readable or writable
+						'password': false
+					}
 				}
 			}
 		});

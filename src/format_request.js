@@ -51,36 +51,49 @@ async function format_request(options, dareInstance) {
 
 	}
 
-	// Set the table
-	const {table} = options;
-
 	// Reject when the table is not recognised
-	if (!table) {
+	if (!options.table) {
 
-		throw new DareError(DareError.INVALID_REFERENCE, `Unrecognized reference '${table}'`);
+		throw new DareError(DareError.INVALID_REFERENCE, `Unrecognized reference '${options.table}'`);
 
 	}
 
-	/**
+	// Get all the available models of the dare instance
+	const {models} = dareInstance.options;
+
+	// ModelName - Is the alias with decorations removed
+	const modelName = options.alias.replace(/^-/, '').split('$')[0];
+
+	/*
+	 * Retrieve the model based upon the modelName (alias)
+	 * @legacy: support for old table_alias in models?.[table]
+	 */
+	const model = models?.[modelName] || models?.[options.table] || {};
+
+	/*
+	 * If the model redefines the table name, let's update the table
+	 */
+	if (model.table) {
+
+		options.table = model.table;
+
+	}
+
+	/*
 	 * Call bespoke table handler
 	 * This may modify the incoming options object, ammend after handler, etc...
 	 */
 	{
 
 		const {method} = dareInstance.options;
-		const handlers = dareInstance.options[method] || {};
-		let handler;
 
-		if (table in handlers) {
+		// If the model does not define the method
+		const handler = (method in model
+			? model[method]
+			// Or use the default model
+			: models?.default?.[method]
+		);
 
-			handler = handlers[table];
-
-		}
-		else if ('default' in handlers) {
-
-			handler = handlers.default;
-
-		}
 		if (handler) {
 
 			// Trigger the handler which alters the options...
@@ -90,8 +103,8 @@ async function format_request(options, dareInstance) {
 
 	}
 
-	const {schema = {}} = dareInstance.options;
-	const table_schema = schema[table] || {};
+
+	const {schema: table_schema = {}} = model;
 
 
 	// Set the prefix if not already

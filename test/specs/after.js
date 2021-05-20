@@ -14,12 +14,14 @@ describe('after Handler', () => {
 		 * Setup test schema
 		 */
 		dare = dare.use({
-			schema: {
+			models: {
 				'users': {
 
 				},
 				'emails': {
-					user_id: 'users.id'
+					schema: {
+						user_id: 'users.id'
+					}
 				}
 			},
 			meta: {
@@ -184,21 +186,23 @@ describe('after Handler', () => {
 	describe('should be overrideable by the pre-handler', () => {
 
 		const new_after_handler = () => 'overriden';
-		const preHandlers = {
-			users() {
+		const preHandlers = (options, dareInstance) => {
 
-				// This will override it...
-				this.after = new_after_handler;
+			// This will override it...
+			dareInstance.after = new_after_handler;
 
-			}
 		};
 
 		beforeEach(() => {
 
-			dare.options.get = preHandlers;
-			dare.options.post = preHandlers;
-			dare.options.patch = preHandlers;
-			dare.options.del = preHandlers;
+			dare.options.models = {
+				users: {
+					get: preHandlers,
+					post: preHandlers,
+					patch: preHandlers,
+					del: preHandlers
+				}
+			};
 
 			// Overwrite execute
 			dare.execute = async () => ([{}]);

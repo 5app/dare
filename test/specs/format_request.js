@@ -18,7 +18,7 @@ describe('format_request', () => {
 
 		// Create an execution instance
 		dare = dare.use({
-			schema: {}
+			models: {}
 		});
 
 	});
@@ -41,52 +41,33 @@ describe('format_request', () => {
 
 	});
 
-	describe('aliasing', () => {
+	it('should return a structure with default values', async () => {
 
-		it('should call table_alias_handler on the given object and update the table and alias property', async () => {
+		const table = 'alias';
+		const filter = {id: 1};
+		const fields = ['name'];
 
-			const table = 'alias';
-			const filter = {id: 1};
-			const fields = ['name'];
+		const actualtable = 'table';
 
-			const actualtable = 'table';
+		dare.options.models[table] = {table: actualtable};
 
-			dare.table_alias_handler = () => actualtable;
-
-			const resp = await dare.format_request({
-				table,
-				filter,
-				fields
-			});
-
-			expect(resp).to.deep.equal({
-				fields,
-				table: actualtable,
-				alias: table,
-				field_alias_path: '',
-				filter,
-				_filter: [
-					['id', '= ?', [1]]
-				],
-				limit: 1,
-				single: true
-			});
-
+		const resp = await dare.format_request({
+			table,
+			filter,
+			fields
 		});
 
-		it('should throw an DareError if falsly on root table', async () => {
-
-			dare.table_alias_handler = () => (false);
-
-			const test = dare.format_request({
-				table: 'private',
-				fields: ['id']
-			});
-
-			return expect(test)
-				.to.be.eventually.rejectedWith(DareError)
-				.and.have.property('code', DareError.INVALID_REFERENCE);
-
+		expect(resp).to.deep.equal({
+			fields,
+			table: actualtable,
+			alias: table,
+			field_alias_path: '',
+			filter,
+			_filter: [
+				['id', '= ?', [1]]
+			],
+			limit: 1,
+			single: true
 		});
 
 	});
@@ -100,8 +81,10 @@ describe('format_request', () => {
 		beforeEach(() => {
 
 			dare.options = {
-				schema: {
-					'asset': {tbl_id: 'tbl.id'}
+				models: {
+					'asset': {
+						schema: {tbl_id: 'tbl.id'}
+					}
 				}
 			};
 
@@ -429,23 +412,25 @@ describe('format_request', () => {
 
 		describe(condition_type, () => {
 
-			describe('should prep conditions', () => {
+			const table = 'table';
 
-				const table = 'table';
+			beforeEach(() => {
 
-				beforeEach(() => {
-
-					dare.options = {
-						schema: {
-							[table]: {
+				dare.options = {
+					models: {
+						[table]: {
+							schema: {
 								date: {
 									type: 'datetime'
 								}
 							}
 						}
-					};
+					}
+				};
 
-				});
+			});
+
+			describe('should prep conditions', () => {
 
 				const a = [
 					[
@@ -700,16 +685,6 @@ describe('format_request', () => {
 
 					it(`should augment filter values ${date}`, async () => {
 
-						dare.options = {
-							schema: {
-								[table]: {
-									date: {
-										type: 'datetime'
-									}
-								}
-							}
-						};
-
 						const resp = await dare.format_request({
 							table,
 							fields: ['id'],
@@ -732,12 +707,12 @@ describe('format_request', () => {
 
 	describe('table_alias_handler', () => {
 
-		const schema = {
+		const models = {
 			asset: {
-				name: {}
+				schema: {name: {}}
 			},
 			events: {
-				asset_id: 'asset.id'
+				schema: {asset_id: 'asset.id'}
 			}
 		};
 
@@ -745,7 +720,7 @@ describe('format_request', () => {
 		it('should use options.table_alias_handler for interpretting the table names', async () => {
 
 			dare.options = {
-				schema
+				models
 			};
 
 			dare.table_alias_handler = table => ({'events': 'events', 'alias': 'asset'}[table]);
@@ -769,7 +744,7 @@ describe('format_request', () => {
 		it('should use the options.table_alias hash if no handler is defined', async () => {
 
 			dare.options = {
-				schema,
+				models,
 				table_alias: {
 					'events': 'events',
 					'alias': 'asset'
@@ -792,12 +767,66 @@ describe('format_request', () => {
 
 		});
 
+		it('should use model.table to name DB Table', async () => {
+
+			const table = 'events';
+
+			// Define a model called `alias`
+			models.eventAlias = {
+				// Extend the previous events
+				...models.events,
+				// Give it the name of `asset`
+				table
+			};
+
+			dare.options = {
+				models,
+				table_alias: {
+					'alias': 'asset'
+				}
+			};
+
+			const resp = await dare.format_request({
+				table: 'eventAlias',
+				filter: {
+					alias: {
+						id: 10
+					}
+				},
+				fields: [
+					{
+						alias: ['name']
+					}
+				]
+			});
+
+			expect(resp).to.have.property('table', table);
+
+		});
+
 		describe('Permittable tables: table_alias returns falsly', () => {
+
+
+			it('should throw an DareError if falsly on root table', async () => {
+
+				dare.table_alias_handler = () => (false);
+
+				const test = dare.format_request({
+					table: 'private',
+					fields: ['id']
+				});
+
+				return expect(test)
+					.to.be.eventually.rejectedWith(DareError)
+					.and.have.property('code', DareError.INVALID_REFERENCE);
+
+			});
+
 
 			it('should throw an DareError if falsly on join table', () => {
 
 				dare.options = {
-					schema
+					models
 				};
 
 				dare.table_alias_handler = table_alias => ({'public': 'public'}[table_alias]);
@@ -828,9 +857,13 @@ describe('format_request', () => {
 
 			// Redefine the structure
 			dare.options = {
-				schema: {
-					asset: {name: {}},
-					comments: {name: {}}
+				models: {
+					asset: {
+						schema: {name: {}}
+					},
+					comments: {
+						schema: {name: {}}
+					}
 				}
 			};
 
@@ -855,12 +888,16 @@ describe('format_request', () => {
 
 			// Redefine the structure
 			dare.options = {
-				schema: {
-					asset: {name: {}},
+				models: {
+					asset: {
+						schema: {name: {}}
+					},
 					comments: {
-						name: {},
-						asset_id: {
-							references: 'asset.id'
+						schema: {
+							name: {},
+							asset_id: {
+								references: 'asset.id'
+							}
 						}
 					}
 				}
@@ -883,17 +920,21 @@ describe('format_request', () => {
 
 			// Redefine the structure
 			dare.options = {
-				schema: {
-					asset: {name: {}},
+				models: {
+					asset: {
+						schema: {name: {}}
+					},
 					assetType: {
 						// References can be as simple as a string to another [table].[field]
-						asset_id: 'asset.id'
+						schema: {asset_id: 'asset.id'}
 					},
 					comments: {
-						name: {},
-						asset_id: {
-							// There can also be multiple references to connect more than one table on this key...
-							references: ['asset.id', 'assetType.asset_id']
+						schema: {
+							name: {},
+							asset_id: {
+								// There can also be multiple references to connect more than one table on this key...
+								references: ['asset.id', 'assetType.asset_id']
+							}
 						}
 					}
 				}
@@ -919,13 +960,13 @@ describe('format_request', () => {
 
 			// Here the schema is a series of tables a street, belongs to 1 town and in return 1 country
 			dare.options = {
-				schema: {
+				models: {
 					street: {
 						// References can be as simple as a string to another [table].[field]
-						town_id: 'town.id'
+						schema: {town_id: 'town.id'}
 					},
 					town: {
-						country_id: 'country.id'
+						schema: {country_id: 'country.id'}
 					},
 					country: {}
 				}
@@ -955,15 +996,15 @@ describe('format_request', () => {
 		it('should pass through exceptions raised in the method handlers', async () => {
 
 			const msg = 'snap';
-			dare.options = {
-				get: {
-					users() {
+			dare.options.method = method;
+			dare.options.models = {
+				users: {
+					get() {
 
 						throw Error(msg);
 
 					}
-				},
-				method: 'get'
+				}
 			};
 
 			const test = dare.format_request({
@@ -981,9 +1022,10 @@ describe('format_request', () => {
 
 		it('should pass through the table scoped request', async () => {
 
-			dare.options = {
-				get: {
-					users(options) {
+			dare.options.method = method;
+			dare.options.models = {
+				users: {
+					get(options) {
 
 						// Add something to the filter...
 						options.filter = {
@@ -991,8 +1033,7 @@ describe('format_request', () => {
 						};
 
 					}
-				},
-				method: 'get'
+				}
 			};
 
 			const options = await dare.format_request({
@@ -1011,21 +1052,23 @@ describe('format_request', () => {
 
 			const removed = {removed: false};
 
-			dare.options = {
-				schema: {
-					users: {},
-					comments: {
-						'user_id': 'users.id'
-					}
-				},
-				get: {
-					users(options) {
+			dare.options.method = method;
+			dare.options.models = {
+				users: {
+					schema: {},
+					get(options) {
 
 						// Add a filter to users to only show user who haven't been removed
 						options.filter = removed;
 
+					}
+				},
+				comments: {
+					schema: {
+						// Join definition to users model
+						'user_id': 'users.id'
 					},
-					comments(options) {
+					get(options) {
 
 						/*
 						 * We show comments if the user hasn't been deleted
@@ -1042,8 +1085,7 @@ describe('format_request', () => {
 						}
 
 					}
-				},
-				method
+				}
 			};
 
 			/*
@@ -1083,9 +1125,10 @@ describe('format_request', () => {
 		it('should await the response from a promise', () => {
 
 			const msg = 'snap';
-			dare.options = {
-				get: {
-					users() {
+			dare.options.method = method;
+			dare.options.models = {
+				users: {
+					get() {
 
 						return new Promise((resolve, reject) => {
 
@@ -1094,8 +1137,7 @@ describe('format_request', () => {
 						});
 
 					}
-				},
-				method: 'get'
+				}
 			};
 
 			const test = dare.format_request({
@@ -1116,16 +1158,16 @@ describe('format_request', () => {
 			let dareInstance;
 			let that;
 
-			dare.options = {
-				get: {
-					users(options, _dareInstance) {
+			dare.options.method = method;
+			dare.options.models = {
+				users: {
+					get(options, _dareInstance) {
 
 						dareInstance = _dareInstance;
 						that = this;
 
 					}
-				},
-				method: 'get'
+				}
 			};
 
 			dare.format_request({

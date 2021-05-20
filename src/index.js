@@ -27,10 +27,13 @@ module.exports.DareError = DareError;
  * @param {object} options - Initial options defining the instance
  * @returns {object} instance of dare
  */
-function Dare(options) {
+function Dare(options = {}) {
+
+	// Backwards compatibility for {schema}
+	migrateToModels(options);
 
 	// Overwrite default properties
-	this.options = options || {};
+	this.options = options;
 
 	return this;
 
@@ -111,6 +114,9 @@ Dare.prototype.after = function(resp) {
 Dare.prototype.use = function(options = {}) {
 
 	const inst = Object.create(this);
+
+	// Backwards compatibility for {schema}
+	migrateToModels(options);
 
 	// Create a new options, merging inheritted and new
 	inst.options = extend(clone(this.options), options);
@@ -283,8 +289,8 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	// Validate Body
 	validateBody(req.body);
 
-	// Get the schema
-	const tableSchema = _this.options.schema && _this.options.schema[req.table];
+	// Get the model structure
+	const {schema: tableSchema} = (_this.options.models && _this.options.models[req.table]) || {};
 
 	// Prepare post
 	const {assignments, preparedValues} = prepareSet(req.body, tableSchema);
@@ -371,7 +377,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	const exec = req.ignore ? 'IGNORE' : '';
 
 	// Get the schema
-	const tableSchema = _this.options.schema && _this.options.schema[req.table];
+	const {schema: tableSchema} = (_this.options.models && _this.options.models[req.table]) || {};
 
 	// Capture keys
 	const fields = [];
@@ -683,5 +689,45 @@ function formCondition(field, condition) {
 
 	// Insert the field name in place
 	return condition.includes('$$') ? condition.replace(/\$\$/g, field) : `${field} ${condition}`;
+
+}
+
+/**
+ * Migrate to Models
+ * Backwards compatibility for {schema}
+ * @param {object} options - Options object
+ * @returns {void} Extends paramater
+ */
+function migrateToModels(options) {
+
+	if (options.models) {
+
+		// Nothing to do
+		return;
+
+	}
+
+	// Legacy input...
+	for (const prop in options) {
+
+		if (!['schema', 'patch', 'post', 'del', 'get'].includes(prop) || !options[prop]) {
+
+			continue;
+
+		}
+
+		for (const table in options[prop]) {
+
+			extend(options, {
+				models: {
+					[table]: {
+						[prop]: options[prop][table]
+					}
+				}
+			});
+
+		}
+
+	}
 
 }
