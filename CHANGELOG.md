@@ -1,3 +1,10 @@
+# [0.56.0](https://github.com/5app/dare/compare/v0.55.4...v0.56.0) (2021-05-20)
+
+
+### Features
+
+* **models:** support for new options.models structure ([#181](https://github.com/5app/dare/issues/181)) ([a1d76e4](https://github.com/5app/dare/commit/a1d76e4bfdc083687b335b0a168674c8399a37b6))
+
 ## [0.55.4](https://github.com/5app/dare/compare/v0.55.3...v0.55.4) (2021-05-17)
 
 
