@@ -603,6 +603,17 @@ const myModel = {
 }
 ```
 
+
+## Model Table `table`
+
+The underlying Database SQL Table to use when querying this model, if omitted Dare will assume the models label instead
+
+```js
+const myModel = {
+	table: 't_mytable' // an example table name: some dba's do like to prefix table names, however it's not a convention which makes for a nice api.
+	// ...
+}
+```
 ## Model Schema `schema`
 
 The `schema` property defines an object, containing field attribute references in key=>value pair, i.e. `fieldName (key) => field attributes (value)`.
