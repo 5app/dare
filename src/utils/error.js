@@ -34,7 +34,7 @@ class DareError extends Error {
 
 }
 
-module.exports = DareError;
+export default DareError;
 
 for (const x in SQL_ERROR_STATUSCODES) {
 

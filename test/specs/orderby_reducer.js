@@ -3,7 +3,7 @@
  * Extract the fields from the current dataset
  */
 
-const orderby_reducer = require('../../src/format/orderby_reducer');
+import orderby_reducer from '../../src/format/orderby_reducer.js';
 
 describe('Orderby Reducer', () => {
 

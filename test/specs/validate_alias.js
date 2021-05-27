@@ -1,6 +1,6 @@
 
 
-const validate_alias = require('../../src/utils/validate_alias');
+import validate_alias from '../../src/utils/validate_alias.js';
 
 describe('validate table alias', () => {
 

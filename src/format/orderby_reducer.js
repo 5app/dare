@@ -1,10 +1,10 @@
-const fieldUnwrap = require('../utils/unwrap_field');
-const fieldRelativePath = require('../utils/field_relative');
-const mapReduce = require('../utils/map_reduce');
-const orderbyUnwrap = require('../utils/orderby_unwrap');
-const getFieldAttributes = require('../utils/field_attributes');
+import fieldUnwrap from '../utils/unwrap_field.js';
+import fieldRelativePath from '../utils/field_relative.js';
+import mapReduce from '../utils/map_reduce.js';
+import orderbyUnwrap from '../utils/orderby_unwrap.js';
+import getFieldAttributes from '../utils/field_attributes.js';
 
-module.exports = ({current_path, extract, table_schema}) => mapReduce(entry => {
+export default ({current_path, extract, table_schema}) => mapReduce(entry => {
 
 	let field = entry;
 	let direction = '';

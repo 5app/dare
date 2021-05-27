@@ -1,6 +1,6 @@
-const unwrap_expression = require('./unwrap_field');
+import unwrap_expression from './unwrap_field.js';
 
-module.exports = function field_format(original, label, table_prefix, label_prefix) {
+export default function field_format(original, label, table_prefix, label_prefix) {
 
 	const {field, prefix, suffix} = unwrap_expression(original);
 
@@ -46,4 +46,4 @@ module.exports = function field_format(original, label, table_prefix, label_pref
 		agg
 	};
 
-};
+}
