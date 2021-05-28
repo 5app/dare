@@ -1,9 +1,9 @@
-import Dare from '../../src/index.js';
+const Dare = require('../../src/');
 
-import options from '../data/options.js';
+const options = require('../data/options');
 
 // Test Generic DB functions
-import expectSQLEqual from '../lib/sql-equal.js';
+const expectSQLEqual = require('../lib/sql-equal');
 
 const limit = 5;
 

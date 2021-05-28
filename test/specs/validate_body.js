@@ -1,5 +1,5 @@
-import Dare from '../../src/index.js';
-import DareError from '../../src/utils/error.js';
+const Dare = require('../../src/');
+const DareError = require('../../src/utils/error');
 
 describe('validate_body', () => {
 

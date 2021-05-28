@@ -1,4 +1,4 @@
-import DareError from '../utils/error.js';
+const DareError = require('../utils/error');
 
 /**
  * Limit Clause
@@ -9,7 +9,7 @@ import DareError from '../utils/error.js';
  * @param {number} MAX_LIMIT - Max limit on instance
  * @returns {void}
  */
-export default function limitClause({limit, start}, MAX_LIMIT) {
+module.exports = function limitClause({limit, start}, MAX_LIMIT) {
 
 	let single;
 	if (limit === undefined) {
@@ -49,4 +49,4 @@ export default function limitClause({limit, start}, MAX_LIMIT) {
 		...(single && {single})
 	};
 
-}
+};

@@ -2,7 +2,7 @@ const created_time = {
 	type: 'datetime'
 };
 
-export default {
+module.exports = {
 	models: {
 		// Users table
 		users: {

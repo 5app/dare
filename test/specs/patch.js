@@ -1,9 +1,9 @@
-import Dare from '../../src/index.js';
+const Dare = require('../../src/');
 
 // Test Generic DB functions
-import sqlEqual from '../lib/sql-equal.js';
+const sqlEqual = require('../lib/sql-equal');
 
-import DareError from '../../src/utils/error.js';
+const DareError = require('../../src/utils/error');
 
 const id = 1;
 const name = 'name';

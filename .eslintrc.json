@@ -21,7 +21,7 @@
 		"multiline-comment-style": [2, "starred-block"],
 		"padded-blocks": 2,
 		"linebreak-style": 0,
-		"node/no-unsupported-features/es-syntax": [2, {"ignores": ["modules"]}],
+
 		"newline-per-chained-call": 2,
 		"prefer-promise-reject-errors": 2,
 		"promise/prefer-await-to-then": 2,

@@ -1,4 +1,4 @@
-import mysql from 'mysql2/promise';
+const mysql = require('mysql2/promise');
 
 
 // Initiates the mysql connection
@@ -24,4 +24,4 @@ class DB {
 
 }
 
-export default new DB();
+module.exports = new DB();

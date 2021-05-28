@@ -1,9 +1,9 @@
 
 
-import JSONparse from './utils/JSONparse.js';
+const JSONparse = require('./utils/JSONparse');
 
 // Response
-export default function responseHandler(resp) {
+module.exports = function responseHandler(resp) {
 
 	const dareInstance = this;
 
@@ -51,7 +51,7 @@ export default function responseHandler(resp) {
 
 	}, []);
 
-}
+};
 
 // Format
 function formatHandler(item) {

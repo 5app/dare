@@ -1,4 +1,4 @@
-import Dare from '../../src/index.js';
+const Dare = require('../../src/');
 
 describe('sql', () => {
 

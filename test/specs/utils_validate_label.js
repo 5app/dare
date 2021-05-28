@@ -1,6 +1,6 @@
 
 
-import validate_label from '../../src/utils/validate_label.js';
+const validate_label = require('../../src/utils/validate_label');
 
 describe('validate field label', () => {
 

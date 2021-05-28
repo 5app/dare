@@ -1,15 +1,14 @@
 /* eslint-disable no-console */
-import {execSync} from 'child_process';
-import mysql from 'mysql2/promise';
-import fs from 'fs';
-import db from '../helpers/db.js';
+const {execSync} = require('child_process');
+const mysql = require('mysql2/promise');
+const fs = require('fs');
 
 /*
  * Mocha recreates the require cache in watch mode (--watch)
  * And so would create a new instance of helpers/db on each run of the tests
  * In order to reference the same instance of helpers/db it is defined as a global here.
  */
-global.db = db;
+global.db = require('../helpers/db');
 
 const {
 	MYSQL_HOST = 'mysql',
@@ -88,7 +87,7 @@ async function createNewDb() {
 
 }
 
-const mochaHooks = {
+module.exports.mochaHooks = {
 	async beforeAll() {
 
 		// BeforeAll happens per-process/thread, so each subsequent test can reset the db without it interfering with other tests in that thread
@@ -111,5 +110,3 @@ const mochaHooks = {
 
 	}
 };
-
-export {mochaHooks};

@@ -1,6 +1,6 @@
 /**
  * Dummy SQL execute
  */
-export default () => {
+module.exports = () => {
 	// Do nothing
 };

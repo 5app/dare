@@ -1,5 +1,5 @@
 // Prevent a bad format from killing the service, instead return undefined
-export default value => {
+module.exports = value => {
 
 	try {
 

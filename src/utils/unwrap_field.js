@@ -1,6 +1,6 @@
-import DareError from './error.js';
+const DareError = require('./error');
 
-export default function unwrap_field(expression, formatter = (obj => obj)) {
+module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 
 	if (typeof expression === 'string') {
 
@@ -95,4 +95,4 @@ export default function unwrap_field(expression, formatter = (obj => obj)) {
 	// Is this a valid field
 	throw new DareError(DareError.INVALID_REFERENCE, `The field definition '${expression}' is invalid.`);
 
-}
+};

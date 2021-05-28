@@ -29,4 +29,4 @@ function extend(base, ...args) {
 
 }
 
-export default extend;
+module.exports = extend;
