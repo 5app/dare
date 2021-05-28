@@ -1,3 +1,10 @@
+## [0.57.1](https://github.com/5app/dare/compare/v0.57.0...v0.57.1) (2021-05-28)
+
+
+### Reverts
+
+* Revert "feat(esm): convert to esm modules (#184)" ([d881022](https://github.com/5app/dare/commit/d88102227fa607bcfad017e083422947dbd1aacf)), closes [#184](https://github.com/5app/dare/issues/184)
+
 # [0.57.0](https://github.com/5app/dare/compare/v0.56.0...v0.57.0) (2021-05-28)
 
 
