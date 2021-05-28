@@ -1,3 +1,10 @@
+# [0.57.0](https://github.com/5app/dare/compare/v0.56.0...v0.57.0) (2021-05-28)
+
+
+### Features
+
+* **esm:** convert to esm modules ([#184](https://github.com/5app/dare/issues/184)) ([a219207](https://github.com/5app/dare/commit/a219207c46de4a5d9e0d1e26cde2cd5e0417f185))
+
 # [0.56.0](https://github.com/5app/dare/compare/v0.55.4...v0.56.0) (2021-05-20)
 
 
