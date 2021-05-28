@@ -1,5 +1,5 @@
-const Dare = require('../../src');
-// DEBUG const mysql = require('mysql2/promise');
+import Dare from '../../src/index.js';
+// DEBUG import mysql from 'mysql2/promise';
 
 const {db} = global;
 const models = {

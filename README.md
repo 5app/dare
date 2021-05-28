@@ -16,8 +16,8 @@ This is a simple setup to get started with, it'll make a basic SELECT query.
 
 ```js
 // Require the module
-const Dare = require('dare');
-const sqlConn = require('./mySqlConn');
+import Dare from 'dare';
+import sqlConn from './mySqlConn.js';
 
 // Initiate it
 const dare = new Dare();
@@ -1043,7 +1043,7 @@ etc...
 By default the maximum value for a `limit` option is set by `dare.MAX_LIMIT`, you can override this in an instance of Dare.
 
 ```js
-const Dare = require('dare');
+import Dare from 'dare';
 
 // Initiate it
 const dare = new Dare();

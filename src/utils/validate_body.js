@@ -1,8 +1,8 @@
 // Validate POST body
 
-const DareError = require('./error');
+import DareError from './error.js';
 
-module.exports = function validate_body(body) {
+export default function validate_body(body) {
 
 	if (!body || typeof body !== 'object' || Object.keys(body).length === 0 || (Array.isArray(body) && body.length === 0)) {
 
@@ -10,4 +10,4 @@ module.exports = function validate_body(body) {
 
 	}
 
-};
+}

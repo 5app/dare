@@ -5,7 +5,7 @@
  * @returns {object} An object containing the attributes of the field
  */
 
-module.exports = fieldDefinition => {
+export default fieldDefinition => {
 
 	if (fieldDefinition && typeof fieldDefinition === 'object' && !Array.isArray(fieldDefinition)) {
 

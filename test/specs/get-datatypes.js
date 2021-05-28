@@ -1,10 +1,10 @@
-const Dare = require('../../src/');
+import Dare from '../../src/index.js';
 
 // Test Generic DB functions
-const sqlEqual = require('../lib/sql-equal');
+import sqlEqual from '../lib/sql-equal.js';
 
 // Create a schema
-const options = require('../data/options');
+import options from '../data/options.js';
 
 describe('get - datatypes', () => {
 

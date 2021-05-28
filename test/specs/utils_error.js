@@ -3,7 +3,7 @@
  * Extract the fields from the current dataset
  */
 
-const DareError = require('../../src/utils/error');
+import DareError from '../../src/utils/error.js';
 
 describe('utils/error', () => {
 
