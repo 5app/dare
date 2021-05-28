@@ -1,25 +1,24 @@
 
 
-import getHandler from './get.js';
+const getHandler = require('./get');
 
-import DareError from './utils/error.js';
+const DareError = require('./utils/error');
 
-import validateBody from './utils/validate_body.js';
+const validateBody = require('./utils/validate_body');
 
-import getFieldAttributes from './utils/field_attributes.js';
+const getFieldAttributes = require('./utils/field_attributes');
 
-import extend from './utils/extend.js';
+const extend = require('./utils/extend');
 
-import clone from 'tricks/object/clone.js';
+const clone = require('tricks/object/clone');
 
-import format_request from './format_request.js';
 
-import response_handler from './response_handler.js';
+module.exports = Dare;
 
 /*
  * Export Dare Error object
  */
-export {DareError};
+module.exports.DareError = DareError;
 
 /**
  * Dare
@@ -39,11 +38,6 @@ function Dare(options = {}) {
 	return this;
 
 }
-
-export default Dare;
-
-// Export the DareError object
-Dare.DareError = DareError;
 
 // Set default function
 Dare.prototype.execute = async () => {
@@ -82,9 +76,9 @@ Dare.prototype.get_unique_alias = function(iterate = 1) {
 
 };
 
-Dare.prototype.format_request = format_request;
+Dare.prototype.format_request = require('./format_request');
 
-Dare.prototype.response_handler = response_handler;
+Dare.prototype.response_handler = require('./response_handler');
 
 /**
  * Dare.after

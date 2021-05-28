@@ -3,7 +3,7 @@
  * Extract the fields from the current dataset
  */
 
-import field_format from '../../src/utils/field_format.js';
+const field_format = require('../../src/utils/field_format');
 
 describe('utils/field_format', () => {
 

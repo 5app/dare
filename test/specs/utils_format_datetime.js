@@ -1,6 +1,6 @@
 // Format Input Dates
 
-import format_datetime from '../../src/utils/format_datetime.js';
+const format_datetime = require('../../src/utils/format_datetime');
 
 describe('utils/format_datetime', () => {
 

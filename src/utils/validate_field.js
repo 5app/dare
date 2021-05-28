@@ -1,7 +1,7 @@
-import DareError from './error.js';
-import validate_alias from './validate_alias.js';
+const DareError = require('./error');
+const validate_alias = require('./validate_alias');
 
-export default function validate_field(key) {
+module.exports = function validate_field(key) {
 
 	const a = key.split('.');
 
@@ -31,4 +31,4 @@ export default function validate_field(key) {
 
 	return [...a, field].join('.');
 
-}
+};

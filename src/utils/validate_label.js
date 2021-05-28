@@ -1,6 +1,6 @@
-import DareError from './error.js';
+const DareError = require('./error');
 
-export default function validate_label(label) {
+module.exports = function validate_label(label) {
 
 	const reg = /^[^'"?`]+$/i;
 
@@ -11,4 +11,4 @@ export default function validate_label(label) {
 
 	}
 
-}
+};

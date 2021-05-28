@@ -1,6 +1,6 @@
-import Dare from '../../src/index.js';
+const Dare = require('../../src/');
 // Test whether fields can be declared as immutable and unreadable
-import DareError from '../../src/utils/error.js';
+const DareError = require('../../src/utils/error');
 
 describe('field access', () => {
 

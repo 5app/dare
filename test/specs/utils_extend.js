@@ -3,7 +3,7 @@
  * Extract the fields from the current dataset
  */
 
-import extend from '../../src/utils/extend.js';
+const extend = require('../../src/utils/extend');
 
 describe('utils/extend', () => {
 

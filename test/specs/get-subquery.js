@@ -1,7 +1,7 @@
-import Dare from '../../src/index.js';
+const Dare = require('../../src/');
 
 // Test Generic DB functions
-import expectSQLEqual from '../lib/sql-equal.js';
+const expectSQLEqual = require('../lib/sql-equal');
 
 // Dare instance
 let dare;

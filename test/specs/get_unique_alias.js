@@ -1,4 +1,4 @@
-import Dare from '../../src/index.js';
+const Dare = require('../../src/');
 
 describe('get_unique_alias', () => {
 

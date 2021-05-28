@@ -6,7 +6,7 @@
  * Find the over laping section in this case 'is.not'
  * Return the various parts as an array ['this', '.is.not', '.over']
  */
-export default (a, b) => {
+module.exports = (a, b) => {
 
 	let path = b;
 

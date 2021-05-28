@@ -1,4 +1,4 @@
-export default function formatDateTime(values) {
+module.exports = function formatDateTime(values) {
 
 	if (typeof values === 'string') {
 
@@ -92,4 +92,4 @@ export default function formatDateTime(values) {
 	}
 	return values;
 
-}
+};

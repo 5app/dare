@@ -3,7 +3,7 @@
  * Extract the fields from the current dataset
  */
 
-import groupby_reducer from '../../src/format/groupby_reducer.js';
+const groupby_reducer = require('../../src/format/groupby_reducer');
 
 describe('Groupby Reducer', () => {
 

@@ -1,4 +1,4 @@
-import getFieldAttributes from '../utils/field_attributes.js';
+const getFieldAttributes = require('../utils/field_attributes');
 
 /**
  * Join Handler
@@ -8,7 +8,7 @@ import getFieldAttributes from '../utils/field_attributes.js';
  * @param {object} dareInstance - Dare Instance
  * @returns {object} An updated join_object with new join_conditions attached
  */
-export default function(join_object, root_object, dareInstance) {
+module.exports = function(join_object, root_object, dareInstance) {
 
 	const {models} = dareInstance.options;
 
@@ -116,7 +116,7 @@ export default function(join_object, root_object, dareInstance) {
 	// Return a falsy value
 	return null;
 
-}
+};
 
 function links(tableSchema, joinTable, flipped = false) {
 

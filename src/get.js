@@ -1,12 +1,12 @@
 
 
-import DareError from './utils/error.js';
-import group_concat from './utils/group_concat.js';
-import field_format from './utils/field_format.js';
-import orderbyUnwrap from './utils/orderby_unwrap.js';
+const DareError = require('./utils/error');
+const group_concat = require('./utils/group_concat');
+const field_format = require('./utils/field_format');
+const orderbyUnwrap = require('./utils/orderby_unwrap');
 
 
-export default async function(opts) {
+module.exports = async function(opts) {
 
 	// Reset the alias
 	this.unique_alias_index = 0;
@@ -49,7 +49,7 @@ export default async function(opts) {
 
 	return resp;
 
-}
+};
 
 function buildQuery(opts) {
 
@@ -552,19 +552,12 @@ function prepField(field) {
 
 	}
 
-	let expression;
-	let label;
+	for (const label in field) {
 
-	// Get the first entry of the object and return
-	for (const _label in field) {
-
-		expression = field[_label];
-		label = _label;
-		continue;
+		const expression = field[label];
+		return [expression, label];
 
 	}
-
-	return [expression, label];
 
 }
 

@@ -1,6 +1,6 @@
 
 
-import validate_alias from '../../src/utils/validate_field.js';
+const validate_alias = require('../../src/utils/validate_field');
 
 describe('validate field alias', () => {
 

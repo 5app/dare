@@ -1,7 +1,7 @@
-import Dare from '../../src/index.js';
+const Dare = require('../../src/');
 
 // Test Generic DB functions
-import expectSQLEqual from '../lib/sql-equal.js';
+const expectSQLEqual = require('../lib/sql-equal');
 
 // Walk
 function walk(obj, handler, key = null) {
@@ -24,7 +24,7 @@ function walk(obj, handler, key = null) {
 }
 
 // Create a schema
-import options from '../data/options.js';
+const options = require('../data/options');
 
 
 describe('get - request object', () => {

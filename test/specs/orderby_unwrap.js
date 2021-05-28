@@ -3,7 +3,7 @@
  * Extract the fields from the current dataset
  */
 
-import orderby_unwrap from '../../src/utils/orderby_unwrap.js';
+const orderby_unwrap = require('../../src/utils/orderby_unwrap');
 
 describe('utils/orderby_unwrap', () => {
 
