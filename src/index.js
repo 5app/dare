@@ -286,6 +286,12 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 
 	}
 
+	/*
+	 * Disallow joins
+	 * @todo: support joins see #187
+	 */
+	disallowJoins(req);
+
 	// Validate Body
 	validateBody(req.body);
 
@@ -493,6 +499,12 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 		return _this.after(req.skip);
 
 	}
+
+	/*
+	 * Disallow joins
+	 * @todo: support joins see #187
+	 */
+	disallowJoins(req);
 
 	// Clone object before formatting
 	const a = [];
@@ -727,6 +739,22 @@ function migrateToModels(options) {
 			});
 
 		}
+
+	}
+
+}
+
+
+/**
+ * DisallowJoins
+ * @param {object} req - Formatted request object
+ * @returns {void} Checks whether a join is included in the request
+ */
+function disallowJoins(req) {
+
+	if (req._joins) {
+
+		throw new DareError(DareError.INVALID_REQUEST, `${req.method} cannot contain nested joins`);
 
 	}
 

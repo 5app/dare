@@ -4,6 +4,7 @@ const Dare = require('../../src/');
 const sqlEqual = require('../lib/sql-equal');
 
 const DareError = require('../../src/utils/error');
+const {expect} = require('chai');
 
 const id = 1;
 const name = 'name';
@@ -443,6 +444,36 @@ describe('patch', () => {
 				body: {name: 'andrew'}
 			});
 
+
+	});
+
+
+	it('disallow nested filters: should throw an exception', () => {
+
+		dare.options.models = {
+			tbl: {
+				schema: {
+					// Create a reference to tblB
+					ref_id: 'tblB.id'
+				}
+			}
+		};
+
+		const test = dare
+			.patch({
+				table: 'tbl',
+				filter: {
+					id: 1,
+					tblB: {
+						id: 1
+					}
+				},
+				body: {name: 'andrew'}
+			});
+
+		return expect(test)
+			.to.be.eventually.rejectedWith(DareError)
+			.and.have.property('code', DareError.INVALID_REQUEST);
 
 	});
 

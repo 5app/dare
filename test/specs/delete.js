@@ -219,4 +219,33 @@ describe('del', () => {
 
 	});
 
+
+	it('disallow nested filters: should throw an exception', () => {
+
+		dare.options.models = {
+			tbl: {
+				schema: {
+					// Create a reference to tblB
+					ref_id: 'tblB.id'
+				}
+			}
+		};
+
+		const test = dare
+			.del({
+				table: 'tbl',
+				filter: {
+					id: 1,
+					tblB: {
+						id: 1
+					}
+				}
+			});
+
+		return expect(test)
+			.to.be.eventually.rejectedWith(DareError)
+			.and.have.property('code', DareError.INVALID_REQUEST);
+
+	});
+
 });
