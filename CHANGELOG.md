@@ -1,3 +1,10 @@
+## [0.57.2](https://github.com/5app/dare/compare/v0.57.1...v0.57.2) (2021-06-18)
+
+
+### Bug Fixes
+
+* **del, patch:** throws an error is nested filter given, [#187](https://github.com/5app/dare/issues/187) ([9f5a5d3](https://github.com/5app/dare/commit/9f5a5d3477fb54988d7fec41725e3ab28635c8f1))
+
 ## [0.57.1](https://github.com/5app/dare/compare/v0.57.0...v0.57.1) (2021-05-28)
 
 
