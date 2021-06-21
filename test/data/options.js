@@ -101,7 +101,7 @@ module.exports = {
 					references: 'activitySession.id'
 				},
 
-				ref_id: 'apps.id',
+				ref_id: 'asset.id',
 
 				/*
 				 * Date Type
@@ -110,8 +110,9 @@ module.exports = {
 			}
 		},
 
-		apps: {
+		asset: {
 
+			table: 'apps',
 			schema: {
 
 				/*
@@ -125,7 +126,7 @@ module.exports = {
 
 			schema: {
 
-				asset_id: 'apps.id',
+				asset_id: 'asset.id',
 
 				/*
 				 * Date Type
@@ -134,11 +135,6 @@ module.exports = {
 			}
 		}
 
-	},
-
-	table_alias: {
-		'author': 'users',
-		'events': 'activityEvents',
-		'asset': 'apps'
 	}
+
 };

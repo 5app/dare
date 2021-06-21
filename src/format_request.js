@@ -51,24 +51,16 @@ async function format_request(options, dareInstance) {
 
 	}
 
-	// Reject when the table is not recognised
-	if (!options.table) {
-
-		throw new DareError(DareError.INVALID_REFERENCE, `Unrecognized reference '${options.table}'`);
-
-	}
-
 	// Get all the available models of the dare instance
 	const {models} = dareInstance.options;
 
 	// ModelName - Is the alias with decorations removed
-	const modelName = options.alias.replace(/^-/, '').split('$')[0];
+	const modelName = dareInstance.table_alias_handler(options.alias);
 
 	/*
 	 * Retrieve the model based upon the modelName (alias)
-	 * @legacy: support for old table_alias in models?.[table]
 	 */
-	const model = models?.[modelName] || models?.[options.table] || {};
+	const model = models?.[modelName] || {};
 
 	/*
 	 * If the model redefines the table name, let's update the table

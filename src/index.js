@@ -55,8 +55,7 @@ Dare.prototype.MAX_LIMIT = null;
 // Set default table_alias handler
 Dare.prototype.table_alias_handler = function(name) {
 
-	name = name.replace(/^-/, '').split('$')[0];
-	return (this.options.table_alias ? this.options.table_alias[name] : null) || name;
+	return name.replace(/^-/, '').split('$')[0];
 
 };
 

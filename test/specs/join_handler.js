@@ -100,7 +100,10 @@ describe('join_handler', () => {
 		// Given a relationship between
 		dare.options = {
 			models: {
-				grandparent: {},
+				greatgrandparent: {},
+				grandparent: {
+					ggrand_id: 'greatgrandparent.id'
+				},
 				parent: {
 					schema: {grand_id: 'grandparent.gid'}
 				},
@@ -134,6 +137,18 @@ describe('join_handler', () => {
 			]
 		});
 
+		// But this is limited to only one intermediary table, not two
+
+		const greatgrandparent_object = {
+			alias: 'greatgrandparent',
+			table: 'greatgrandparent'
+		};
+
+		const no_join = joinHandler(child_object, greatgrandparent_object, dare);
+
+		expect(no_join).to.deep.equal(null);
+
+
 	});
 
 	describe('many to many table joins', () => {
@@ -164,11 +179,6 @@ describe('join_handler', () => {
 
 					// A Recipient (person) is referenced via messages.to_id field.
 					recipient: {}
-				},
-
-				table_aliases: {
-					author: 'person',
-					recipient: 'person'
 				}
 			};
 

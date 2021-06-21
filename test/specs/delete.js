@@ -66,7 +66,7 @@ describe('del', () => {
 
 	});
 
-	it('should use table aliases', async () => {
+	it('should use provided table name', async () => {
 
 		dare.execute = async ({sql, values}) => {
 
@@ -77,9 +77,9 @@ describe('del', () => {
 
 		};
 
-		dare.options = {
-			table_alias: {
-				'test': 'tablename'
+		dare.options.models = {
+			'test': {
+				table: 'tablename'
 			}
 		};
 
@@ -95,14 +95,14 @@ describe('del', () => {
 
 		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(sql, 'DELETE FROM tbl WHERE id = ? LIMIT 1');
+			sqlEqual(sql, 'DELETE FROM test WHERE id = ? LIMIT 1');
 			expect(values).to.deep.equal([1]);
 			return {success: true};
 
 		};
 
 		dare.options.models = {
-			'tbl': {
+			'test': {
 				del(req) {
 
 					// Augment the request
@@ -114,7 +114,7 @@ describe('del', () => {
 
 		return dare
 			.del({
-				table: 'tbl',
+				table: 'test',
 				filter: {id: 2}
 			});
 
