@@ -90,7 +90,7 @@ Dare.prototype.after = function(resp) {
 
 	// Define the after handler
 	const handler = `after${this.options.method.replace(/^([a-z])/, (m, l) => l.toUpperCase())}`;
-	const table = this.options.table;
+	const table = this.options.name;
 
 	// Trigger after handlers following a request
 	if (handler in this.options && table in this.options[handler]) {
@@ -295,7 +295,7 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	validateBody(req.body);
 
 	// Get the model structure
-	const {schema: tableSchema} = (_this.options.models && _this.options.models[req.table]) || {};
+	const {schema: tableSchema} = _this.options.models?.[req.name] || {};
 
 	// Prepare post
 	const {assignments, preparedValues} = prepareSet(req.body, tableSchema);
@@ -317,7 +317,7 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	}
 
 	// Construct a db update
-	const sql = `UPDATE ${exec}${req.table}
+	const sql = `UPDATE ${exec}${req.sql_table}
 			SET
 				${serialize(assignments, '=', ',')}
 			WHERE
@@ -382,7 +382,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	const exec = req.ignore ? 'IGNORE' : '';
 
 	// Get the schema
-	const {schema: tableSchema} = (_this.options.models && _this.options.models[req.table]) || {};
+	const {schema: tableSchema} = _this.options.models?.[req.name] || {};
 
 	// Capture keys
 	const fields = [];
@@ -455,7 +455,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	}
 
 	// Construct a db update
-	const sql = `INSERT ${exec} INTO ${req.table}
+	const sql = `INSERT ${exec} INTO ${req.sql_table}
 			(${fields.map(field => `\`${field}\``).join(',')})
 			VALUES
 			${data.join(',')}
@@ -515,7 +515,7 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 	});
 
 	// Construct a db update
-	const sql = `DELETE FROM ${req.table}
+	const sql = `DELETE FROM ${req.sql_table}
 					WHERE
 					${sql_query.join(' AND ')}
 					LIMIT ${req.limit}`;

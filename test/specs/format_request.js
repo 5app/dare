@@ -43,7 +43,7 @@ describe('format_request', () => {
 
 	it('should return a structure with default values', async () => {
 
-		const table = 'alias';
+		const table = 'modelName';
 		const filter = {id: 1};
 		const fields = ['name'];
 
@@ -59,8 +59,10 @@ describe('format_request', () => {
 
 		expect(resp).to.deep.equal({
 			fields,
-			table: actualtable,
+			table,
 			alias: table,
+			name: table,
+			sql_table: actualtable,
 			field_alias_path: '',
 			filter,
 			_filter: [

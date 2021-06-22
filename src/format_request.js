@@ -47,29 +47,28 @@ async function format_request(options, dareInstance) {
 
 		const alias = options.table;
 		options.alias = alias;
-		options.table = dareInstance.table_alias_handler(alias);
 
 	}
 
-	// Get all the available models of the dare instance
+	/*
+	 * Get all the available models of the dare instance
+	 */
 	const {models} = dareInstance.options;
 
-	// ModelName - Is the alias with decorations removed
-	const modelName = dareInstance.table_alias_handler(options.alias);
+	/*
+	 * Options name defines the model name
+	 */
+	options.name = dareInstance.table_alias_handler(options.table);
 
 	/*
-	 * Retrieve the model based upon the modelName (alias)
+	 * Retrieve the model based upon the model name (alias)
 	 */
-	const model = models?.[modelName] || {};
+	const model = models?.[options.name] || {};
 
 	/*
-	 * If the model redefines the table name, let's update the table
+	 * Set the SQL Table, If the model redefines the table name otherwise use the model Name
 	 */
-	if (model.table) {
-
-		options.table = model.table;
-
-	}
+	options.sql_table = model.table || options.name;
 
 	/*
 	 * Call bespoke table handler

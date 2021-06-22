@@ -75,8 +75,7 @@ function buildQuery(opts) {
 	} = this.traverse(opts, is_subquery);
 
 	// Get the root tableID
-	const sql_table = opts.table;
-	const sql_alias = opts.sql_alias;
+	const {sql_table, sql_alias} = opts;
 
 	{
 
@@ -411,7 +410,7 @@ function traverse(item, is_subquery) {
 			}
 
 			// Append to the sql_join
-			sql_joins.push(`${item.required_join ? '' : 'LEFT'} JOIN ${item.table} ${sql_alias} ON (${sql_join_condition.join(' AND ')})`);
+			sql_joins.push(`${item.required_join ? '' : 'LEFT'} JOIN ${item.sql_table} ${sql_alias} ON (${sql_join_condition.join(' AND ')})`);
 
 		}
 		else {
