@@ -51,6 +51,15 @@ async function format_request(options, dareInstance) {
 	}
 
 	/*
+	 * Reject when the table is not provided
+	 */
+	if (!options.table) {
+
+		throw new DareError(DareError.INVALID_REQUEST, '`table` option is undefined');
+
+	}
+
+	/*
 	 * Get all the available models of the dare instance
 	 */
 	const {models} = dareInstance.options;
