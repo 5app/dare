@@ -12,6 +12,7 @@ describe('utils/extend', () => {
 
 		extend({}, JSON.parse('{"__proto__": {"devMode": true}}'));
 
+		// eslint-disable-next-line no-unused-expressions
 		expect({}.devMode).to.not.be.ok;
 
 	});

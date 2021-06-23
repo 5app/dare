@@ -13,6 +13,10 @@
 		"es2020": true
 	},
 	"rules": {
+		// "no-negated-condition": 2,
+		"no-unused-expressions": 2,
+		"prefer-named-capture-group": 2,
+		// "prefer-destructuring": 2,
 		"arrow-body-style": [2, "as-needed"],
 		"capitalized-comments": 2,
 		"comma-dangle": 2,

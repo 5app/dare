@@ -62,7 +62,7 @@ async function format_request(options, dareInstance) {
 	const {models} = dareInstance.options;
 
 	// ModelName - Is the alias with decorations removed
-	const modelName = options.alias.replace(/^-/, '').split('$')[0];
+	const [modelName] = options.alias.replace(/^-/, '').split('$');
 
 	/*
 	 * Retrieve the model based upon the modelName (alias)

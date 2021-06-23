@@ -103,13 +103,14 @@ module.exports = function(join_object, root_object, dareInstance) {
 		 * Awesome, this table (tbl) is the link table and can be used to join up both these tables.
 		 * Also give this link table a unique Alias
 		 */
-		return Object.assign({
+		return {
 			alias: dareInstance.get_unique_alias(),
 			table: linkTable,
 			joins: [
 				Object.assign(join_object, join_conditions)
-			]
-		}, root_conditions);
+			],
+			...root_conditions
+		};
 
 	}
 

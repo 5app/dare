@@ -129,7 +129,7 @@ function fieldMapping({field, label, fieldsArray, originalArray, field_alias_pat
 			 * This field isnt' part of this table
 			 * So lets extract this field with the table key
 			 */
-			const key = relative[0];
+			const [key] = relative;
 			const value = label ? {[label]: field} : field;
 
 			// Extract nested field

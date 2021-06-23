@@ -9,7 +9,8 @@ describe('get_unique_alias', () => {
 		for (let i = 0; i < 100; i++) {
 
 			const alias = dare.get_unique_alias();
-			expect(alias).to.match(/^[a-z]+|(`)?(.)\1$/);
+			// eslint-disable-next-line security/detect-unsafe-regex
+			expect(alias).to.match(/^[a-z]+|(?<tick>`)?(?:.)\k<tick>$/);
 
 		}
 

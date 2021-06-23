@@ -55,7 +55,7 @@ Dare.prototype.MAX_LIMIT = null;
 // Set default table_alias handler
 Dare.prototype.table_alias_handler = function(name) {
 
-	name = name.replace(/^-/, '').split('$')[0];
+	[name] = name.replace(/^-/, '').split('$');
 	return (this.options.table_alias ? this.options.table_alias[name] : null) || name;
 
 };
@@ -90,8 +90,8 @@ Dare.prototype.response_handler = require('./response_handler');
 Dare.prototype.after = function(resp) {
 
 	// Define the after handler
-	const handler = `after${this.options.method.replace(/^([a-z])/, (m, l) => l.toUpperCase())}`;
-	const table = this.options.table;
+	const handler = `after${this.options.method.replace(/^[a-z]/, m => m.toUpperCase())}`;
+	const {table} = this.options;
 
 	// Trigger after handlers following a request
 	if (handler in this.options && table in this.options[handler]) {
