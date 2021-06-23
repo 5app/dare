@@ -127,6 +127,7 @@ describe('Dare', () => {
 				.to.not.equal(dare2.options.models.users);
 
 			// Should not mutate instance it extended
+			// eslint-disable-next-line no-unused-expressions
 			expect(dare.options.models.different)
 				.to.be.undefined;
 

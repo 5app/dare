@@ -75,7 +75,9 @@ module.exports = function reduceConditions(filter, {extract, propName, table_sch
  */
 function stripKey(key) {
 
-	const [rootKeyRaw, subKey] = key.split(/\.(.*)/);
+	const [rootKeyRaw, ...subKeys] = key.split('.');
+
+	const subKey = subKeys.join('.');
 
 	let negate = false;
 
@@ -234,7 +236,7 @@ function prepCondition(field, value, key_definition, negate) {
 
 		if (conds.length === 1) {
 
-			condition = conds[0];
+			[condition] = conds;
 
 		}
 		else {

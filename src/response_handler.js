@@ -101,8 +101,8 @@ function formatHandler(item) {
 		else {
 
 			// This has multiple parts
-			const r = /^([a-z0-9.$\s_-]*)\[(.*?)\]$/i;
-			const m = label.match(r);
+			// eslint-disable-next-line security/detect-unsafe-regex
+			const m = label.match(/^(?<label>[a-z0-9.$\s_-]*)\[(?<keys>.*?)\]$/i);
 
 			if (!m) {
 
@@ -124,35 +124,39 @@ function formatHandler(item) {
 				 * And insert into the dataset...
 				 */
 				const a = [];
-				const alabel = m[1];
+				const alabel = m.groups.label;
 				explodeKeyValue(item, alabel.split('.'), a);
 
 				// Loop through the value entries
-				const keys = m[2].split(',');
+				const keys = m.groups.keys.split(',');
 
-				value && value.forEach(values => {
+				if (Array.isArray(value)) {
 
-					/*
-					 * This is a workaround/tidy up for GROUP_CONCAT/CONCAT_WS
-					 * If we can't find a non-empty value...
-					 */
-					if (!values.find(val => val !== '')) {
+					value.forEach(values => {
 
-						// Continue
-						return;
+						/*
+						 * This is a workaround/tidy up for GROUP_CONCAT/CONCAT_WS
+						 * If we can't find a non-empty value...
+						 */
+						if (!values.find(val => val !== '')) {
 
-					}
+							// Continue
+							return;
 
-					const obj = {};
-					keys.forEach((label, index) => {
+						}
 
-						obj[label] = values[index];
+						const obj = {};
+						keys.forEach((label, index) => {
+
+							obj[label] = values[index];
+
+						});
+						formatHandler(obj);
+						a.push(obj);
 
 					});
-					formatHandler(obj);
-					a.push(obj);
 
-				});
+				}
 
 			}
 

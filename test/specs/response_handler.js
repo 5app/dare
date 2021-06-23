@@ -427,6 +427,7 @@ describe('response_row_handler', () => {
 			'a,b': Buffer.from('["1","2"]')
 		}]);
 
+		// eslint-disable-next-line no-unused-expressions
 		expect(data).to.be.an('array').that.is.empty;
 
 	});

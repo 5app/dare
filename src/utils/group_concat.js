@@ -40,7 +40,7 @@ module.exports = function group_concat(fields, address = '') {
 
 	label = fields.map(field => {
 
-		const label = field.label;
+		const {label} = field;
 		// Trim the parent address from the start of the label
 		return label.slice(address.length);
 

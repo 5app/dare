@@ -1,3 +1,5 @@
+/* eslint-disable security/detect-unsafe-regex */
+/* eslint-disable prefer-named-capture-group */
 const DareError = require('./error');
 
 module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
@@ -30,7 +32,7 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 			}
 
 			// Split out comma variables
-			while ((int_m = str.match(/(.*)(,\s*((["'])?[a-z0-9%._\s-]*\4))$/i))) {
+			while ((int_m = str.match(/(.*)(,\s*((?<quote>["'])?[a-z0-9%._\s-]*\k<quote>))$/i))) {
 
 				/*
 				 * Is there an unquoted parameter
@@ -52,7 +54,7 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 			/*
 			 * Deal with math and operators against a value
 			 */
-			const int_x = str.match(/(.*)(\s(\*|\/|>|<|=|<=|>=|<>|!=)\s([0-9.]+|((["'])[a-z0-9%._\s-]*\6)))$/i);
+			const int_x = str.match(/(.*)(\s(\*|\/|>|<|=|<=|>=|<>|!=)\s([0-9.]+|((?<quote>["'])[a-z0-9%._\s-]*\k<quote>)))$/i);
 
 			if (int_x) {
 
