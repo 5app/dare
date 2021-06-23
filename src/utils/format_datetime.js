@@ -34,7 +34,8 @@ module.exports = function formatDateTime(values) {
 			strCache = str;
 
 			// Tidy up the ISO string
-			const _str = str.replace(/(T\d+)$/, '$1:00'); // Requires minutes with hours
+			// eslint-disable-next-line security/detect-unsafe-regex
+			const _str = str.replace(/(?<hour>T\d+)$/, '$<hour>:00'); // Requires minutes with hours
 
 			const date = new Date(_str);
 

@@ -59,7 +59,7 @@ function buildQuery(opts) {
 	const sql_limit = `LIMIT ${opts.start ? `${opts.start},` : ''}${opts.limit}`;
 
 	// SubQuery
-	const is_subquery = opts.is_subquery;
+	const {is_subquery} = opts;
 
 	// Traverse the Request Object
 	const {
@@ -236,7 +236,7 @@ function traverse(item, is_subquery) {
 	const orderby = [];
 
 
-	const parent = item.parent;
+	const {parent} = item;
 
 	const resp = {
 		sql_filter,
@@ -282,7 +282,7 @@ function traverse(item, is_subquery) {
 		}
 
 		// Adopt the parents settings
-		const many = item.many;
+		const {many} = item;
 
 		// Does this have a many join
 		resp.has_many_join = many;
@@ -384,7 +384,7 @@ function traverse(item, is_subquery) {
 
 		}
 
-		const required_join = item.required_join;
+		const {required_join} = item;
 
 		// Required Join
 		item.required_join = required_join && (parent.required_join || parent.root);

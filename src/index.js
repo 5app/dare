@@ -89,7 +89,7 @@ Dare.prototype.response_handler = require('./response_handler');
 Dare.prototype.after = function(resp) {
 
 	// Define the after handler
-	const handler = `after${this.options.method.replace(/^([a-z])/, (m, l) => l.toUpperCase())}`;
+	const handler = `after${this.options.method.replace(/^[a-z]/, m => m.toUpperCase())}`;
 	const table = this.options.name;
 
 	// Trigger after handlers following a request

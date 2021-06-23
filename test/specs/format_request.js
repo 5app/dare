@@ -106,7 +106,7 @@ describe('format_request', () => {
 				{'asset': ['field']}
 			].forEach(fields => {
 
-				it(`valid: ${JSON.stringify(fields)}`, async () => dare.format_request(Object.assign({}, options, {fields})));
+				it(`valid: ${JSON.stringify(fields)}`, async () => dare.format_request({...options, fields}));
 
 			});
 
@@ -127,7 +127,7 @@ describe('format_request', () => {
 
 				it(`invalid: ${JSON.stringify(fields)}`, () => {
 
-					const test = dare.format_request(Object.assign({}, options, {fields}));
+					const test = dare.format_request({...options, fields});
 
 					return expect(test)
 						.to.be.eventually.rejectedWith(DareError)
@@ -153,7 +153,7 @@ describe('format_request', () => {
 
 				it(`where ${JSON.stringify(fields)}`, async () => {
 
-					const req = await dare.format_request(Object.assign({}, options, {fields}));
+					const req = await dare.format_request({...options, fields});
 
 					expect(req._joins[0]).to.have.property('alias', 'asset');
 
@@ -178,7 +178,7 @@ describe('format_request', () => {
 
 				['90', 90, '99', 1, 10000001].forEach(limit => {
 
-					it(`valid: ${limit} (${typeof limit})`, async () => dare.format_request(Object.assign({}, options, {limit})));
+					it(`valid: ${limit} (${typeof limit})`, async () => dare.format_request({...options, limit}));
 
 				});
 
@@ -190,7 +190,7 @@ describe('format_request', () => {
 
 					it(`invalid: ${limit} (${typeof limit})`, () => {
 
-						const test = dare.format_request(Object.assign({}, options, {limit}));
+						const test = dare.format_request({...options, limit});
 
 						return expect(test)
 							.to.be.eventually.rejectedWith(DareError)
@@ -219,7 +219,7 @@ describe('format_request', () => {
 					expect(dare.MAX_LIMIT).to.eql(null);
 					expect(_dare.MAX_LIMIT).to.eql(limit);
 
-					return _dare.format_request(Object.assign({}, options, {limit}));
+					return _dare.format_request({...options, limit});
 
 				});
 
@@ -229,7 +229,7 @@ describe('format_request', () => {
 					// Update the length
 					dare.MAX_LIMIT = limit - 1;
 
-					const test = dare.format_request(Object.assign({}, options, {limit}));
+					const test = dare.format_request({...options, limit});
 
 					return expect(test)
 						.to.be.eventually.rejectedWith(DareError)
@@ -247,7 +247,7 @@ describe('format_request', () => {
 
 				['90', 90, '99', 1, null].forEach(start => {
 
-					it(`valid: ${start} (${typeof start})`, async () => dare.format_request(Object.assign({}, options, {start})));
+					it(`valid: ${start} (${typeof start})`, async () => dare.format_request({...options, start}));
 
 				});
 
@@ -259,7 +259,7 @@ describe('format_request', () => {
 
 					it(`invalid: ${start} (${typeof start})`, () => {
 
-						const test = dare.format_request(Object.assign({}, options, {start}));
+						const test = dare.format_request({...options, start});
 
 						return expect(test)
 							.to.be.eventually.rejectedWith(DareError)

@@ -33,7 +33,7 @@ module.exports = function field_format(original, label, table_prefix, label_pref
 	// Aggregate function flag
 	let agg = false;
 
-	if (prefix && /\b(SUM|COUNT|AVG|MAX|MIN|GROUP_CONCAT)\(/.test(prefix.toUpperCase())) {
+	if (prefix && /\b(?:SUM|COUNT|AVG|MAX|MIN|GROUP_CONCAT)\(/.test(prefix.toUpperCase())) {
 
 		agg = true;
 
