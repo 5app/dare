@@ -533,6 +533,12 @@ Deletes records within the `table` when they match `filter`.
 | limit         | number    | Default: `1`. Limit the number of results which can be affected by delete
 
 
+
+
+
+
+
+
 # `options` Object
 
 The `options` Object is used to define properties on the current and descendent contexts. In other words, every method in Dare, creates a new instances inheritting its parent options as well as defining it's own. See `dare.use(options)` for more.
@@ -633,7 +639,7 @@ Can define how a field corresponds to a DB table field, whether it's readable/wr
 Defining a field attribute, can be verbose using an object with special keys, or can be shorthanded with specific datatypes
 
 Property | Attr Example | Shorthand DataType | ShortHand Example | Description
---|--|--|--
+--|--|--|--|--
 `reference` | e.g. `{reference: ['country.id']}` | `Array` | `county_id: ['country.id']` | Relationship with other models
 `alias` | e.g. `{alias: 'email'}` | `String` | `emailAddress: 'email'` | Alias a field with a DB Table field
 `handler` | e.g. `{handler: Function}` | `Function` | `url: urlFunction` | Generated Field
