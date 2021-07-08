@@ -54,6 +54,23 @@ describe('get', () => {
 
 	});
 
+	it('should throw an error if table is empty', async () => {
+
+		const request = {
+
+			fields: ['id', 'name']
+
+		};
+
+		const call = dare.get(request);
+
+		return expect(call).to.be.eventually
+			.rejectedWith(DareError, '`table` option is undefined')
+			.and.have.property('code', DareError.INVALID_REQUEST);
+
+	});
+
+
 	describe('Simple arguments', () => {
 
 		const basic_record = {

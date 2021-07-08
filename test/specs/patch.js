@@ -267,9 +267,9 @@ describe('patch', () => {
 
 		};
 
-		dare.options = {
-			table_alias: {
-				'test': 'tablename'
+		dare.options.models = {
+			test: {
+				table: 'tablename'
 			}
 		};
 

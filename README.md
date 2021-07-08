@@ -895,34 +895,6 @@ await dare.get({
 
 # Additional Options
 
-## Table Alias
-
-Table can have alias's this is useful when the context changes.
-
-E.g. Define 'author' as an alternative for 'users'
-
-```js
-	table_alias: {
-		author: 'users'
-	}
-```
-
-Example implementation...
-
-```js
-await dare.get({
-	table: comments,
-	fields: {
-		id,
-		text,
-		author: {
-			id,
-			name
-		}
-	}
-});
-```
-
 ## Multiple joins/filters on the same table
 
 In order to both: show all relationship on the join table AND filter the main results by the joined table. One can either create separate table aliases (as described above) using one for the field name, and one for the filter. Or alternatively append an arbitary label, a `$` sign followed by an string. E.g.

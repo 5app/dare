@@ -47,37 +47,37 @@ async function format_request(options, dareInstance) {
 
 		const alias = options.table;
 		options.alias = alias;
-		options.table = dareInstance.table_alias_handler(alias);
 
 	}
 
-	// Reject when the table is not recognised
+	/*
+	 * Reject when the table is not provided
+	 */
 	if (!options.table) {
 
-		throw new DareError(DareError.INVALID_REFERENCE, `Unrecognized reference '${options.table}'`);
+		throw new DareError(DareError.INVALID_REQUEST, '`table` option is undefined');
 
 	}
 
-	// Get all the available models of the dare instance
+	/*
+	 * Get all the available models of the dare instance
+	 */
 	const {models} = dareInstance.options;
 
-	// ModelName - Is the alias with decorations removed
-	const [modelName] = options.alias.replace(/^-/, '').split('$');
+	/*
+	 * Options name defines the model name
+	 */
+	options.name = dareInstance.table_alias_handler(options.table);
 
 	/*
-	 * Retrieve the model based upon the modelName (alias)
-	 * @legacy: support for old table_alias in models?.[table]
+	 * Retrieve the model based upon the model name (alias)
 	 */
-	const model = models?.[modelName] || models?.[options.table] || {};
+	const model = models?.[options.name] || {};
 
 	/*
-	 * If the model redefines the table name, let's update the table
+	 * Set the SQL Table, If the model redefines the table name otherwise use the model Name
 	 */
-	if (model.table) {
-
-		options.table = model.table;
-
-	}
+	options.sql_table = model.table || options.name;
 
 	/*
 	 * Call bespoke table handler

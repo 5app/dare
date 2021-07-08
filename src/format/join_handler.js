@@ -12,54 +12,17 @@ module.exports = function(join_object, root_object, dareInstance) {
 
 	const {models} = dareInstance.options;
 
-	const {table: rootTable, alias: _rootAlias} = root_object;
-	const {table: joinTable, alias: _joinAlias} = join_object;
-
-	// Remove the join alias label
-	const joinAlias = _joinAlias.split('$')[0];
-
-	// Remove the root alias label
-	const rootAlias = _rootAlias.split('$')[0];
-
-	// Get the Join Conditions...
-	let join_conditions;
+	const {table: rootModel} = root_object;
+	const {table: joinModel} = join_object;
 
 	/*
 	 * The preference is to match in order:
-	 * joinAlias to rootAlias
-	 * rootAlias to joinAlias (inverted)
-	 * joinAlias to rootTable
-	 * rootTable to joinAlias (inverted)
-	 * joinTable to rootAlias
-	 * rootAlias to joinTable (inverted)
 	 * joinTable to rootTable
 	 * rootTable to joinTable (inverted)
+	 * Looks at the schema of both tables to find one which has a reference field to the other.
 	 */
 
-	// Does the alias exist...
-	const a = [joinAlias, joinTable].filter(tidy);
-	const b = [rootAlias, rootTable].filter(tidy);
-
-	// Looks at the schema of both tables to find one which has a reference field to the other.
-	for (const _a of a) {
-
-		for (const _b of b) {
-
-			join_conditions = links(models[_a]?.schema, _b) || invert_links(models[_b]?.schema, _a);
-			if (join_conditions) {
-
-				break;
-
-			}
-
-		}
-		if (join_conditions) {
-
-			break;
-
-		}
-
-	}
+	const join_conditions = links(models[joinModel]?.schema, rootModel) || invert_links(models[rootModel]?.schema, joinModel);
 
 	// Yes, no, Yeah!
 	if (join_conditions) {
@@ -71,18 +34,15 @@ module.exports = function(join_object, root_object, dareInstance) {
 	// Crawl the schema for an intermediate table which is linked to both tables. link table, ... we're only going for a single Kevin Bacon. More than that and the process will deem this operation too hard.
 	for (const linkTable in models) {
 
-		// Well, this would be silly otherwise...
-		if (linkTable === joinTable || linkTable === rootTable) {
+		// Well, ignore models of the same name
+		if (linkTable === joinModel || linkTable === rootModel) {
 
 			continue;
 
 		}
 
 		// LinkTable <> joinTable?
-		const sjt = models[joinAlias]?.schema || models[joinTable]?.schema;
-		const jt = models[joinAlias]?.schema ? joinAlias : joinTable;
-		const join_conditions = links(sjt, linkTable) || invert_links(models[linkTable]?.schema, jt);
-
+		const join_conditions = links(models[joinModel]?.schema, linkTable) || invert_links(models[linkTable]?.schema, joinModel);
 
 		if (!join_conditions) {
 
@@ -91,7 +51,7 @@ module.exports = function(join_object, root_object, dareInstance) {
 		}
 
 		// RootTable <> linkTable
-		const root_conditions = links(models[linkTable]?.schema, rootTable) || invert_links(models[rootTable]?.schema, linkTable);
+		const root_conditions = links(models[linkTable]?.schema, rootModel) || invert_links(models[rootModel]?.schema, linkTable);
 
 		if (!root_conditions) {
 
@@ -171,12 +131,5 @@ function invert(o) {
 
 	}
 	return r;
-
-}
-
-function tidy(value, index, self) {
-
-	// Remove empty and duplicate values
-	return value && self.indexOf(value) === index;
 
 }
