@@ -1,3 +1,10 @@
+# [0.58.0](https://github.com/5app/dare/compare/v0.57.2...v0.58.0) (2021-07-08)
+
+
+### Features
+
+* **deprecate:** remove table_alias object handling ([#189](https://github.com/5app/dare/issues/189)) ([f649ac6](https://github.com/5app/dare/commit/f649ac6104736e8d92e809d9ee5ada9e09de5edd))
+
 ## [0.57.2](https://github.com/5app/dare/compare/v0.57.1...v0.57.2) (2021-06-18)
 
 
