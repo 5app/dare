@@ -669,6 +669,7 @@ const dare = new Dare({
 		country: {
 			schema: {
 				// country fields...
+				id: {}
 			},
 		}
 	}
@@ -917,59 +918,15 @@ await dare.get({
 This will get all users who contain atleast the tags 'Andrew', as well as returning all the other tags.
 
 
-## Method Table Handlers
-
-	options[method][table] = handler Function
-
-Essentially enables methods to intercept requests to particular tables for given methods and apply business rules.
-
-E.g. prevent a user from being deleted if they dont match the same as the passed through `req` object.
-
-```
-	del: {
-		users(options) {
-			if (options.filter.id !== options.req.session.user_id) {
-				throw "You can't delete this user"
-			}
-		}
-	}
-```
-
 ## After Handlers
 
-	options.after*Method*[table] = handler(resp)
+An `dareInstance.after` handler is executed after the initial request has completed but before Dare has resolved the call. This makes it useful for logging as well as manipulating the response. If the handler returns `undefined` or `Promise<undefined>` then the original response is returned unaltered. And anything other than `undefined` will become the new response.
 
-This handler is executed after the request and is useful for logging or manipulating the response. If this returns undefined statically or via a Promise then the original response is not altered. Anything else will alter the response.
-
-E.g. log an update to the users table
+E.g. here is an example using the `after` handlers in the `users.patch` model to record a transaction.
 
 ```js
-afterPatch: {
-	users(resp) {
-		// Get the original request filter...
-		const ref_id = this.options.filter.id;
-
-		// Post to changelog...
-		date.post('changelog', {
-			message: 'User updated',
-			type: 'users',
-			ref_id
-		});
-		// do not return anything...
-	}
-}
-```
-
-### Catch in the *before* handler and overwrite *after* method
-
-Of course there are scenarios where you want to capture a previous existing value. For that you might like to define the after handler before the patch operation is complete.
-
-E.g. here is an example using the before handlers to capture the original value of a field and redefine define the after handler on this instance....
-
-```js
-...
-patch: {
-	async users(options) {
+options.models.users = {
+	async patch(options, dareInstance) {
 
 		/**
 		 * Check that the data to be modified
@@ -986,17 +943,19 @@ patch: {
 		const {id: ref_id, name: previous_name} = await dare.get(opts);
 
 		// Set the after handler
-		this.after = () => {
+		dareInstance.after = () => {
 			dare.post('changelog', {
 				message: 'User updated',
 				type: 'users',
 				ref_id,
 				previous_name
 			})
+
+			// Returns undefined so no change
 		};
 	}
-}
-...
+};
+
 ```
 
 ### Handling dates and date ranges
@@ -1057,33 +1016,39 @@ console.log(data.length === 0); // empty array
 
 ### Overriding table schema per operation
 
-You can override the schema per operation using the `schema` option:
+You can override the schema per operation using the `models` option:
 
 E.g.
 
 ```js
+// On an instance, or create new instance with newDareInstance = dare.use(options)
 const dare = new Dare({
-  schema: {
-    my_table: {
-      write_protected_field: {
-        type: 'datetime',
-        writeable: false,
-      },
-    },
-  }
+	models: {
+		my_table: {
+			schema: {
+				a_write_protected_field: {
+					type: 'datetime',
+					writeable: false,
+				}
+			}
+		},
+	}
 });
 
+// On an individual request
 await dare.patch({
-  table: 'my_table',
-  body: {
-    write_protected_field: 'new value,
-  },
-  schema: {
-    my_table: {
-      write_protected_field: {
-        writeable: true,
-      },
-    },
-  },
+	table: 'my_table',
+	body: {
+		a_write_protected_field: 'new value,
+	},
+	models: {
+		my_table: {
+			schema: {
+				write_protected_field: {
+					writeable: true,
+				},
+			}
+		},
+	},
 });
 ```
