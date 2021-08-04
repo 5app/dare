@@ -12,6 +12,8 @@ describe('utils/unwrap_field', () => {
 	[
 		'field',
 		'DATE(field)',
+		'!field',
+		'!DATE(field)',
 		'DATE_FORMAT(field, "%Y-%m-%dT%T.%fZ")',
 		'DATE_SUB(field, INTERVAL 10 DAY)',
 		'COUNT(DISTINCT field)',

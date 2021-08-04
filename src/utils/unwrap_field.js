@@ -12,7 +12,7 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 		let prefix = '';
 
 		// Match a function, "STRING_DENOTES_FUNCTION(.*)"
-		while ((m = str.match(/^([a-z_]+\()(.*)(\))$/i))) {
+		while ((m = str.match(/^(!?[a-z_]+\()(.*)(\))$/i))) {
 
 			// Change the string to match the inner string...
 			str = m[2];
@@ -62,6 +62,14 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 				suffix = int_x[2] + suffix;
 
 			}
+
+		}
+
+		// Does the string start with a negation (!) ?
+		if (str && str.startsWith('!')) {
+
+			prefix += '!';
+			str = str.slice(1);
 
 		}
 

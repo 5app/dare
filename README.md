@@ -152,6 +152,7 @@ Field Defition | Description
 `FORMAT(field, 2, 'de_DE')` | Rounding to 2 decimal places and convert to a string with German formatting.
 `CONCAT(ROUND(field * 100), '%')` | Multiplying a number by 100. Rounding to 2 decimal places and appending a '%' to the end to convert a decimal value to a percentage.
 `DATE_FORMAT(field, "%Y-%m-%dT%T.%fZ")` | Format date field
+`!ISNULL(field)` | Function prefixed with negation operator `!`
 
 #### Nesting Fields
 
