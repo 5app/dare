@@ -1,3 +1,10 @@
+# [0.59.0](https://github.com/5app/dare/compare/v0.58.0...v0.59.0) (2021-08-04)
+
+
+### Features
+
+* **fields:** fields prefixable with the negation operator ([e379612](https://github.com/5app/dare/commit/e3796120d718c72c021ed3ca3f393c964a8b3453))
+
 # [0.58.0](https://github.com/5app/dare/compare/v0.57.2...v0.58.0) (2021-07-08)
 
 
