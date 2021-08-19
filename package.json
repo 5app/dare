@@ -9,9 +9,9 @@
   "scripts": {
     "pretest": "npm run lint",
     "test": "npm run spec && ((nyc report --reporter=text-lcov | coveralls) || exit 0)",
-    "test:ci": "eslint ./ && nyc mocha test/specs/**/*.js --reporter mocha-circleci-reporter && (nyc report --reporter=text-lcov | coveralls)",
+    "test:ci": "eslint ./ && nyc mocha test/specs/**/*.spec.js --reporter mocha-circleci-reporter && (nyc report --reporter=text-lcov | coveralls)",
     "test:integration": "bash ./test/integration/run.sh",
-    "spec": "nyc mocha test/specs/**/*.js",
+    "spec": "nyc mocha test/specs/**/*.spec.js",
     "semantic-release": "semantic-release",
     "lint": "eslint ./",
     "lint-fix": "eslint --fix ./",
