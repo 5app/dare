@@ -551,7 +551,9 @@ function prepField(field) {
 
 	}
 
-	for (const label in field) {
+	const label = Object.keys(field)[0];
+
+	if (label) {
 
 		const expression = field[label];
 		return [expression, label];
