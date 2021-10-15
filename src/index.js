@@ -294,11 +294,14 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	// Validate Body
 	validateBody(req.body);
 
+	// Options
+	const {models, validateInput} = _this.options;
+
 	// Get the model structure
-	const {schema: tableSchema} = _this.options.models?.[req.name] || {};
+	const {schema: tableSchema} = models?.[req.name] || {};
 
 	// Prepare post
-	const {assignments, preparedValues} = prepareSet(req.body, tableSchema);
+	const {assignments, preparedValues} = prepareSet(req.body, tableSchema, validateInput);
 
 	// Prepare query
 	const sql_query = req._filter.map(([field, condition, values]) => {
@@ -381,8 +384,11 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	// If ignore duplicate keys is stated as ignore
 	const exec = req.ignore ? 'IGNORE' : '';
 
+	// Instance options
+	const {models, validateInput} = _this.options;
+
 	// Get the schema
-	const {schema: tableSchema} = _this.options.models?.[req.name] || {};
+	const {schema: modelSchema = {}} = models?.[req.name] || {};
 
 	// Capture keys
 	const fields = [];
@@ -390,10 +396,15 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	const data = post.map(item => {
 
 		const _data = [];
+
+		/*
+		 * Iterate through the properties
+		 * Format, validate and insert
+		 */
 		for (const prop in item) {
 
 			// Format key and values...
-			const {field, value} = formatInputValue(tableSchema, prop, item[prop]);
+			const {field, value} = formatInputValue(modelSchema, prop, item[prop], validateInput);
 
 			// Get the index in the field list
 			let i = fields.indexOf(field);
@@ -410,6 +421,25 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 			_data[i] = value;
 
 		}
+
+		/*
+		 * Let's catch the omitted properties
+		 * --> Loop through the modelSchema
+		 */
+		Object.entries(modelSchema).forEach(([field, fieldObject]) => {
+
+			// For each property which was not covered by the input
+			if (!(field in item)) {
+
+				// Get a formatted object of field attributes
+				const fieldAttributes = getFieldAttributes(fieldObject);
+
+				// Validate with an undefined value
+				validateInput(fieldAttributes, field);
+
+			}
+
+		});
 
 		return _data;
 
@@ -439,7 +469,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 
 
 	// Create unalias function
-	const unAliaser = field => unAliasFields(tableSchema, field);
+	const unAliaser = field => unAliasFields(modelSchema, field);
 
 	// Options
 	let on_duplicate_keys_update = '';
@@ -534,9 +564,10 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
  * Prepare a SET assignments used in Patch
  * @param {object} body - body to format
  * @param {object} [tableSchema={}] - Schema for the current table
+ * @param {Function} [validateInput] - Validate input function
  * @returns {object} {assignment, preparedValues}
  */
-function prepareSet(body, tableSchema = {}) {
+function prepareSet(body, tableSchema = {}, validateInput) {
 
 	const preparedValues = [];
 	const assignments = {};
@@ -547,7 +578,7 @@ function prepareSet(body, tableSchema = {}) {
 		 * Get the real field in the db,
 		 * And formatted value...
 		 */
-		const {field, value} = formatInputValue(tableSchema, label, body[label]);
+		const {field, value} = formatInputValue(tableSchema, label, body[label], validateInput);
 
 		// Replace value with a question using any mapped fieldName
 		assignments[field] = '?';
@@ -608,13 +639,20 @@ function onDuplicateKeysUpdate(keys = []) {
  * @param {object} [tableSchema={}] - An object containing the table schema
  * @param {string} field - field identifier
  * @param {*} value - Given value
+ * @param {Function} [validateInput] - Custom validation function
  * @throws Will throw an error if the field is not writable
  * @returns {string} A singular value which can be inserted
  */
-function formatInputValue(tableSchema = {}, field, value) {
+function formatInputValue(tableSchema = {}, field, value, validateInput) {
 
-	const {alias, writeable, type} = getFieldAttributes(tableSchema[field]);
+	const fieldSchema = (field in tableSchema) && getFieldAttributes(tableSchema[field]);
 
+	const {alias, writeable, type} = fieldSchema || {};
+
+	// Execute custom field validation
+	validateInput?.(fieldSchema, field, value);
+
+	// Rudimentary validation of content
 	if (writeable === false) {
 
 		throw new DareError(DareError.INVALID_REFERENCE, `Field '${field}' is not writeable`);
