@@ -1,3 +1,11 @@
+# [0.60.0](https://github.com/5app/dare/compare/v0.59.0...v0.60.0) (2021-10-18)
+
+
+### Features
+
+* **validation:** allow model's to define a default field definition ([16e25a5](https://github.com/5app/dare/commit/16e25a5bbbaaf5a9d1de3d3889ce1ce245fa9053))
+* **validation:** input validation ([eb0a2fc](https://github.com/5app/dare/commit/eb0a2fc8446bac13926bf015f704adf8bc439c32))
+
 # [0.59.0](https://github.com/5app/dare/compare/v0.58.0...v0.59.0) (2021-08-04)
 
 
