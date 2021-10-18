@@ -3,24 +3,25 @@ const Dare = require('../../src/');
 describe('validateInput', () => {
 
 	let dare;
+	let memberSchema;
 
 	beforeEach(() => {
+
+		memberSchema = {
+			name: {
+				required: true
+			},
+			age: {
+				type: 'number'
+			}
+		};
 
 		dare = new Dare({
 			models: {
 
 				// Member model
 				member: {
-					schema: {
-						name: {
-							required: true
-						},
-						age: {
-							type: 'number'
-						},
-						// This is immutable and unreadable
-						password: false
-					}
+					schema: memberSchema
 				}
 			}
 		});
@@ -37,6 +38,7 @@ describe('validateInput', () => {
 
 	it('should trigger the validateInput handler', async () => {
 
+		// Extend with a validateInput handler
 		const dareInst = dare.use({
 			/**
 			 * This is an example validateInput function
@@ -56,6 +58,7 @@ describe('validateInput', () => {
 			}
 		});
 
+		// Trigger the Dare Call
 		const test = dareInst
 			.post({
 				table: 'member',
@@ -74,6 +77,7 @@ describe('validateInput', () => {
 
 			it('should trigger the validateInput handler and pass through exceptions', async () => {
 
+				// Extend with a validateInput handler
 				const dareInst = dare.use({
 
 					validateInput(fieldAttributes, field, value) {
@@ -90,6 +94,7 @@ describe('validateInput', () => {
 					}
 				});
 
+				// Trigger the Dare Call
 				const test = dareInst[method]({
 					table: 'member',
 					filter: {
@@ -105,6 +110,7 @@ describe('validateInput', () => {
 
 			it('should pass through undefined for fieldAttributes when the field is not defined in the schema', async () => {
 
+				// Extend with a validateInput handler
 				const dareInst = dare.use({
 
 					validateInput(fieldAttributes, field) {
@@ -118,12 +124,13 @@ describe('validateInput', () => {
 					}
 				});
 
+				// Trigger the Dare Call
 				const test = dareInst[method]({
 					table: 'member',
 					filter: {
 						id: 1
 					},
-					body: {age: 'one', hello: 'i shouldn\'t be here'}
+					body: {hello: 'i shouldn\'t be here'}
 				});
 
 				return expect(test)
@@ -133,6 +140,13 @@ describe('validateInput', () => {
 
 			it('should parse falsy fieldDefinitions', async () => {
 
+				/*
+				 * Set a new field to false, i.e....
+				 * This is immutable and unreadable
+				 */
+				memberSchema.password = false;
+
+				// Extend with a validateInput handler
 				const dareInst = dare.use({
 
 					validateInput(fieldAttributes, field) {
@@ -146,6 +160,7 @@ describe('validateInput', () => {
 					}
 				});
 
+				// Trigger the Dare Call
 				const test = dareInst[method]({
 					table: 'member',
 					filter: {
@@ -156,6 +171,49 @@ describe('validateInput', () => {
 
 				return expect(test)
 					.to.be.eventually.rejectedWith(Error, 'password is immutable');
+
+			});
+
+			it('should use the default field definition when no other field matches the current model', async () => {
+
+				/*
+				 * Default fields are special... they provide the default field definitions
+				 * This will let anything through
+				 */
+				memberSchema.default = false;
+
+				// Extend with a validateInput handler
+				const dareInst = dare.use({
+
+					validateInput(fieldAttributes, field, value) {
+
+						if (!fieldAttributes) {
+
+							// Do nothing
+							// eslint-disable-next-line no-console
+							console.log(`the field definition ${field} is incomplete`);
+
+						}
+						else if (fieldAttributes.writeable === false && value !== undefined) {
+
+							throw new Error(`${field} is immutable`);
+
+						}
+
+					}
+				});
+
+				// Trigger the Dare Call
+				const test = dareInst[method]({
+					table: 'member',
+					filter: {
+						id: 1
+					},
+					body: {hello: 'i shouldn\'t be here'}
+				});
+
+				return expect(test)
+					.to.be.eventually.rejectedWith(Error, 'hello is immutable');
 
 			});
 

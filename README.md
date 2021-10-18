@@ -970,6 +970,48 @@ dare.post('member', {username: 'No strange characters !@£$%^YU'});
 
 ```
 
+### default attributes of model schema
+
+The `default` field definition can be defined per model. This is useful to say when to be strict with unknown fields.
+
+e.g. 
+
+```js
+dare.use({
+	models: {
+		// Member Model
+		member: {
+			schema: {
+				default: {
+					// Be strict with the member model
+					writeable: false
+				},
+				// ... other field definitions below
+			}
+		}
+	},
+
+	validateInput(fieldAttributes, field, value) {
+		if (!fieldAttribute) {
+			// Do nothing, We have no field definitions for this model
+			console.log(`Someone should write field definitions for ${field} 👉`);
+		}
+		if (fieldAttributes.writeable === false) {
+			throw new Error(`😞: ${field} field is un-writeable`);
+		}
+		// ... other validation rules below
+	}
+});
+
+// So on the member table the default field would be replaced with an unknown field and would be caught
+dare.post('member', {hello: "What's this?"});
+// 😞: hello is un-writeable
+
+// Whilst the same unknown field would be allowed through where the default field is not declared
+dare.post('emails', {hello: "What's this?"});
+// Someone should write field definitions for hello 👉`
+```
+
 
 # Additional Options
 

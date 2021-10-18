@@ -429,7 +429,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 		Object.entries(modelSchema).forEach(([field, fieldObject]) => {
 
 			// For each property which was not covered by the input
-			if (!(field in item)) {
+			if (field !== 'default' && !(field in item)) {
 
 				// Get a formatted object of field attributes
 				const fieldAttributes = getFieldAttributes(fieldObject);
@@ -645,7 +645,11 @@ function onDuplicateKeysUpdate(keys = []) {
  */
 function formatInputValue(tableSchema = {}, field, value, validateInput) {
 
-	const fieldSchema = (field in tableSchema) && getFieldAttributes(tableSchema[field]);
+	const fieldSchema = (field in tableSchema)
+		? getFieldAttributes(tableSchema[field])
+		: ('default' in tableSchema
+			? getFieldAttributes(tableSchema.default)
+			: null);
 
 	const {alias, writeable, type} = fieldSchema || {};
 
