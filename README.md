@@ -894,6 +894,124 @@ await dare.get({
 // SELECT name FROM users WHERE deleted = false LIMIT 100;
 ```
 
+# Data validation
+
+Dare has limited validation built in (see above). Set your own `validationInput` to check input values being applied in `patch` and `post` operation.
+
+## validateInput(fieldAttributes, field, value)
+
+The `validateInput` validation is called after any method model handlers. It contains the following parameters... 
+
+| property        | Type    | Description
+|-----------------|---------|----------------
+| fieldAttributes | Object  | Field Attributes
+| field           | string  | Field Name
+| value           | *       | Input value
+
+
+e.g. 
+
+```js
+dare.use({
+	models: {
+		// Member Model
+		member: {
+			schema: {
+				username: {
+					required: true,
+					type: 'string',
+					maxlength: 5,
+					test(value) {
+						if(!/\W/.test(value)) {
+							throw new Error(`😞: username should only contain alphabetical characters`);
+						}
+					}
+				},
+				age: {
+					// Another field
+				}
+			}
+		}
+	},
+
+	validateInput(fieldAttributes, field, value) {
+		if (!fieldAttribute) {
+			throw new Error(`😞: ${field} field is unknown`);
+		}
+		if (fieldAttributes.required && value === undefined) {
+			throw new Error(`😞: ${field} is missing`);
+		}
+		if (fieldAttributes.type && typeof (value) !== 'string') {
+			throw new Error(`😞: ${field} should be a string`);
+		}
+		if (fieldAttributes.maxlength && value.length > fieldAttributes.maxlength) {
+			throw new Error(`😞: ${field} should be less than ${fieldAttributes.maxlength} characters`);
+		}
+		fieldAttributes.test?.(value);
+	}
+});
+
+// Then see what errors you'd get...
+
+dare.post('member', {username: 'Fine', hello: "What's this?"});
+// 😞: hello field is unknown
+
+dare.post('member', {age: 5});
+// 😞: username is missing
+
+dare.post('member', {username: 123});
+// 😞: username should be a string
+
+dare.post('member', {username: 'Thisistoolong'});
+// 😞: username should be less than 5 characters
+
+dare.post('member', {username: 'No strange characters !@£$%^YU'});
+// 😞: username should only contain alphabetical characters
+
+```
+
+### default attributes of model schema
+
+The `default` field definition can be defined per model. This is useful to say when to be strict with unknown fields.
+
+e.g. 
+
+```js
+dare.use({
+	models: {
+		// Member Model
+		member: {
+			schema: {
+				default: {
+					// Be strict with the member model
+					writeable: false
+				},
+				// ... other field definitions below
+			}
+		}
+	},
+
+	validateInput(fieldAttributes, field, value) {
+		if (!fieldAttribute) {
+			// Do nothing, We have no field definitions for this model
+			console.log(`Someone should write field definitions for ${field} 👉`);
+		}
+		if (fieldAttributes.writeable === false) {
+			throw new Error(`😞: ${field} field is un-writeable`);
+		}
+		// ... other validation rules below
+	}
+});
+
+// So on the member table the default field would be replaced with an unknown field and would be caught
+dare.post('member', {hello: "What's this?"});
+// 😞: hello is un-writeable
+
+// Whilst the same unknown field would be allowed through where the default field is not declared
+dare.post('emails', {hello: "What's this?"});
+// Someone should write field definitions for hello 👉`
+```
+
 
 # Additional Options
 

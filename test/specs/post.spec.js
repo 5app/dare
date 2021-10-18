@@ -173,7 +173,6 @@ describe('post', () => {
 
 	});
 
-
 	it('should trigger pre handler, options.post.default, and wait for Promise to resolve', async () => {
 
 		dare.execute = async ({sql, values}) => {
@@ -252,7 +251,7 @@ describe('post', () => {
 
 	});
 
-	it('legacy: options.schema, not exectute if the opts.skip request is marked', async () => {
+	it('legacy: options.schema, not execute if the opts.skip request is marked', async () => {
 
 		const skip = 'true';
 
@@ -275,7 +274,6 @@ describe('post', () => {
 		expect(resp).to.eql(skip);
 
 	});
-
 
 	describe('validate formatting of input values', () => {
 
