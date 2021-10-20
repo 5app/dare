@@ -426,20 +426,24 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 		 * Let's catch the omitted properties
 		 * --> Loop through the modelSchema
 		 */
-		Object.entries(modelSchema).forEach(([field, fieldObject]) => {
+		if (validateInput) {
 
-			// For each property which was not covered by the input
-			if (field !== 'default' && !(field in item)) {
+			Object.entries(modelSchema).forEach(([field, fieldObject]) => {
 
-				// Get a formatted object of field attributes
-				const fieldAttributes = getFieldAttributes(fieldObject);
+				// For each property which was not covered by the input
+				if (field !== 'default' && !(field in item)) {
 
-				// Validate with an undefined value
-				validateInput(fieldAttributes, field);
+					// Get a formatted object of field attributes
+					const fieldAttributes = getFieldAttributes(fieldObject);
 
-			}
+					// Validate with an undefined value
+					validateInput(fieldAttributes, field);
 
-		});
+				}
+
+			});
+
+		}
 
 		return _data;
 
@@ -645,16 +649,16 @@ function onDuplicateKeysUpdate(keys = []) {
  */
 function formatInputValue(tableSchema = {}, field, value, validateInput) {
 
-	const fieldSchema = (field in tableSchema)
+	const fieldAttributes = (field in tableSchema)
 		? getFieldAttributes(tableSchema[field])
 		: ('default' in tableSchema
 			? getFieldAttributes(tableSchema.default)
 			: null);
 
-	const {alias, writeable, type} = fieldSchema || {};
+	const {alias, writeable, type} = fieldAttributes || {};
 
 	// Execute custom field validation
-	validateInput?.(fieldSchema, field, value);
+	validateInput?.(fieldAttributes, field, value);
 
 	// Rudimentary validation of content
 	if (writeable === false) {
