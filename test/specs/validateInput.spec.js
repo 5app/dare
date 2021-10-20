@@ -75,6 +75,22 @@ describe('validateInput', () => {
 
 		describe(method, () => {
 
+			it('should proceed if validateInput is not defined', () => {
+
+				// Should not be called...
+				dare.execute = () => ({});
+
+				// Trigger the Dare Call
+				return dare[method]({
+					table: 'member',
+					filter: {
+						id: 1
+					},
+					body: {age: 'one'}
+				});
+
+			});
+
 			it('should trigger the validateInput handler and pass through exceptions', async () => {
 
 				// Extend with a validateInput handler
