@@ -1,3 +1,10 @@
+## [0.60.1](https://github.com/5app/dare/compare/v0.60.0...v0.60.1) (2021-10-20)
+
+
+### Bug Fixes
+
+* **validateInput:** fix missing validateInput error ([bf5801f](https://github.com/5app/dare/commit/bf5801f463f59cd4a39422b0b6395a13fcc94806))
+
 # [0.60.0](https://github.com/5app/dare/compare/v0.59.0...v0.60.0) (2021-10-18)
 
 
