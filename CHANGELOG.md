@@ -1,3 +1,10 @@
+# [0.61.0](https://github.com/5app/dare/compare/v0.60.1...v0.61.0) (2021-12-01)
+
+
+### Features
+
+* refactor internal SQL function arguments ([280cb31](https://github.com/5app/dare/commit/280cb317bdcf30838bb6f330bbfa2df9b2226282))
+
 ## [0.60.1](https://github.com/5app/dare/compare/v0.60.0...v0.60.1) (2021-10-20)
 
 
