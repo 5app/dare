@@ -24,7 +24,7 @@ module.exports = async function(opts) {
 	const {sql, values} = this.buildQuery(opts);
 
 	// Execute the query
-	const sql_response = await this.sql(sql, values);
+	const sql_response = await this.sql({sql, values});
 
 	// Format the response
 	const resp = await this.response_handler(sql_response);

@@ -32,12 +32,12 @@ describe('field alias', () => {
 
 		it('should map field aliases defined in the schema into SELECT requests Fields and Filters', async () => {
 
-			let sql;
+			let _sql;
 
 			// Stub the execute function
-			dare.sql = _sql => {
+			dare.sql = ({sql}) => {
 
-				sql = _sql;
+				_sql = sql;
 				return [];
 
 			};
@@ -79,26 +79,26 @@ describe('field alias', () => {
 				limit
 			});
 
-			expect(sql).to.contain('email AS \'emailAddress\'');
-			expect(sql).to.contain('email AS \'field\'');
-			expect(sql).to.contain('LOWER(a.email) AS \'emailaddress\'');
-			expect(sql).to.contain(',a.country_id');
-			expect(sql).to.contain('email LIKE ?');
-			expect(sql).to.contain('country_id = ?');
-			expect(sql).to.contain('email IS NOT NULL');
-			expect(sql).to.contain('country_id IS NOT NULL');
+			expect(_sql).to.contain('email AS \'emailAddress\'');
+			expect(_sql).to.contain('email AS \'field\'');
+			expect(_sql).to.contain('LOWER(a.email) AS \'emailaddress\'');
+			expect(_sql).to.contain(',a.country_id');
+			expect(_sql).to.contain('email LIKE ?');
+			expect(_sql).to.contain('country_id = ?');
+			expect(_sql).to.contain('email IS NOT NULL');
+			expect(_sql).to.contain('country_id IS NOT NULL');
 
 
 		});
 
 		it('cross table alias referencing', async () => {
 
-			let sql;
+			let _sql;
 
 			// Stub the execute function
-			dare.sql = _sql => {
+			dare.sql = ({sql}) => {
 
-				sql = _sql;
+				_sql = sql;
 				return [];
 
 			};
@@ -144,15 +144,15 @@ describe('field alias', () => {
 				limit
 			});
 
-			expect(sql).to.contain('email AS \'Email Field\'');
-			expect(sql).to.contain('email AS \'Email Alias\'');
-			expect(sql).to.contain('LOWER(b.email) AS \'email_field\'');
-			expect(sql).to.contain('LOWER(b.email) AS \'email_alias\'');
+			expect(_sql).to.contain('email AS \'Email Field\'');
+			expect(_sql).to.contain('email AS \'Email Alias\'');
+			expect(_sql).to.contain('LOWER(b.email) AS \'email_field\'');
+			expect(_sql).to.contain('LOWER(b.email) AS \'email_alias\'');
 
-			expect(sql).to.contain('email LIKE ?');
-			expect(sql).to.contain('country_id = ?');
-			expect(sql).to.contain('email IS NOT NULL');
-			expect(sql).to.contain('country_id IS NOT NULL');
+			expect(_sql).to.contain('email LIKE ?');
+			expect(_sql).to.contain('country_id = ?');
+			expect(_sql).to.contain('email IS NOT NULL');
+			expect(_sql).to.contain('country_id IS NOT NULL');
 
 
 		});
@@ -164,12 +164,12 @@ describe('field alias', () => {
 
 		it('should map field aliases defined in the schema into UPDATE filters', async () => {
 
-			let sql;
+			let _sql;
 
 			// Stub the execute function
-			dare.sql = _sql => {
+			dare.sql = ({sql}) => {
 
-				sql = _sql;
+				_sql = sql;
 				return [];
 
 			};
@@ -189,9 +189,9 @@ describe('field alias', () => {
 				}
 			});
 
-			expect(sql).to.contain('`email` = ?');
-			expect(sql).to.contain('`country_id` = ?');
-			expect(sql).to.contain('email LIKE ?');
+			expect(_sql).to.contain('`email` = ?');
+			expect(_sql).to.contain('`country_id` = ?');
+			expect(_sql).to.contain('email LIKE ?');
 
 		});
 
@@ -201,12 +201,12 @@ describe('field alias', () => {
 
 		it('should map field aliases defined in the schema into DELETE filters', async () => {
 
-			let sql;
+			let _sql;
 
 			// Stub the execute function
-			dare.sql = _sql => {
+			dare.sql = ({sql}) => {
 
-				sql = _sql;
+				_sql = sql;
 				return [];
 
 			};
@@ -222,9 +222,9 @@ describe('field alias', () => {
 				}
 			});
 
-			expect(sql).to.contain('email LIKE ?');
+			expect(_sql).to.contain('email LIKE ?');
 
-			expect(sql).to.contain('country_id = ?');
+			expect(_sql).to.contain('country_id = ?');
 
 		});
 
@@ -235,12 +235,12 @@ describe('field alias', () => {
 
 		it('should map field aliases defined in the schema into INSERT body', async () => {
 
-			let sql;
+			let _sql;
 
 			// Stub the execute function
-			dare.sql = _sql => {
+			dare.sql = ({sql}) => {
 
-				sql = _sql;
+				_sql = sql;
 				return [];
 
 			};
@@ -257,11 +257,11 @@ describe('field alias', () => {
 				duplicate_keys_update: ['emailAddress', 'country_id']
 			});
 
-			expect(sql).to.contain('(`email`,`country_id`)');
+			expect(_sql).to.contain('(`email`,`country_id`)');
 
 			// ON DUPLICATE KEY UPDATE
-			expect(sql).to.contain('email=VALUES(email)');
-			expect(sql).to.contain('country_id=VALUES(country_id)');
+			expect(_sql).to.contain('email=VALUES(email)');
+			expect(_sql).to.contain('country_id=VALUES(country_id)');
 
 
 		});

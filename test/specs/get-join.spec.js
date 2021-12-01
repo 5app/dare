@@ -46,7 +46,7 @@ describe('get - request object', () => {
 
 	it('should generate a SELECT statement and execute dare.sql', async () => {
 
-		dare.sql = sql => {
+		dare.sql = ({sql}) => {
 
 			const expected = `
 
@@ -173,11 +173,11 @@ describe('get - request object', () => {
 
 		it('should allow multiple definitions of the same thing', async () => {
 
-			dare.sql = async query => {
+			dare.sql = async ({sql}) => {
 
 				const key = 'email1,users_email.email,users_email.emailnest';
 
-				expect(query).to.contain(key);
+				expect(sql).to.contain(key);
 
 				return [{
 					[key]: '["a@b.com","a@b.com","a@b.com"]'
@@ -230,12 +230,12 @@ describe('get - request object', () => {
 
 				it(`valid: ${JSON.stringify(value)}`, async () => {
 
-					dare.sql = (sql, prepared) => {
+					dare.sql = ({sql, values}) => {
 
 						walk(value, (value, key) => {
 
 							expect(sql).to.contain(key);
-							expect(prepared).to.contain(value);
+							expect(values).to.contain(value);
 
 						});
 
@@ -258,12 +258,12 @@ describe('get - request object', () => {
 
 			it('valid: shorthand nested filter keys', async () => {
 
-				dare.sql = (sql, prepared) => {
+				dare.sql = ({sql, values}) => {
 
 					expect(sql).to.contain('.type = ?');
 					expect(sql).to.contain('.name != ?');
-					expect(prepared).to.contain('mobile');
-					expect(prepared).to.contain('me');
+					expect(values).to.contain('mobile');
+					expect(values).to.contain('me');
 
 					return Promise.resolve([]);
 
@@ -285,7 +285,7 @@ describe('get - request object', () => {
 
 			it('should negate nested conditions', async () => {
 
-				dare.sql = (sql, prepared) => {
+				dare.sql = ({sql, values}) => {
 
 					expectSQLEqual(sql, `
 						SELECT a.id FROM activityEvents a
@@ -299,7 +299,7 @@ describe('get - request object', () => {
 							)
 						LIMIT 5`);
 
-					expect(prepared).to.deep.equal([1, 3, 2]);
+					expect(values).to.deep.equal([1, 3, 2]);
 
 					return Promise.resolve([]);
 
@@ -390,7 +390,7 @@ describe('get - request object', () => {
 
 				it(`valid: ${JSON.stringify(test.join)}`, async () => {
 
-					dare.sql = sql => {
+					dare.sql = ({sql}) => {
 
 						expectSQLEqual(sql, expected);
 
@@ -413,7 +413,7 @@ describe('get - request object', () => {
 
 		it('should ignore redundant joins', async () => {
 
-			dare.sql = sql => {
+			dare.sql = ({sql}) => {
 
 				const expected = `
 					SELECT a.id
@@ -449,7 +449,7 @@ describe('get - request object', () => {
 
 		it('should enforce required table joins', async () => {
 
-			dare.sql = sql => {
+			dare.sql = ({sql}) => {
 
 				const expected = `
 					SELECT a.id, b.name AS 'asset.name'
@@ -483,7 +483,7 @@ describe('get - request object', () => {
 
 		it('should enforce required table joins between deep nested tables', async () => {
 
-			dare.sql = sql => {
+			dare.sql = ({sql}) => {
 
 				const expected = `
 					SELECT a.id, b.name AS 'asset.name'
@@ -526,7 +526,7 @@ describe('get - request object', () => {
 
 		it('should automatically assign a GROUP BY on a 1:n join', async () => {
 
-			dare.sql = sql => {
+			dare.sql = ({sql}) => {
 
 				const expected = `
 					SELECT a.id
@@ -558,7 +558,7 @@ describe('get - request object', () => {
 
 		it('should not automatically assign a GROUP on an 1:n join where there are Aggregate ', async () => {
 
-			dare.sql = sql => {
+			dare.sql = ({sql}) => {
 
 				const expected = `
 					SELECT COUNT(*) AS '_count'

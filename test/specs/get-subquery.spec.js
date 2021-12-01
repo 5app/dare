@@ -43,7 +43,7 @@ describe('get - subquery', () => {
 
 	it('should write one to many requests with a subquery', async () => {
 
-		dare.sql = sql => {
+		dare.sql = ({sql}) => {
 
 			const expected = `
 
@@ -85,7 +85,7 @@ describe('get - subquery', () => {
 
 	it('should export the response in the format given', async () => {
 
-		dare.sql = sql => {
+		dare.sql = ({sql}) => {
 
 			const expected = `
 
@@ -128,7 +128,7 @@ describe('get - subquery', () => {
 
 	it('should concatinate many expressions into an array using GROUP_CONCAT', async () => {
 
-		dare.sql = sql => {
+		dare.sql = ({sql}) => {
 
 			const expected = `
 
@@ -170,7 +170,7 @@ describe('get - subquery', () => {
 
 	it('should *not* subquery a nested object without fields', async () => {
 
-		dare.sql = sql => {
+		dare.sql = ({sql}) => {
 
 			const expected = `
 
@@ -205,7 +205,7 @@ describe('get - subquery', () => {
 
 	it('should *not* use a subquery when the many table is used in the filter', async () => {
 
-		dare.sql = sql => {
+		dare.sql = ({sql}) => {
 
 			const expected = `
 				SELECT a.name AS 'name',
@@ -241,7 +241,7 @@ describe('get - subquery', () => {
 
 	it('should *not* subquery a table off a join with a possible set of values', async () => {
 
-		dare.sql = sql => {
+		dare.sql = ({sql}) => {
 
 			const expected = `
 				SELECT a.name AS 'name', CONCAT('[',GROUP_CONCAT(CONCAT_WS('', '[', '"', REPLACE(REPLACE(COUNT(d.id), '\\\\', '\\\\\\\\'), '"','\\\\"'),'"',']')),']') AS 'assetCollections[collections.descendents]'
@@ -282,7 +282,7 @@ describe('get - subquery', () => {
 	it('should aggregate single field requests in a subquery, aka without group_concat', async () => {
 
 
-		dare.sql = sql => {
+		dare.sql = ({sql}) => {
 
 			const expected = `
 				SELECT a.id,a.name,a.created_time,
@@ -335,7 +335,7 @@ describe('get - subquery', () => {
 
 		it('should allow multiple groupby on nested tables', async () => {
 
-			dare.sql = async sql => {
+			dare.sql = async ({sql}) => {
 
 				expect(sql).to.contain('GROUP BY c.id,a.id');
 
