@@ -30,7 +30,7 @@ const limit = 5;
 
 		it('should add orderby using nested tables', async () => {
 
-			dare.sql = async sql => {
+			dare.sql = async ({sql}) => {
 
 				const expected = `
 					SELECT a.email, b.name AS 'name'
@@ -58,7 +58,7 @@ const limit = 5;
 
 		it('should use the field label', async () => {
 
-			dare.sql = async sql => {
+			dare.sql = async ({sql}) => {
 
 				const expected = `
 					SELECT a.email, DATE(c.created) AS 'users.country.date', c.name AS 'CountryName'
@@ -100,7 +100,7 @@ const limit = 5;
 
 		it('should join on tables which do not return fields', async () => {
 
-			dare.sql = async sql => {
+			dare.sql = async ({sql}) => {
 
 				const expected = `
 					SELECT a.email

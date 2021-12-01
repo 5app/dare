@@ -26,7 +26,7 @@ describe('sql', () => {
 
 	});
 
-	it('should trigger execute from a string', async () => {
+	it('deprecated: should trigger execute from a string', async () => {
 
 		const res = await dare.sql(query, values);
 		expect(res).to.eql(values[0]);
@@ -50,7 +50,7 @@ describe('sql', () => {
 
 		};
 
-		const test = dare.sql(query);
+		const test = dare.sql({sql: query});
 
 		return expect(test)
 			.to.be.eventually.rejectedWith(Error, msg);

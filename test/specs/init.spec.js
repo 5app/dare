@@ -49,7 +49,7 @@ describe('Dare', () => {
 		const dare = new Dare();
 
 		const test = dare
-			.sql('SELECT 1=1');
+			.sql({sql: 'SELECT 1=1'});
 
 		return expect(test)
 			.to.be.eventually.rejectedWith(DareError, 'Define dare.execute to continue');

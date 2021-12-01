@@ -301,12 +301,12 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	const {schema: tableSchema} = models?.[req.name] || {};
 
 	// Prepare post
-	const {assignments, preparedValues} = prepareSet(req.body, tableSchema, validateInput);
+	const {assignments, values} = prepareSet(req.body, tableSchema, validateInput);
 
 	// Prepare query
-	const sql_query = req._filter.map(([field, condition, values]) => {
+	const sql_query = req._filter.map(([field, condition, prepValues]) => {
 
-		preparedValues.push(...values);
+		values.push(...prepValues);
 		return formCondition(field, condition);
 
 	});
@@ -327,7 +327,7 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 				${sql_query.join(' AND ')}
 			LIMIT ${req.limit}`;
 
-	let resp = await this.sql(sql, preparedValues);
+	let resp = await this.sql({sql, values});
 
 	resp = mustAffectRows(resp, opts.notfound);
 
@@ -392,7 +392,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 
 	// Capture keys
 	const fields = [];
-	const prepared = [];
+	const values = [];
 	const data = post.map(item => {
 
 		const _data = [];
@@ -460,7 +460,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 			}
 
 			// Else add the value to prepared statement list
-			prepared.push(_data[index]);
+			values.push(_data[index]);
 
 			// Return the prepared statement placeholder
 			return '?';
@@ -495,7 +495,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 			${data.join(',')}
 			${on_duplicate_keys_update}`;
 
-	const resp = await _this.sql(sql, prepared);
+	const resp = await _this.sql({sql, values});
 
 	return _this.after(resp);
 
@@ -540,10 +540,10 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 	disallowJoins(req);
 
 	// Clone object before formatting
-	const a = [];
-	const sql_query = req._filter.map(([field, condition, values]) => {
+	const values = [];
+	const sql_query = req._filter.map(([field, condition, prepValues]) => {
 
-		a.push(...values);
+		values.push(...prepValues);
 		return formCondition(field, condition);
 
 	});
@@ -554,7 +554,7 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 					${sql_query.join(' AND ')}
 					LIMIT ${req.limit}`;
 
-	let resp = await this.sql(sql, a);
+	let resp = await this.sql({sql, values});
 
 	resp = mustAffectRows(resp, opts.notfound);
 
@@ -569,11 +569,11 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
  * @param {object} body - body to format
  * @param {object} [tableSchema={}] - Schema for the current table
  * @param {Function} [validateInput] - Validate input function
- * @returns {object} {assignment, preparedValues}
+ * @returns {object} {assignment, values}
  */
 function prepareSet(body, tableSchema = {}, validateInput) {
 
-	const preparedValues = [];
+	const values = [];
 	const assignments = {};
 
 	for (const label in body) {
@@ -588,13 +588,13 @@ function prepareSet(body, tableSchema = {}, validateInput) {
 		assignments[field] = '?';
 
 		// Add to the array of items
-		preparedValues.push(value);
+		values.push(value);
 
 	}
 
 	return {
 		assignments,
-		preparedValues
+		values
 	};
 
 }

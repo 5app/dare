@@ -30,7 +30,6 @@ executors:
       # volumes and networking, so using a real VM is the easiest option:
       # https://circleci.com/docs/2.0/docker-compose/#using-docker-compose-with-docker-executor
       image: ubuntu-1604:202007-01
-      docker_layer_caching: true
 
 
 ################################
