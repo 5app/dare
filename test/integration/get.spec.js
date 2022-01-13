@@ -73,6 +73,20 @@ const schema = {
 
 		});
 
+		it('Can update results with INSERT...ON DUPLICATE KEYS UPDATE', async () => {
+
+			const username = 'A Name';
+			const newName = 'New name';
+			const {insertId} = await dare.post('users', {username});
+			await dare.post('users', {id: insertId, username: newName}, {
+				duplicate_keys_update: ['username']
+			});
+
+			const resp = await dare.get('users', ['username']);
+
+			expect(resp).to.have.property('username', newName);
+
+		});
 
 		it('should be able to return nested values', async () => {
 
