@@ -1,3 +1,10 @@
+## [0.61.1](https://github.com/5app/dare/compare/v0.61.0...v0.61.1) (2022-01-13)
+
+
+### Bug Fixes
+
+* **onDuplicateKeyUpdate:** put backticks around UPDATE fields ([aeabcd8](https://github.com/5app/dare/commit/aeabcd868ea5f929f8a920d657dc0f8e67636878))
+
 # [0.61.0](https://github.com/5app/dare/compare/v0.60.1...v0.61.0) (2021-12-01)
 
 
