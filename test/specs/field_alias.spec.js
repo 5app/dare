@@ -260,8 +260,8 @@ describe('field alias', () => {
 			expect(_sql).to.contain('(`email`,`country_id`)');
 
 			// ON DUPLICATE KEY UPDATE
-			expect(_sql).to.contain('email=VALUES(email)');
-			expect(_sql).to.contain('country_id=VALUES(country_id)');
+			expect(_sql).to.contain('`email`=VALUES(`email`)');
+			expect(_sql).to.contain('`country_id`=VALUES(`country_id`)');
 
 
 		});
