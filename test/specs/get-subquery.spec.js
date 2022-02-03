@@ -53,7 +53,6 @@ describe('get - subquery', () => {
 					FROM assetCollections b
 					LEFT JOIN collections c ON (c.id = b.collection_id)
 					WHERE b.asset_id = a.id
-					LIMIT 1
 				) AS 'collection_count'
 				FROM assets a
 				GROUP BY a.id
@@ -95,7 +94,6 @@ describe('get - subquery', () => {
 					FROM assetCollections b
 					LEFT JOIN collections c ON (c.id = b.collection_id)
 					WHERE b.asset_id = a.id
-					LIMIT 1
 				) AS 'collections.count'
 				FROM assets a
 				GROUP BY a.id
@@ -138,7 +136,6 @@ describe('get - subquery', () => {
 					FROM assetCollections b
 					LEFT JOIN collections c ON (c.id = b.collection_id)
 					WHERE b.asset_id = a.id
-					LIMIT 1
 				) AS 'collections[id,name]'
 				FROM assets a
 				GROUP BY a.id
@@ -291,7 +288,6 @@ describe('get - subquery', () => {
 					FROM userEmails b
 					WHERE
 						b.user_id = a.id
-					LIMIT 1
 				) AS 'email_id,email'
 				FROM users a
 				GROUP BY a.id

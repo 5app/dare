@@ -56,7 +56,7 @@ function buildQuery(opts) {
 	opts.root = true;
 
 	// Limit
-	const sql_limit = `LIMIT ${opts.start ? `${opts.start},` : ''}${opts.limit}`;
+	let sql_limit = `LIMIT ${opts.start ? `${opts.start},` : ''}${opts.limit}`;
 
 	// SubQuery
 	const {is_subquery} = opts;
@@ -156,6 +156,9 @@ function buildQuery(opts) {
 		const gc = group_concat(fields, address);
 		sql_fields = gc.expression;
 		alias = gc.label;
+
+		// Bug in MySQL 8.0.23 nessesitates that the LIMIT is removed from Subqueries
+		sql_limit = '';
 
 	}
 	else {
