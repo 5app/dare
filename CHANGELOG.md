@@ -1,3 +1,10 @@
+## [0.61.2](https://github.com/5app/dare/compare/v0.61.1...v0.61.2) (2022-02-07)
+
+
+### Bug Fixes
+
+* **ci:** semantic-release shareable config test ([53dbaad](https://github.com/5app/dare/commit/53dbaade25b0fd47fa85cceeca448a7053dd7723))
+
 ## [0.61.1](https://github.com/5app/dare/compare/v0.61.0...v0.61.1) (2022-01-13)
 
 
