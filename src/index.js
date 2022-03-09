@@ -52,6 +52,12 @@ Dare.prototype.group_concat = '$$';
 // Set the Max Limit for SELECT statements
 Dare.prototype.MAX_LIMIT = null;
 
+// Default options
+Dare.prototype.options = {
+	// Infer intermediate tables when two models are not directly linked
+	infer_intermediate_models: true
+};
+
 // Set default table_alias handler
 Dare.prototype.table_alias_handler = function(name) {
 

@@ -10,7 +10,7 @@ const getFieldAttributes = require('../utils/field_attributes');
  */
 module.exports = function(join_object, root_object, dareInstance) {
 
-	const {models} = dareInstance.options;
+	const {models, infer_intermediate_models} = dareInstance.options;
 
 	const {table: rootModel} = root_object;
 	const {table: joinModel} = join_object;
@@ -28,6 +28,16 @@ module.exports = function(join_object, root_object, dareInstance) {
 	if (join_conditions) {
 
 		return Object.assign(join_object, join_conditions);
+
+	}
+
+	/*
+	 * Is the infer_intermediate_models option is set to false?
+	 * --> can't guess which table to use, return null
+	 */
+	if (infer_intermediate_models === false) {
+
+		return null;
 
 	}
 

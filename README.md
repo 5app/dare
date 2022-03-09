@@ -1107,6 +1107,25 @@ const dare = new Dare();
 await dare.MAX_LIMIT = 1000000;
 ```
 
+### Disabling intermediate model joins `infer_intermediate_models`
+
+By default `infer_intermediate_models = true`. This allows two models which share a common relationship with another model to be joined in a query directly. However sometimes this can be unpredictable if there are potentially more than one shared references between the models. In which case you would need to use explicit full paths, you then might like to disable `infer_intermediate_models` so that you catch anything which doesn't tow the line.
+
+```js
+// Disable intermediate models
+
+// On new instance
+const dare = new Dare({infer_intermediate_models: false});
+
+// On extended instance
+const dareInst = dare.use({infer_intermediate_models: false);
+
+// On individual queries...
+await dare.get({
+	// ... other options
+	infer_intermediate_models: false
+});
+```
 
 ### Post format the response
 

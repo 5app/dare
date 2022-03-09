@@ -137,6 +137,20 @@ describe('join_handler', () => {
 			]
 		});
 
+		{
+
+			// ... But not when infer_intermediate_models is explicitly false
+
+			const dareInst = dare.use({
+				infer_intermediate_models: false
+			});
+
+			const null_join = joinHandler(child_object, grandparent_object, dareInst);
+
+			expect(null_join).to.deep.equal(null);
+
+		}
+
 		// But this is limited to only one intermediary table, not two
 
 		const greatgrandparent_object = {
