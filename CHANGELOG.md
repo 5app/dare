@@ -1,3 +1,10 @@
+# [0.62.0](https://github.com/5app/dare/compare/v0.61.2...v0.62.0) (2022-03-09)
+
+
+### Features
+
+* **option:** infer_intermediate_models ([5addd30](https://github.com/5app/dare/commit/5addd30cf09aa6a1c652ad15cdcfc573fb0a499d))
+
 ## [0.61.2](https://github.com/5app/dare/compare/v0.61.1...v0.61.2) (2022-02-07)
 
 
