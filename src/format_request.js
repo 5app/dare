@@ -60,9 +60,9 @@ async function format_request(options, dareInstance) {
 	}
 
 	/*
-	 * Get all the available models of the dare instance
+	 * Get option settings
 	 */
-	const {models} = dareInstance.options;
+	const {models, conditional_operators_in_value} = dareInstance.options;
 
 	/*
 	 * Options name defines the model name
@@ -158,7 +158,7 @@ async function format_request(options, dareInstance) {
 		const extract = extractJoined.bind(null, 'filter', false);
 
 		// Return array of immediate props
-		const arr = reduceConditions(options.filter, {extract, propName: 'filter', table_schema});
+		const arr = reduceConditions(options.filter, {extract, propName: 'filter', table_schema, conditional_operators_in_value});
 
 		options._filter = arr.length ? arr : null;
 
@@ -192,7 +192,7 @@ async function format_request(options, dareInstance) {
 		const extract = extractJoined.bind(null, 'join', false);
 
 		// Return array of immediate props
-		options._join = reduceConditions(options.join, {extract, propName: 'join', table_schema});
+		options._join = reduceConditions(options.join, {extract, propName: 'join', table_schema, conditional_operators_in_value});
 
 	}
 

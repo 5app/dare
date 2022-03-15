@@ -418,7 +418,7 @@ describe('format_request', () => {
 
 			beforeEach(() => {
 
-				dare.options = {
+				dare = dare.use({
 					models: {
 						[table]: {
 							schema: {
@@ -428,7 +428,7 @@ describe('format_request', () => {
 							}
 						}
 					}
-				};
+				});
 
 			});
 
@@ -454,10 +454,30 @@ describe('format_request', () => {
 						['%string']
 					],
 					[
+						{prop: '%string'},
+						'prop',
+						'= ?',
+						['%string'],
+						{
+							// Disable conditional operator interpretation from the value
+							conditional_operators_in_value: ''
+						}
+					],
+					[
 						{prop: '!string'},
 						'prop',
 						'NOT LIKE ?',
 						['string']
+					],
+					[
+						{prop: '!string'},
+						'prop',
+						'= ?',
+						['!string'],
+						{
+							// Disable conditional operator interpretation from the value
+							conditional_operators_in_value: ''
+						}
 					],
 					[
 						{prop: '!patt%rn'},
@@ -466,10 +486,26 @@ describe('format_request', () => {
 						['patt%rn']
 					],
 					[
+						{'%prop': 'string'},
+						'prop',
+						'LIKE ?',
+						['%string%']
+					],
+					[
 						{'-prop': 'patt%rn'},
 						'prop',
 						'NOT LIKE ?',
 						['patt%rn']
+					],
+					[
+						{'-prop': 'patt%rn'},
+						'prop',
+						'!= ?',
+						['patt%rn'],
+						{
+							// Disable conditional operator interpretation from the value
+							conditional_operators_in_value: ''
+						}
 					],
 					[
 						{prop: [1, 2, 3]},
@@ -512,6 +548,16 @@ describe('format_request', () => {
 						'prop',
 						'($$ IN (?,?) OR $$ IS NULL OR $$ LIKE ? OR $$ LIKE ?)',
 						[1, 2, 'test%', 'test2%']
+					],
+					[
+						{prop: [1, 2, null, 'test%', 'test2%']},
+						'prop',
+						'($$ IN (?,?,?,?) OR $$ IS NULL)',
+						[1, 2, 'test%', 'test2%'],
+						{
+							// Disable conditional operator interpretation from the value
+							conditional_operators_in_value: ''
+						}
 					],
 					[
 						{'-prop': [1, 2, null, 'test%', 'test2%']},
@@ -572,12 +618,18 @@ describe('format_request', () => {
 
 				a.forEach(async test => {
 
-					const [filter, prop, condition, values] = test;
+					const [filter, prop, condition, values, options] = test;
 
 					// Clone filter
 					const filter_cloned = JSON.parse(JSON.stringify(filter));
 
 					it(`should transform condition ${JSON.stringify(filter)} -> ${JSON.stringify(condition)}`, async () => {
+
+						if (options) {
+
+							dare = dare.use(options);
+
+						}
 
 						const resp = await dare.format_request({
 							table,
@@ -587,16 +639,7 @@ describe('format_request', () => {
 
 						expect(resp[`_${condition_type}`][0]).to.eql([prop, condition, values]);
 
-					});
-
-					it(`should not mutate the filters ${JSON.stringify(filter)}`, async () => {
-
-						await dare.format_request({
-							table,
-							fields: ['id'],
-							[condition_type]: filter
-						});
-
+						// Should not mutate the filters...
 						expect(filter).to.deep.eql(filter_cloned);
 
 					});
@@ -643,8 +686,6 @@ describe('format_request', () => {
 			});
 
 			describe('field type=datetime', () => {
-
-				const table = 'table';
 
 				const o = {
 					'1981-12-05': [

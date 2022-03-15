@@ -13,9 +13,10 @@ const getFieldAttributes = require('../utils/field_attributes');
  * @param {Function} options.extract - Extract (key, value) related to nested model
  * @param {string} options.propName - PropName, e.g. 'filter', 'join'
  * @param {object} options.table_schema - Table schema
+ * @param {string|null} options.conditional_operators_in_value - Allowable conditional operators in value
  * @returns {Array} Conditions object converted to SQL
  */
-module.exports = function reduceConditions(filter, {extract, propName, table_schema}) {
+module.exports = function reduceConditions(filter, {extract, propName, table_schema, conditional_operators_in_value}) {
 
 	const filterArr = [];
 
@@ -32,7 +33,7 @@ module.exports = function reduceConditions(filter, {extract, propName, table_sch
 		let value = filter[key];
 
 		// Explode -key.path:value
-		const {rootKey, rootKeyRaw, negate, subKey} = stripKey(key);
+		const {rootKey, rootKeyRaw, operators, subKey} = stripKey(key);
 
 		// Update rootKey, this is stripped of negation prefix and sub paths
 		key = rootKey;
@@ -58,7 +59,8 @@ module.exports = function reduceConditions(filter, {extract, propName, table_sch
 			key = checkKey(key);
 
 			const key_definition = table_schema[key];
-			filterArr.push(prepCondition(key, value, key_definition, negate));
+
+			filterArr.push(prepCondition({field: key, value, key_definition, operators, conditional_operators_in_value}));
 
 		}
 
@@ -69,8 +71,8 @@ module.exports = function reduceConditions(filter, {extract, propName, table_sch
 };
 
 /**
- * Strip the key, removing the negate prefix, and any shorthand nested properties
- * @param {string} key - Full length key, e.g. table, field, or `-root.path`
+ * Strip the key, removing any comparison operator prefix, and any shorthand nested properties
+ * @param {string} key - Full length key, e.g. table, field, or `-root.path`, '%root.path', etc...
  * @returns {object} Containing the parts of the key
  */
 function stripKey(key) {
@@ -79,28 +81,37 @@ function stripKey(key) {
 
 	const subKey = subKeys.join('.');
 
-	let negate = false;
-
 	let rootKey = rootKeyRaw;
 
-	// Does this have a negate operator?
-	if (rootKeyRaw.substring(0, 1) === '-') {
+	// Does this have a comparison operator prefix?
+	const operators = rootKeyRaw.match(/^[-%]+/)?.[0];
+	if (operators) {
 
-		// Mark as negative filter
-		negate = true;
-
-		// Strip the key
-		rootKey = rootKeyRaw.substring(1);
+		// Strip the special operators from the prop
+		rootKey = rootKeyRaw.substring(operators.length);
 
 	}
 
-	return {rootKey, rootKeyRaw, subKey, negate};
+	return {rootKey, rootKeyRaw, subKey, operators};
 
 }
 
-function prepCondition(field, value, key_definition, negate) {
+function prepCondition({field, value, key_definition, operators, conditional_operators_in_value}) {
 
 	const {type, alias} = getFieldAttributes(key_definition);
+
+	// Does it have a negative comparison operator?
+	let negate = operators?.includes('-');
+
+	// Does it have a likey comparison operator
+	const likey = operators?.includes('%');
+
+	// Allow conditional likey operator in value
+	const allow_conditional_likey_operator_in_value = conditional_operators_in_value?.includes('%');
+
+	// Allow conditional negation operator in value
+	const allow_conditional_negate_operator_in_value = conditional_operators_in_value?.includes('!');
+
 
 	if (alias) {
 
@@ -157,7 +168,7 @@ function prepCondition(field, value, key_definition, negate) {
 	}
 
 	// Not match
-	else if (typeof value === 'string' && value[0] === '!') {
+	else if (typeof value === 'string' && allow_conditional_negate_operator_in_value && value[0] === '!') {
 
 		condition = 'LIKE ?';
 		values = [value.slice(1)];
@@ -166,7 +177,13 @@ function prepCondition(field, value, key_definition, negate) {
 	}
 
 	// String partial match
-	else if (typeof value === 'string' && value.match('%')) {
+	else if (typeof value === 'string' && (likey || (allow_conditional_likey_operator_in_value && value.match('%')))) {
+
+		if (likey) {
+
+			value = `%${value}%`;
+
+		}
 
 		condition = 'LIKE ?';
 		values = [value];
@@ -196,7 +213,7 @@ function prepCondition(field, value, key_definition, negate) {
 		value = value.filter(item => {
 
 			// Remove the items which can't in group statement...
-			if (item !== null && !(typeof item === 'string' && item.match('%'))) {
+			if (item !== null && !(typeof item === 'string' && allow_conditional_likey_operator_in_value && item.match('%'))) {
 
 				return true;
 
@@ -222,7 +239,7 @@ function prepCondition(field, value, key_definition, negate) {
 			// Cond
 			sub_values.forEach(item => {
 
-				const [, cond, values] = prepCondition(null, item, key_definition, negate);
+				const [, cond, values] = prepCondition({field: null, value: item, key_definition, operators, conditional_operators_in_value});
 
 				// Add to condition
 				conds.push(cond);
