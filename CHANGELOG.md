@@ -1,3 +1,10 @@
+# [0.63.0](https://github.com/5app/dare/compare/v0.62.0...v0.63.0) (2022-03-15)
+
+
+### Features
+
+* **likey-filter:** and flag to disable interpretted likey values ([#225](https://github.com/5app/dare/issues/225)) ([8c863f7](https://github.com/5app/dare/commit/8c863f7d85ceedc3ec44fc48ab9bc6cf4a51f2cf)), closes [#182](https://github.com/5app/dare/issues/182) [#182](https://github.com/5app/dare/issues/182)
+
 # [0.62.0](https://github.com/5app/dare/compare/v0.61.2...v0.62.0) (2022-03-09)
 
 
