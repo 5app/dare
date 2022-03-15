@@ -33,7 +33,7 @@ function Dare(options = {}) {
 	migrateToModels(options);
 
 	// Overwrite default properties
-	this.options = options;
+	this.options = extend(clone(this.options), options);
 
 	return this;
 
@@ -55,7 +55,10 @@ Dare.prototype.MAX_LIMIT = null;
 // Default options
 Dare.prototype.options = {
 	// Infer intermediate tables when two models are not directly linked
-	infer_intermediate_models: true
+	infer_intermediate_models: true,
+
+	// Allow conditional operators in value
+	conditional_operators_in_value: '%!'
 };
 
 // Set default table_alias handler

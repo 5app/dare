@@ -238,15 +238,15 @@ Creates the following SQL JOIN Condition
 
 #### Filter Syntax
 
-The type of value affects the choice of SQL Condition syntax to use. For example an array will create an `IN (...)` condition, the presence of `%` will create a `LIKE` condition. If the property name is prefixed with a hyhen it will negate the filter. See examples below...
+The type of value affects the choice of SQL Condition syntax to use. For example an array will create an `IN (...)` condition. Prefixing the prop with `%` will create a `LIKE` condition. And a hyhen will negate the filter. See examples below...
 
 
 | Key     | Value                     | Type           | = SQL Condition
 |---------|---------------------------|----------------|----------------
 | id      | 1                         | number         | `id = 1`
 | name    | 'Andrew'                  | string         | `name = 'Andrew'`
-| name    | 'And%'                    | Pattern        | `name LIKE 'And%'`
-| -name   | 'And%'                    | Pattern        | `name NOT LIKE 'And%'`
+| %name   | 'And%'                    | Pattern        | `name LIKE 'And%'`
+| -%name  | 'And%'                    | Pattern        | `name NOT LIKE 'And%'`
 | name$1  | any                  	  | any            | e.g. `name LIKE '%And%` $suffixing gives `name` alternative unique object key values, useful when writing `name LIKE %X% AND name LIKE %Y%`
 | tag     | [1, 'a']                  | Array values   | `tag IN (1, 'a')`
 | -tag    | [1, 'a']                  | Array values   | `tag NOT IN (1, 'a')`
@@ -1125,6 +1125,46 @@ await dare.get({
 	// ... other options
 	infer_intermediate_models: false
 });
+```
+
+### Infering conditional operators based on value `conditional_operators_in_value`
+
+By default `conditional_operators_in_value = '!%'`. Which is a selection of special characters within the value to be compared.
+
+- `%`: A string containing `%` within the value to be compared will indicate a wild character and the SQL `LIKE` conditional operator will be used.
+- `!`: A string starting with `!` will negate the value using a SQL `LIKE` conditional operator.
+
+```js
+// Enabling support for one or more of the above special characters...
+
+// On new instance
+const dare = new Dare({conditional_operators_in_value: '%!'});
+
+
+// On extended instance
+const dareInst = dare.use({conditional_operators_in_value: '%!');
+
+// On individual queries...
+await dare.get({
+	table: 'mytable',
+	fields: ['id'],
+	filter: {name: '%compare%'}
+	conditional_operators_in_value: '%!'
+});
+
+// ... SELECT id FROM mytable WHERE name LIKE '%compare%'
+
+// The same query with the option disabled
+await dare.get({
+	table: 'mytable',
+	fields: ['id'],
+	filter: {name: '%compare%'}
+	conditional_operators_in_value: ''
+});
+
+// Fallbacks to the '=' conditional operator
+// ... SELECT id FROM mytable WHERE name = '%compare%'
+
 ```
 
 ### Post format the response
