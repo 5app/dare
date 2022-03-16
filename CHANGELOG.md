@@ -1,3 +1,10 @@
+## [0.63.1](https://github.com/5app/dare/compare/v0.63.0...v0.63.1) (2022-03-16)
+
+
+### Bug Fixes
+
+* **likey:** do not assume wildcharacter, [#182](https://github.com/5app/dare/issues/182) ([9f24e98](https://github.com/5app/dare/commit/9f24e98fdd7efd511b8f1905254288084adb9f75))
+
 # [0.63.0](https://github.com/5app/dare/compare/v0.62.0...v0.63.0) (2022-03-15)
 
 
