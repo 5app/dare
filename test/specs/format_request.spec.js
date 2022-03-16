@@ -486,10 +486,10 @@ describe('format_request', () => {
 						['patt%rn']
 					],
 					[
-						{'%prop': 'string'},
+						{'%prop': 'string%'},
 						'prop',
 						'LIKE ?',
-						['%string%']
+						['string%']
 					],
 					[
 						{'-prop': 'patt%rn'},

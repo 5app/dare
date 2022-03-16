@@ -179,12 +179,6 @@ function prepCondition({field, value, key_definition, operators, conditional_ope
 	// String partial match
 	else if (typeof value === 'string' && (likey || (allow_conditional_likey_operator_in_value && value.match('%')))) {
 
-		if (likey) {
-
-			value = `%${value}%`;
-
-		}
-
 		condition = 'LIKE ?';
 		values = [value];
 
