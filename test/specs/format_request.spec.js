@@ -608,6 +608,40 @@ describe('format_request', () => {
 						['1981-12-05T00:00:00']
 					],
 					[
+						{prop: '1981-12-05..'},
+						'prop',
+						'$$ > ?',
+						['1981-12-05']
+					],
+					[
+						{prop: '1970-01-01..1981-12-05'},
+						'prop',
+						'BETWEEN ? AND ?',
+						['1970-01-01', '1981-12-05']
+					],
+					[
+						{prop: '1981-12-05..'},
+						'prop',
+						'= ?',
+						['1981-12-05..'],
+						{
+							// Disable conditional operator interpretation from the value
+							conditional_operators_in_value: ''
+						}
+					],
+					[
+						{'~prop': ['a', 'b']},
+						'prop',
+						'BETWEEN ? AND ?',
+						['a', 'b']
+					],
+					[
+						{'~prop': ['a', null]},
+						'prop',
+						'$$ > ?',
+						['a']
+					],
+					[
 						// Should ignore $ (suffixing) keys
 						{'prop$asdasd': null},
 						'prop',

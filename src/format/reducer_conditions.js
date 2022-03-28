@@ -84,7 +84,7 @@ function stripKey(key) {
 	let rootKey = rootKeyRaw;
 
 	// Does this have a comparison operator prefix?
-	const operators = rootKeyRaw.match(/^[-%]+/)?.[0];
+	const operators = rootKeyRaw.match(/^[-%~]+/)?.[0];
 	if (operators) {
 
 		// Strip the special operators from the prop
@@ -103,14 +103,20 @@ function prepCondition({field, value, key_definition, operators, conditional_ope
 	// Does it have a negative comparison operator?
 	let negate = operators?.includes('-');
 
-	// Does it have a likey comparison operator
-	const likey = operators?.includes('%');
+	// Does it have a Likey comparison operator
+	const isLikey = operators?.includes('%');
+
+	// Does it have a Range comparison operator
+	const isRange = operators?.includes('~');
 
 	// Allow conditional likey operator in value
 	const allow_conditional_likey_operator_in_value = conditional_operators_in_value?.includes('%');
 
 	// Allow conditional negation operator in value
 	const allow_conditional_negate_operator_in_value = conditional_operators_in_value?.includes('!');
+
+	// Allow conditional negation operator in value
+	const allow_conditional_range_operator_in_value = conditional_operators_in_value?.includes('~');
 
 
 	if (alias) {
@@ -129,15 +135,18 @@ function prepCondition({field, value, key_definition, operators, conditional_ope
 	// Set the default negate operator, if appropriate
 	negate = negate ? 'NOT ' : '';
 
+	let condition;
+	let values;
+
 	/*
 	 * Range
 	 * A range is denoted by two dots, e.g 1..10
 	 */
-	let condition;
-	let values;
-	const a = (typeof value === 'string') && value.split('..');
+	const a = typeof value === 'string'
+		? value.split('..')
+		: isRange && Array.isArray(value) && value;
 
-	if (a.length === 2) {
+	if ((allow_conditional_range_operator_in_value || isRange) && Array.isArray(a) && a.length === 2) {
 
 		if (a[0] && a[1]) {
 
@@ -177,7 +186,7 @@ function prepCondition({field, value, key_definition, operators, conditional_ope
 	}
 
 	// String partial match
-	else if (typeof value === 'string' && (likey || (allow_conditional_likey_operator_in_value && value.match('%')))) {
+	else if (typeof value === 'string' && (isLikey || (allow_conditional_likey_operator_in_value && value.match('%')))) {
 
 		condition = 'LIKE ?';
 		values = [value];
