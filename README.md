@@ -238,7 +238,13 @@ Creates the following SQL JOIN Condition
 
 #### Filter Syntax
 
-The type of value affects the choice of SQL Condition syntax to use. For example an array will create an `IN (...)` condition. Prefixing the prop with `%` will create a `LIKE` condition. And a hyhen will negate the filter. See examples below...
+The type of value affects the choice of SQL Condition syntax to use. For example an array will create an `IN (...)` condition.
+
+Prefixing the prop with:
+
+- `%`: creates a `LIKE` comparison
+- `-`: hyhen negates the value
+- `~`: creates a range
 
 
 | Key     | Value                     | Type           | = SQL Condition
@@ -251,9 +257,9 @@ The type of value affects the choice of SQL Condition syntax to use. For example
 | tag     | [1, 'a']                  | Array values   | `tag IN (1, 'a')`
 | -tag    | [1, 'a']                  | Array values   | `tag NOT IN (1, 'a')`
 | -status | ['deleted', null]         | Array values   | `(status NOT IN ('deleted') AND status IS NOT NULL)` Mixed type including `null`
-| date    | '2016-03-04T16:08:32Z..'  | Greater than   | `date > '2016-03-04T16:08:32Z'`
-| date    | '2016-03-04..2016-03-05'  | Between        | `date BETWEEN '2016-03-04' AND '2016-03-05'`
-| -date   | '2016-03-04..'            | !Greater than  | `(NOT date > '2016-03-04T00:00:00' OR date IS NULL)`
+| ~date   | '2016-03-04T16:08:32Z..'  | Greater than   | `date > '2016-03-04T16:08:32Z'`
+| ~date   | '2016-03-04..2016-03-05'  | Between        | `date BETWEEN '2016-03-04' AND '2016-03-05'`
+| -~date  | '2016-03-04..'            | !Greater than  | `(NOT date > '2016-03-04T00:00:00' OR date IS NULL)`
 | flag    | null                      | null           | `flag IS NULL`
 | -flag   | null                      | null           | `flag IS NOT NULL`
 
@@ -1132,38 +1138,38 @@ await dare.get({
 By default `conditional_operators_in_value = '!%'`. Which is a selection of special characters within the value to be compared.
 
 - `%`: A string containing `%` within the value to be compared will indicate a wild character and the SQL `LIKE` conditional operator will be used.
-- `!`: A string starting with `!` will negate the value using a SQL `LIKE` conditional operator.
+- `!`: A string starting with `!` will negate the value using a SQL `LIKE` comparison operator.
+- `..`: A string containing `..` will use a range `BETWEEN`, `<` or `>` comparison operator where a string value contains `..` or the value is an array with two values (dependending if the first or second value is empty it will use `<` or `>` respecfively). This denotes a range and is enabled using the `~` operator (because `.` within prop name has another meaning)
 
 ```js
 // Enabling support for one or more of the above special characters...
 
 // On new instance
-const dare = new Dare({conditional_operators_in_value: '%!'});
-
+const dare = new Dare({conditional_operators_in_value: '%!~'});
 
 // On extended instance
-const dareInst = dare.use({conditional_operators_in_value: '%!');
+const dareInst = dare.use({conditional_operators_in_value: '%!~');
 
 // On individual queries...
 await dare.get({
 	table: 'mytable',
 	fields: ['id'],
-	filter: {name: '%compare%'}
-	conditional_operators_in_value: '%!'
+	filter: {name: '%compare%', created: '2022-01-01..'}
+	conditional_operators_in_value: '%!~'
 });
 
-// ... SELECT id FROM mytable WHERE name LIKE '%compare%'
+// ... SELECT id FROM mytable WHERE name LIKE '%compare%' AND created > '2022-01-01' 
 
 // The same query with the option disabled
 await dare.get({
 	table: 'mytable',
 	fields: ['id'],
-	filter: {name: '%compare%'}
+	filter: {name: '%compare%', created: '2022-01-01..'}
 	conditional_operators_in_value: ''
 });
 
 // Fallbacks to the '=' conditional operator
-// ... SELECT id FROM mytable WHERE name = '%compare%'
+// ... SELECT id FROM mytable WHERE name = '%compare%' AND created = '2022-01-01..'
 
 ```
 

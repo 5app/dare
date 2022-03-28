@@ -58,7 +58,7 @@ Dare.prototype.options = {
 	infer_intermediate_models: true,
 
 	// Allow conditional operators in value
-	conditional_operators_in_value: '%!'
+	conditional_operators_in_value: '%!~'
 };
 
 // Set default table_alias handler
