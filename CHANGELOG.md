@@ -1,3 +1,10 @@
+# [0.64.0](https://github.com/5app/dare/compare/v0.63.1...v0.64.0) (2022-03-28)
+
+
+### Features
+
+* **range:** define comparison operator on prop, make optional in value, [#182](https://github.com/5app/dare/issues/182) ([c801286](https://github.com/5app/dare/commit/c801286bf2092bf6ff9a61e5780817f122128764))
+
 ## [0.63.1](https://github.com/5app/dare/compare/v0.63.0...v0.63.1) (2022-03-16)
 
 
