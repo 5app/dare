@@ -1,9 +1,9 @@
-const DareError = require('../utils/error');
+import DareError from '../utils/error.js';
 
-const checkKey = require('../utils/validate_field');
-const checkTableAlias = require('../utils/validate_alias');
-const formatDateTime = require('../utils/format_datetime');
-const getFieldAttributes = require('../utils/field_attributes');
+import checkKey from '../utils/validate_field.js';
+import checkTableAlias from '../utils/validate_alias.js';
+import formatDateTime from '../utils/format_datetime.js';
+import getFieldAttributes from '../utils/field_attributes.js';
 
 /**
  * Reduce conditions, call extract
@@ -16,7 +16,7 @@ const getFieldAttributes = require('../utils/field_attributes');
  * @param {string|null} options.conditional_operators_in_value - Allowable conditional operators in value
  * @returns {Array} Conditions object converted to SQL
  */
-module.exports = function reduceConditions(filter, {extract, propName, table_schema, conditional_operators_in_value}) {
+export default function reduceConditions(filter, {extract, propName, table_schema, conditional_operators_in_value}) {
 
 	const filterArr = [];
 
@@ -68,7 +68,7 @@ module.exports = function reduceConditions(filter, {extract, propName, table_sch
 
 	return filterArr;
 
-};
+}
 
 /**
  * Strip the key, removing any comparison operator prefix, and any shorthand nested properties

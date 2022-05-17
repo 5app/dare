@@ -1,4 +1,4 @@
-const Dare = require('../../src/');
+import Dare from '../../src/index.js';
 
 describe('response_handler', () => {
 

@@ -1,5 +1,5 @@
 // Create a map reduce function which converts content as well as filters out undefined
-module.exports = callback => (list, item, index) => {
+export default callback => (list, item, index) => {
 
 	const response = callback(item, index);
 

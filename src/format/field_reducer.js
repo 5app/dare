@@ -1,10 +1,10 @@
-const checkFormat = require('../utils/unwrap_field');
-const checkLabel = require('../utils/validate_label');
-const checkKey = require('../utils/validate_field');
-const DareError = require('../utils//error');
-const fieldRelativePath = require('../utils/field_relative');
-const getFieldAttributes = require('../utils/field_attributes');
-const jsonParse = require('../utils/JSONparse');
+import checkFormat from '../utils/unwrap_field.js';
+import checkLabel from '../utils/validate_label.js';
+import checkKey from '../utils/validate_field.js';
+import DareError from '../utils//error.js';
+import fieldRelativePath from '../utils/field_relative.js';
+import getFieldAttributes from '../utils/field_attributes.js';
+import jsonParse from '../utils/JSONparse.js';
 
 
 /**
@@ -16,7 +16,7 @@ const jsonParse = require('../utils/JSONparse');
  * @param {object} opts.dareInstance - Instance of Dare which is calling this
  * @returns {Function} Fields Reducer function
  */
-module.exports = function fieldReducer({field_alias_path, extract, table_schema, dareInstance}) {
+export default function fieldReducer({field_alias_path, extract, table_schema, dareInstance}) {
 
 	// Handle each field property
 	return (fieldsArray, field, index, originalArray) => {
@@ -83,7 +83,7 @@ module.exports = function fieldReducer({field_alias_path, extract, table_schema,
 
 	};
 
-};
+}
 
 /**
  * FieldMapping

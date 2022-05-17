@@ -1,5 +1,5 @@
-const Dare = require('../../src/');
-const joinHandler = require('../../src/format/join_handler');
+import Dare from '../../src/index.js';
+import joinHandler from '../../src/format/join_handler.js';
 
 describe('join_handler', () => {
 

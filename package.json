@@ -2,9 +2,11 @@
   "name": "dare",
   "version": "0.64.0",
   "description": "Database to REST, REST to Database",
-  "main": "src/index.js",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": "./src/index.js",
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "scripts": {
     "pretest": "npm run lint",

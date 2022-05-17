@@ -1,4 +1,4 @@
-const getFieldAttributes = require('../utils/field_attributes');
+import getFieldAttributes from '../utils/field_attributes.js';
 
 /**
  * Join Handler
@@ -8,7 +8,7 @@ const getFieldAttributes = require('../utils/field_attributes');
  * @param {object} dareInstance - Dare Instance
  * @returns {object} An updated join_object with new join_conditions attached
  */
-module.exports = function(join_object, root_object, dareInstance) {
+export default function(join_object, root_object, dareInstance) {
 
 	const {models, infer_intermediate_models} = dareInstance.options;
 
@@ -87,7 +87,7 @@ module.exports = function(join_object, root_object, dareInstance) {
 	// Return a falsy value
 	return null;
 
-};
+}
 
 function links(tableSchema, joinTable, flipped = false) {
 
