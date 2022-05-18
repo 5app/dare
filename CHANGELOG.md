@@ -1,3 +1,11 @@
+# [0.65.0](https://github.com/5app/dare/compare/v0.64.0...v0.65.0) (2022-05-18)
+
+
+### Features
+
+* **esm:** convert to ESM ([31585a4](https://github.com/5app/dare/commit/31585a41722c41a6e8d46f5f0cf9ad58772e9b6d))
+* **esm:** export utils directory ([1bb1a8e](https://github.com/5app/dare/commit/1bb1a8e0eff1bd1b00aa2ac35ce83ac4ea9f8975))
+
 # [0.64.0](https://github.com/5app/dare/compare/v0.63.1...v0.64.0) (2022-03-28)
 
 
