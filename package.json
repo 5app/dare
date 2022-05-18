@@ -4,7 +4,10 @@
   "description": "Database to REST, REST to Database",
   "type": "module",
   "main": "./src/index.js",
-  "exports": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./utils/*": "./src/utils/*.js"
+  },
   "engines": {
     "node": ">=14"
   },
