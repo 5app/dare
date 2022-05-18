@@ -1,6 +1,6 @@
-const DareError = require('./error');
+import DareError from './error.js';
 
-module.exports = function validate_alias(key) {
+export default function validate_alias(key) {
 
 	const [name, label] = key.split('$');
 
@@ -11,4 +11,4 @@ module.exports = function validate_alias(key) {
 
 	}
 
-};
+}

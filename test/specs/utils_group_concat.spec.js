@@ -2,7 +2,7 @@
 
 
 // Test Generic DB functions
-const group_concat = require('../../src/utils/group_concat');
+import group_concat from '../../src/utils/group_concat.js';
 
 describe('utils/group_concat', () => {
 

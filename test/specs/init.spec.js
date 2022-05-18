@@ -1,6 +1,5 @@
-const Dare = require('../../src/');
-const clone = require('tricks/object/clone');
-const DareError = require('../../src/utils/error');
+import Dare, {DareError} from '../../src/index.js';
+import clone from 'tricks/object/clone.js';
 
 describe('Dare', () => {
 

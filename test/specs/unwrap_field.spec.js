@@ -3,8 +3,8 @@
  * Extract the fields from the current dataset
  */
 
-const unwrap_field = require('../../src/utils/unwrap_field');
-const DareError = require('../../src/utils/error');
+import unwrap_field from '../../src/utils/unwrap_field.js';
+import DareError from '../../src/utils/error.js';
 
 describe('utils/unwrap_field', () => {
 

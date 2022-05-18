@@ -1,6 +1,6 @@
-const mysql = require('./mysql');
-const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
+import * as mysql from './mysql.js';
+import chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 
 // Extend Chai
 chai.use(chaiAsPromised);
@@ -8,7 +8,7 @@ chai.use(chaiAsPromised);
 // Export Chai Expect
 global.expect = chai.expect;
 
-exports.mochaHooks = {
+const mochaHooks = {
 	beforeAll: [
 		mysql.mochaHooks.beforeAll
 	],
@@ -16,3 +16,5 @@ exports.mochaHooks = {
 		mysql.mochaHooks.beforeEach
 	]
 };
+
+export {mochaHooks};

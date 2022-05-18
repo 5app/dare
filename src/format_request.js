@@ -1,12 +1,12 @@
 
 
-const DareError = require('./utils/error');
-const fieldReducer = require('./format/field_reducer');
-const groupbyReducer = require('./format/groupby_reducer');
-const orderbyReducer = require('./format/orderby_reducer');
-const reduceConditions = require('./format/reducer_conditions');
-const limitClause = require('./format/limit_clause');
-const joinHandler = require('./format/join_handler');
+import DareError from './utils/error.js';
+import fieldReducer from './format/field_reducer.js';
+import groupbyReducer from './format/groupby_reducer.js';
+import orderbyReducer from './format/orderby_reducer.js';
+import reduceConditions from './format/reducer_conditions.js';
+import limitClause from './format/limit_clause.js';
+import joinHandler from './format/join_handler.js';
 
 
 /**
@@ -15,11 +15,11 @@ const joinHandler = require('./format/join_handler');
  * @param {object} options - Options object
  * @returns {object} Formatted options
  */
-module.exports = function(options) {
+export default function(options) {
 
 	return format_request(options, this);
 
-};
+}
 
 /**
  * @typedef {object} Dare

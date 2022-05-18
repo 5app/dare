@@ -1,10 +1,10 @@
-const Dare = require('../../src/');
+import Dare from '../../src/index.js';
 /*
  * Format Request
  * Takes a simple request object and explodes it into a more comprehensive object using the schema
  */
 
-const DareError = require('../../src/utils/error');
+import DareError from '../../src/utils/error.js';
 
 describe('format_request', () => {
 

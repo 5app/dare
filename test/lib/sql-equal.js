@@ -3,7 +3,7 @@
  * Convert a SQL string into a regular expression to compare with a generated SQL string
  */
 
-module.exports = (a, b) => {
+export default (a, b) => {
 
 	// Reformat both sql statements and compare
 	expect(reformat(a)).to.equal(reformat(b));

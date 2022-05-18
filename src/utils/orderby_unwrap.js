@@ -1,4 +1,4 @@
-module.exports = str => {
+export default str => {
 
 	let direction = '';
 	const field = str.replace(/\s*(?:DESC|ASC)$/i, m => {
