@@ -1,19 +1,25 @@
 
 
-const getHandler = require('./get');
+import getHandler from './get.js';
 
-const DareError = require('./utils/error');
+import DareError from './utils/error.js';
 
-const validateBody = require('./utils/validate_body');
+import validateBody from './utils/validate_body.js';
 
-const getFieldAttributes = require('./utils/field_attributes');
+import getFieldAttributes from './utils/field_attributes.js';
 
-const extend = require('./utils/extend');
+import extend from './utils/extend.js';
 
-const clone = require('tricks/object/clone');
+import clone from 'tricks/object/clone.js';
 
+import format_request from './format_request.js';
 
-module.exports = Dare;
+import response_handler from './response_handler.js';
+
+/*
+ * Export Dare Error object
+ */
+export {DareError};
 
 /**
  * Dare
@@ -22,14 +28,22 @@ module.exports = Dare;
  * @param {object} options - Initial options defining the instance
  * @returns {object} instance of dare
  */
-function Dare(options) {
+function Dare(options = {}) {
+
+	// Backwards compatibility for {schema}
+	migrateToModels(options);
 
 	// Overwrite default properties
-	this.options = options || {};
+	this.options = extend(clone(this.options), options);
 
 	return this;
 
 }
+
+export default Dare;
+
+// Export the DareError object
+Dare.DareError = DareError;
 
 // Set default function
 Dare.prototype.execute = async () => {
@@ -44,11 +58,19 @@ Dare.prototype.group_concat = '$$';
 // Set the Max Limit for SELECT statements
 Dare.prototype.MAX_LIMIT = null;
 
+// Default options
+Dare.prototype.options = {
+	// Infer intermediate tables when two models are not directly linked
+	infer_intermediate_models: true,
+
+	// Allow conditional operators in value
+	conditional_operators_in_value: '%!~'
+};
+
 // Set default table_alias handler
 Dare.prototype.table_alias_handler = function(name) {
 
-	name = name.split('$')[0];
-	return (this.options.table_alias ? this.options.table_alias[name] : null) || name;
+	return name.replace(/^-/, '').split('$')[0];
 
 };
 
@@ -68,9 +90,9 @@ Dare.prototype.get_unique_alias = function(iterate = 1) {
 
 };
 
-Dare.prototype.format_request = require('./format_request');
+Dare.prototype.format_request = format_request;
 
-Dare.prototype.response_handler = require('./response_handler');
+Dare.prototype.response_handler = response_handler;
 
 /**
  * Dare.after
@@ -82,8 +104,8 @@ Dare.prototype.response_handler = require('./response_handler');
 Dare.prototype.after = function(resp) {
 
 	// Define the after handler
-	const handler = `after${this.options.method.replace(/^([a-z])/, (m, l) => l.toUpperCase())}`;
-	const table = this.options.table;
+	const handler = `after${this.options.method.replace(/^[a-z]/, m => m.toUpperCase())}`;
+	const table = this.options.name;
 
 	// Trigger after handlers following a request
 	if (handler in this.options && table in this.options[handler]) {
@@ -106,6 +128,9 @@ Dare.prototype.after = function(resp) {
 Dare.prototype.use = function(options = {}) {
 
 	const inst = Object.create(this);
+
+	// Backwards compatibility for {schema}
+	migrateToModels(options);
 
 	// Create a new options, merging inheritted and new
 	inst.options = extend(clone(this.options), options);
@@ -275,19 +300,28 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 
 	}
 
+	/*
+	 * Disallow joins
+	 * @todo: support joins see #187
+	 */
+	disallowJoins(req);
+
 	// Validate Body
 	validateBody(req.body);
 
-	// Get the schema
-	const tableSchema = this.options.schema && this.options.schema[req.table];
+	// Options
+	const {models, validateInput} = _this.options;
+
+	// Get the model structure
+	const {schema: tableSchema} = models?.[req.name] || {};
 
 	// Prepare post
-	const {assignments, preparedValues} = prepareSet(req.body, tableSchema);
+	const {assignments, values} = prepareSet(req.body, tableSchema, validateInput);
 
 	// Prepare query
-	const sql_query = req._filter.map(([field, condition, values]) => {
+	const sql_query = req._filter.map(([field, condition, prepValues]) => {
 
-		preparedValues.push(...values);
+		values.push(...prepValues);
 		return formCondition(field, condition);
 
 	});
@@ -301,14 +335,14 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	}
 
 	// Construct a db update
-	const sql = `UPDATE ${exec}${req.table}
+	const sql = `UPDATE ${exec}${req.sql_table}
 			SET
 				${serialize(assignments, '=', ',')}
 			WHERE
 				${sql_query.join(' AND ')}
 			LIMIT ${req.limit}`;
 
-	let resp = await this.sql(sql, preparedValues);
+	let resp = await this.sql({sql, values});
 
 	resp = mustAffectRows(resp, opts.notfound);
 
@@ -363,26 +397,29 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	}
 
 	// If ignore duplicate keys is stated as ignore
-	let exec = '';
-	if (req.duplicate_keys && req.duplicate_keys.toString().toLowerCase() === 'ignore') {
+	const exec = req.ignore ? 'IGNORE' : '';
 
-		exec = 'IGNORE';
-
-	}
+	// Instance options
+	const {models, validateInput} = _this.options;
 
 	// Get the schema
-	const tableSchema = this.options.schema && this.options.schema[req.table];
+	const {schema: modelSchema = {}} = models?.[req.name] || {};
 
 	// Capture keys
 	const fields = [];
-	const prepared = [];
+	const values = [];
 	const data = post.map(item => {
 
 		const _data = [];
+
+		/*
+		 * Iterate through the properties
+		 * Format, validate and insert
+		 */
 		for (const prop in item) {
 
 			// Format key and values...
-			const {field, value} = formatInputValue(tableSchema, prop, item[prop]);
+			const {field, value} = formatInputValue(modelSchema, prop, item[prop], validateInput);
 
 			// Get the index in the field list
 			let i = fields.indexOf(field);
@@ -397,6 +434,29 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 
 			// Insert the value at that position
 			_data[i] = value;
+
+		}
+
+		/*
+		 * Let's catch the omitted properties
+		 * --> Loop through the modelSchema
+		 */
+		if (validateInput) {
+
+			Object.entries(modelSchema).forEach(([field, fieldObject]) => {
+
+				// For each property which was not covered by the input
+				if (field !== 'default' && !(field in item)) {
+
+					// Get a formatted object of field attributes
+					const fieldAttributes = getFieldAttributes(fieldObject);
+
+					// Validate with an undefined value
+					validateInput(fieldAttributes, field);
+
+				}
+
+			});
 
 		}
 
@@ -415,7 +475,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 			}
 
 			// Else add the value to prepared statement list
-			prepared.push(_data[index]);
+			values.push(_data[index]);
 
 			// Return the prepared statement placeholder
 			return '?';
@@ -428,19 +488,29 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 
 
 	// Create unalias function
-	const unAliaser = field => unAliasFields(tableSchema, field);
+	const unAliaser = field => unAliasFields(modelSchema, field);
 
 	// Options
-	const on_duplicate_keys_update = (req.duplicate_keys_update && onDuplicateKeysUpdate(req.duplicate_keys_update.map(unAliaser))) || '';
+	let on_duplicate_keys_update = '';
+	if (req.duplicate_keys_update) {
+
+		on_duplicate_keys_update = onDuplicateKeysUpdate(req.duplicate_keys_update.map(unAliaser));
+
+	}
+	else if (req.duplicate_keys && req.duplicate_keys.toString().toLowerCase() === 'ignore') {
+
+		on_duplicate_keys_update = `${onDuplicateKeysUpdate()}_rowid=_rowid`;
+
+	}
 
 	// Construct a db update
-	const sql = `INSERT ${exec} INTO ${req.table}
+	const sql = `INSERT ${exec} INTO ${req.sql_table}
 			(${fields.map(field => `\`${field}\``).join(',')})
 			VALUES
 			${data.join(',')}
 			${on_duplicate_keys_update}`;
 
-	const resp = await _this.sql(sql, prepared);
+	const resp = await _this.sql({sql, values});
 
 	return _this.after(resp);
 
@@ -478,22 +548,28 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 
 	}
 
-	// Clone object before formatting
-	const a = [];
-	const sql_query = req._filter.map(([field, condition, values]) => {
+	/*
+	 * Disallow joins
+	 * @todo: support joins see #187
+	 */
+	disallowJoins(req);
 
-		a.push(...values);
+	// Clone object before formatting
+	const values = [];
+	const sql_query = req._filter.map(([field, condition, prepValues]) => {
+
+		values.push(...prepValues);
 		return formCondition(field, condition);
 
 	});
 
 	// Construct a db update
-	const sql = `DELETE FROM ${req.table}
+	const sql = `DELETE FROM ${req.sql_table}
 					WHERE
 					${sql_query.join(' AND ')}
 					LIMIT ${req.limit}`;
 
-	let resp = await this.sql(sql, a);
+	let resp = await this.sql({sql, values});
 
 	resp = mustAffectRows(resp, opts.notfound);
 
@@ -507,11 +583,12 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
  * Prepare a SET assignments used in Patch
  * @param {object} body - body to format
  * @param {object} [tableSchema={}] - Schema for the current table
- * @returns {object} {assignment, preparedValues}
+ * @param {Function} [validateInput] - Validate input function
+ * @returns {object} {assignment, values}
  */
-function prepareSet(body, tableSchema = {}) {
+function prepareSet(body, tableSchema = {}, validateInput) {
 
-	const preparedValues = [];
+	const values = [];
 	const assignments = {};
 
 	for (const label in body) {
@@ -520,19 +597,19 @@ function prepareSet(body, tableSchema = {}) {
 		 * Get the real field in the db,
 		 * And formatted value...
 		 */
-		const {field, value} = formatInputValue(tableSchema, label, body[label]);
+		const {field, value} = formatInputValue(tableSchema, label, body[label], validateInput);
 
 		// Replace value with a question using any mapped fieldName
 		assignments[field] = '?';
 
 		// Add to the array of items
-		preparedValues.push(value);
+		values.push(value);
 
 	}
 
 	return {
 		assignments,
-		preparedValues
+		values
 	};
 
 }
@@ -566,9 +643,9 @@ function mustAffectRows(result, notfound) {
 
 }
 
-function onDuplicateKeysUpdate(keys) {
+function onDuplicateKeysUpdate(keys = []) {
 
-	const s = keys.map(name => `${name}=VALUES(${name})`).join(',');
+	const s = keys.map(name => `\`${name}\`=VALUES(\`${name}\`)`).join(',');
 
 	return `ON DUPLICATE KEY UPDATE ${s}`;
 
@@ -581,13 +658,24 @@ function onDuplicateKeysUpdate(keys) {
  * @param {object} [tableSchema={}] - An object containing the table schema
  * @param {string} field - field identifier
  * @param {*} value - Given value
+ * @param {Function} [validateInput] - Custom validation function
  * @throws Will throw an error if the field is not writable
  * @returns {string} A singular value which can be inserted
  */
-function formatInputValue(tableSchema = {}, field, value) {
+function formatInputValue(tableSchema = {}, field, value, validateInput) {
 
-	const {alias, writeable, type} = getFieldAttributes(tableSchema[field]);
+	const fieldAttributes = (field in tableSchema)
+		? getFieldAttributes(tableSchema[field])
+		: ('default' in tableSchema
+			? getFieldAttributes(tableSchema.default)
+			: null);
 
+	const {alias, writeable, type} = fieldAttributes || {};
+
+	// Execute custom field validation
+	validateInput?.(fieldAttributes, field, value);
+
+	// Rudimentary validation of content
 	if (writeable === false) {
 
 		throw new DareError(DareError.INVALID_REFERENCE, `Field '${field}' is not writeable`);
@@ -673,5 +761,61 @@ function formCondition(field, condition) {
 
 	// Insert the field name in place
 	return condition.includes('$$') ? condition.replace(/\$\$/g, field) : `${field} ${condition}`;
+
+}
+
+/**
+ * Migrate to Models
+ * Backwards compatibility for {schema}
+ * @param {object} options - Options object
+ * @returns {void} Extends paramater
+ */
+function migrateToModels(options) {
+
+	if (options.models) {
+
+		// Nothing to do
+		return;
+
+	}
+
+	// Legacy input...
+	for (const prop in options) {
+
+		if (!['schema', 'patch', 'post', 'del', 'get'].includes(prop) || !options[prop]) {
+
+			continue;
+
+		}
+
+		for (const table in options[prop]) {
+
+			extend(options, {
+				models: {
+					[table]: {
+						[prop]: options[prop][table]
+					}
+				}
+			});
+
+		}
+
+	}
+
+}
+
+
+/**
+ * DisallowJoins
+ * @param {object} req - Formatted request object
+ * @returns {void} Checks whether a join is included in the request
+ */
+function disallowJoins(req) {
+
+	if (req._joins) {
+
+		throw new DareError(DareError.INVALID_REQUEST, `${req.method} cannot contain nested joins`);
+
+	}
 
 }

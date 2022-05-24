@@ -1,3 +1,201 @@
+# [0.65.0](https://github.com/5app/dare/compare/v0.64.0...v0.65.0) (2022-05-18)
+
+
+### Features
+
+* **esm:** convert to ESM ([31585a4](https://github.com/5app/dare/commit/31585a41722c41a6e8d46f5f0cf9ad58772e9b6d))
+* **esm:** export utils directory ([1bb1a8e](https://github.com/5app/dare/commit/1bb1a8e0eff1bd1b00aa2ac35ce83ac4ea9f8975))
+
+# [0.64.0](https://github.com/5app/dare/compare/v0.63.1...v0.64.0) (2022-03-28)
+
+
+### Features
+
+* **range:** define comparison operator on prop, make optional in value, [#182](https://github.com/5app/dare/issues/182) ([c801286](https://github.com/5app/dare/commit/c801286bf2092bf6ff9a61e5780817f122128764))
+
+## [0.63.1](https://github.com/5app/dare/compare/v0.63.0...v0.63.1) (2022-03-16)
+
+
+### Bug Fixes
+
+* **likey:** do not assume wildcharacter, [#182](https://github.com/5app/dare/issues/182) ([9f24e98](https://github.com/5app/dare/commit/9f24e98fdd7efd511b8f1905254288084adb9f75))
+
+# [0.63.0](https://github.com/5app/dare/compare/v0.62.0...v0.63.0) (2022-03-15)
+
+
+### Features
+
+* **likey-filter:** and flag to disable interpretted likey values ([#225](https://github.com/5app/dare/issues/225)) ([8c863f7](https://github.com/5app/dare/commit/8c863f7d85ceedc3ec44fc48ab9bc6cf4a51f2cf)), closes [#182](https://github.com/5app/dare/issues/182) [#182](https://github.com/5app/dare/issues/182)
+
+# [0.62.0](https://github.com/5app/dare/compare/v0.61.2...v0.62.0) (2022-03-09)
+
+
+### Features
+
+* **option:** infer_intermediate_models ([5addd30](https://github.com/5app/dare/commit/5addd30cf09aa6a1c652ad15cdcfc573fb0a499d))
+
+## [0.61.2](https://github.com/5app/dare/compare/v0.61.1...v0.61.2) (2022-02-07)
+
+
+### Bug Fixes
+
+* **ci:** semantic-release shareable config test ([53dbaad](https://github.com/5app/dare/commit/53dbaade25b0fd47fa85cceeca448a7053dd7723))
+
+## [0.61.1](https://github.com/5app/dare/compare/v0.61.0...v0.61.1) (2022-01-13)
+
+
+### Bug Fixes
+
+* **onDuplicateKeyUpdate:** put backticks around UPDATE fields ([aeabcd8](https://github.com/5app/dare/commit/aeabcd868ea5f929f8a920d657dc0f8e67636878))
+
+# [0.61.0](https://github.com/5app/dare/compare/v0.60.1...v0.61.0) (2021-12-01)
+
+
+### Features
+
+* refactor internal SQL function arguments ([280cb31](https://github.com/5app/dare/commit/280cb317bdcf30838bb6f330bbfa2df9b2226282))
+
+## [0.60.1](https://github.com/5app/dare/compare/v0.60.0...v0.60.1) (2021-10-20)
+
+
+### Bug Fixes
+
+* **validateInput:** fix missing validateInput error ([bf5801f](https://github.com/5app/dare/commit/bf5801f463f59cd4a39422b0b6395a13fcc94806))
+
+# [0.60.0](https://github.com/5app/dare/compare/v0.59.0...v0.60.0) (2021-10-18)
+
+
+### Features
+
+* **validation:** allow model's to define a default field definition ([16e25a5](https://github.com/5app/dare/commit/16e25a5bbbaaf5a9d1de3d3889ce1ce245fa9053))
+* **validation:** input validation ([eb0a2fc](https://github.com/5app/dare/commit/eb0a2fc8446bac13926bf015f704adf8bc439c32))
+
+# [0.59.0](https://github.com/5app/dare/compare/v0.58.0...v0.59.0) (2021-08-04)
+
+
+### Features
+
+* **fields:** fields prefixable with the negation operator ([e379612](https://github.com/5app/dare/commit/e3796120d718c72c021ed3ca3f393c964a8b3453))
+
+# [0.58.0](https://github.com/5app/dare/compare/v0.57.2...v0.58.0) (2021-07-08)
+
+
+### Features
+
+* **deprecate:** remove table_alias object handling ([#189](https://github.com/5app/dare/issues/189)) ([f649ac6](https://github.com/5app/dare/commit/f649ac6104736e8d92e809d9ee5ada9e09de5edd))
+
+## [0.57.2](https://github.com/5app/dare/compare/v0.57.1...v0.57.2) (2021-06-18)
+
+
+### Bug Fixes
+
+* **del, patch:** throws an error is nested filter given, [#187](https://github.com/5app/dare/issues/187) ([9f5a5d3](https://github.com/5app/dare/commit/9f5a5d3477fb54988d7fec41725e3ab28635c8f1))
+
+## [0.57.1](https://github.com/5app/dare/compare/v0.57.0...v0.57.1) (2021-05-28)
+
+
+### Reverts
+
+* Revert "feat(esm): convert to esm modules (#184)" ([d881022](https://github.com/5app/dare/commit/d88102227fa607bcfad017e083422947dbd1aacf)), closes [#184](https://github.com/5app/dare/issues/184)
+
+# [0.57.0](https://github.com/5app/dare/compare/v0.56.0...v0.57.0) (2021-05-28)
+
+
+### Features
+
+* **esm:** convert to esm modules ([#184](https://github.com/5app/dare/issues/184)) ([a219207](https://github.com/5app/dare/commit/a219207c46de4a5d9e0d1e26cde2cd5e0417f185))
+
+# [0.56.0](https://github.com/5app/dare/compare/v0.55.4...v0.56.0) (2021-05-20)
+
+
+### Features
+
+* **models:** support for new options.models structure ([#181](https://github.com/5app/dare/issues/181)) ([a1d76e4](https://github.com/5app/dare/commit/a1d76e4bfdc083687b335b0a168674c8399a37b6))
+
+## [0.55.4](https://github.com/5app/dare/compare/v0.55.3...v0.55.4) (2021-05-17)
+
+
+### Bug Fixes
+
+* **generated:** fix referencing a nested generated field ([10fcec9](https://github.com/5app/dare/commit/10fcec904e4fb035de6effeceed1e1030d1575a7))
+
+## [0.55.3](https://github.com/5app/dare/compare/v0.55.2...v0.55.3) (2021-04-30)
+
+
+### Bug Fixes
+
+* **suffixing:** model names with $ in nested fields handling ([fdaffd7](https://github.com/5app/dare/commit/fdaffd796ca1cc38479ff90ee8f084d023f9cc95))
+
+## [0.55.2](https://github.com/5app/dare/compare/v0.55.1...v0.55.2) (2021-04-29)
+
+
+### Bug Fixes
+
+* **subquery:** fix null subquery response ([b20fe7b](https://github.com/5app/dare/commit/b20fe7b8829c20fc468e868ce056dea0f4dcb46a))
+
+## [0.55.1](https://github.com/5app/dare/compare/v0.55.0...v0.55.1) (2021-04-28)
+
+
+### Bug Fixes
+
+* throw error when calling format_request with falsy value ([7e34410](https://github.com/5app/dare/commit/7e344101473b310f479787c2cd2c5a2437e1795c))
+
+# [0.55.0](https://github.com/5app/dare/compare/v0.54.0...v0.55.0) (2021-04-08)
+
+
+### Features
+
+* **handlers:** pass dare instance in second parameters ([ba0ef40](https://github.com/5app/dare/commit/ba0ef40f1c297ceadc7da416a63d14be8cde6809))
+
+# [0.54.0](https://github.com/5app/dare/compare/v0.53.0...v0.54.0) (2021-03-09)
+
+
+### Features
+
+* **fields:** support SQL IF(field = 'string', ...) field definition ([912dd79](https://github.com/5app/dare/commit/912dd795988bbe7a6164225a079c6883d88d9150))
+
+# [0.53.0](https://github.com/5app/dare/compare/v0.52.1...v0.53.0) (2021-02-19)
+
+
+### Features
+
+* show more errors when duplicate_key='ignore' is set ([#170](https://github.com/5app/dare/issues/170)) ([d523bc8](https://github.com/5app/dare/commit/d523bc8a3abf7514a857ef7302589744cc56e0d6))
+
+## [0.52.1](https://github.com/5app/dare/compare/v0.52.0...v0.52.1) (2021-02-17)
+
+
+### Bug Fixes
+
+* **filter:** not exists assign to implicit join ([4bcce14](https://github.com/5app/dare/commit/4bcce148d2fffec97f15eb21c4a47fb01fce939e))
+
+# [0.52.0](https://github.com/5app/dare/compare/v0.51.0...v0.52.0) (2021-02-17)
+
+
+### Features
+
+* **filter:** sql not exists ([#168](https://github.com/5app/dare/issues/168)) ([047fafa](https://github.com/5app/dare/commit/047fafa9e04c8ae0d00978f1586d335a15f8c207)), closes [#167](https://github.com/5app/dare/issues/167)
+
+# [0.51.0](https://github.com/5app/dare/compare/v0.50.0...v0.51.0) (2021-02-10)
+
+
+### Features
+
+* ignore suffix on field property ([b7f9d19](https://github.com/5app/dare/commit/b7f9d190cda8a34643d9f7b68cea7eb809f3bd41))
+
+# [0.50.0](https://github.com/5app/dare/compare/v0.49.0...v0.50.0) (2021-01-25)
+
+
+### Features
+
+* allow overriding the schema per operation ([472cedd](https://github.com/5app/dare/commit/472cedd4acb4847f00bc61b65a9445c19aa481bc))
+
+# [0.49.0](https://github.com/5app/dare/compare/v0.48.0...v0.49.0) (2021-01-19)
+
+
+### Features
+
+* expose DareError object ([89e85e4](https://github.com/5app/dare/commit/89e85e478fb35707f7a4ad506077d6982b9961ae))
+
 # [0.48.0](https://github.com/5app/dare/compare/v0.47.0...v0.48.0) (2020-11-18)
 
 

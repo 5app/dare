@@ -1,6 +1,6 @@
-const unwrap_expression = require('./unwrap_field');
+import unwrap_expression from './unwrap_field.js';
 
-module.exports = function field_format(original, label, table_prefix, label_prefix) {
+export default function field_format(original, label, table_prefix, label_prefix) {
 
 	const {field, prefix, suffix} = unwrap_expression(original);
 
@@ -33,7 +33,7 @@ module.exports = function field_format(original, label, table_prefix, label_pref
 	// Aggregate function flag
 	let agg = false;
 
-	if (prefix && /\b(SUM|COUNT|AVG|MAX|MIN|GROUP_CONCAT)\(/.test(prefix.toUpperCase())) {
+	if (prefix && /\b(?:SUM|COUNT|AVG|MAX|MIN|GROUP_CONCAT)\(/.test(prefix.toUpperCase())) {
 
 		agg = true;
 
@@ -46,4 +46,4 @@ module.exports = function field_format(original, label, table_prefix, label_pref
 		agg
 	};
 
-};
+}

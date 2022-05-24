@@ -3,7 +3,7 @@
  * Label the GROUP CONCAT(..) AS 'address[fields,...]'
  * Wrap all the fields in a GROUP_CONCAT statement
  */
-module.exports = function group_concat(fields, address = '') {
+export default function group_concat(fields, address = '') {
 
 	// Is this an aggregate list?
 	const agg = fields.reduce((prev, curr) => (prev || curr.agg || curr.label.indexOf(address) !== 0), false);
@@ -40,7 +40,7 @@ module.exports = function group_concat(fields, address = '') {
 
 	label = fields.map(field => {
 
-		const label = field.label;
+		const {label} = field;
 		// Trim the parent address from the start of the label
 		return label.slice(address.length);
 
@@ -53,4 +53,4 @@ module.exports = function group_concat(fields, address = '') {
 		label
 	};
 
-};
+}

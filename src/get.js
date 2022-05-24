@@ -1,12 +1,12 @@
 
 
-const DareError = require('./utils/error');
-const group_concat = require('./utils/group_concat');
-const field_format = require('./utils/field_format');
-const orderbyUnwrap = require('./utils/orderby_unwrap');
+import DareError from './utils/error.js';
+import group_concat from './utils/group_concat.js';
+import field_format from './utils/field_format.js';
+import orderbyUnwrap from './utils/orderby_unwrap.js';
 
 
-module.exports = async function(opts) {
+export default async function(opts) {
 
 	// Reset the alias
 	this.unique_alias_index = 0;
@@ -24,7 +24,7 @@ module.exports = async function(opts) {
 	const {sql, values} = this.buildQuery(opts);
 
 	// Execute the query
-	const sql_response = await this.sql(sql, values);
+	const sql_response = await this.sql({sql, values});
 
 	// Format the response
 	const resp = await this.response_handler(sql_response);
@@ -49,7 +49,7 @@ module.exports = async function(opts) {
 
 	return resp;
 
-};
+}
 
 function buildQuery(opts) {
 
@@ -59,7 +59,7 @@ function buildQuery(opts) {
 	const sql_limit = `LIMIT ${opts.start ? `${opts.start},` : ''}${opts.limit}`;
 
 	// SubQuery
-	const is_subquery = opts.is_subquery;
+	const {is_subquery} = opts;
 
 	// Traverse the Request Object
 	const {
@@ -75,8 +75,7 @@ function buildQuery(opts) {
 	} = this.traverse(opts, is_subquery);
 
 	// Get the root tableID
-	const sql_table = opts.table;
-	const sql_alias = opts.sql_alias;
+	const {sql_table, sql_alias} = opts;
 
 	{
 
@@ -144,8 +143,13 @@ function buildQuery(opts) {
 	let sql_fields;
 	let alias;
 
+	if (opts.negate && fields.length === 0) {
 
-	if (is_subquery) {
+		sql_fields = [1];
+
+	}
+
+	else if (is_subquery) {
 
 		// Generate a Group Concat statement of the result
 		const address = opts.field_alias_path || opts._joins[0].field_alias_path;
@@ -232,7 +236,7 @@ function traverse(item, is_subquery) {
 	const orderby = [];
 
 
-	const parent = item.parent;
+	const {parent} = item;
 
 	const resp = {
 		sql_filter,
@@ -278,7 +282,7 @@ function traverse(item, is_subquery) {
 		}
 
 		// Adopt the parents settings
-		const many = item.many;
+		const {many} = item;
 
 		// Does this have a many join
 		resp.has_many_join = many;
@@ -333,6 +337,27 @@ function traverse(item, is_subquery) {
 
 		}
 
+
+		/**
+		 * If this is a negate join...
+		 * NOT EXIST (SELECT 1 FROM alias WHERE join_conditions)
+		 */
+		if (item.negate && !is_subquery) {
+
+			// Mark as another subquery
+			item.is_subquery = true;
+
+			// Create sub_query
+			const sub_query = this.buildQuery(item);
+
+			// Update the filters
+			sql_values.push(...sub_query.values);
+			sql_filter.push(`NOT EXISTS (${sub_query.sql})`);
+
+			return resp;
+
+		}
+
 	}
 
 	const sql_alias = this.get_unique_alias();
@@ -359,7 +384,7 @@ function traverse(item, is_subquery) {
 
 		}
 
-		const required_join = item.required_join;
+		const {required_join} = item;
 
 		// Required Join
 		item.required_join = required_join && (parent.required_join || parent.root);
@@ -385,7 +410,7 @@ function traverse(item, is_subquery) {
 			}
 
 			// Append to the sql_join
-			sql_joins.push(`${item.required_join ? '' : 'LEFT'} JOIN ${item.table} ${sql_alias} ON (${sql_join_condition.join(' AND ')})`);
+			sql_joins.push(`${item.required_join ? '' : 'LEFT'} JOIN ${item.sql_table} ${sql_alias} ON (${sql_join_condition.join(' AND ')})`);
 
 		}
 		else {
@@ -526,12 +551,19 @@ function prepField(field) {
 
 	}
 
-	for (const label in field) {
+	let expression;
+	let label;
 
-		const expression = field[label];
-		return [expression, label];
+	// Get the first entry of the object and return
+	for (const _label in field) {
+
+		expression = field[_label];
+		label = _label;
+		continue;
 
 	}
+
+	return [expression, label];
 
 }
 

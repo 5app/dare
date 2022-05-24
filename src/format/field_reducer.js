@@ -1,10 +1,10 @@
-const checkFormat = require('../utils/unwrap_field');
-const checkLabel = require('../utils/validate_label');
-const checkKey = require('../utils//validate_field');
-const DareError = require('../utils//error');
-const fieldRelativePath = require('../utils/field_relative');
-const getFieldAttributes = require('../utils/field_attributes');
-const jsonParse = require('../utils/JSONparse');
+import checkFormat from '../utils/unwrap_field.js';
+import checkLabel from '../utils/validate_label.js';
+import checkKey from '../utils/validate_field.js';
+import DareError from '../utils//error.js';
+import fieldRelativePath from '../utils/field_relative.js';
+import getFieldAttributes from '../utils/field_attributes.js';
+import jsonParse from '../utils/JSONparse.js';
 
 
 /**
@@ -16,7 +16,7 @@ const jsonParse = require('../utils/JSONparse');
  * @param {object} opts.dareInstance - Instance of Dare which is calling this
  * @returns {Function} Fields Reducer function
  */
-module.exports = function fieldReducer({field_alias_path, extract, table_schema, dareInstance}) {
+export default function fieldReducer({field_alias_path, extract, table_schema, dareInstance}) {
 
 	// Handle each field property
 	return (fieldsArray, field, index, originalArray) => {
@@ -67,7 +67,7 @@ module.exports = function fieldReducer({field_alias_path, extract, table_schema,
 		else {
 
 			// Check errors in the key field
-			checkKey(field);
+			field = checkKey(field);
 
 			const formattedField = fieldMapping({field, table_schema, fieldsArray, field_alias_path, originalArray, dareInstance, extract});
 
@@ -83,7 +83,7 @@ module.exports = function fieldReducer({field_alias_path, extract, table_schema,
 
 	};
 
-};
+}
 
 /**
  * FieldMapping
@@ -129,7 +129,7 @@ function fieldMapping({field, label, fieldsArray, originalArray, field_alias_pat
 			 * This field isnt' part of this table
 			 * So lets extract this field with the table key
 			 */
-			const key = relative[0];
+			const [key] = relative;
 			const value = label ? {[label]: field} : field;
 
 			// Extract nested field
@@ -183,6 +183,7 @@ function fieldMapping({field, label, fieldsArray, originalArray, field_alias_pat
 			// Add for post processing
 			dareInstance.generated_fields.unshift({
 				label,
+				field,
 				field_alias_path,
 				handler: generated_field,
 				extraFields
@@ -192,7 +193,10 @@ function fieldMapping({field, label, fieldsArray, originalArray, field_alias_pat
 
 		}
 
-		// Execute the handler, add the response to the field list
+		/**
+		 * Otherwise the generated field has returned a string
+		 * Return the string
+		 */
 		return {
 			[label]: generated_field
 		};
@@ -227,6 +231,7 @@ function fieldMapping({field, label, fieldsArray, originalArray, field_alias_pat
 		// Add for post processing
 		dareInstance.generated_fields.push({
 			label,
+			field,
 			field_alias_path,
 			handler: item => jsonParse(item[label]) || {}
 		});

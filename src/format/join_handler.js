@@ -1,4 +1,4 @@
-const getFieldAttributes = require('../utils/field_attributes');
+import getFieldAttributes from '../utils/field_attributes.js';
 
 /**
  * Join Handler
@@ -8,58 +8,21 @@ const getFieldAttributes = require('../utils/field_attributes');
  * @param {object} dareInstance - Dare Instance
  * @returns {object} An updated join_object with new join_conditions attached
  */
-module.exports = function(join_object, root_object, dareInstance) {
+export default function(join_object, root_object, dareInstance) {
 
-	const {schema} = dareInstance.options;
+	const {models, infer_intermediate_models} = dareInstance.options;
 
-	const {table: rootTable, alias: _rootAlias} = root_object;
-	const {table: joinTable, alias: _joinAlias} = join_object;
-
-	// Remove the join alias label
-	const joinAlias = _joinAlias.split('$')[0];
-
-	// Remove the root alias label
-	const rootAlias = _rootAlias.split('$')[0];
-
-	// Get the Join Conditions...
-	let join_conditions;
+	const {table: rootModel} = root_object;
+	const {table: joinModel} = join_object;
 
 	/*
 	 * The preference is to match in order:
-	 * joinAlias to rootAlias
-	 * rootAlias to joinAlias (inverted)
-	 * joinAlias to rootTable
-	 * rootTable to joinAlias (inverted)
-	 * joinTable to rootAlias
-	 * rootAlias to joinTable (inverted)
 	 * joinTable to rootTable
 	 * rootTable to joinTable (inverted)
+	 * Looks at the schema of both tables to find one which has a reference field to the other.
 	 */
 
-	// Does the alias exist...
-	const a = [joinAlias, joinTable].filter(tidy);
-	const b = [rootAlias, rootTable].filter(tidy);
-
-	// Looks at the schema of both tables to find one which has a reference field to the other.
-	for (const _a of a) {
-
-		for (const _b of b) {
-
-			join_conditions = links(schema[_a], _b) || invert_links(schema[_b], _a);
-			if (join_conditions) {
-
-				break;
-
-			}
-
-		}
-		if (join_conditions) {
-
-			break;
-
-		}
-
-	}
+	const join_conditions = links(models[joinModel]?.schema, rootModel) || invert_links(models[rootModel]?.schema, joinModel);
 
 	// Yes, no, Yeah!
 	if (join_conditions) {
@@ -68,21 +31,28 @@ module.exports = function(join_object, root_object, dareInstance) {
 
 	}
 
-	// Crawl the schema for an intermediate table which is linked to both tables. link table, ... we're only going for a single Kevin Bacon. More than that and the process will deem this operation too hard.
-	for (const linkTable in schema) {
+	/*
+	 * Is the infer_intermediate_models option is set to false?
+	 * --> can't guess which table to use, return null
+	 */
+	if (infer_intermediate_models === false) {
 
-		// Well, this would be silly otherwise...
-		if (linkTable === joinTable || linkTable === rootTable) {
+		return null;
+
+	}
+
+	// Crawl the schema for an intermediate table which is linked to both tables. link table, ... we're only going for a single Kevin Bacon. More than that and the process will deem this operation too hard.
+	for (const linkTable in models) {
+
+		// Well, ignore models of the same name
+		if (linkTable === joinModel || linkTable === rootModel) {
 
 			continue;
 
 		}
 
 		// LinkTable <> joinTable?
-		const sjt = schema[joinAlias] || schema[joinTable];
-		const jt = schema[joinAlias] ? joinAlias : joinTable;
-		const join_conditions = links(sjt, linkTable) || invert_links(schema[linkTable], jt);
-
+		const join_conditions = links(models[joinModel]?.schema, linkTable) || invert_links(models[linkTable]?.schema, joinModel);
 
 		if (!join_conditions) {
 
@@ -91,7 +61,7 @@ module.exports = function(join_object, root_object, dareInstance) {
 		}
 
 		// RootTable <> linkTable
-		const root_conditions = links(schema[linkTable], rootTable) || invert_links(schema[rootTable], linkTable);
+		const root_conditions = links(models[linkTable]?.schema, rootModel) || invert_links(models[rootModel]?.schema, linkTable);
 
 		if (!root_conditions) {
 
@@ -103,29 +73,30 @@ module.exports = function(join_object, root_object, dareInstance) {
 		 * Awesome, this table (tbl) is the link table and can be used to join up both these tables.
 		 * Also give this link table a unique Alias
 		 */
-		return Object.assign({
+		return {
 			alias: dareInstance.get_unique_alias(),
 			table: linkTable,
 			joins: [
 				Object.assign(join_object, join_conditions)
-			]
-		}, root_conditions);
+			],
+			...root_conditions
+		};
 
 	}
 
 	// Return a falsy value
 	return null;
 
-};
+}
 
-function links(tableObj, joinTable, flipped = false) {
+function links(tableSchema, joinTable, flipped = false) {
 
 	const map = {};
 
 	// Loop through the table fields
-	for (const field in tableObj) {
+	for (const field in tableSchema) {
 
-		const {references} = getFieldAttributes(tableObj[field]);
+		const {references} = getFieldAttributes(tableSchema[field]);
 
 		let ref = references || [];
 
@@ -170,12 +141,5 @@ function invert(o) {
 
 	}
 	return r;
-
-}
-
-function tidy(value, index, self) {
-
-	// Remove empty and duplicate values
-	return value && self.indexOf(value) === index;
 
 }

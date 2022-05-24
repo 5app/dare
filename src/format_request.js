@@ -1,12 +1,12 @@
 
 
-const DareError = require('./utils/error');
-const fieldReducer = require('./format/field_reducer');
-const groupbyReducer = require('./format/groupby_reducer');
-const orderbyReducer = require('./format/orderby_reducer');
-const reduceConditions = require('./format/reducer_conditions');
-const limitClause = require('./format/limit_clause');
-const joinHandler = require('./format/join_handler');
+import DareError from './utils/error.js';
+import fieldReducer from './format/field_reducer.js';
+import groupbyReducer from './format/groupby_reducer.js';
+import orderbyReducer from './format/orderby_reducer.js';
+import reduceConditions from './format/reducer_conditions.js';
+import limitClause from './format/limit_clause.js';
+import joinHandler from './format/join_handler.js';
 
 
 /**
@@ -15,11 +15,11 @@ const joinHandler = require('./format/join_handler');
  * @param {object} options - Options object
  * @returns {object} Formatted options
  */
-module.exports = function(options) {
+export default function(options) {
 
 	return format_request(options, this);
 
-};
+}
 
 /**
  * @typedef {object} Dare
@@ -34,58 +34,77 @@ module.exports = function(options) {
  * @param {Dare} dareInstance - Instance of Dare
  * @returns {object} formatted object with all the joins
  */
-async function format_request(options = {}, dareInstance) {
+async function format_request(options, dareInstance) {
+
+	if (!options) {
+
+		throw new DareError(DareError.INVALID_REQUEST, `Invalid options '${options}'`);
+
+	}
 
 	// Use the alias to find the real table name
 	if (!options.alias) {
 
 		const alias = options.table;
 		options.alias = alias;
-		options.table = dareInstance.table_alias_handler(alias);
 
 	}
 
-	// Set the table
-	const {table} = options;
+	/*
+	 * Reject when the table is not provided
+	 */
+	if (!options.table) {
 
-	// Reject when the table is not recognised
-	if (!table) {
-
-		throw new DareError(DareError.INVALID_REFERENCE, `Unrecognized reference '${table}'`);
+		throw new DareError(DareError.INVALID_REQUEST, '`table` option is undefined');
 
 	}
 
-	/**
+	/*
+	 * Get option settings
+	 */
+	const {models, conditional_operators_in_value} = dareInstance.options;
+
+	/*
+	 * Options name defines the model name
+	 */
+	options.name = dareInstance.table_alias_handler(options.table);
+
+	/*
+	 * Retrieve the model based upon the model name (alias)
+	 */
+	const model = models?.[options.name] || {};
+
+	/*
+	 * Set the SQL Table, If the model redefines the table name otherwise use the model Name
+	 */
+	options.sql_table = model.table || options.name;
+
+	/*
 	 * Call bespoke table handler
 	 * This may modify the incoming options object, ammend after handler, etc...
 	 */
 	{
 
 		const {method} = dareInstance.options;
-		const handlers = dareInstance.options[method] || {};
-		let handler;
 
-		if (table in handlers) {
+		// If the model does not define the method
+		const handler = (method in model
+			? model[method]
+			// Or use the default model
+			: models?.default?.[method]
+		);
 
-			handler = handlers[table];
-
-		}
-		else if ('default' in handlers) {
-
-			handler = handlers.default;
-
-		}
 		if (handler) {
 
 			// Trigger the handler which alters the options...
-			await handler.call(dareInstance, options);
+			await handler.call(dareInstance, options, dareInstance);
 
 		}
 
 	}
 
-	const {schema = {}} = dareInstance.options;
-	const table_schema = schema[table] || {};
+
+	const {schema: table_schema = {}} = model;
 
 
 	// Set the prefix if not already
@@ -135,11 +154,11 @@ async function format_request(options = {}, dareInstance) {
 	// Format filters
 	if (options.filter) {
 
-		// Extract nested filters hander
+		// Extract nested filters handler
 		const extract = extractJoined.bind(null, 'filter', false);
 
 		// Return array of immediate props
-		const arr = reduceConditions(options.filter, {extract, propName: 'filter', table_schema});
+		const arr = reduceConditions(options.filter, {extract, propName: 'filter', table_schema, conditional_operators_in_value});
 
 		options._filter = arr.length ? arr : null;
 
@@ -173,7 +192,7 @@ async function format_request(options = {}, dareInstance) {
 		const extract = extractJoined.bind(null, 'join', false);
 
 		// Return array of immediate props
-		options._join = reduceConditions(options.join, {extract, propName: 'join', table_schema});
+		options._join = reduceConditions(options.join, {extract, propName: 'join', table_schema, conditional_operators_in_value});
 
 	}
 
@@ -249,6 +268,9 @@ async function format_request(options = {}, dareInstance) {
 				throw new DareError(DareError.INVALID_REFERENCE, `Could not understand field '${alias}'`);
 
 			}
+
+			// Mark the join object to negate
+			new_join_object.negate = alias.startsWith('-');
 
 			// Help the GET parser
 

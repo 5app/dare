@@ -1,9 +1,9 @@
 
-const fieldUnwrap = require('../utils/unwrap_field');
-const fieldRelativePath = require('../utils/field_relative');
-const mapReduce = require('../utils/map_reduce');
+import fieldUnwrap from '../utils/unwrap_field.js';
+import fieldRelativePath from '../utils/field_relative.js';
+import mapReduce from '../utils/map_reduce.js';
 
-module.exports = function groupbyReducer({current_path, extract}) {
+export default function groupbyReducer({current_path, extract}) {
 
 	return mapReduce(field => {
 
@@ -40,7 +40,7 @@ module.exports = function groupbyReducer({current_path, extract}) {
 
 	});
 
-};
+}
 
 function fieldWrap(item) {
 

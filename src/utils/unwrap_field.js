@@ -1,6 +1,8 @@
-const DareError = require('./error');
+/* eslint-disable security/detect-unsafe-regex */
+/* eslint-disable prefer-named-capture-group */
+import DareError from './error.js';
 
-module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
+export default function unwrap_field(expression, formatter = (obj => obj)) {
 
 	if (typeof expression === 'string') {
 
@@ -10,7 +12,7 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 		let prefix = '';
 
 		// Match a function, "STRING_DENOTES_FUNCTION(.*)"
-		while ((m = str.match(/^([a-z_]+\()(.*)(\))$/i))) {
+		while ((m = str.match(/^(!?[a-z_]+\()(.*)(\))$/i))) {
 
 			// Change the string to match the inner string...
 			str = m[2];
@@ -30,7 +32,7 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 			}
 
 			// Split out comma variables
-			while ((int_m = str.match(/(.*)(,\s*((["'])?[a-z0-9%._\s-]*\4))$/i))) {
+			while ((int_m = str.match(/(.*)(,\s*((?<quote>["'])?[a-z0-9%._\s-]*\k<quote>))$/i))) {
 
 				/*
 				 * Is there an unquoted parameter
@@ -50,9 +52,9 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 
 
 			/*
-			 * Deal with math and operators against a number...
+			 * Deal with math and operators against a value
 			 */
-			const int_x = str.match(/(.*)(\s(\*|\/|>|<|=|<=|>=|<>|!=)\s[0-9.]+)$/i);
+			const int_x = str.match(/(.*)(\s(\*|\/|>|<|=|<=|>=|<>|!=)\s([0-9.]+|((?<quote>["'])[a-z0-9%._\s-]*\k<quote>)))$/i);
 
 			if (int_x) {
 
@@ -60,6 +62,14 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 				suffix = int_x[2] + suffix;
 
 			}
+
+		}
+
+		// Does the string start with a negation (!) ?
+		if (str && str.startsWith('!')) {
+
+			prefix += '!';
+			str = str.slice(1);
 
 		}
 
@@ -95,4 +105,4 @@ module.exports = function unwrap_field(expression, formatter = (obj => obj)) {
 	// Is this a valid field
 	throw new DareError(DareError.INVALID_REFERENCE, `The field definition '${expression}' is invalid.`);
 
-};
+}
