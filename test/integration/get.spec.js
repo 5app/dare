@@ -1,5 +1,6 @@
 import Dare from '../../src/index.js';
-// DEBUG import mysql from 'mysql2/promise';
+// Import mysql from 'mysql2/promise';
+
 
 const {db} = global;
 const models = {
@@ -41,7 +42,7 @@ const schema = {
 			// eslint-disable-next-line arrow-body-style
 			dare.execute = query => {
 
-				// DEBUG console.log(mysql.format(query.sql, query.values));
+				// Console.log(mysql.format(query.sql, query.values));
 
 				return db.query(query);
 
@@ -180,6 +181,25 @@ const schema = {
 					.to.deep.nested.equal({});
 
 			}
+
+		});
+
+		it('Can ignore empty set of values', async () => {
+
+			// Create user
+			await dare.post('users', [{username: 'user123'}]);
+
+			// Same Structure
+			const resp = await dare.get({
+				table: 'users',
+				fields: ['username'],
+				filter: {
+					'username': []
+				},
+				limit: 1
+			});
+
+			expect(resp).to.deep.equal([]);
 
 		});
 
