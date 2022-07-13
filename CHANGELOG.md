@@ -1,3 +1,10 @@
+# [0.66.0](https://github.com/5app/dare/compare/v0.65.0...v0.66.0) (2022-07-13)
+
+
+### Features
+
+* derive references from arrays only, aliases from strings, fixes [#156](https://github.com/5app/dare/issues/156) ([#229](https://github.com/5app/dare/issues/229)) ([ed2805c](https://github.com/5app/dare/commit/ed2805c5fb898f2339a49535f1012b7e96743518))
+
 # [0.65.0](https://github.com/5app/dare/compare/v0.64.0...v0.65.0) (2022-05-18)
 
 
