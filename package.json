@@ -48,13 +48,13 @@
   ],
   "devDependencies": {
     "@5app/semantic-release-config": "^1.0.0",
-    "@commitlint/cli": "^17.0.0",
-    "@commitlint/config-conventional": "^17.0.0",
+    "@commitlint/cli": "^17.0.3",
+    "@commitlint/config-conventional": "^17.0.3",
     "c8": "^7.11.3",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.1.1",
-    "eslint": "^8.15.0",
+    "eslint": "^8.19.0",
     "eslint-config-5app": "^0.16.4",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.0.0",
@@ -64,7 +64,7 @@
     "mocha-circleci-reporter": "0.0.3",
     "mysql2": "^2.3.3",
     "pre-commit": "^1.2.2",
-    "semantic-release": "^19.0.2"
+    "semantic-release": "^19.0.3"
   },
   "dependencies": {
     "tricks": "^1.13.5"
