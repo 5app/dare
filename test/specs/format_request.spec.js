@@ -85,7 +85,7 @@ describe('format_request', () => {
 			dare.options = {
 				models: {
 					'asset': {
-						schema: {tbl_id: 'tbl.id'}
+						schema: {tbl_id: ['tbl.id']}
 					}
 				}
 			};
@@ -782,7 +782,6 @@ describe('format_request', () => {
 
 	});
 
-
 	describe('scheme', () => {
 
 		it('should throw an DareError when there are two tables with an undefined relationship', () => {
@@ -858,7 +857,7 @@ describe('format_request', () => {
 					},
 					assetType: {
 						// References can be as simple as a string to another [table].[field]
-						schema: {asset_id: 'asset.id'}
+						schema: {asset_id: ['asset.id']}
 					},
 					comments: {
 						schema: {
@@ -895,10 +894,10 @@ describe('format_request', () => {
 				models: {
 					street: {
 						// References can be as simple as a string to another [table].[field]
-						schema: {town_id: 'town.id'}
+						schema: {town_id: ['town.id']}
 					},
 					town: {
-						schema: {country_id: 'country.id'}
+						schema: {country_id: ['country.id']}
 					},
 					country: {}
 				}
@@ -998,7 +997,7 @@ describe('format_request', () => {
 				comments: {
 					schema: {
 						// Join definition to users model
-						'user_id': 'users.id'
+						'user_id': ['users.id']
 					},
 					get(options) {
 

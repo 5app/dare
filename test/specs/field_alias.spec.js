@@ -15,12 +15,12 @@ describe('field alias', () => {
 				'users': {
 					schema: {
 						'emailAddress': 'email',
-						'country_id': 'country.id'
+						'country_id': ['country.id']
 					}
 				},
 				'comments': {
 					schema: {
-						'user_id': 'users.id'
+						'user_id': ['users.id']
 					}
 				}
 			}

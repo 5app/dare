@@ -20,7 +20,7 @@ describe('after Handler', () => {
 				},
 				'emails': {
 					schema: {
-						user_id: 'users.id'
+						user_id: ['users.id']
 					}
 				}
 			},

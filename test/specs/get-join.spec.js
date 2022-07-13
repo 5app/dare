@@ -598,7 +598,7 @@ describe('get - request object', () => {
 				models: {
 					'assets': {
 						schema: {
-							picture_id: 'picture.id',
+							picture_id: ['picture.id'],
 							thumbnail(fields) {
 
 								// Update the current fields array to include any dependencies missing

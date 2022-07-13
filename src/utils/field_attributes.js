@@ -14,7 +14,7 @@ export default fieldDefinition => {
 
 	}
 
-	if (typeof fieldDefinition === 'string' && !fieldDefinition.includes('.')) {
+	if (typeof fieldDefinition === 'string') {
 
 		// This is an alias reference, the name is an alias of another
 		return {
@@ -23,7 +23,7 @@ export default fieldDefinition => {
 
 	}
 
-	if ((typeof fieldDefinition === 'string' && fieldDefinition.includes('.')) || Array.isArray(fieldDefinition)) {
+	if (Array.isArray(fieldDefinition)) {
 
 		// This is an reference to another table, this field can be used in a table join
 		return {

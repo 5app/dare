@@ -18,7 +18,7 @@ export default {
 				 * Field reference
 				 * The users.country_id references the country.id column, this is used for making joins
 				 */
-				country_id: 'country.id',
+				country_id: ['country.id'],
 
 				/*
 				 * JSON data type
@@ -101,7 +101,7 @@ export default {
 					references: 'activitySession.id'
 				},
 
-				ref_id: 'asset.id',
+				ref_id: ['asset.id'],
 
 				/*
 				 * Date Type
@@ -126,7 +126,7 @@ export default {
 
 			schema: {
 
-				asset_id: 'asset.id',
+				asset_id: ['asset.id'],
 
 				/*
 				 * Date Type

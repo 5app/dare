@@ -226,7 +226,7 @@ describe('del', () => {
 			tbl: {
 				schema: {
 					// Create a reference to tblB
-					ref_id: 'tblB.id'
+					ref_id: ['tblB.id']
 				}
 			}
 		};

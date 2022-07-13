@@ -28,7 +28,7 @@ describe('join_handler', () => {
 			models: {
 				parent: {},
 				child: {
-					schema: {parent_id: 'parent.id'}
+					schema: {parent_id: ['parent.id']}
 				}
 			}
 		};
@@ -65,7 +65,7 @@ describe('join_handler', () => {
 			models: {
 				parent: {},
 				child: {
-					schema: {parent_id: 'parent.id'}
+					schema: {parent_id: ['parent.id']}
 				}
 			}
 		};
@@ -105,10 +105,10 @@ describe('join_handler', () => {
 					ggrand_id: 'greatgrandparent.id'
 				},
 				parent: {
-					schema: {grand_id: 'grandparent.gid'}
+					schema: {grand_id: ['grandparent.gid']}
 				},
 				child: {
-					schema: {parent_id: 'parent.id'}
+					schema: {parent_id: ['parent.id']}
 				}
 			}
 		};
@@ -179,8 +179,8 @@ describe('join_handler', () => {
 
 					message: {
 						schema: {
-							from_id: 'author.id',
-							to_id: 'recipient.id'
+							from_id: ['author.id'],
+							to_id: ['recipient.id']
 						}
 					},
 
@@ -327,8 +327,8 @@ describe('join_handler', () => {
 
 			dare.options.models.messageB = {
 				schema: {
-					to_id: 'recipient.id',
-					from_id: 'author.id'
+					to_id: ['recipient.id'],
+					from_id: ['author.id']
 				}
 			};
 
@@ -357,8 +357,8 @@ describe('join_handler', () => {
 
 			dare.options.models.message = {
 				schema: {
-					from_id: 'author.id',
-					to_id: 'person.id'
+					from_id: ['author.id'],
+					to_id: ['person.id']
 				}
 			};
 
