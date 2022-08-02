@@ -8,7 +8,10 @@ import DareError from '../../src/utils/error.js';
 
 describe('utils/unwrap_field', () => {
 
-	// Should unwrap SQL Formating to underlying column name
+	/*
+	 * Supported Field Expressions
+	 * Should unwrap SQL Formating to underlying column name
+	 */
 	[
 		'field',
 		'DATE(field)',
@@ -55,22 +58,39 @@ describe('utils/unwrap_field', () => {
 
 	});
 
-	// Should unwrap SQL Formating to underlying column name
+
+	/*
+	 * Unsupported field expressions
+	 * Shall throw an error when unwrapping SQL these field expressions.
+	 * Either the syntax errors or unsupported SQL in Dare.
+	 */
 	[
+		// Bad Syntax
 		'field(',
-		'CONCAT(field, secret)',
-		'IF(field < field2, "yes", "no")',
-		'IF(field IS NOT NULL, "yes", "no")',
 		'IF(field < "string"str, "yes", "no")',
 		'IF(field = \'string", "yes", "no")',
+		'DATE_FORMAT(field, ',
 		'IF(field <<< 123, "yes", "no")',
+
+		/*
+		 * VALID SYNTAX, BUT UNSUPPORTED
+		 */
+
+		// IS NOT NULL
+		'IF(field IS NOT NULL, "yes", "no")',
+
+		// Bad spacing
 		'IF(field<123, "yes", "no")',
-		'DATE_FORMAT(field, '
+
+		// More than 1 field requested
+		'CONCAT(field, secret)',
+		'IF(field < field2, "yes", "no")'
+
 	].forEach(test => {
 
 		it(`errors: ${JSON.stringify(test)}`, () => {
 
-			// Expect the formatted list of fields to be identical to the inputted value
+			// Expect the field expression unwrapping to throw a Dare Error
 			expect(unwrap_field.bind(null, test)).to.throw(DareError);
 
 		});

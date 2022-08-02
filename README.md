@@ -1236,3 +1236,21 @@ await dare.patch({
 	},
 });
 ```
+
+
+# Caveats
+
+## Only one column name may appear in a Field Expression
+
+Dare can't have more than one model field/column names in the same field expression.
+
+e.g. Fields array....
+```js
+[{
+	// Both fist_name and last_name in the same field expression 💥
+	`displayName`: 'CONCAT(first_name, last_name)' // ❌
+}]
+```
+
+To work around this we'd simply use post-formatting. Either write one yourself or make a Generated Field (handler) in the Dare schema and request that by name in the field expression.
+
