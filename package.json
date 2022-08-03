@@ -47,14 +47,14 @@
     "src/"
   ],
   "devDependencies": {
-    "@5app/semantic-release-config": "^1.0.0",
+    "@5app/semantic-release-config": "^1.0.1",
     "@commitlint/cli": "^17.0.3",
     "@commitlint/config-conventional": "^17.0.3",
-    "c8": "^7.11.3",
+    "c8": "^7.12.0",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.1.1",
-    "eslint": "^8.19.0",
+    "eslint": "^8.21.0",
     "eslint-config-5app": "^0.16.4",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.0.0",
