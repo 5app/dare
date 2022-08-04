@@ -376,6 +376,9 @@ function traverse(item, is_subquery) {
 
 			});
 
+			// Prevent join condifions from being applied twice in buildQuery
+			item._join.length = 0;
+
 		}
 		for (const x in item.join_conditions) {
 
