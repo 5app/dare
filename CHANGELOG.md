@@ -1,3 +1,10 @@
+## [0.66.1](https://github.com/5app/dare/compare/v0.66.0...v0.66.1) (2022-08-04)
+
+
+### Bug Fixes
+
+* **join:** dont duplicate join conditions in subquery, fixes [#242](https://github.com/5app/dare/issues/242) ([145d7e3](https://github.com/5app/dare/commit/145d7e3bc44b7f29cf7ad298249622b51e888259))
+
 # [0.66.0](https://github.com/5app/dare/compare/v0.65.0...v0.66.0) (2022-07-13)
 
 
