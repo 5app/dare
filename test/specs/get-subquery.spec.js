@@ -168,6 +168,52 @@ describe('get - subquery', () => {
 
 	});
 
+	it('should concatinate many expressions into an array using GROUP_CONCAT', async () => {
+
+		dare.sql = ({sql}) => {
+
+			const expected = `
+
+				SELECT a.name AS 'name',
+				(
+					SELECT CONCAT('[', GROUP_CONCAT(CONCAT_WS('', '[', '"', REPLACE(REPLACE(b.id, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(b.color, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']')), ']')
+					FROM assetCollections b
+					WHERE b.color = ? AND b.asset_id = a.id
+					LIMIT 1
+				) AS 'assetCollections[id,color]'
+				FROM assets a
+				GROUP BY a.id
+				LIMIT 1
+
+			`;
+			expectSQLEqual(sql, expected);
+
+			return Promise.resolve([{
+				asset_name: 'name',
+				'assetCollections[id,color]': '[["1","red"],["2","blue"]]'
+			}]);
+
+		};
+
+		const resp = await dare.get({
+			table: 'assets',
+			fields: {
+				'name': 'name',
+				'assetCollections': ['id', 'color']
+			},
+			join: {
+				assetCollections: {
+					color: 'red'
+				}
+			}
+		});
+
+		expect(resp.assetCollections).to.be.an('array');
+		expect(resp.assetCollections[0]).to.have.property('id', '1');
+		expect(resp.assetCollections[0]).to.have.property('color', 'red');
+
+	});
+
 	it('should *not* subquery a nested object without fields', async () => {
 
 		dare.sql = ({sql}) => {
