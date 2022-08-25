@@ -647,7 +647,7 @@ Defining a field attribute, can be verbose using an object with special keys, or
 
 Property | Attr Example | Shorthand DataType | ShortHand Example | Description
 --|--|--|--|--
-`reference` | e.g. `{reference: ['country.id']}` | `Array` | `county_id: ['country.id']` | Relationship with other models
+`references` | e.g. `{references: ['country.id']}` | `Array` | `county_id: ['country.id']` | Relationship with other models
 `alias` | e.g. `{alias: 'email'}` | `String` | `emailAddress: 'email'` | Alias a field with a DB Table field
 `handler` | e.g. `{handler: Function}` | `Function` | `url: urlFunction` | Generated Field
 `type` | e.g. `{type: 'json'}` | na | na | Type of data in field, this has various uses.
