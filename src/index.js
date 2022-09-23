@@ -413,11 +413,46 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 
 	}
 
-	// Validate Body
-	validateBody(req.body);
+	// Capture fields...
+	const fields = [];
+
+	// Capture values
+	const values = [];
+
+	// If this is a query
+	let query;
+
+	if (req.query) {
+
+		const _this = this.use(req.query);
+
+		_this.options.method = 'get';
+
+		const _req = await _this.format_request(_this.options);
+
+		const {sql, values: _values} = getHandler.call(_this, _req);
+
+		// Update the capturing variables...
+		query = sql;
+
+		fields.push(..._this.options.fields.flatMap(field => (typeof field === 'string' ? field : Object.keys(field))));
+
+		values.push(..._values);
+
+		// TODO: Throw an error if the fields aren't all strings
+
+		// TODO: Throw an error if the generated fields are used
+
+	}
+	else {
+
+		// Validate Body
+		validateBody(req.body);
+
+	}
 
 	// Set table
-	let post = req.body;
+	let post = req.body || [];
 
 	// Clone object before formatting
 	if (!Array.isArray(post)) {
@@ -435,9 +470,6 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	// Get the schema
 	const {schema: modelSchema = {}} = models?.[req.name] || {};
 
-	// Capture keys
-	const fields = [];
-	const values = [];
 	const data = post.map(item => {
 
 		const _data = [];
@@ -536,8 +568,8 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	// Construct a db update
 	const sql = `INSERT ${exec} INTO ${req.sql_table}
 			(${fields.map(field => `\`${field}\``).join(',')})
-			VALUES
-			${data.join(',')}
+			${data.length ? `VALUES ${data.join(',')}` : ''}
+			${query || ''}
 			${on_duplicate_keys_update}`;
 
 	const resp = await _this.sql({sql, values});
