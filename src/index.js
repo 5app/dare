@@ -208,7 +208,34 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 
 	const req = await _this.format_request(_this.options);
 
-	const resp = await getHandler.call(_this, req);
+	const {sql, values} = getHandler.call(_this, req);
+
+	// Execute the query
+	const sql_response = await _this.sql({sql, values});
+
+	// Format the response
+	let resp = await _this.response_handler(sql_response);
+
+	// If limit was not defined we should return the first result only.
+	if (_this.options.single) {
+
+		if (resp.length) {
+
+			resp = resp[0];
+
+		}
+		else if (typeof _this.options.notfound === 'function') {
+
+			_this.options.notfound();
+
+		}
+		else {
+
+			resp = _this.options.notfound;
+
+		}
+
+	}
 
 	return _this.after(resp);
 
@@ -259,7 +286,10 @@ Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
 
 	const req = await _this.format_request(_this.options);
 
-	const resp = await getHandler.call(_this, req);
+	const {sql, values} = getHandler.call(_this, req);
+
+	// Execute the query
+	const [resp] = await _this.sql({sql, values});
 
 	// Return the count
 	return resp.count;
