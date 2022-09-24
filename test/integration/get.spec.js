@@ -1,5 +1,8 @@
 import Dare from '../../src/index.js';
-// DEBUG import mysql from 'mysql2/promise';
+import Debug from 'debug';
+import mysql from 'mysql2/promise';
+
+const debug = Debug('sql');
 
 const {db} = global;
 const models = {
@@ -41,7 +44,8 @@ const schema = {
 			// eslint-disable-next-line arrow-body-style
 			dare.execute = query => {
 
-				// DEBUG console.log(mysql.format(query.sql, query.values));
+				// DEBUG
+				debug(mysql.format(query.sql, query.values));
 
 				return db.query(query);
 
