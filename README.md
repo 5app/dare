@@ -494,10 +494,34 @@ This generates `INSERT INTO user (name, profession) VALUES ('Andrew', 'Mad Scien
 
 ### Post `options` (additional)
 
-| Prop          | Type             | Description
-|---------------|------------------|----------------
+| Prop           | Type             | Description
+|----------------|------------------|----------------
 | duplicate_keys | 'ignore'         | Appends `ON DUPLICATE KEYS UPDATE _rowid=_rowid`
 | duplicate_keys_update | Array(field1, field2, ...) | Appends `ON DUPLICATE KEYS UPDATE field1=VALUES(field1)`
+| query          | Get Options		| See the dare.get options
+
+#### query
+
+The query is used to create an `INSERT...SELECT` statement in place of a `body` property. The object is the same as the Get options, see above.
+
+e.g.
+
+```js
+/*
+ * Run query to record all users with a session_date in the year 2021
+ * INSERT INTO logs (id, name) SELECT id, name FROM user WHERE session_date BETWEEN '2021-01-01' AND '2021-12-31'
+ */
+await dare.post({
+	table: 'log',
+	query: {
+		table: 'user',
+		fields: ['id', 'name'],
+		filter: {
+			session_date: '2021-01-01..2021-12-31'
+		}
+	}]
+});
+```
 
 
 ## dare.patch(table, filter, body[, options])
