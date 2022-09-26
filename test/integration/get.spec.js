@@ -1,21 +1,13 @@
 import Dare from '../../src/index.js';
 import Debug from 'debug';
 import mysql from 'mysql2/promise';
+import {options} from './helpers/api.js';
 
 const debug = Debug('sql');
 
 const {db} = global;
-const models = {
-	teams: {},
-	users: {},
-	userTeams: {
 
-		schema: {
-			'user_id': ['users.id'],
-			'team_id': ['teams.id']
-		}
-	}
-};
+const {models} = options;
 
 // Legacy schema
 const schema = {

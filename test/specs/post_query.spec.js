@@ -31,7 +31,7 @@ describe('post from query', () => {
 				FROM origin a
 				WHERE a.name = ?
 				LIMIT 1000
-				ON DUPLICATE KEY UPDATE _rowid=_rowid
+				ON DUPLICATE KEY UPDATE test._rowid=test._rowid
 			`);
 			expect(values).to.deep.equal(['Liz']);
 			return {id: 1};

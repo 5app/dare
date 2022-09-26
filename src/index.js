@@ -561,7 +561,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	}
 	else if (req.duplicate_keys && req.duplicate_keys.toString().toLowerCase() === 'ignore') {
 
-		on_duplicate_keys_update = `${onDuplicateKeysUpdate()}_rowid=_rowid`;
+		on_duplicate_keys_update = `${onDuplicateKeysUpdate()}${req.sql_table}._rowid=${req.sql_table}._rowid`;
 
 	}
 
