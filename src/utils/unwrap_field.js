@@ -54,7 +54,7 @@ export default function unwrap_field(expression, formatter = (obj => obj)) {
 			/*
 			 * Deal with math and operators against a value
 			 */
-			const int_x = str.match(/(.*)(\s(\*|\/|>|<|=|<=|>=|<>|!=)\s([0-9.]+|((?<quote>["'])[a-z0-9%._\s-]*\k<quote>)))$/i);
+			const int_x = str.match(/(.*)(\s((\*|\/|>|<|=|<=|>=|<>|!=)\s([0-9.]+|((?<quote>["'])[a-z0-9%._\s-]*\k<quote>))|IS NULL|IS NOT NULL))$/i);
 
 			if (int_x) {
 
@@ -64,6 +64,7 @@ export default function unwrap_field(expression, formatter = (obj => obj)) {
 			}
 
 		}
+
 
 		// Does the string start with a negation (!) ?
 		if (str && str.startsWith('!')) {
@@ -80,6 +81,7 @@ export default function unwrap_field(expression, formatter = (obj => obj)) {
 			str = str.slice(m[0].length);
 
 		}
+
 
 		// Finally check that the str is a match
 		if (str.match(/^[a-z0-9$._*]*$/i)) {
