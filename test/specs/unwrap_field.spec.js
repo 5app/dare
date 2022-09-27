@@ -34,6 +34,8 @@ describe('utils/unwrap_field', () => {
 		'IF(field <> 1, "yes", "no")',
 		'IF(field = "string", "yes", "no")',
 		'IF(field != \'string\', "yes", "no")',
+		'IF(field IS NULL, "yes", "no")',
+		'IF(field IS NOT NULL, "yes", "no")',
 		'COALESCE(field, "")',
 		'NULLIF(field, "is null")',
 		'ROUND(field, 2)',
@@ -75,9 +77,6 @@ describe('utils/unwrap_field', () => {
 		/*
 		 * VALID SYNTAX, BUT UNSUPPORTED
 		 */
-
-		// IS NOT NULL
-		'IF(field IS NOT NULL, "yes", "no")',
 
 		// Bad spacing
 		'IF(field<123, "yes", "no")',
