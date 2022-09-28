@@ -478,5 +478,49 @@ describe('get', () => {
 
 	});
 
+
+	describe('Simple return values', () => {
+
+		const basic_record = {
+			name: 'andrew'
+		};
+
+		const basic_fields = [{
+			'show_100': 100,
+			'show_null': null,
+			'show_text': '"Text string 123"',
+			'show_function_text': 'CONCAT("Hello", "World")',
+			'name': 'name'
+		}];
+
+		it('Should return numbers and null types verbatim', async () => {
+
+			dare.execute = async ({sql, values}) => {
+
+				/*
+				 * Defaults
+				 * Limit: 1
+				 * Fields: *
+				 */
+				sqlEqual(sql, `
+					SELECT 100 AS 'show_100', null AS 'show_null', "Text string 123" AS 'show_text', CONCAT("Hello", "World") AS 'show_function_text', a.name AS 'name' FROM test a WHERE a.id = ? LIMIT 1
+				`);
+				expect(values).to.deep.equal([id]);
+
+				return [basic_record];
+
+			};
+
+			const resp = await dare
+				.get('test', basic_fields, {id});
+
+
+			expect(resp).to.be.a('object');
+			expect(resp).to.eql(basic_record);
+
+		});
+
+	});
+
 });
 

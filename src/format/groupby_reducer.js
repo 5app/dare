@@ -8,7 +8,7 @@ export default function groupbyReducer({current_path, extract}) {
 	return mapReduce(field => {
 
 		// Get the field address
-		const item = fieldUnwrap(field);
+		const item = fieldUnwrap(field, false);
 		const address = fieldRelativePath(current_path, item.field);
 
 		// Get the parent of the field

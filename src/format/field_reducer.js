@@ -26,7 +26,8 @@ export default function fieldReducer({field_alias_path, extract, table_schema, d
 			for (const key in field) {
 
 				const value = field[key];
-				if (typeof value === 'object') {
+
+				if (typeof value === 'object' && value !== null) {
 
 					// Ensure this isn't empty
 					if (isEmpty(value)) {
@@ -105,7 +106,20 @@ export default function fieldReducer({field_alias_path, extract, table_schema, d
 function fieldMapping({field, label, fieldsArray, originalArray, field_alias_path, extract, table_schema, dareInstance}) {
 
 	// Extract the underlying field
-	const {field_name, prefix, suffix, field_path, field: address} = checkFormat(field);
+	const {field_name, prefix, suffix, field_path, field: address, value} = checkFormat(field);
+
+	/**
+	 * If this is a simple value
+	 * Let's return it
+	 */
+	if (value !== undefined) {
+
+		// Return original field
+		return {
+			[label]: field
+		};
+
+	}
 
 	/*
 	 * Is this part of another table?

@@ -92,7 +92,7 @@ describe('format_request', () => {
 
 		});
 
-		describe('should accept', () => {
+		describe('should accept fields', () => {
 
 			[
 				['field'],
@@ -103,7 +103,9 @@ describe('format_request', () => {
 				[{'asset': 'DATE(field)'}],
 				[{'My Fields - and &*^@:£@$ things...': 'DATE(field)'}],
 				[{'asset': 'GROUP_CONCAT(DISTINCT field)'}],
-				{'asset': ['field']}
+				{'asset': ['field']},
+				{'bespoke': 100},
+				{'bespoke': null}
 			].forEach(fields => {
 
 				it(`valid: ${JSON.stringify(fields)}`, async () => dare.format_request({...options, fields}));
