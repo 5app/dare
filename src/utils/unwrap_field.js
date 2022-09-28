@@ -2,7 +2,7 @@
 /* eslint-disable prefer-named-capture-group */
 import DareError from './error.js';
 
-export default function unwrap_field(expression, formatter = (obj => obj)) {
+export default function unwrap_field(expression, allowValue = true) {
 
 	if (typeof expression === 'string') {
 
@@ -82,7 +82,6 @@ export default function unwrap_field(expression, formatter = (obj => obj)) {
 
 		}
 
-
 		// Finally check that the str is a match
 		if (str.match(/^[a-z0-9$._*]*$/i)) {
 
@@ -91,16 +90,40 @@ export default function unwrap_field(expression, formatter = (obj => obj)) {
 			const field_name = a.pop();
 			const field_path = a.join('.');
 
-			// This passes the test
-			return formatter({
+			const resp = {
 				field,
 				field_name,
 				field_path,
 				prefix,
 				suffix
-			});
+			};
+
+			// This passes the test
+			return resp;
 
 		}
+
+		// Return value...
+		if (allowValue) {
+
+			if (str.length === 0 || /^(["'])[\w\s]+\1$/.test(str)) {
+
+				return {
+					value: expression
+				};
+
+			}
+
+		}
+
+	}
+
+	// Else if this is not a reference to a db field, pass as a value
+	else if (allowValue && typeof expression === 'number' || expression === null || typeof expression === 'boolean') {
+
+		return {
+			value: expression
+		};
 
 	}
 

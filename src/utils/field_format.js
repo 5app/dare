@@ -2,7 +2,16 @@ import unwrap_expression from './unwrap_field.js';
 
 export default function field_format(original, label, table_prefix, label_prefix) {
 
-	const {field, prefix, suffix} = unwrap_expression(original);
+	const {field, prefix, suffix, value} = unwrap_expression(original);
+
+	if (value !== undefined) {
+
+		return {
+			label,
+			expression: value
+		};
+
+	}
 
 	// Split it...
 	const a = field.split('.');
