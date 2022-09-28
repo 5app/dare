@@ -1,3 +1,10 @@
+# [0.67.0](https://github.com/5app/dare/compare/v0.66.2...v0.67.0) (2022-09-28)
+
+
+### Features
+
+* **fixed-field-values:** i.e.  SELECT 123 AS myField... for [#245](https://github.com/5app/dare/issues/245) ([ef58585](https://github.com/5app/dare/commit/ef585855c0209276b32e650c84f3221d598d00fa))
+
 ## [0.66.2](https://github.com/5app/dare/compare/v0.66.1...v0.66.2) (2022-09-27)
 
 
