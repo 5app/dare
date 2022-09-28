@@ -1,3 +1,10 @@
+## [0.66.2](https://github.com/5app/dare/compare/v0.66.1...v0.66.2) (2022-09-27)
+
+
+### Bug Fixes
+
+* **sql:** if field is null, conditional fields ([aeb3879](https://github.com/5app/dare/commit/aeb3879f225ebdf456f5ae7a7d78b9dd5270b741))
+
 ## [0.66.1](https://github.com/5app/dare/compare/v0.66.0...v0.66.1) (2022-08-04)
 
 

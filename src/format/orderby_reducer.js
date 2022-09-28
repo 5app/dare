@@ -17,7 +17,7 @@ export default ({current_path, extract, table_schema}) => mapReduce(entry => {
 	}
 
 	// Get the field address
-	const item = fieldUnwrap(field);
+	const item = fieldUnwrap(field, false);
 
 	// Add direction
 	item.direction = direction;
