@@ -14,7 +14,8 @@ describe('post from query', () => {
 	it('should perform an INSERT...SELECT operation', async () => {
 
 		// Setup
-		await Promise.all([
+		const [team] = await Promise.all([
+			dare.post('teams', {name: 'my team'}),
 			dare.post('users', [
 				{
 					username: 'qe1'
@@ -22,16 +23,7 @@ describe('post from query', () => {
 				{
 					username: 'qe2'
 				}
-			]),
-			dare.post('teams',
-				/*
-				 * Hack: so team_id is the same as user_id.
-				 * TODO: Allow passing scalar values when constucting a query
-				 */
-				Array(2)
-					.fill(null)
-					.map((_, i) => ({name: `my team ${i}`}))
-			)
+			])
 		]);
 
 		// Run Tests
@@ -42,7 +34,7 @@ describe('post from query', () => {
 					table: 'users',
 					fields: [{
 						user_id: 'id',
-						team_id: 'id' // TODO: make this an actual team.id value
+						team_id: team.insertId
 					}],
 					filter: {
 						'username': 'qe%'
