@@ -424,24 +424,42 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 
 	if (req.query) {
 
-		const _this = this.use(req.query);
+		/*
+		 * Validate all fields are simple ones
+		 * Test: are there nested fields
+		 */
+		const invalidQueryFields = req.query.fields
+			.flatMap(field => (typeof field === 'string' ? field : Object.values(field)))
+			.some(value => value !== null && typeof(value) === 'object');
 
-		_this.options.method = 'get';
+		// Throw an error if the fields are missing, perhaps indented
+		if (invalidQueryFields) {
 
-		const _req = await _this.format_request(_this.options);
+			throw new DareError(DareError.INVALID_REQUEST, 'Nested fields forbidden in post-query');
 
-		const {sql, values: _values} = getHandler.call(_this, _req);
+		}
+
+		const getInstance = this.use(req.query);
+
+		getInstance.options.method = 'get';
+
+		const getRequest = await getInstance.format_request(getInstance.options);
+
+		// Throw an error if there are any generated fields
+		if (getInstance.generated_fields.length) {
+
+			throw new DareError(DareError.INVALID_REQUEST, 'Generated fields forbidden in post-query');
+
+		}
+
+		const {sql, values: getValues} = getHandler.call(getInstance, getRequest);
 
 		// Update the capturing variables...
 		query = sql;
 
-		fields.push(..._this.options.fields.flatMap(field => (typeof field === 'string' ? field : Object.keys(field))));
+		fields.push(...getInstance.options.fields.flatMap(field => (typeof field === 'string' ? field : Object.keys(field))));
 
-		values.push(..._values);
-
-		// TODO: Throw an error if the fields aren't all strings
-
-		// TODO: Throw an error if the generated fields are used
+		values.push(...getValues);
 
 	}
 	else {

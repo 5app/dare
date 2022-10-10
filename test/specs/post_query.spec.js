@@ -1,4 +1,5 @@
 import Dare from '../../src/index.js';
+import DareError from '../../src/utils/error.js';
 
 // Test Generic DB functions
 import sqlEqual from '../lib/sql-equal.js';
@@ -55,6 +56,70 @@ describe('post from query', () => {
 			});
 
 		expect(resp).to.have.property('id', 1);
+
+	});
+
+	it('should throw an error if query fields include a nested structures', async () => {
+
+		// Update the Dare model
+		dare = dare.use({
+			// Update models
+			models: {
+				originB: {
+					schema: {
+						// Join the origin and originRelative
+						origin_id: ['originA.id']
+					}
+				}
+			}
+		});
+
+		const test = dare
+			.post({
+				table: 'test',
+				query: {
+					table: 'originA',
+					fields: [{
+						originB: ['this', 'makes', 'no', 'sense']
+					}, 'name']
+				},
+				duplicate_keys: 'ignore'
+			});
+
+		return expect(test)
+			.to.be.eventually.rejectedWith(DareError)
+			.and.have.property('code', DareError.INVALID_REQUEST);
+
+	});
+
+	it('should throw an error if query includes a generated function', async () => {
+
+		// Update the Dare model
+		dare = dare.use({
+			// Update models
+			models: {
+				origin: {
+					schema: {
+						// Generated function returns generated
+						generated: () => () => 'Whoops'
+					}
+				}
+			}
+		});
+
+		const test = dare
+			.post({
+				table: 'test',
+				query: {
+					table: 'origin',
+					fields: ['generated', 'ok']
+				},
+				duplicate_keys: 'ignore'
+			});
+
+		return expect(test)
+			.to.be.eventually.rejectedWith(DareError)
+			.and.have.property('code', DareError.INVALID_REQUEST);
 
 	});
 
