@@ -112,22 +112,4 @@ describe('post from query', () => {
 
 	});
 
-	it('should throw an error if query includes a generated function', async () => {
-
-		const test = dare
-			.post({
-				table: 'comments',
-				query: {
-					table: 'users',
-					fields: ['generatedUrl', 'name']
-				},
-				duplicate_keys: 'ignore'
-			});
-
-		return expect(test)
-			.to.be.eventually.rejectedWith(DareError)
-			.and.have.property('code', DareError.INVALID_REQUEST);
-
-	});
-
 });

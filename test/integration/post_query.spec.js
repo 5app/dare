@@ -16,14 +16,7 @@ describe('post from query', () => {
 		// Setup
 		const [team] = await Promise.all([
 			dare.post('teams', {name: 'my team'}),
-			dare.post('users', [
-				{
-					username: 'qe1'
-				},
-				{
-					username: 'qe2'
-				}
-			])
+			dare.post('users', ['qe1', 'qe2'].map(username => ({username})))
 		]);
 
 		// Run Tests

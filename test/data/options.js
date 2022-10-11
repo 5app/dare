@@ -76,6 +76,17 @@ export default {
 				created_time
 			}
 		},
+
+		teams: {},
+
+		userTeams: {
+
+			schema: {
+				'user_id': ['users.id'],
+				'team_id': ['teams.id']
+			}
+		},
+
 		country: {
 
 			schema: {
