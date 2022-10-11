@@ -1,5 +1,7 @@
 import Dare from '../../src/index.js';
 import DareError from '../../src/utils/error.js';
+// Create a schema
+import options from '../data/options.js';
 
 // Test Generic DB functions
 import sqlEqual from '../lib/sql-equal.js';
@@ -10,7 +12,7 @@ describe('post from query', () => {
 
 	beforeEach(() => {
 
-		dare = new Dare();
+		dare = new Dare(options);
 
 		// Should not be called...
 		dare.execute = () => {
@@ -27,12 +29,13 @@ describe('post from query', () => {
 		dare.execute = async ({sql, values}) => {
 
 			sqlEqual(sql, `
-				INSERT INTO test (\`origin_id\`, \`name\`)
-				SELECT a.id AS 'origin_id', a.name
-				FROM origin a
+				INSERT INTO comments (\`user_id\`, \`name\`, \`message\`, \`email\`)
+				SELECT a.id AS 'user_id', a.name, "Hello" AS 'message', (SELECT b.email FROM users_email b WHERE b.user_id = a.id LIMIT 1) AS 'email'
+				FROM users a
 				WHERE a.name = ?
+				GROUP BY a.id
 				LIMIT 1000
-				ON DUPLICATE KEY UPDATE test._rowid=test._rowid
+				ON DUPLICATE KEY UPDATE comments._rowid=comments._rowid
 			`);
 			expect(values).to.deep.equal(['Liz']);
 			return {id: 1};
@@ -41,12 +44,24 @@ describe('post from query', () => {
 
 		const resp = await dare
 			.post({
-				table: 'test',
+				table: 'comments',
 				query: {
-					table: 'origin',
+					table: 'users',
 					fields: [{
-						origin_id: 'id'
-					}, 'name'],
+						user_id: 'id'
+					},
+					'name',
+					{
+						/*
+						 * Deep nested
+						 * Note however the INSERT...SELECT will move this to the end
+						 * - it will appear after `message`
+						 */
+						email: 'users_email.email',
+
+						// String value, notice the double quotes...
+						message: '"Hello"'
+					}],
 					filter: {
 						'name': 'Liz'
 					},
@@ -61,27 +76,32 @@ describe('post from query', () => {
 
 	it('should throw an error if query fields include a nested structures', async () => {
 
-		// Update the Dare model
-		dare = dare.use({
-			// Update models
-			models: {
-				originB: {
-					schema: {
-						// Join the origin and originRelative
-						origin_id: ['originA.id']
-					}
-				}
-			}
-		});
+		const test = dare
+			.post({
+				table: 'comments',
+				query: {
+					table: 'users',
+					fields: [{
+						users_emails: ['this', 'makes', 'no', 'sense']
+					}, 'name']
+				},
+				duplicate_keys: 'ignore'
+			});
+
+		await expect(test)
+			.to.be.eventually.rejectedWith(DareError)
+			.and.have.property('code', DareError.INVALID_REQUEST);
+
+	});
+
+	it('should throw an error if query includes a generated function', async () => {
 
 		const test = dare
 			.post({
-				table: 'test',
+				table: 'comments',
 				query: {
-					table: 'originA',
-					fields: [{
-						originB: ['this', 'makes', 'no', 'sense']
-					}, 'name']
+					table: 'users',
+					fields: ['generatedUrl', 'name']
 				},
 				duplicate_keys: 'ignore'
 			});
@@ -94,25 +114,12 @@ describe('post from query', () => {
 
 	it('should throw an error if query includes a generated function', async () => {
 
-		// Update the Dare model
-		dare = dare.use({
-			// Update models
-			models: {
-				origin: {
-					schema: {
-						// Generated function returns generated
-						generated: () => () => 'Whoops'
-					}
-				}
-			}
-		});
-
 		const test = dare
 			.post({
-				table: 'test',
+				table: 'comments',
 				query: {
-					table: 'origin',
-					fields: ['generated', 'ok']
+					table: 'users',
+					fields: ['generatedUrl', 'name']
 				},
 				duplicate_keys: 'ignore'
 			});

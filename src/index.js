@@ -457,7 +457,8 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 		// Update the capturing variables...
 		query = sql;
 
-		fields.push(...getInstance.options.fields.flatMap(field => (typeof field === 'string' ? field : Object.keys(field))));
+		fields.push(...walkRequestGetField(getRequest));
+
 
 		values.push(...getValues);
 
@@ -897,5 +898,29 @@ function disallowJoins(req) {
 		throw new DareError(DareError.INVALID_REQUEST, `${req.method} cannot contain nested joins`);
 
 	}
+
+}
+
+/**
+ * Because Dare does not maintain field orders within the select, or the Get function maintaining the list of fields
+ * We've resorted to acquiring the new list order where the SELECT fields... is used within an INSERT statement
+ * @param {object} request - Object returned from format_request function
+ * @returns {Array} an array of field names
+ */
+function walkRequestGetField(request) {
+
+	const fields = [];
+
+	// Get the field names of the current request...
+	fields.push(...request.fields.flatMap(field => (typeof field === 'string' ? field : Object.keys(field))));
+
+	// Iterate through the nested table joins and retrieve their fields
+	if (request._joins) {
+
+		fields.push(...request._joins.map(walkRequestGetField));
+
+	}
+
+	return fields;
 
 }

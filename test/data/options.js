@@ -41,6 +41,15 @@ export default {
 
 				},
 
+				generatedUrl(fields) {
+
+					// This is a generated function
+					fields.push('id');
+
+					return ({id}) => `/user/${id}`;
+
+				},
+
 				/*
 				 * Date Type
 				 */
