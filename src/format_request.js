@@ -7,7 +7,8 @@ import orderbyReducer from './format/orderby_reducer.js';
 import reduceConditions from './format/reducer_conditions.js';
 import limitClause from './format/limit_clause.js';
 import joinHandler from './format/join_handler.js';
-
+import getFieldAttributes from './utils/field_attributes.js';
+import extend from './utils/extend.js';
 
 /**
  * Format Request initiation
@@ -62,7 +63,7 @@ async function format_request(options, dareInstance) {
 	/*
 	 * Get option settings
 	 */
-	const {models, conditional_operators_in_value} = dareInstance.options;
+	const {conditional_operators_in_value, method, models} = dareInstance.options;
 
 	/*
 	 * Options name defines the model name
@@ -85,8 +86,6 @@ async function format_request(options, dareInstance) {
 	 */
 	{
 
-		const {method} = dareInstance.options;
-
 		// If the model does not define the method
 		const handler = (method in model
 			? model[method]
@@ -103,9 +102,32 @@ async function format_request(options, dareInstance) {
 
 	}
 
-
+	// Get the schema
 	const {schema: table_schema = {}} = model;
 
+	/*
+	 * Apply defaultValues to join
+	 */
+	{
+
+		Object.entries(table_schema).forEach(([key, value]) => {
+
+			const {defaultValue = {}} = getFieldAttributes(value);
+
+			/*
+			 * Check the defaultValue for the method has been assigned
+			 * -> That there is no definition for the value in the filter and jopin options
+			 */
+			if (method in defaultValue && !(key in (options.filter || {})) && !(key in (options.join || {}))) {
+
+				// Extend the join object with the default value
+				extend(options, {join: {[key]: defaultValue[method]}});
+
+			}
+
+		});
+
+	}
 
 	// Set the prefix if not already
 	options.field_alias_path = options.field_alias_path || '';
@@ -193,6 +215,17 @@ async function format_request(options, dareInstance) {
 
 		// Return array of immediate props
 		options._join = reduceConditions(options.join, {extract, propName: 'join', table_schema, conditional_operators_in_value});
+
+		/*
+		 * TODO [#187]: Construct the WHERE conditions in this function from _filter and _join
+		 * without having to merge them here for del and patch which dont support them
+		 */
+		if (options._join.length && ['patch', 'del'].includes(method)) {
+
+			options._filter ??= [];
+			options._filter.push(...options._join);
+
+		}
 
 	}
 

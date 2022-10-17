@@ -4,6 +4,9 @@
 		"plugin:node/recommended",
 		"5app"
 	],
+	"parserOptions": {
+		"ecmaVersion": "latest"
+	},
 	"plugins": [
 		"promise",
 		"security"
