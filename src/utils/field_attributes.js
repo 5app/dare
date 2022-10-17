@@ -9,6 +9,24 @@ export default fieldDefinition => {
 
 	if (fieldDefinition && typeof fieldDefinition === 'object' && !Array.isArray(fieldDefinition)) {
 
+		/*
+		 * If 'defaultValue' is defined
+		 * Expand default value
+		 */
+		if (Object.hasOwn(fieldDefinition, 'defaultValue') && (fieldDefinition.defaultValue === null || typeof fieldDefinition.defaultValue !== 'object')) {
+
+			const val = fieldDefinition.defaultValue;
+
+			fieldDefinition.defaultValue = {
+				get: val,
+				post: val,
+				patch: val,
+				del: val
+			};
+
+		}
+
+
 		// This is already a definition object
 		return fieldDefinition;
 

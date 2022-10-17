@@ -441,24 +441,39 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 		 * Let's catch the omitted properties
 		 * --> Loop through the modelSchema
 		 */
-		if (validateInput) {
+		Object.entries(modelSchema).forEach(([field, fieldObject]) => {
 
-			Object.entries(modelSchema).forEach(([field, fieldObject]) => {
+			// For each property which was not covered by the input
+			if (field !== 'default' && !(field in item)) {
 
-				// For each property which was not covered by the input
-				if (field !== 'default' && !(field in item)) {
+				// Get a formatted object of field attributes
+				const fieldAttributes = getFieldAttributes(fieldObject);
 
-					// Get a formatted object of field attributes
-					const fieldAttributes = getFieldAttributes(fieldObject);
+				// Validate with an undefined value
+				validateInput?.(fieldAttributes, field);
 
-					// Validate with an undefined value
-					validateInput(fieldAttributes, field);
+				// Default values?
+				if (fieldAttributes?.defaultValue?.post) {
+
+					// Get the index in the field list
+					let i = fields.indexOf(field);
+
+					if (i === -1) {
+
+						i = fields.length;
+
+						fields.push(field);
+
+					}
+
+					// Insert the defaultValue at that position
+					_data[i] = fieldAttributes?.defaultValue?.post;
 
 				}
 
-			});
+			}
 
-		}
+		});
 
 		return _data;
 
