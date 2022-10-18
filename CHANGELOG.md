@@ -1,3 +1,10 @@
+# [0.68.0](https://github.com/5app/dare/compare/v0.67.0...v0.68.0) (2022-10-18)
+
+
+### Features
+
+* **defaultValues:** support schema defaultValues in post, [#249](https://github.com/5app/dare/issues/249) ([#250](https://github.com/5app/dare/issues/250)) ([aba049a](https://github.com/5app/dare/commit/aba049a35f0d8a3b044e56d8fb163d2277c8142f))
+
 # [0.67.0](https://github.com/5app/dare/compare/v0.66.2...v0.67.0) (2022-09-28)
 
 
