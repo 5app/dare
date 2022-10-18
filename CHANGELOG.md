@@ -1,3 +1,17 @@
+# [0.68.0](https://github.com/5app/dare/compare/v0.67.0...v0.68.0) (2022-10-18)
+
+
+### Features
+
+* **defaultValues:** support schema defaultValues in post, [#249](https://github.com/5app/dare/issues/249) ([#250](https://github.com/5app/dare/issues/250)) ([aba049a](https://github.com/5app/dare/commit/aba049a35f0d8a3b044e56d8fb163d2277c8142f))
+
+# [0.67.0](https://github.com/5app/dare/compare/v0.66.2...v0.67.0) (2022-09-28)
+
+
+### Features
+
+* **fixed-field-values:** i.e.  SELECT 123 AS myField... for [#245](https://github.com/5app/dare/issues/245) ([ef58585](https://github.com/5app/dare/commit/ef585855c0209276b32e650c84f3221d598d00fa))
+
 ## [0.66.2](https://github.com/5app/dare/compare/v0.66.1...v0.66.2) (2022-09-27)
 
 

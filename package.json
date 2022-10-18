@@ -1,6 +1,6 @@
 {
   "name": "dare",
-  "version": "0.66.2",
+  "version": "0.68.0",
   "description": "Database to REST, REST to Database",
   "type": "module",
   "main": "./src/index.js",
@@ -9,7 +9,7 @@
     "./utils/*": "./src/utils/*.js"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=16.9"
   },
   "scripts": {
     "pretest": "npm run lint",
