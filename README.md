@@ -651,6 +651,7 @@ Property | Attr Example | Shorthand DataType | ShortHand Example | Description
 `alias` | e.g. `{alias: 'email'}` | `String` | `emailAddress: 'email'` | Alias a field with a DB Table field
 `handler` | e.g. `{handler: Function}` | `Function` | `url: urlFunction` | Generated Field
 `type` | e.g. `{type: 'json'}` | na | na | Type of data in field, this has various uses.
+`defaultValue` | e.g. `{defaultValue: 'active'}` | na | na | Default Value to insert during post, and filter with get/patch/del
 `readable` | e.g. `{readable: false}` | na | na | Disables/Enables request access to a field
 `writeable` | e.g. `{writeable: false}` | na | na | Disables/Enables write access to a field
 na | e.g. `{writeable: false: readable: false}` | `Boolean` | `{password: false}` | Disables/Enables both write and read access to a field
@@ -832,6 +833,47 @@ const dare = new Dare({
 		}
 	}
 });
+```
+
+
+#### Field attribute: `defaultValue`
+
+Defining the `defaultValue` introduces default conditions or values when querying or inserting records respectively.
+
+`defaultValue` can be any value supported by the context it is used. If `defaultValue` is not an object, it will be applied to all operations, "methods" (`get`, `post`, `patch` and `del`). However when `defaultValue` is defined as an object, then the properties of the object matching the method will be used.
+
+e.g we can define what `defaultValue` is used in various scenarios:
+
+```js
+defaultValue: {
+	get: 'active', // Includes `= 'active'` to `.get` filter conditions.
+	post: 'active', // Inserts `active` into new records
+	del: 'inactive', // Includes `= 'inactive'` to `.del` filter conditions.
+	// patch: is undefined and wont apply any default values
+}
+```
+
+**`defaultValue`**
+
+In the example we're going to set the defaultValue for the `users.status` field to `"active"`.
+
+```js
+const dare = new Dare({
+	models: {
+		users: {
+			schema: {
+				status: {
+					defaultValue: 'active'
+				}
+			}
+		}
+	}
+});
+
+// And now requests will by default include that value
+await dare.post('users', {name: 'Andrew'}); // INSERT INTO users (name, status) VALUES ("Andrew", "active")
+await dare.get('users', ['id'], {limit: 100}); // SELECT id FROM users WHERE status = 'active' LIMIT 100
+// ... adds same condition for Del and Patch methods
 ```
 
 #### Field attribute: `readable`/`writeable`
