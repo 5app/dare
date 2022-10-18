@@ -9,7 +9,7 @@
     "./utils/*": "./src/utils/*.js"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=16.9"
   },
   "scripts": {
     "pretest": "npm run lint",
