@@ -159,6 +159,30 @@ describe('schema.defaultValue', () => {
 
 		});
 
+		it('should pass through just the defaultValue.post to validateInput handler', async () => {
+
+			spy(dare, 'execute', () => ({}));
+
+			const history = [];
+			const _dare = dare.use({
+				validateInput(...params) {
+
+					history.push(params);
+
+				}
+			});
+
+			await _dare.post('mytable', {
+				title: 'hello'
+			});
+
+			// Find in history the check for status
+			const [attr] = history.find(([, propName]) => propName === 'status');
+
+			expect(attr).to.have.property('defaultValue', 'active');
+
+		});
+
 	});
 
 
