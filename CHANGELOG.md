@@ -1,3 +1,10 @@
+## [0.68.1](https://github.com/5app/dare/compare/v0.68.0...v0.68.1) (2022-10-19)
+
+
+### Bug Fixes
+
+* **defaultValue:** defaultValue in validateInput handler, fixes [#249](https://github.com/5app/dare/issues/249) ([392ecc8](https://github.com/5app/dare/commit/392ecc888ec5c246f563009c1bf32630a0b6081d))
+
 # [0.68.0](https://github.com/5app/dare/compare/v0.67.0...v0.68.0) (2022-10-18)
 
 
