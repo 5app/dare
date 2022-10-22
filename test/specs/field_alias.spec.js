@@ -1,4 +1,5 @@
 import Dare from '../../src/index.js';
+import DareError from '../../src/utils/error.js';
 
 // Create a schema
 
@@ -9,13 +10,15 @@ describe('field alias', () => {
 
 	beforeEach(() => {
 
-		// If the storage wants to use 'email', but the interface would optionally like to use 'emailAddress'
 		dare = new Dare({
 			models: {
 				'users': {
 					schema: {
+						// Alias 'email' with 'emailAddress'
 						'emailAddress': 'email',
-						'country_id': ['country.id']
+
+						// Alias SQL `!ISNULL(email)` to `hasEmail` property
+						'hasEmail': '!ISNULL(email)'
 					}
 				},
 				'comments': {
@@ -45,6 +48,9 @@ describe('field alias', () => {
 			await dare.get({
 				table: 'users',
 				fields: [
+
+					// Straight Alias
+
 					// Return the field using an alias name
 					'emailAddress',
 
@@ -58,6 +64,21 @@ describe('field alias', () => {
 						'emailaddress': 'LOWER(emailAddress)'
 					},
 
+					// Alias with SQL
+
+					// Should return using alias name,
+					'hasEmail',
+
+					// Return by another alias
+					{
+						'alternateHasEmail': 'hasEmail'
+					},
+
+					// Support a Function
+					{
+						'yesNoEmail': 'IF(hasEmail, "YES", "NO")'
+					},
+
 					// Should not map a reference, even though it has a similar string structure
 					'country_id'
 
@@ -66,6 +87,9 @@ describe('field alias', () => {
 					// Filter the results using the aliased name as the key
 					'emailAddress': 'andrew%',
 
+					// Filter the results using the aliased function
+					'hasEmail': true,
+
 					// Should not map a reference, even though it has a similar string structure
 					'country_id': 1
 				},
@@ -73,19 +97,36 @@ describe('field alias', () => {
 					// Should equally apply the alias mapping to joins
 					'-emailAddress': null,
 
+					// Filter the results using the aliased function
+					'-hasEmail': true,
+
 					// Should not map a reference, even though it has a similar string structure
 					'-country_id': null
 				},
 				limit
 			});
 
+			// Field alias
 			expect(_sql).to.contain('email AS \'emailAddress\'');
 			expect(_sql).to.contain('email AS \'field\'');
 			expect(_sql).to.contain('LOWER(a.email) AS \'emailaddress\'');
+
+			// Field SQL Alias
+			expect(_sql).to.contain('!ISNULL(a.email) AS \'hasEmail\'');
+			expect(_sql).to.contain('!ISNULL(a.email) AS \'alternateHasEmail\'');
+			expect(_sql).to.contain('IF(!ISNULL(a.email), "YES", "NO") AS \'yesNoEmail\'');
+
+			// Standard
 			expect(_sql).to.contain(',a.country_id');
+
+			// Filter
 			expect(_sql).to.contain('email LIKE ?');
+			expect(_sql).to.contain('!ISNULL(a.email) = ?');
 			expect(_sql).to.contain('country_id = ?');
+
+			// Join
 			expect(_sql).to.contain('email IS NOT NULL');
+			expect(_sql).to.contain('!ISNULL(a.email) != ?');
 			expect(_sql).to.contain('country_id IS NOT NULL');
 
 
@@ -121,12 +162,19 @@ describe('field alias', () => {
 					// Label a field definition using alias name
 					{
 						'email_alias': 'LOWER(users.emailAddress)'
+					},
+					// Label a field SQL definition using alias name
+					{
+						'Has Email alias': 'IF(users.hasEmail, "Yes", "No")'
 					}
 				],
 				filter: {
 					// Filter the results using the aliased name as the key
 					users: {
 						'emailAddress': 'andrew%',
+
+						// Has Email
+						'hasEmail': true,
 
 						// Should not map a reference, even though it has a similar string structure
 						'country_id': 1
@@ -144,12 +192,16 @@ describe('field alias', () => {
 				limit
 			});
 
+
 			expect(_sql).to.contain('email AS \'Email Field\'');
 			expect(_sql).to.contain('email AS \'Email Alias\'');
 			expect(_sql).to.contain('LOWER(b.email) AS \'email_field\'');
 			expect(_sql).to.contain('LOWER(b.email) AS \'email_alias\'');
 
+			expect(_sql).to.contain('IF(!ISNULL(b.email), "Yes", "No") AS \'Has Email alias\'');
+
 			expect(_sql).to.contain('email LIKE ?');
+			expect(_sql).to.contain('!ISNULL(b.email) = ?');
 			expect(_sql).to.contain('country_id = ?');
 			expect(_sql).to.contain('email IS NOT NULL');
 			expect(_sql).to.contain('country_id IS NOT NULL');
@@ -185,13 +237,38 @@ describe('field alias', () => {
 				},
 				filter: {
 					// Filter the results using the aliased name as the key
-					'emailAddress': 'andrew%'
+					'emailAddress': 'andrew%',
+
+					// Has Email, SQL Alias
+					'hasEmail': true
 				}
 			});
 
 			expect(_sql).to.contain('`email` = ?');
 			expect(_sql).to.contain('`country_id` = ?');
 			expect(_sql).to.contain('email LIKE ?');
+			expect(_sql).to.contain('!ISNULL(email) = ?');
+
+
+		});
+
+
+		it('should throw an error trying to patch a SQL Alias', async () => {
+
+			const patch = dare.patch({
+				table: 'users',
+				body: {
+					// Should map this to `email`
+					'hasEmail': true
+				},
+				filter: {
+					id: 123
+				}
+			});
+
+			await expect(patch).to.be
+				.eventually.rejectedWith(DareError)
+				.and.have.property('code', DareError.INVALID_REQUEST);
 
 		});
 
@@ -217,14 +294,18 @@ describe('field alias', () => {
 					// Filter the results using the aliased name as the key
 					'emailAddress': 'andrew%',
 
+					// Has Email, SQL Alias
+					'hasEmail': true,
+
 					// Should not map a reference, even though it has a similar string structure
 					'country_id': 1
 				}
 			});
 
 			expect(_sql).to.contain('email LIKE ?');
-
+			expect(_sql).to.contain('!ISNULL(email) = ?');
 			expect(_sql).to.contain('country_id = ?');
+			expect(_sql).to.contain('!ISNULL(email) = ?');
 
 		});
 
@@ -263,6 +344,23 @@ describe('field alias', () => {
 			expect(_sql).to.contain('`email`=VALUES(`email`)');
 			expect(_sql).to.contain('`country_id`=VALUES(`country_id`)');
 
+
+		});
+
+
+		it('should throw an error trying to post to a SQL Alias field', async () => {
+
+			const post = dare.post({
+				table: 'users',
+				body: {
+					// Should map this to `email`
+					'hasEmail': true
+				}
+			});
+
+			await expect(post).to.be
+				.eventually.rejectedWith(DareError)
+				.and.have.property('code', DareError.INVALID_REQUEST);
 
 		});
 

@@ -799,7 +799,7 @@ const dare = new Dare({
 });
 ```
 
-For example this will allow us to use the alias `emailAddress` in our api (see below), but the SQL generated will refer to it with it's true field name "`email`".
+For example this will enable the use of `emailAddress` in our api (see below), but the SQL generated will refer to it with it's true field name "`email`".
 
 ```js
 await dare.get('users', ['emailAddress'], {emailAddress: 'andrew@%'});
@@ -809,6 +809,8 @@ await dare.post('users', {emailAddress: 'andrew@example.com'});
 // INSERT INTO users (email) VALUES ('andrew@example.com')
 
 ```
+
+##### Nested and SQL `alias`'s
 
 The aliasing can also be used for common functions and define fields on another table to abstract away some of the complexity in your relational schema and provide a cleaner api interface.
 
@@ -822,7 +824,7 @@ const dare = new Dare({
 					// Explicitly define the alias
 					// Reference the email define on another table, we can also wrap in SQL functions.
 					alias: 'LOWER(usersEmails.email)'
-				}
+				},
 			}
 		},
 		// Any cross table join needs fields to map
@@ -834,6 +836,9 @@ const dare = new Dare({
 	}
 });
 ```
+
+note: Defining an alias which includes SQL or points to another table will let it be used in a query filter and join conditions.
+However an error will throw if attempting to set a value to such an alias.
 
 
 #### Field attribute: `defaultValue`
