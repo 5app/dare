@@ -1,4 +1,4 @@
-import checkFormat from '../utils/unwrap_field.js';
+import unwrapField from '../utils/unwrap_field.js';
 import checkLabel from '../utils/validate_label.js';
 import checkKey from '../utils/validate_field.js';
 import DareError from '../utils//error.js';
@@ -106,7 +106,7 @@ export default function fieldReducer({field_alias_path, extract, table_schema, d
 function fieldMapping({field, label, fieldsArray, originalArray, field_alias_path, extract, table_schema, dareInstance}) {
 
 	// Extract the underlying field
-	const {field_name, prefix, suffix, field_path, field: address, value} = checkFormat(field);
+	const {field_name, prefix, suffix, field_path, field: address, value} = unwrapField(field);
 
 	/**
 	 * If this is a simple value
@@ -223,8 +223,29 @@ function fieldMapping({field, label, fieldsArray, originalArray, field_alias_pat
 	 */
 	if (alias) {
 
-		// Rewrap the field with the alias target value
-		const field = rewrap_field((field_path ? `${field_path}.` : '') + alias, prefix, suffix);
+		let field;
+
+		// Test if alias is complicated, and field_path is non-null
+		if (/[^\w$.]/.test(alias) && field_path) {
+
+			const aliasObj = unwrapField(alias);
+
+			const newAlias = aliasObj.field;
+
+			const newPrefix = prefix + aliasObj.prefix;
+
+			const newSuffix = aliasObj.suffix + suffix;
+
+			// Rewrap the field with the alias target value
+			field = rewrap_field(`${field_path}.${newAlias}`, newPrefix, newSuffix);
+
+		}
+		else {
+
+			// Rewrap the field with the alias target value
+			field = rewrap_field((field_path ? `${field_path}.` : '') + alias, prefix, suffix);
+
+		}
 
 		// And rerun this function
 		return fieldMapping({field, label, fieldsArray, originalArray, field_alias_path, extract, table_schema, dareInstance});

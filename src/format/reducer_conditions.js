@@ -4,6 +4,7 @@ import checkKey from '../utils/validate_field.js';
 import checkTableAlias from '../utils/validate_alias.js';
 import formatDateTime from '../utils/format_datetime.js';
 import getFieldAttributes from '../utils/field_attributes.js';
+import unwrap_field from '../utils/unwrap_field.js';
 
 /**
  * Reduce conditions, call extract
@@ -290,6 +291,20 @@ function prepCondition({field, value, key_definition, operators, conditional_ope
 		condition = '= ?';
 		values = [value];
 		negate = negate ? '!' : '';
+
+	}
+
+	/*
+	 * Should the field contain a SQL Function itself
+	 * -> Let's extract it...
+	 */
+	if (/[^\w$.]/.test(field)) {
+
+		const {prefix, suffix, field: _field} = unwrap_field(field);
+
+		condition = `${prefix}$$${suffix} ${negate}${condition}`;
+		field = _field;
+		negate = '';
 
 	}
 

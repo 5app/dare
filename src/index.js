@@ -736,6 +736,12 @@ function formatInputValue(tableSchema = {}, field, value, validateInput) {
 
 	if (alias) {
 
+		if (/[^\w$.]/.test(alias)) {
+
+			throw new DareError(DareError.INVALID_REQUEST, `Field '${field}' is an alias for a derived value '${field}', cannot mutate`);
+
+		}
+
 		field = alias;
 
 	}

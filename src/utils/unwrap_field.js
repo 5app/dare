@@ -83,7 +83,7 @@ export default function unwrap_field(expression, allowValue = true) {
 		}
 
 		// Finally check that the str is a match
-		if (str.match(/^[a-z0-9$._*]*$/i)) {
+		if (str.match(/^[\w$.*]*$/)) {
 
 			const field = str;
 			const a = str.split('.');
