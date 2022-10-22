@@ -1,3 +1,10 @@
+# [0.69.0](https://github.com/5app/dare/compare/v0.68.1...v0.69.0) (2022-10-22)
+
+
+### Features
+
+* **alias-sql:** filter by an aliased field definition, [#252](https://github.com/5app/dare/issues/252) ([d92b2b2](https://github.com/5app/dare/commit/d92b2b2168dff63e26d30b1f4695231c63775897))
+
 ## [0.68.1](https://github.com/5app/dare/compare/v0.68.0...v0.68.1) (2022-10-19)
 
 
