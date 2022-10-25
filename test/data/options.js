@@ -91,6 +91,10 @@ export default {
 
 			schema: {
 
+				name: {
+					type: 'string'
+				},
+
 				/*
 				 * Date Type
 				 */
