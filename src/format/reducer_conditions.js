@@ -217,7 +217,7 @@ function prepCondition({field, value, key_definition, operators, conditional_ope
 		value = value.filter(item => {
 
 			// Remove the items which can't in group statement...
-			if (item !== null && !(typeof item === 'string' && allow_conditional_likey_operator_in_value && item.match('%'))) {
+			if (item !== null && !(typeof item === 'string' && (allow_conditional_likey_operator_in_value || isLikey) && item.match('%'))) {
 
 				return true;
 

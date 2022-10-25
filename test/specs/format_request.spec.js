@@ -418,6 +418,11 @@ describe('format_request', () => {
 
 			const table = 'table';
 
+			const noCondOperators = {
+				// Disable conditional operator interpretation from the value
+				conditional_operators_in_value: ''
+			};
+
 			beforeEach(() => {
 
 				dare = dare.use({
@@ -460,10 +465,7 @@ describe('format_request', () => {
 						'prop',
 						'= ?',
 						['%string'],
-						{
-							// Disable conditional operator interpretation from the value
-							conditional_operators_in_value: ''
-						}
+						noCondOperators
 					],
 					[
 						{prop: '!string'},
@@ -476,10 +478,7 @@ describe('format_request', () => {
 						'prop',
 						'= ?',
 						['!string'],
-						{
-							// Disable conditional operator interpretation from the value
-							conditional_operators_in_value: ''
-						}
+						noCondOperators
 					],
 					[
 						{prop: '!patt%rn'},
@@ -504,10 +503,7 @@ describe('format_request', () => {
 						'prop',
 						'!= ?',
 						['patt%rn'],
-						{
-							// Disable conditional operator interpretation from the value
-							conditional_operators_in_value: ''
-						}
+						noCondOperators
 					],
 					[
 						{prop: [1, 2, 3]},
@@ -556,10 +552,15 @@ describe('format_request', () => {
 						'prop',
 						'($$ IN (?,?,?,?) OR $$ IS NULL)',
 						[1, 2, 'test%', 'test2%'],
-						{
-							// Disable conditional operator interpretation from the value
-							conditional_operators_in_value: ''
-						}
+						noCondOperators
+					],
+					[
+						// Use a likey prop indicator to expand on the query
+						{'%prop': [1, 2, null, 'test%', 'test2%']},
+						'prop',
+						'($$ IN (?,?) OR $$ IS NULL OR $$ LIKE ? OR $$ LIKE ?)',
+						[1, 2, 'test%', 'test2%'],
+						noCondOperators
 					],
 					[
 						{'-prop': [1, 2, null, 'test%', 'test2%']},
@@ -626,10 +627,7 @@ describe('format_request', () => {
 						'prop',
 						'= ?',
 						['1981-12-05..'],
-						{
-							// Disable conditional operator interpretation from the value
-							conditional_operators_in_value: ''
-						}
+						noCondOperators
 					],
 					[
 						{'~prop': ['a', 'b']},
