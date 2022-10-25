@@ -1,3 +1,10 @@
+## [0.70.1](https://github.com/5app/dare/compare/v0.70.0...v0.70.1) (2022-10-25)
+
+
+### Bug Fixes
+
+* **insert-select:** nested join tables, noissue ([7e30dd9](https://github.com/5app/dare/commit/7e30dd92a083faced8b5b354fa14619faab96926))
+
 # [0.70.0](https://github.com/5app/dare/compare/v0.69.0...v0.70.0) (2022-10-25)
 
 
