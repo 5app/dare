@@ -1,3 +1,10 @@
+## [0.70.2](https://github.com/5app/dare/compare/v0.70.1...v0.70.2) (2022-10-25)
+
+
+### Bug Fixes
+
+* **likey:** array of LIKE values ([46233dc](https://github.com/5app/dare/commit/46233dc061246f935e7854a625db2a8807b685b9))
+
 ## [0.70.1](https://github.com/5app/dare/compare/v0.70.0...v0.70.1) (2022-10-25)
 
 
