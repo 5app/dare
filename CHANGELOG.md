@@ -1,3 +1,10 @@
+# [0.70.0](https://github.com/5app/dare/compare/v0.69.0...v0.70.0) (2022-10-25)
+
+
+### Features
+
+* **insert-select:** create an INSERT...SELECT statement, [#245](https://github.com/5app/dare/issues/245) ([#246](https://github.com/5app/dare/issues/246)) ([cecfe89](https://github.com/5app/dare/commit/cecfe89343a2cbd5284801bd69a990de1946164f))
+
 # [0.69.0](https://github.com/5app/dare/compare/v0.68.1...v0.69.0) (2022-10-22)
 
 
