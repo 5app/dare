@@ -41,6 +41,15 @@ export default {
 
 				},
 
+				generatedUrl(fields) {
+
+					// This is a generated function
+					fields.push('id');
+
+					return ({id}) => `/user/${id}`;
+
+				},
+
 				/*
 				 * Date Type
 				 */
@@ -67,6 +76,17 @@ export default {
 				created_time
 			}
 		},
+
+		teams: {},
+
+		userTeams: {
+
+			schema: {
+				'user_id': ['users.id'],
+				'team_id': ['teams.id']
+			}
+		},
+
 		country: {
 
 			schema: {

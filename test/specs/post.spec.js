@@ -71,7 +71,7 @@ describe('post', () => {
 		dare.execute = async ({sql, values}) => {
 
 			called = 1;
-			sqlEqual(sql, 'INSERT INTO test (`id`) VALUES (?) ON DUPLICATE KEY UPDATE _rowid=_rowid');
+			sqlEqual(sql, 'INSERT INTO test (`id`) VALUES (?) ON DUPLICATE KEY UPDATE test._rowid=test._rowid');
 			expect(values).to.deep.equal([1]);
 			return {};
 

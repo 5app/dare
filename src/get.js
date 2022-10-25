@@ -6,7 +6,7 @@ import field_format from './utils/field_format.js';
 import orderbyUnwrap from './utils/orderby_unwrap.js';
 
 
-export default async function(opts) {
+export default function(opts) {
 
 	// Reset the alias
 	this.unique_alias_index = 0;
@@ -21,33 +21,7 @@ export default async function(opts) {
 	this.traverse = traverse;
 
 	// Execute the Build
-	const {sql, values} = this.buildQuery(opts);
-
-	// Execute the query
-	const sql_response = await this.sql({sql, values});
-
-	// Format the response
-	const resp = await this.response_handler(sql_response);
-
-	// If limit was not defined we should return the first result only.
-	if (opts.single) {
-
-		if (resp.length) {
-
-			return resp[0];
-
-		}
-		else if (typeof opts.notfound === 'function') {
-
-			opts.notfound();
-
-		}
-
-		return opts.notfound;
-
-	}
-
-	return resp;
+	return this.buildQuery(opts);
 
 }
 

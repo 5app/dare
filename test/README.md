@@ -1,4 +1,10 @@
-# Tests
+# Running tests
+
+## Spec Tests
+
+```sh
+npm test
+```
 
 ## Integration tests 
 

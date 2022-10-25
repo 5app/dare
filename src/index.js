@@ -208,7 +208,34 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 
 	const req = await _this.format_request(_this.options);
 
-	const resp = await getHandler.call(_this, req);
+	const {sql, values} = getHandler.call(_this, req);
+
+	// Execute the query
+	const sql_response = await _this.sql({sql, values});
+
+	// Format the response
+	let resp = await _this.response_handler(sql_response);
+
+	// If limit was not defined we should return the first result only.
+	if (_this.options.single) {
+
+		if (resp.length) {
+
+			resp = resp[0];
+
+		}
+		else if (typeof _this.options.notfound === 'function') {
+
+			_this.options.notfound();
+
+		}
+		else {
+
+			resp = _this.options.notfound;
+
+		}
+
+	}
 
 	return _this.after(resp);
 
@@ -259,7 +286,10 @@ Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
 
 	const req = await _this.format_request(_this.options);
 
-	const resp = await getHandler.call(_this, req);
+	const {sql, values} = getHandler.call(_this, req);
+
+	// Execute the query
+	const [resp] = await _this.sql({sql, values});
 
 	// Return the count
 	return resp.count;
@@ -383,11 +413,65 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 
 	}
 
-	// Validate Body
-	validateBody(req.body);
+	// Capture fields...
+	const fields = [];
+
+	// Capture values
+	const values = [];
+
+	// If this is a query
+	let query;
+
+	if (req.query) {
+
+		/*
+		 * Validate all fields are simple ones
+		 * Test: are there nested fields
+		 */
+		const invalidQueryFields = req.query.fields
+			.flatMap(field => (typeof field === 'string' ? field : Object.values(field)))
+			.some(value => value !== null && typeof(value) === 'object');
+
+		// Throw an error if the fields are missing, perhaps indented
+		if (invalidQueryFields) {
+
+			throw new DareError(DareError.INVALID_REQUEST, 'Nested fields forbidden in post-query');
+
+		}
+
+		const getInstance = this.use(req.query);
+
+		getInstance.options.method = 'get';
+
+		const getRequest = await getInstance.format_request(getInstance.options);
+
+		// Throw an error if there are any generated fields
+		if (getInstance.generated_fields.length) {
+
+			throw new DareError(DareError.INVALID_REQUEST, 'Generated fields forbidden in post-query');
+
+		}
+
+		const {sql, values: getValues} = getHandler.call(getInstance, getRequest);
+
+		// Update the capturing variables...
+		query = sql;
+
+		fields.push(...walkRequestGetField(getRequest));
+
+
+		values.push(...getValues);
+
+	}
+	else {
+
+		// Validate Body
+		validateBody(req.body);
+
+	}
 
 	// Set table
-	let post = req.body;
+	let post = req.body || [];
 
 	// Clone object before formatting
 	if (!Array.isArray(post)) {
@@ -405,9 +489,6 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	// Get the schema
 	const {schema: modelSchema = {}} = models?.[req.name] || {};
 
-	// Capture keys
-	const fields = [];
-	const values = [];
 	const data = post.map(item => {
 
 		const _data = [];
@@ -525,15 +606,15 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	}
 	else if (req.duplicate_keys && req.duplicate_keys.toString().toLowerCase() === 'ignore') {
 
-		on_duplicate_keys_update = `${onDuplicateKeysUpdate()}_rowid=_rowid`;
+		on_duplicate_keys_update = `${onDuplicateKeysUpdate()}${req.sql_table}._rowid=${req.sql_table}._rowid`;
 
 	}
 
 	// Construct a db update
 	const sql = `INSERT ${exec} INTO ${req.sql_table}
 			(${fields.map(field => `\`${field}\``).join(',')})
-			VALUES
-			${data.join(',')}
+			${data.length ? `VALUES ${data.join(',')}` : ''}
+			${query || ''}
 			${on_duplicate_keys_update}`;
 
 	const resp = await _this.sql({sql, values});
@@ -849,5 +930,29 @@ function disallowJoins(req) {
 		throw new DareError(DareError.INVALID_REQUEST, `${req.method} cannot contain nested joins`);
 
 	}
+
+}
+
+/**
+ * Because Dare does not maintain field orders within the select, or the Get function maintaining the list of fields
+ * We've resorted to acquiring the new list order where the SELECT fields... is used within an INSERT statement
+ * @param {object} request - Object returned from format_request function
+ * @returns {Array} an array of field names
+ */
+function walkRequestGetField(request) {
+
+	const fields = [];
+
+	// Get the field names of the current request...
+	fields.push(...request.fields.flatMap(field => (typeof field === 'string' ? field : Object.keys(field))));
+
+	// Iterate through the nested table joins and retrieve their fields
+	if (request._joins) {
+
+		fields.push(...request._joins.map(walkRequestGetField));
+
+	}
+
+	return fields;
 
 }
