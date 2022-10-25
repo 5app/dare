@@ -944,12 +944,16 @@ function walkRequestGetField(request) {
 	const fields = [];
 
 	// Get the field names of the current request...
-	fields.push(...request.fields.flatMap(field => (typeof field === 'string' ? field : Object.keys(field))));
+	if (Array.isArray(request.fields)) {
+
+		fields.push(...request.fields.flatMap(field => (typeof field === 'string' ? field : Object.keys(field))));
+
+	}
 
 	// Iterate through the nested table joins and retrieve their fields
-	if (request._joins) {
+	if (Array.isArray(request._joins)) {
 
-		fields.push(...request._joins.map(walkRequestGetField));
+		fields.push(...request._joins.flatMap(walkRequestGetField));
 
 	}
 

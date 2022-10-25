@@ -13,10 +13,13 @@ describe('post from query', () => {
 
 	it('should perform an INSERT...SELECT operation', async () => {
 
+		// Get country_id
+		const {country_id} = await dare.get('country', [{'country_id': 'id'}], {code: 'UK'});
+
 		// Setup
 		const [team] = await Promise.all([
 			dare.post('teams', {name: 'my team'}),
-			dare.post('users', ['qe1', 'qe2'].map(username => ({username})))
+			dare.post('users', ['qe1', 'qe2'].map(username => ({username, country_id})))
 		]);
 
 		// Run Tests
@@ -30,7 +33,10 @@ describe('post from query', () => {
 						team_id: team.insertId
 					}],
 					filter: {
-						'username': 'qe%'
+						username: 'qe%',
+						country: {
+							code: 'UK'
+						}
 					},
 					limit: 1000
 				},
