@@ -4,7 +4,7 @@ import DareError from './utils/error.js';
 import group_concat from './utils/group_concat.js';
 import field_format from './utils/field_format.js';
 import orderbyUnwrap from './utils/orderby_unwrap.js';
-
+import formCondition from './utils/form_conditions.js';
 
 export default function(opts) {
 
@@ -334,8 +334,7 @@ function traverse(item, is_subquery) {
 
 	}
 
-	const sql_alias = this.get_unique_alias();
-	item.sql_alias = sql_alias;
+	const {sql_alias} = item;
 
 	if (parent) {
 
@@ -541,15 +540,6 @@ function prepField(field) {
 	}
 
 	return [expression, label];
-
-}
-
-function formCondition(tbl_alias, field, condition) {
-
-	const field_definition = `${tbl_alias}.${field}`;
-
-	// Insert the field name in place
-	return condition.includes('$$') ? condition.replace(/\$\$/g, field_definition) : `${field_definition} ${condition}`;
 
 }
 

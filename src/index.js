@@ -1,4 +1,5 @@
 
+import SQL, {raw, join} from 'sql-template-tag';
 
 import getHandler from './get.js';
 
@@ -346,15 +347,7 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	const {schema: tableSchema} = models?.[req.name] || {};
 
 	// Prepare post
-	const {assignments, values} = prepareSet(req.body, tableSchema, validateInput);
-
-	// Prepare query
-	const sql_query = req._filter.map(([field, condition, prepValues]) => {
-
-		values.push(...prepValues);
-		return formCondition(field, condition);
-
-	});
+	const sql_set = prepareSQLSet(req.body, req.sql_alias, tableSchema, validateInput);
 
 	// If ignore duplicate keys is stated as ignore
 	let exec = '';
@@ -365,14 +358,14 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	}
 
 	// Construct a db update
-	const sql = `UPDATE ${exec}${req.sql_table}
+	const sql = SQL`UPDATE ${raw(exec)}${raw(req.sql_table)} ${raw(req.sql_alias)}
 			SET
-				${serialize(assignments, '=', ',')}
+				${sql_set}
 			WHERE
-				${sql_query.join(' AND ')}
-			LIMIT ${req.limit}`;
+				${req.sql_where_condition}
+			LIMIT ${raw(req.limit)}`;
 
-	let resp = await this.sql({sql, values});
+	let resp = await this.sql(sql);
 
 	resp = mustAffectRows(resp, opts.notfound);
 
@@ -661,22 +654,13 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 	 */
 	disallowJoins(req);
 
-	// Clone object before formatting
-	const values = [];
-	const sql_query = req._filter.map(([field, condition, prepValues]) => {
-
-		values.push(...prepValues);
-		return formCondition(field, condition);
-
-	});
-
 	// Construct a db update
-	const sql = `DELETE FROM ${req.sql_table}
+	const sql = SQL`DELETE FROM ${raw(req.sql_table)}
 					WHERE
-					${sql_query.join(' AND ')}
-					LIMIT ${req.limit}`;
+					${req.sql_where_condition}
+					LIMIT ${raw(req.limit)}`;
 
-	let resp = await this.sql({sql, values});
+	let resp = await this.sql(sql);
 
 	resp = mustAffectRows(resp, opts.notfound);
 
@@ -686,17 +670,17 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 
 
 /**
- * Prepared Set
+ * Prepared SQL Set
  * Prepare a SET assignments used in Patch
  * @param {object} body - body to format
+ * @param {string} sql_alias - SQL Alias for update table
  * @param {object} [tableSchema={}] - Schema for the current table
  * @param {Function} [validateInput] - Validate input function
  * @returns {object} {assignment, values}
  */
-function prepareSet(body, tableSchema = {}, validateInput) {
+function prepareSQLSet(body, sql_alias, tableSchema = {}, validateInput) {
 
-	const values = [];
-	const assignments = {};
+	const assignments = [];
 
 	for (const label in body) {
 
@@ -707,30 +691,11 @@ function prepareSet(body, tableSchema = {}, validateInput) {
 		const {field, value} = formatInputValue(tableSchema, label, body[label], validateInput);
 
 		// Replace value with a question using any mapped fieldName
-		assignments[field] = '?';
-
-		// Add to the array of items
-		values.push(value);
+		assignments.push(SQL`${raw(sql_alias)}.\`${raw(field)}\` = ${value}`);
 
 	}
 
-	return {
-		assignments,
-		values
-	};
-
-}
-
-function serialize(obj, separator, delimiter) {
-
-	const r = [];
-	for (const x in obj) {
-
-		const val = obj[x];
-		r.push(`\`${x}\` ${separator} ${val}`);
-
-	}
-	return r.join(` ${delimiter} `);
+	return join(assignments, ', ');
 
 }
 
@@ -869,13 +834,6 @@ function setDefaultNotFoundHandler(opts) {
 
 }
 
-
-function formCondition(field, condition) {
-
-	// Insert the field name in place
-	return condition.includes('$$') ? condition.replace(/\$\$/g, field) : `${field} ${condition}`;
-
-}
 
 /**
  * Migrate to Models

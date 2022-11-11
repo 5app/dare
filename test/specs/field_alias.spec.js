@@ -247,7 +247,7 @@ describe('field alias', () => {
 			expect(_sql).to.contain('`email` = ?');
 			expect(_sql).to.contain('`country_id` = ?');
 			expect(_sql).to.contain('email LIKE ?');
-			expect(_sql).to.contain('!ISNULL(email) = ?');
+			expect(_sql).to.contain('!ISNULL(a.email) = ?');
 
 
 		});
@@ -302,10 +302,9 @@ describe('field alias', () => {
 				}
 			});
 
-			expect(_sql).to.contain('email LIKE ?');
-			expect(_sql).to.contain('!ISNULL(email) = ?');
-			expect(_sql).to.contain('country_id = ?');
-			expect(_sql).to.contain('!ISNULL(email) = ?');
+			expect(_sql).to.contain('users.email LIKE ?');
+			expect(_sql).to.contain('!ISNULL(users.email) = ?');
+			expect(_sql).to.contain('users.country_id = ?');
 
 		});
 

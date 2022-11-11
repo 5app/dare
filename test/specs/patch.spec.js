@@ -38,7 +38,7 @@ describe('patch', () => {
 		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(sql, 'UPDATE test SET `name` = ? WHERE id = ? LIMIT 1');
+			sqlEqual(sql, 'UPDATE test a SET a.`name` = ? WHERE a.id = ? LIMIT 1');
 			expect(values).to.deep.equal([name, id]);
 
 			return {success: true};
@@ -93,7 +93,7 @@ describe('patch', () => {
 				dare.execute = async ({sql, values}) => {
 
 					// Limit: 1
-					sqlEqual(sql, 'UPDATE test SET `input` = ? WHERE id = ? LIMIT 1');
+					sqlEqual(sql, 'UPDATE test a SET a.`input` = ? WHERE a.id = ? LIMIT 1');
 					expect(values).to.deep.equal([input, id]);
 					return {success: true};
 
@@ -188,7 +188,7 @@ describe('patch', () => {
 						dare.execute = async ({sql, values}) => {
 
 							// Limit: 1
-							sqlEqual(sql, 'UPDATE test SET `meta` = ? WHERE id = ? LIMIT 1');
+							sqlEqual(sql, 'UPDATE test a SET a.`meta` = ? WHERE a.id = ? LIMIT 1');
 							expect(values).to.deep.equal([meta, id]);
 							return {success: true};
 
@@ -218,7 +218,7 @@ describe('patch', () => {
 		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(sql, 'UPDATE test SET `name` = ? WHERE id = ? LIMIT 11');
+			sqlEqual(sql, 'UPDATE test a SET a.`name` = ? WHERE a.id = ? LIMIT 11');
 			expect(values).to.deep.equal([name, id]);
 
 			return {success: true};
@@ -240,7 +240,7 @@ describe('patch', () => {
 		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(sql, 'UPDATE IGNORE test SET `name` = ? WHERE id = ? LIMIT 1');
+			sqlEqual(sql, 'UPDATE IGNORE test a SET a.`name` = ? WHERE a.id = ? LIMIT 1');
 			expect(values).to.deep.equal([name, id]);
 			return {success: true};
 
@@ -261,7 +261,7 @@ describe('patch', () => {
 		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(sql, 'UPDATE tablename SET `name` = ? WHERE id = ? LIMIT 1');
+			sqlEqual(sql, 'UPDATE tablename a SET a.`name` = ? WHERE a.id = ? LIMIT 1');
 			expect(values).to.deep.equal([name, id]);
 			return {success: true};
 
@@ -289,7 +289,7 @@ describe('patch', () => {
 
 		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(sql, 'UPDATE tbl SET `name` = ? WHERE id = ? LIMIT 1');
+			sqlEqual(sql, 'UPDATE tbl a SET a.`name` = ? WHERE a.id = ? LIMIT 1');
 			expect(values).to.deep.equal([newName, id]);
 
 			return {success: true};
@@ -323,7 +323,7 @@ describe('patch', () => {
 
 		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(sql, 'UPDATE tbl SET `name` = ? WHERE id = ? LIMIT 1');
+			sqlEqual(sql, 'UPDATE tbl a SET a.`name` = ? WHERE a.id = ? LIMIT 1');
 			expect(values).to.deep.equal([newName, id]);
 			return {success: true};
 
@@ -431,7 +431,7 @@ describe('patch', () => {
 
 		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(sql, 'UPDATE tbl SET `name` = ? WHERE id = ? AND (NOT number < ? OR number IS NULL) LIMIT 1');
+			sqlEqual(sql, 'UPDATE tbl a SET a.`name` = ? WHERE a.id = ? AND (NOT a.number < ? OR a.number IS NULL) LIMIT 1');
 			expect(values).to.deep.equal(['andrew', 1, '100']);
 			return {success: true};
 

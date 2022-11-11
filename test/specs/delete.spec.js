@@ -32,7 +32,7 @@ describe('del', () => {
 		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(sql, 'DELETE FROM test WHERE id = ? LIMIT 1');
+			sqlEqual(sql, 'DELETE FROM test WHERE test.id = ? LIMIT 1');
 			expect(values).to.deep.equal([1]);
 			return {success: true};
 
@@ -71,21 +71,21 @@ describe('del', () => {
 		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(sql, 'DELETE FROM tablename WHERE id = ? LIMIT 1');
+			sqlEqual(sql, 'DELETE FROM test WHERE test.id = ? LIMIT 1');
 			expect(values).to.deep.equal([1]);
 			return {success: true};
 
 		};
 
 		dare.options.models = {
-			'test': {
-				table: 'tablename'
+			'alias': {
+				table: 'test'
 			}
 		};
 
 		return dare
 			.del({
-				table: 'test',
+				table: 'alias',
 				filter: {id: 1}
 			});
 
@@ -95,7 +95,7 @@ describe('del', () => {
 
 		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(sql, 'DELETE FROM test WHERE id = ? LIMIT 1');
+			sqlEqual(sql, 'DELETE FROM test WHERE test.id = ? LIMIT 1');
 			expect(values).to.deep.equal([1]);
 			return {success: true};
 
@@ -125,7 +125,7 @@ describe('del', () => {
 
 		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(sql, 'DELETE FROM tbl WHERE id = ? LIMIT 1');
+			sqlEqual(sql, 'DELETE FROM test WHERE test.id = ? LIMIT 1');
 			expect(values).to.deep.equal([1]);
 			return {success: true};
 
@@ -144,7 +144,7 @@ describe('del', () => {
 
 		return dare
 			.del({
-				table: 'tbl',
+				table: 'test',
 				filter: {id: 2}
 			});
 

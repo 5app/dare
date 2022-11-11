@@ -1,5 +1,5 @@
 
-
+import SQL, {join, empty} from 'sql-template-tag';
 import DareError from './utils/error.js';
 import fieldReducer from './format/field_reducer.js';
 import groupbyReducer from './format/groupby_reducer.js';
@@ -9,6 +9,7 @@ import limitClause from './format/limit_clause.js';
 import joinHandler from './format/join_handler.js';
 import getFieldAttributes from './utils/field_attributes.js';
 import extend from './utils/extend.js';
+import formCondition from './utils/form_conditions.js';
 
 /**
  * Format Request initiation
@@ -79,6 +80,27 @@ async function format_request(options, dareInstance) {
 	 * Set the SQL Table, If the model redefines the table name otherwise use the model Name
 	 */
 	options.sql_table = model.table || options.name;
+
+	/**
+	 * Hack
+	 * To resolve mysql bug with aliasing in DELETE operations with a LIMIT https://bugs.mysql.com/bug.php?id=89410
+	 * Preset the sql_table based upon the actual table name conditions with the same alias will work.
+	 * TODO [MySQL-5.6/5.7] remove when only supporting MySQL-8
+	 * TODO [mysql#89410]: Remove the conditional assignment when we're not presetting sql_alias in DELETE operation
+	 */
+	if (options.method === 'del' && !options.parent) {
+
+		options.sql_alias = options.sql_table;
+
+	}
+
+	/** EOF Hack */
+
+	else {
+
+		options.sql_alias = dareInstance.get_unique_alias();
+
+	}
 
 	/*
 	 * Call bespoke table handler
@@ -273,6 +295,7 @@ async function format_request(options, dareInstance) {
 
 	}
 
+
 	// Joins
 	{
 
@@ -338,6 +361,31 @@ async function format_request(options, dareInstance) {
 		}
 
 	}
+
+	/*
+	 * Construct the SQL
+	 */
+
+	// Where condition
+	if (options._filter) {
+
+		const sql = options._filter.map(([field, condition, prepValues]) => {
+
+			const arrStr = formCondition(options.sql_alias, field, condition).split('?');
+
+			return SQL(arrStr, ...prepValues);
+
+		});
+
+		options.sql_where_condition = join(sql, ' AND ');
+
+	}
+	else {
+
+		options.sql_where_condition = empty;
+
+	}
+
 
 	return options;
 

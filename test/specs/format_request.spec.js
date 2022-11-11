@@ -68,6 +68,16 @@ describe('format_request', () => {
 			_filter: [
 				['id', '= ?', [1]]
 			],
+			sql_alias: 'a',
+			sql_where_condition: {
+				strings: [
+					'a.id = ',
+					''
+				],
+				values: [
+					1
+				]
+			},
 			limit: 1,
 			single: true
 		});

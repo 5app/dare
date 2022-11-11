@@ -127,7 +127,6 @@ describe('join_handler', () => {
 
 		expect(join).to.deep.equal({
 			table: 'parent',
-			alias: 'a',
 			join_conditions: {
 				'grand_id': 'gid'
 			},
