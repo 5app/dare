@@ -76,18 +76,6 @@ function buildQuery(opts) {
 
 	}
 
-	// Conditions
-	if (opts._join) {
-
-		opts._join.forEach(([field, condition, values]) => {
-
-			sql_values.push(...values);
-			sql_filter.push(formCondition(sql_alias, field, condition));
-
-		});
-
-	}
-
 	// Merge values
 	const values = []
 		.concat(sql_subquery_values)
@@ -228,33 +216,6 @@ function traverse(item, is_subquery) {
 	// Things to change if this isn't the root.
 	if (parent) {
 
-		if (item._join) {
-
-			item._join = item._join.filter(([field]) => {
-
-				// Special join condition
-				if (field === '_required') {
-
-					// Dont include this filter
-					item.required_join = true;
-					return false;
-
-				}
-
-				return true;
-
-			});
-
-		}
-
-		// Is this required join table?
-		if (!item.required_join && !item.has_fields && !item.has_filter) {
-
-			// Prevent this join from being included.
-			return resp;
-
-		}
-
 		// Adopt the parents settings
 		const {many} = item;
 
@@ -339,26 +300,10 @@ function traverse(item, is_subquery) {
 	if (parent) {
 
 		// Update the values with the alias of the parent
-		const sql_join_condition = [];
-		if (item._join) {
 
-			item._join.forEach(([field, condition, values]) => {
-
-				sql_join_values.push(...values);
-				sql_join_condition.push(formCondition(sql_alias, field, condition));
-
-			});
-
-			// Prevent join condifions from being applied twice in buildQuery
-			item._join.length = 0;
-
-		}
-		for (const x in item.join_conditions) {
-
-			const val = item.join_conditions[x];
-			sql_join_condition.push(`${sql_alias}.${x} = ${parent.sql_alias}.${val}`);
-
-		}
+		// Deconstruct sql-template-tag
+		const sql_join_condition = [item.sql_join_condition.sql];
+		const sql_join_values = item.sql_join_condition.values;
 
 		const {required_join} = item;
 
@@ -437,8 +382,6 @@ function traverse(item, is_subquery) {
 	if (item._joins) {
 
 		item._joins.forEach(child => {
-
-			child.parent = item;
 
 			// Traverse the decendent arrays
 			const child_resp = this.traverse(child, is_subquery);

@@ -648,12 +648,6 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 
 	}
 
-	/*
-	 * Disallow joins
-	 * @todo: support joins see #187
-	 */
-	disallowJoins(req);
-
 	// Construct a db update
 	const sql = SQL`DELETE FROM ${raw(req.sql_table)}
 					WHERE

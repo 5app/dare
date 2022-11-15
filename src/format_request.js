@@ -1,5 +1,5 @@
 
-import SQL, {join, empty} from 'sql-template-tag';
+import SQL, {join, empty, raw} from 'sql-template-tag';
 import DareError from './utils/error.js';
 import fieldReducer from './format/field_reducer.js';
 import groupbyReducer from './format/groupby_reducer.js';
@@ -238,16 +238,35 @@ async function format_request(options, dareInstance) {
 		// Return array of immediate props
 		options._join = reduceConditions(options.join, {extract, propName: 'join', table_schema, conditional_operators_in_value});
 
+		// Has _required join?
+		options.required_join = options._join.some(([field]) => field === '_required');
+
+		if (options.required_join) {
+
+			// Filter out _required
+			options._join = options._join.filter(([field]) => field !== '_required');
+
+		}
+
 		/*
-		 * TODO [#187]: Construct the WHERE conditions in this function from _filter and _join
-		 * without having to merge them here for del and patch which dont support them
+		 * Convert root joins to filters...
 		 */
-		if (options._join.length && ['patch', 'del'].includes(method)) {
+		if (options._join.length && !options.parent) {
 
 			options._filter ??= [];
 			options._filter.push(...options._join);
 
 		}
+
+	}
+
+	/**
+	 * Can we stop here?
+	 */
+	if (options.parent && !options.required_join && !options.has_fields && !options.has_filter) {
+
+		// Prevent this join from being included.
+		return;
 
 	}
 
@@ -356,36 +375,84 @@ async function format_request(options, dareInstance) {
 			});
 
 			// Add Joins
-			options._joins = await Promise.all(a);
+			const arr = await Promise.all(a);
+
+			options._joins = arr.filter(Boolean);
 
 		}
 
 	}
 
 	/*
-	 * Construct the SQL
+	 * Construct the SQL WHERE Condition
 	 */
 
-	// Where condition
-	if (options._filter) {
+	{
 
-		const sql = options._filter.map(([field, condition, prepValues]) => {
+		// Place holder
+		const sql_where_condition = [];
 
-			const arrStr = formCondition(options.sql_alias, field, condition).split('?');
+		// Where condition
+		if (options._filter) {
 
-			return SQL(arrStr, ...prepValues);
+			// Get current filters
+			sql_where_condition.push(...options._filter.map(([field, condition, prepValues]) => {
 
-		});
+				const arrStr = formCondition(options.sql_alias, field, condition).split('?');
 
-		options.sql_where_condition = join(sql, ' AND ');
+				return SQL(arrStr, ...prepValues);
+
+			}));
+
+		}
+
+		// Get nested filters
+		if (options._joins) {
+
+			sql_where_condition.push(...options._joins.map(({sql_where_condition}) => sql_where_condition));
+
+		}
+
+		// Assign
+		options.sql_where_condition = sql_where_condition.length ? join(sql_where_condition, ' AND ') : empty;
 
 	}
-	else {
 
-		options.sql_where_condition = empty;
+	/**
+	 * Construct the join conditions
+	 * If this item has a parent, it'll require a join statement with conditions
+	 */
+	if (options.parent) {
+
+		// Update the values with the alias of the parent
+		const sql_join_condition = [];
+
+		if (options._join) {
+
+			sql_join_condition.push(...options._join.map(([field, condition, prepValues]) => {
+
+				const arrStr = formCondition(options.sql_alias, field, condition).split('?');
+
+				return SQL(arrStr, ...prepValues);
+
+			}));
+
+			// Prevent join condifions from being applied twice in buildQuery
+			options._join.length = 0;
+
+		}
+
+		// Always going to be defined
+		for (const x in options.join_conditions) {
+
+			const val = options.join_conditions[x];
+			sql_join_condition.push(raw(`${options.sql_alias}.${x} = ${options.parent.sql_alias}.${val}`));
+
+		}
+
+		options.sql_join_condition = join(sql_join_condition, ' AND ');
 
 	}
-
 
 	return options;
 
