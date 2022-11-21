@@ -16,12 +16,20 @@ export default function() {
 
 	// Set a test instance
 	// eslint-disable-next-line arrow-body-style
-	dare.execute = query => {
+	dare.execute = async query => {
 
 		// DEBUG
 		debug(mysql.format(query.sql, query.values));
 
-		return db.query(query);
+		const resp = await db.query(query);
+
+		if (!Array.isArray(resp)) {
+
+			debug(`Affected rows: ${resp.affectedRows}`);
+
+		}
+
+		return resp;
 
 	};
 

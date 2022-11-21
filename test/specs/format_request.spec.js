@@ -69,7 +69,8 @@ describe('format_request', () => {
 				['id', '= ?', [1]]
 			],
 			sql_alias: 'a',
-			sql_where_condition: {
+			sql_joins: [],
+			sql_where_conditions: [{
 				strings: [
 					'a.id = ',
 					''
@@ -77,7 +78,7 @@ describe('format_request', () => {
 				values: [
 					1
 				]
-			},
+			}],
 			limit: 1,
 			single: true
 		});

@@ -4,28 +4,8 @@ import DareError from './utils/error.js';
 import group_concat from './utils/group_concat.js';
 import field_format from './utils/field_format.js';
 import orderbyUnwrap from './utils/orderby_unwrap.js';
-import formCondition from './utils/form_conditions.js';
 
-export default function(opts) {
-
-	// Reset the alias
-	this.unique_alias_index = 0;
-
-	// Define the buildQuery
-	this.buildQuery = buildQuery;
-
-	/*
-	 * Define the Traversal
-	 * This is triggered by the build query to create the SQL
-	 */
-	this.traverse = traverse;
-
-	// Execute the Build
-	return this.buildQuery(opts);
-
-}
-
-function buildQuery(opts) {
+export default function buildQuery(opts, dareInstance) {
 
 	opts.root = true;
 
@@ -46,7 +26,7 @@ function buildQuery(opts) {
 		groupby,
 		orderby,
 		sql_values
-	} = this.traverse(opts, is_subquery);
+	} = traverse(opts, is_subquery, dareInstance);
 
 	// Get the root tableID
 	const {sql_table, sql_alias} = opts;
@@ -73,6 +53,17 @@ function buildQuery(opts) {
 				item.label = '_group';
 
 			});
+
+	}
+
+	/*
+	 * Build up the SQL conditions
+	 * e.g. filter= {category: asset, action: open, created_time: 2016-04-12T13:29:23Z..]
+	 */
+	if (opts.sql_where_conditions?.length) {
+
+		sql_filter.unshift(...opts.sql_where_conditions.map(({sql}) => sql));
+		sql_values.unshift(...opts.sql_where_conditions.flatMap(({values}) => values));
 
 	}
 
@@ -170,7 +161,7 @@ function buildQuery(opts) {
 }
 
 
-function traverse(item, is_subquery) {
+function traverse(item, is_subquery, dareInstance) {
 
 	// Filters populate the filter and values (prepared statements)
 	const sql_filter = [];
@@ -250,13 +241,13 @@ function traverse(item, is_subquery) {
 		 * The join is not required for filtering,
 		 * And has a one to many relationship with its parent.
 		 */
-		if (this.group_concat && !is_subquery && !ancestors_many && !item.required_join && !item.has_filter && many && !item.groupby) {
+		if (dareInstance.group_concat && !is_subquery && !ancestors_many && !item.required_join && !item.has_filter && many && !item.groupby) {
 
 			// Mark as subquery
 			item.is_subquery = true;
 
 			// Make the sub-query
-			const sub_query = this.buildQuery(item);
+			const sub_query = buildQuery(item, dareInstance);
 
 			// Add the values
 			sql_subquery_values.push(...sub_query.values);
@@ -268,27 +259,6 @@ function traverse(item, is_subquery) {
 			});
 
 			// The rest has been handled in the sub-query
-			return resp;
-
-		}
-
-
-		/**
-		 * If this is a negate join...
-		 * NOT EXIST (SELECT 1 FROM alias WHERE join_conditions)
-		 */
-		if (item.negate && !is_subquery) {
-
-			// Mark as another subquery
-			item.is_subquery = true;
-
-			// Create sub_query
-			const sub_query = this.buildQuery(item);
-
-			// Update the filters
-			sql_values.push(...sub_query.values);
-			sql_filter.push(`NOT EXISTS (${sub_query.sql})`);
-
 			return resp;
 
 		}
@@ -347,22 +317,6 @@ function traverse(item, is_subquery) {
 
 	}
 
-
-	/*
-	 * Build up the SQL conditions
-	 * e.g. filter= {category: asset, action: open, created_time: 2016-04-12T13:29:23Z..]
-	 */
-	if (item._filter) {
-
-		item._filter.forEach(([field, condition, values]) => {
-
-			sql_values.push(...values);
-			sql_filter.push(formCondition(sql_alias, field, condition));
-
-		});
-
-	}
-
 	/*
 	 * Fields
 	 * e.g. fields = [action, category, count, ...]
@@ -384,7 +338,7 @@ function traverse(item, is_subquery) {
 		item._joins.forEach(child => {
 
 			// Traverse the decendent arrays
-			const child_resp = this.traverse(child, is_subquery);
+			const child_resp = traverse(child, is_subquery, dareInstance);
 
 			// Merge the results into this
 			for (const x in resp) {

@@ -1,5 +1,5 @@
 
-import SQL, {join, empty, raw} from 'sql-template-tag';
+import SQL, {join, raw} from 'sql-template-tag';
 import DareError from './utils/error.js';
 import fieldReducer from './format/field_reducer.js';
 import groupbyReducer from './format/groupby_reducer.js';
@@ -10,6 +10,7 @@ import joinHandler from './format/join_handler.js';
 import getFieldAttributes from './utils/field_attributes.js';
 import extend from './utils/extend.js';
 import formCondition from './utils/form_conditions.js';
+import buildQuery from './get.js';
 
 /**
  * Format Request initiation
@@ -390,13 +391,13 @@ async function format_request(options, dareInstance) {
 	{
 
 		// Place holder
-		const sql_where_condition = [];
+		const sql_where_conditions = [];
 
-		// Where condition
+
 		if (options._filter) {
 
 			// Get current filters
-			sql_where_condition.push(...options._filter.map(([field, condition, prepValues]) => {
+			sql_where_conditions.push(...options._filter.map(([field, condition, prepValues]) => {
 
 				const arrStr = formCondition(options.sql_alias, field, condition).split('?');
 
@@ -409,14 +410,17 @@ async function format_request(options, dareInstance) {
 		// Get nested filters
 		if (options._joins) {
 
-			sql_where_condition.push(...options._joins.map(({sql_where_condition}) => sql_where_condition));
+			sql_where_conditions.push(...options._joins.flatMap(({sql_where_conditions}) => sql_where_conditions));
 
 		}
 
 		// Assign
-		options.sql_where_condition = sql_where_condition.length ? join(sql_where_condition, ' AND ') : empty;
+		options.sql_where_conditions = sql_where_conditions.filter(Boolean);
 
 	}
+
+	// Initial SQL JOINS reference
+	options.sql_joins = [];
 
 	/**
 	 * Construct the join conditions
@@ -451,6 +455,37 @@ async function format_request(options, dareInstance) {
 		}
 
 		options.sql_join_condition = join(sql_join_condition, ' AND ');
+
+		// Create the SQL JOIN conditions syntax
+		options.sql_joins.push(SQL`JOIN ${raw(options.sql_table)} ${raw(options.sql_alias)} ON (${options.sql_join_condition})`);
+
+	}
+
+	// Add nested joins
+	if (Array.isArray(options._joins)) {
+
+		options.sql_joins.push(...options._joins.flatMap(({sql_joins}) => sql_joins));
+
+	}
+
+	/**
+	 * Negate
+	 * NOT EXIST (SELECT 1 FROM alias WHERE join_conditions)
+	 */
+	if (options.negate) {
+
+		// Mark as another subquery
+		options.is_subquery = true;
+
+		// Create sub_query
+		const sub_query = buildQuery(options, dareInstance);
+
+		// Update the filters
+		return {
+			sql_where_conditions: [
+				SQL`NOT EXISTS (${SQL(sub_query.sql.split('?'), ...sub_query.values)})`
+			]
+		};
 
 	}
 

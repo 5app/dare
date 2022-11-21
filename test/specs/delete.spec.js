@@ -220,7 +220,9 @@ describe('del', () => {
 	});
 
 
-	it('disallow nested filters: should throw an exception', () => {
+	it('allow nested filters', async () => {
+
+		dare.sql = async () => ({affectedRows: 1});
 
 		dare.options.models = {
 			tbl: {
@@ -231,7 +233,7 @@ describe('del', () => {
 			}
 		};
 
-		const test = dare
+		const test = await dare
 			.del({
 				table: 'tbl',
 				filter: {
@@ -242,9 +244,7 @@ describe('del', () => {
 				}
 			});
 
-		return expect(test)
-			.to.be.eventually.rejectedWith(DareError)
-			.and.have.property('code', DareError.INVALID_REQUEST);
+		expect(test).to.have.property('affectedRows', 1);
 
 	});
 

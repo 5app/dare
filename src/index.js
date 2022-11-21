@@ -1,5 +1,5 @@
 
-import SQL, {raw, join} from 'sql-template-tag';
+import SQL, {raw, join, empty} from 'sql-template-tag';
 
 import getHandler from './get.js';
 
@@ -205,40 +205,40 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 	// Set default notfound handler
 	setDefaultNotFoundHandler(opts);
 
-	const _this = this.use(opts);
+	const dareInstance = this.use(opts);
 
-	const req = await _this.format_request(_this.options);
+	const req = await dareInstance.format_request(dareInstance.options);
 
-	const {sql, values} = getHandler.call(_this, req);
+	const {sql, values} = getHandler(req, dareInstance);
 
 	// Execute the query
-	const sql_response = await _this.sql({sql, values});
+	const sql_response = await dareInstance.sql({sql, values});
 
 	// Format the response
-	let resp = await _this.response_handler(sql_response);
+	let resp = await dareInstance.response_handler(sql_response);
 
 	// If limit was not defined we should return the first result only.
-	if (_this.options.single) {
+	if (dareInstance.options.single) {
 
 		if (resp.length) {
 
 			resp = resp[0];
 
 		}
-		else if (typeof _this.options.notfound === 'function') {
+		else if (typeof dareInstance.options.notfound === 'function') {
 
-			_this.options.notfound();
+			dareInstance.options.notfound();
 
 		}
 		else {
 
-			resp = _this.options.notfound;
+			resp = dareInstance.options.notfound;
 
 		}
 
 	}
 
-	return _this.after(resp);
+	return dareInstance.after(resp);
 
 };
 
@@ -283,14 +283,14 @@ Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
 	opts.limit = undefined;
 	opts.start = undefined;
 
-	const _this = this.use(opts);
+	const dareInstance = this.use(opts);
 
-	const req = await _this.format_request(_this.options);
+	const req = await dareInstance.format_request(dareInstance.options);
 
-	const {sql, values} = getHandler.call(_this, req);
+	const {sql, values} = getHandler(req, dareInstance);
 
 	// Execute the query
-	const [resp] = await _this.sql({sql, values});
+	const [resp] = await dareInstance.sql({sql, values});
 
 	// Return the count
 	return resp.count;
@@ -320,28 +320,22 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	// Set default notfound handler
 	setDefaultNotFoundHandler(opts);
 
-	const _this = this.use(opts);
+	const dareInstance = this.use(opts);
 
-	const req = await _this.format_request(opts);
+	const req = await dareInstance.format_request(opts);
 
 	// Skip this operation?
 	if (req.skip) {
 
-		return _this.after(req.skip);
+		return dareInstance.after(req.skip);
 
 	}
-
-	/*
-	 * Disallow joins
-	 * @todo: support joins see #187
-	 */
-	disallowJoins(req);
 
 	// Validate Body
 	validateBody(req.body);
 
 	// Options
-	const {models, validateInput} = _this.options;
+	const {models, validateInput} = dareInstance.options;
 
 	// Get the model structure
 	const {schema: tableSchema} = models?.[req.name] || {};
@@ -359,17 +353,18 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 
 	// Construct a db update
 	const sql = SQL`UPDATE ${raw(exec)}${raw(req.sql_table)} ${raw(req.sql_alias)}
+			${req.sql_joins.length ? join(req.sql_joins, '\n') : empty}
 			SET
 				${sql_set}
 			WHERE
-				${req.sql_where_condition}
-			LIMIT ${raw(req.limit)}`;
+				${join(req.sql_where_conditions, ' AND ')}
+			${!req.sql_joins.length ? SQL`LIMIT ${raw(req.limit)}` : empty}`;
 
 	let resp = await this.sql(sql);
 
 	resp = mustAffectRows(resp, opts.notfound);
 
-	return _this.after(resp);
+	return dareInstance.after(resp);
 
 };
 
@@ -445,7 +440,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 
 		}
 
-		const {sql, values: getValues} = getHandler.call(getInstance, getRequest);
+		const {sql, values: getValues} = getHandler(getRequest, getInstance);
 
 		// Update the capturing variables...
 		query = sql;
@@ -637,28 +632,29 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 	// Set default notfound handler
 	setDefaultNotFoundHandler(opts);
 
-	const _this = this.use(opts);
+	const dareInstance = this.use(opts);
 
-	const req = await _this.format_request(opts);
+	const req = await dareInstance.format_request(opts);
 
 	// Skip this operation?
 	if (req.skip) {
 
-		return _this.after(req.skip);
+		return dareInstance.after(req.skip);
 
 	}
 
 	// Construct a db update
-	const sql = SQL`DELETE FROM ${raw(req.sql_table)}
+	const sql = SQL`DELETE ${req.sql_joins.length ? raw(req.sql_table) : empty} FROM ${raw(req.sql_table)}
+					${req.sql_joins.length ? join(req.sql_joins, '\n') : empty}
 					WHERE
-					${req.sql_where_condition}
-					LIMIT ${raw(req.limit)}`;
+					${join(req.sql_where_conditions, ' AND ')}
+					${!req.sql_joins.length ? SQL`LIMIT ${raw(req.limit)}` : empty}`;
 
 	let resp = await this.sql(sql);
 
 	resp = mustAffectRows(resp, opts.notfound);
 
-	return _this.after(resp);
+	return dareInstance.after(resp);
 
 };
 
@@ -864,22 +860,6 @@ function migrateToModels(options) {
 			});
 
 		}
-
-	}
-
-}
-
-
-/**
- * DisallowJoins
- * @param {object} req - Formatted request object
- * @returns {void} Checks whether a join is included in the request
- */
-function disallowJoins(req) {
-
-	if (req._joins) {
-
-		throw new DareError(DareError.INVALID_REQUEST, `${req.method} cannot contain nested joins`);
 
 	}
 

@@ -448,7 +448,9 @@ describe('patch', () => {
 	});
 
 
-	it('disallow nested filters: should throw an exception', () => {
+	it('dallow nested filters', async () => {
+
+		dare.sql = async () => ({affectedRows: 1});
 
 		dare.options.models = {
 			tbl: {
@@ -459,7 +461,7 @@ describe('patch', () => {
 			}
 		};
 
-		const test = dare
+		const test = await dare
 			.patch({
 				table: 'tbl',
 				filter: {
@@ -471,9 +473,7 @@ describe('patch', () => {
 				body: {name: 'andrew'}
 			});
 
-		return expect(test)
-			.to.be.eventually.rejectedWith(DareError)
-			.and.have.property('code', DareError.INVALID_REQUEST);
+		expect(test).to.have.property('affectedRows', 1);
 
 	});
 

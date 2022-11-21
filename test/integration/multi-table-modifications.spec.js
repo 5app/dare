@@ -23,7 +23,8 @@ describe('Multi table modifications', () => {
 			dare.post('teams', {name: teamName}),
 			dare.post('users', ['qe1', 'qe2'].map(username => ({username})))
 		]);
-		await dare
+
+		const {insertId} = await dare
 			.post({
 				table: 'userTeams',
 				body: sequence(users).map(user_id => ({
@@ -32,20 +33,48 @@ describe('Multi table modifications', () => {
 				}))
 			});
 
-		/*
-		 * Test: Delete based on a condition from another table
-		 * In this case delete userTeams entries based upon the team name.
-		 */
-		const {affectedRows} = await dare.del({
-			table: 'userTeams',
-			filter: {
-				teams: {
-					name: teamName
-				}
-			}
-		});
+		{
 
-		assert.strictEqual(affectedRows, 2, 'Should have inserted 2 records');
+			/*
+			 * Test: Rename a user by their membership to a team
+			 */
+			const {affectedRows} = await dare.patch({
+				table: 'users',
+				body: {
+					username: '123'
+				},
+				filter: {
+					userTeams: {
+						teams: {
+							name: teamName
+						},
+						id: insertId
+					}
+				}
+			});
+
+			assert.strictEqual(affectedRows, 1, 'Should have affected 1 record');
+
+		}
+
+		{
+
+			/*
+			 * Test: Delete based on a condition from another table
+			 * In this case delete userTeams entries based upon the team name.
+			 */
+			const {affectedRows} = await dare.del({
+				table: 'userTeams',
+				filter: {
+					teams: {
+						name: teamName
+					}
+				}
+			});
+
+			assert.strictEqual(affectedRows, 2, 'Should have affected 2 records');
+
+		}
 
 	});
 
