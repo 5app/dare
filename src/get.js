@@ -9,9 +9,6 @@ export default function buildQuery(opts, dareInstance) {
 
 	opts.root = true;
 
-	// Limit
-	const sql_limit = `LIMIT ${opts.start ? `${opts.start},` : ''}${opts.limit}`;
-
 	// SubQuery
 	const {is_subquery} = opts;
 
@@ -148,13 +145,14 @@ export default function buildQuery(opts, dareInstance) {
 
 	// Put it all together
 	const sql = `SELECT ${sql_fields.toString()}
-				 FROM ${sql_table} ${sql_alias}
-						${sql_joins.join('\n')}
-				 ${sql_filter.length ? 'WHERE' : ''}
-					 ${sql_filter.join(' AND ')}
-				 ${sql_groupby.length ? `GROUP BY ${sql_groupby}` : ''}
-				 ${sql_orderby.length ? `ORDER BY ${sql_orderby}` : ''}
-				 ${sql_limit}`;
+		FROM ${sql_table} ${sql_alias}
+		${sql_joins.join('\n')}
+		${sql_filter.length ? 'WHERE' : ''}
+		${sql_filter.join(' AND ')}
+		${sql_groupby.length ? `GROUP BY ${sql_groupby}` : ''}
+		${sql_orderby.length ? `ORDER BY ${sql_orderby}` : ''}
+		${opts.limit ? `LIMIT ${opts.start ? `${opts.start},` : ''}${opts.limit}` : ''}
+	`;
 
 	return {sql, values, alias};
 
@@ -273,7 +271,7 @@ function traverse(item, is_subquery, dareInstance) {
 
 		// Deconstruct sql-template-tag
 		const sql_join_condition = [item.sql_join_condition.sql];
-		const sql_join_values = item.sql_join_condition.values;
+		sql_join_values.push(...item.sql_join_condition.values);
 
 		const {required_join} = item;
 

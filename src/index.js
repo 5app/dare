@@ -358,7 +358,7 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 				${sql_set}
 			WHERE
 				${join(req.sql_where_conditions, ' AND ')}
-			${!req.sql_joins.length ? SQL`LIMIT ${raw(req.limit)}` : empty}`;
+			${!req.sql_joins.length ? SQL`LIMIT ${req.limit}` : empty}`;
 
 	let resp = await this.sql(sql);
 
@@ -648,7 +648,7 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 					${req.sql_joins.length ? join(req.sql_joins, '\n') : empty}
 					WHERE
 					${join(req.sql_where_conditions, ' AND ')}
-					${!req.sql_joins.length ? SQL`LIMIT ${raw(req.limit)}` : empty}`;
+					${!req.sql_joins.length ? SQL`LIMIT ${req.limit}` : empty}`;
 
 	let resp = await this.sql(sql);
 

@@ -32,8 +32,8 @@ describe('del', () => {
 		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(sql, 'DELETE FROM test WHERE test.id = ? LIMIT 1');
-			expect(values).to.deep.equal([1]);
+			sqlEqual(sql, 'DELETE FROM test WHERE test.id = ? LIMIT ?');
+			expect(values).to.deep.equal([1, 1]);
 			return {success: true};
 
 		};
@@ -71,8 +71,8 @@ describe('del', () => {
 		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(sql, 'DELETE FROM test WHERE test.id = ? LIMIT 1');
-			expect(values).to.deep.equal([1]);
+			sqlEqual(sql, 'DELETE FROM test WHERE test.id = ? LIMIT ?');
+			expect(values).to.deep.equal([1, 1]);
 			return {success: true};
 
 		};
@@ -95,8 +95,8 @@ describe('del', () => {
 
 		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(sql, 'DELETE FROM test WHERE test.id = ? LIMIT 1');
-			expect(values).to.deep.equal([1]);
+			sqlEqual(sql, 'DELETE FROM test WHERE test.id = ? LIMIT ?');
+			expect(values).to.deep.equal([1, 1]);
 			return {success: true};
 
 		};
@@ -125,8 +125,8 @@ describe('del', () => {
 
 		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(sql, 'DELETE FROM test WHERE test.id = ? LIMIT 1');
-			expect(values).to.deep.equal([1]);
+			sqlEqual(sql, 'DELETE FROM test WHERE test.id = ? LIMIT ?');
+			expect(values).to.deep.equal([1, 1]);
 			return {success: true};
 
 		};
@@ -220,7 +220,7 @@ describe('del', () => {
 	});
 
 
-	it('allow nested filters', async () => {
+	it('allow nested filters (integration-tested)', async () => {
 
 		dare.sql = async () => ({affectedRows: 1});
 
@@ -239,6 +239,34 @@ describe('del', () => {
 				filter: {
 					id: 1,
 					tblB: {
+						id: 1
+					}
+				}
+			});
+
+		expect(test).to.have.property('affectedRows', 1);
+
+	});
+
+	it('should allow nested filters with negation prefix (integration-tested)', async () => {
+
+		dare.sql = async () => ({affectedRows: 1});
+
+		dare.options.models = {
+			tbl: {
+				schema: {
+					// Create a reference to tblB
+					ref_id: ['tblB.id']
+				}
+			}
+		};
+
+		const test = await dare
+			.del({
+				table: 'tbl',
+				filter: {
+					id: 1,
+					'-tblB': {
 						id: 1
 					}
 				}

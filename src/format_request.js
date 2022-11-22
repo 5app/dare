@@ -464,7 +464,7 @@ async function format_request(options, dareInstance) {
 	// Add nested joins
 	if (Array.isArray(options._joins)) {
 
-		options.sql_joins.push(...options._joins.flatMap(({sql_joins}) => sql_joins));
+		options.sql_joins.push(...options._joins.flatMap(({sql_joins}) => sql_joins).filter(Boolean));
 
 	}
 
@@ -475,16 +475,50 @@ async function format_request(options, dareInstance) {
 	if (options.negate) {
 
 		// Mark as another subquery
-		options.is_subquery = true;
+		let sql_where_conditions = [];
 
-		// Create sub_query
-		const sub_query = buildQuery(options, dareInstance);
+		if (method === 'get') {
+
+			// Get queries can be much simpler, we're allowed to use the same table in an exist statement like...
+			options.is_subquery = true;
+
+			// Create sub_query
+			const sub_query = buildQuery(options, dareInstance);
+			const sql_sub_query = SQL(sub_query.sql.split('?'), ...sub_query.values);
+
+			sql_where_conditions = [SQL`NOT EXISTS (${sql_sub_query})`];
+
+		}
+		else {
+
+			/*
+			 * Whilst patch and delete will throw an ER_UPDATE_TABLE_USED error
+			 * The query must not reference the table, so we need to be quite sneaky
+			 */
+
+			const parentReferences = Object.values(options.join_conditions).map(val => `${options.parent.sql_alias}.${val}`);
+
+			// Create sub_query
+			options.fields = Object.keys(options.join_conditions);
+			options.limit = null; // MySQL 5.6 doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'
+			options.many = null; // Do not attempt to CONCAT the fields
+			options.field_alias_path = ''; // Do not prefix the fields labels
+			options.parent = null; // Do not add superfluous joins
+
+			const sub_query = buildQuery(options, dareInstance);
+			const sql_sub_query = SQL(sub_query.sql.split('?'), ...sub_query.values);
+
+			sql_where_conditions = [SQL`${raw(parentReferences)} 
+				NOT IN (
+					SELECT ${raw(options.fields)} FROM (${sql_sub_query}
+				) AS ${raw(options.sql_alias)}_tmp)
+			`];
+
+		}
 
 		// Update the filters
 		return {
-			sql_where_conditions: [
-				SQL`NOT EXISTS (${SQL(sub_query.sql.split('?'), ...sub_query.values)})`
-			]
+			sql_where_conditions
 		};
 
 	}
