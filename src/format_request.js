@@ -484,9 +484,8 @@ async function format_request(options, dareInstance) {
 
 			// Create sub_query
 			const sub_query = buildQuery(options, dareInstance);
-			const sql_sub_query = SQL(sub_query.sql.split('?'), ...sub_query.values);
 
-			sql_where_conditions = [SQL`NOT EXISTS (${sql_sub_query})`];
+			sql_where_conditions = [SQL`NOT EXISTS (${sub_query})`];
 
 		}
 		else {
@@ -506,11 +505,10 @@ async function format_request(options, dareInstance) {
 			options.parent = null; // Do not add superfluous joins
 
 			const sub_query = buildQuery(options, dareInstance);
-			const sql_sub_query = SQL(sub_query.sql.split('?'), ...sub_query.values);
 
 			sql_where_conditions = [SQL`${raw(parentReferences)} 
 				NOT IN (
-					SELECT ${raw(options.fields)} FROM (${sql_sub_query}
+					SELECT ${raw(options.fields)} FROM (${sub_query}
 				) AS ${raw(options.sql_alias)}_tmp)
 			`];
 

@@ -4,6 +4,22 @@ import DareError from './utils/error.js';
 import group_concat from './utils/group_concat.js';
 import field_format from './utils/field_format.js';
 import orderbyUnwrap from './utils/orderby_unwrap.js';
+import SQL, {Sql, raw, join, empty} from 'sql-template-tag';
+
+function optionalJoin(...params) {
+
+	if (!params.at(0).length) {
+
+		return empty;
+
+	}
+	else {
+
+		return join(...params);
+
+	}
+
+}
 
 export default function buildQuery(opts, dareInstance) {
 
@@ -16,13 +32,10 @@ export default function buildQuery(opts, dareInstance) {
 	const {
 		fields,
 		has_many_join,
-		sql_subquery_values,
 		sql_joins,
-		sql_join_values,
 		sql_filter,
 		groupby,
-		orderby,
-		sql_values
+		orderby
 	} = traverse(opts, is_subquery, dareInstance);
 
 	// Get the root tableID
@@ -59,16 +72,9 @@ export default function buildQuery(opts, dareInstance) {
 	 */
 	if (opts.sql_where_conditions?.length) {
 
-		sql_filter.unshift(...opts.sql_where_conditions.map(({sql}) => sql));
-		sql_values.unshift(...opts.sql_where_conditions.flatMap(({values}) => values));
+		sql_filter.push(...opts.sql_where_conditions);
 
 	}
-
-	// Merge values
-	const values = []
-		.concat(sql_subquery_values)
-		.concat(sql_join_values)
-		.concat(sql_values);
 
 	/*
 	 * Groupby
@@ -95,7 +101,7 @@ export default function buildQuery(opts, dareInstance) {
 
 	if (opts.negate && fields.length === 0) {
 
-		sql_fields = [1];
+		sql_fields = [raw(1)];
 
 	}
 
@@ -104,13 +110,23 @@ export default function buildQuery(opts, dareInstance) {
 		// Generate a Group Concat statement of the result
 		const address = opts.field_alias_path || opts._joins[0].field_alias_path;
 		const gc = group_concat(fields, address);
-		sql_fields = gc.expression;
+		sql_fields = [raw(gc.expression)];
 		alias = gc.label;
 
 	}
 	else {
 
-		sql_fields = fields.map(field => `${field.expression}${field.label ? ` AS '${field.label}'` : ''}`);
+		sql_fields = fields.map(field => {
+
+			if (field instanceof Sql) {
+
+				return field;
+
+			}
+
+			return raw(`${field.expression}${field.label ? ` AS '${field.label}'` : ''}`);
+
+		});
 
 	}
 
@@ -124,7 +140,9 @@ export default function buildQuery(opts, dareInstance) {
 	if (opts.countRows) {
 
 		// Change the rows to show the count of the rows returned
-		sql_fields = `COUNT(DISTINCT ${sql_groupby.length ? sql_groupby : `${opts.sql_alias}.id`}) AS 'count'`;
+		sql_fields = [
+			SQL`COUNT(DISTINCT ${sql_groupby.length ? join(sql_groupby) : raw(`${opts.sql_alias}.id`)}) AS 'count'`
+		];
 
 		// Remove groupby and orderby...
 		sql_groupby.length = 0;
@@ -144,17 +162,23 @@ export default function buildQuery(opts, dareInstance) {
 	}
 
 	// Put it all together
-	const sql = `SELECT ${sql_fields.toString()}
-		FROM ${sql_table} ${sql_alias}
-		${sql_joins.join('\n')}
-		${sql_filter.length ? 'WHERE' : ''}
-		${sql_filter.join(' AND ')}
-		${sql_groupby.length ? `GROUP BY ${sql_groupby}` : ''}
-		${sql_orderby.length ? `ORDER BY ${sql_orderby}` : ''}
-		${opts.limit ? `LIMIT ${opts.start ? `${opts.start},` : ''}${opts.limit}` : ''}
+	let sql = SQL`SELECT ${join(sql_fields)}
+		FROM ${raw(sql_table)} ${raw(sql_alias)}
+		${optionalJoin(sql_joins, '\n', '')}
+		${optionalJoin(sql_filter, ' AND ', 'WHERE ')}
+		${optionalJoin(sql_groupby, ',', 'GROUP BY ')}
+		${optionalJoin(sql_orderby, ',', 'ORDER BY ')}
+		${opts.limit ? SQL`LIMIT ${opts.start ? raw(`${opts.start},`) : empty}${raw(opts.limit)}` : ''}
 	`;
 
-	return {sql, values, alias};
+	if (alias) {
+
+		// Wrap the whole thing in an alias
+		sql = SQL`(${sql}) AS '${raw(alias)}'`;
+
+	}
+
+	return sql;
 
 }
 
@@ -163,12 +187,9 @@ function traverse(item, is_subquery, dareInstance) {
 
 	// Filters populate the filter and values (prepared statements)
 	const sql_filter = [];
-	const sql_values = [];
 
 	// Fields
 	const fields = [];
-
-	const sql_subquery_values = [];
 
 	/*
 	 * List
@@ -178,7 +199,6 @@ function traverse(item, is_subquery, dareInstance) {
 
 	// Joins
 	const sql_joins = [];
-	const sql_join_values = [];
 
 	// SQL GroupBy
 	const groupby = [];
@@ -191,14 +211,11 @@ function traverse(item, is_subquery, dareInstance) {
 
 	const resp = {
 		sql_filter,
-		sql_values,
+		sql_joins,
 		groupby,
 		orderby,
 		fields,
 		list,
-		sql_subquery_values,
-		sql_joins,
-		sql_join_values,
 		has_many_join: false
 	};
 
@@ -247,14 +264,8 @@ function traverse(item, is_subquery, dareInstance) {
 			// Make the sub-query
 			const sub_query = buildQuery(item, dareInstance);
 
-			// Add the values
-			sql_subquery_values.push(...sub_query.values);
-
 			// Add the formatted field
-			fields.push({
-				expression: `(${sub_query.sql})`,
-				label: sub_query.alias
-			});
+			fields.push(sub_query);
 
 			// The rest has been handled in the sub-query
 			return resp;
@@ -268,10 +279,7 @@ function traverse(item, is_subquery, dareInstance) {
 	if (parent) {
 
 		// Update the values with the alias of the parent
-
-		// Deconstruct sql-template-tag
-		const sql_join_condition = [item.sql_join_condition.sql];
-		sql_join_values.push(...item.sql_join_condition.values);
+		const sql_join_condition = item.sql_join_condition;
 
 		const {required_join} = item;
 
@@ -292,24 +300,20 @@ function traverse(item, is_subquery, dareInstance) {
 				for (const x in item.join_conditions) {
 
 					const val = item.join_conditions[x];
-					sql_filter.push(`(${sql_alias}.${x} = ${parent.sql_alias}.${val} OR ${parent.sql_alias}.${val} IS NULL)`);
+					sql_filter.push(raw(`(${sql_alias}.${x} = ${parent.sql_alias}.${val} OR ${parent.sql_alias}.${val} IS NULL)`));
 
 				}
 
 			}
 
 			// Append to the sql_join
-			sql_joins.push(`${item.required_join ? '' : 'LEFT'} JOIN ${item.sql_table} ${sql_alias} ON (${sql_join_condition.join(' AND ')})`);
+			sql_joins.push(SQL`${item.required_join ? empty : raw('LEFT ')}JOIN ${raw(item.sql_table)} ${raw(sql_alias)} ON (${sql_join_condition})`);
 
 		}
 		else {
 
 			// Merge the join condition on the filter
-			sql_filter.push(...sql_join_condition);
-
-			// Offload and Reset the sql_join_values
-			sql_values.push(...sql_join_values);
-			sql_join_values.length = 0;
+			sql_filter.push(sql_join_condition);
 
 		}
 
@@ -472,7 +476,7 @@ function aliasOrderAndGroupFields(arr, fields) {
 
 			}
 
-			return [expression, direction].filter(v => !!v).join(' ');
+			return join([expression, direction].filter(v => !!v).map(item => raw(item)), ' ');
 
 		});
 

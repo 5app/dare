@@ -295,7 +295,7 @@ describe('get - request object', () => {
 							AND a.b = ?
 							AND NOT EXISTS (
 								SELECT 1 FROM apps b
-								WHERE b.name = ? AND b.id = a.ref_id
+								WHERE  b.id = a.ref_id AND b.name = ?
 								LIMIT 1
 							)
 						LIMIT 5`);

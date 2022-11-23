@@ -209,10 +209,10 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 
 	const req = await dareInstance.format_request(dareInstance.options);
 
-	const {sql, values} = getHandler(req, dareInstance);
+	const query = getHandler(req, dareInstance);
 
 	// Execute the query
-	const sql_response = await dareInstance.sql({sql, values});
+	const sql_response = await dareInstance.sql(query);
 
 	// Format the response
 	let resp = await dareInstance.response_handler(sql_response);
@@ -287,10 +287,10 @@ Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
 
 	const req = await dareInstance.format_request(dareInstance.options);
 
-	const {sql, values} = getHandler(req, dareInstance);
+	const query = getHandler(req, dareInstance);
 
 	// Execute the query
-	const [resp] = await dareInstance.sql({sql, values});
+	const [resp] = await dareInstance.sql(query);
 
 	// Return the count
 	return resp.count;
