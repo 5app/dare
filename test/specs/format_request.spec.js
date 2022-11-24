@@ -66,7 +66,15 @@ describe('format_request', () => {
 			field_alias_path: '',
 			filter,
 			_filter: [
-				['id', '= ?', [1]]
+				{
+					strings: [
+						'a.id = ',
+						''
+					],
+					values: [
+						1
+					]
+				}
 			],
 			sql_alias: 'a',
 			sql_joins: [],
@@ -455,220 +463,187 @@ describe('format_request', () => {
 				const a = [
 					[
 						{prop: 'string'},
-						'prop',
-						'= ?',
+						'a.prop = ?',
 						['string']
 					],
 					[
 						{'-prop': 'string'},
-						'prop',
-						'!= ?',
+						'a.prop != ?',
 						['string']
 					],
 					[
 						{prop: '%string'},
-						'prop',
-						'LIKE ?',
+						'a.prop LIKE ?',
 						['%string']
 					],
 					[
 						{prop: '%string'},
-						'prop',
-						'= ?',
+						'a.prop = ?',
 						['%string'],
 						noCondOperators
 					],
 					[
 						{prop: '!string'},
-						'prop',
-						'NOT LIKE ?',
+						'a.prop NOT LIKE ?',
 						['string']
 					],
 					[
 						{prop: '!string'},
-						'prop',
-						'= ?',
+						'a.prop = ?',
 						['!string'],
 						noCondOperators
 					],
 					[
 						{prop: '!patt%rn'},
-						'prop',
-						'NOT LIKE ?',
+						'a.prop NOT LIKE ?',
 						['patt%rn']
 					],
 					[
 						{'%prop': 'string%'},
-						'prop',
-						'LIKE ?',
+						'a.prop LIKE ?',
 						['string%']
 					],
 					[
 						{'-prop': 'patt%rn'},
-						'prop',
-						'NOT LIKE ?',
+						'a.prop NOT LIKE ?',
 						['patt%rn']
 					],
 					[
 						{'-prop': 'patt%rn'},
-						'prop',
-						'!= ?',
+						'a.prop != ?',
 						['patt%rn'],
 						noCondOperators
 					],
 					[
 						{prop: [1, 2, 3]},
-						'prop',
-						'IN (?,?,?)',
-						[1, 2, 3]
+						'a.prop IN (?)',
+						[[1, 2, 3]]
 					],
 					[
 						{'-prop': [1, 2, 3]},
-						'prop',
-						'NOT IN (?,?,?)',
-						[1, 2, 3]
+						'a.prop NOT IN (?)',
+						[[1, 2, 3]]
 					],
 					[
 						{prop: [1]},
-						'prop',
-						'IN (?)',
-						[1]
+						'a.prop IN (?)',
+						[[1]]
 					],
 					[
 						{'-prop': [1]},
-						'prop',
-						'NOT IN (?)',
-						[1]
+						'a.prop NOT IN (?)',
+						[[1]]
 					],
 					[
 						{prop: [1, null, 2]},
-						'prop',
-						'($$ IN (?,?) OR $$ IS NULL)',
-						[1, 2]
+						'(a.prop IN (?) OR a.prop IS NULL)',
+						[[1, 2]]
 					],
 					[
 						{'-prop': [1, null, 2]},
-						'prop',
-						'($$ NOT IN (?,?) AND $$ IS NOT NULL)',
-						[1, 2]
+						'(a.prop NOT IN (?) AND a.prop IS NOT NULL)',
+						[[1, 2]]
 					],
 					[
 						{prop: [1, 2, null, 'test%', 'test2%']},
-						'prop',
-						'($$ IN (?,?) OR $$ IS NULL OR $$ LIKE ? OR $$ LIKE ?)',
-						[1, 2, 'test%', 'test2%']
+						'(a.prop IN (?) OR a.prop IS NULL OR a.prop LIKE ? OR a.prop LIKE ?)',
+						[[1, 2], 'test%', 'test2%']
 					],
 					[
 						{prop: [1, 2, null, 'test%', 'test2%']},
-						'prop',
-						'($$ IN (?,?,?,?) OR $$ IS NULL)',
-						[1, 2, 'test%', 'test2%'],
+						'(a.prop IN (?) OR a.prop IS NULL)',
+						[[1, 2, 'test%', 'test2%']],
 						noCondOperators
 					],
 					[
 						// Use a likey prop indicator to expand on the query
 						{'%prop': [1, 2, null, 'test%', 'test2%']},
-						'prop',
-						'($$ IN (?,?) OR $$ IS NULL OR $$ LIKE ? OR $$ LIKE ?)',
-						[1, 2, 'test%', 'test2%'],
+						'(a.prop IN (?) OR a.prop IS NULL OR a.prop LIKE ? OR a.prop LIKE ?)',
+						[[1, 2], 'test%', 'test2%'],
 						noCondOperators
 					],
 					[
 						{'-prop': [1, 2, null, 'test%', 'test2%']},
-						'prop',
-						'($$ NOT IN (?,?) AND $$ IS NOT NULL AND $$ NOT LIKE ? AND $$ NOT LIKE ?)',
-						[1, 2, 'test%', 'test2%']
+						'(a.prop NOT IN (?) AND a.prop IS NOT NULL AND a.prop NOT LIKE ? AND a.prop NOT LIKE ?)',
+						[[1, 2], 'test%', 'test2%']
 					],
 					[
 						{prop: [null]},
-						'prop',
-						'IS NULL',
+						'a.prop IS NULL',
 						[]
 					],
 					[
 						{'-prop': [null]},
-						'prop',
-						'IS NOT NULL',
+						'a.prop IS NOT NULL',
 						[]
 					],
 					[
 						{prop: []},
-						'prop',
-						'AND false',
-						[]
+						'a.prop AND ?',
+						[false]
 					],
 					[
 						{'-prop': []},
-						'prop',
-						'AND true',
-						[]
+						'a.prop AND ?',
+						[true]
 					],
 					[
 						{prop: null},
-						'prop',
-						'IS NULL',
+						'a.prop IS NULL',
 						[]
 					],
 					[
 						{'-prop': null},
-						'prop',
-						'IS NOT NULL',
+						'a.prop IS NOT NULL',
 						[]
 					],
 					[
 						{'-date': '1981-12-05..'},
-						'date',
-						'(NOT $$ > ? OR $$ IS NULL)',
+						'(NOT a.date > ? OR a.date IS NULL)',
 						['1981-12-05T00:00:00']
 					],
 					[
 						{prop: '1981-12-05..'},
-						'prop',
-						'$$ > ?',
+						'a.prop > ?',
 						['1981-12-05']
 					],
 					[
 						{prop: '1970-01-01..1981-12-05'},
-						'prop',
-						'BETWEEN ? AND ?',
+						'a.prop BETWEEN ? AND ?',
 						['1970-01-01', '1981-12-05']
 					],
 					[
 						{prop: '1981-12-05..'},
-						'prop',
-						'= ?',
+						'a.prop = ?',
 						['1981-12-05..'],
 						noCondOperators
 					],
 					[
 						{'~prop': ['a', 'b']},
-						'prop',
-						'BETWEEN ? AND ?',
+						'a.prop BETWEEN ? AND ?',
 						['a', 'b']
 					],
 					[
 						{'~prop': ['a', null]},
-						'prop',
-						'$$ > ?',
+						'a.prop > ?',
 						['a']
 					],
 					[
 						// Should ignore $ (suffixing) keys
 						{'prop$asdasd': null},
-						'prop',
-						'IS NULL',
+						'a.prop IS NULL',
 						[]
 					]
 				];
 
 				a.forEach(async test => {
 
-					const [filter, prop, condition, values, options] = test;
+					const [filter, sql, values, options] = test;
 
 					// Clone filter
 					const filter_cloned = JSON.parse(JSON.stringify(filter));
 
-					it(`should transform condition ${JSON.stringify(filter)} -> ${JSON.stringify(condition)}`, async () => {
+					it(`should transform condition ${JSON.stringify(filter)} -> ${JSON.stringify(sql)}`, async () => {
 
 						if (options) {
 
@@ -682,7 +657,10 @@ describe('format_request', () => {
 							[condition_type]: filter
 						});
 
-						expect(resp[`_${condition_type}`][0]).to.eql([prop, condition, values]);
+						const query = resp[`_${condition_type}`][0];
+
+						expect(query.sql).to.equal(sql);
+						expect(query.values).to.deep.equal(values);
 
 						// Should not mutate the filters...
 						expect(filter).to.deep.eql(filter_cloned);
@@ -734,42 +712,42 @@ describe('format_request', () => {
 
 				const o = {
 					'1981-12-05': [
-						'BETWEEN ? AND ?',
+						'a.date BETWEEN ? AND ?',
 						['1981-12-05T00:00:00', '1981-12-05T23:59:59']
 					],
 					'1981-1-5': [
-						'BETWEEN ? AND ?',
+						'a.date BETWEEN ? AND ?',
 						['1981-01-05T00:00:00', '1981-01-05T23:59:59']
 					],
 					'1981-12-05..1981-12-06': [
-						'BETWEEN ? AND ?',
+						'a.date BETWEEN ? AND ?',
 						['1981-12-05T00:00:00', '1981-12-06T23:59:59']
 					],
 					'1981-12-05..': [
-						'$$ > ?',
+						'a.date > ?',
 						['1981-12-05T00:00:00']
 					],
 					'..1981-12-05': [
-						'$$ < ?',
+						'a.date < ?',
 						['1981-12-05T00:00:00']
 					],
 					'1981-12': [
-						'BETWEEN ? AND ?',
+						'a.date BETWEEN ? AND ?',
 						['1981-12-01T00:00:00', '1981-12-31T23:59:59']
 					],
 					'1981-1': [
-						'BETWEEN ? AND ?',
+						'a.date BETWEEN ? AND ?',
 						['1981-01-01T00:00:00', '1981-01-31T23:59:59']
 					],
 					'2016': [
-						'BETWEEN ? AND ?',
+						'a.date BETWEEN ? AND ?',
 						['2016-01-01T00:00:00', '2016-12-31T23:59:59']
 					]
 				};
 
 				for (const date in o) {
 
-					const [condition, values] = o[date];
+					const [sql, values] = o[date];
 
 					it(`should augment filter values ${date}`, async () => {
 
@@ -781,7 +759,10 @@ describe('format_request', () => {
 							}
 						});
 
-						expect(resp[`_${condition_type}`][0]).to.eql(['date', condition, values]);
+						const query = resp[`_${condition_type}`][0];
+
+						expect(query.sql).to.equal(sql);
+						expect(query.values).to.deep.equal(values);
 
 					});
 

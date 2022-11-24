@@ -9,7 +9,6 @@ import limitClause from './format/limit_clause.js';
 import joinHandler from './format/join_handler.js';
 import getFieldAttributes from './utils/field_attributes.js';
 import extend from './utils/extend.js';
-import formCondition from './utils/form_conditions.js';
 import buildQuery from './get.js';
 
 /**
@@ -102,6 +101,8 @@ async function format_request(options, dareInstance) {
 		options.sql_alias = dareInstance.get_unique_alias();
 
 	}
+
+	const {sql_alias} = options;
 
 	/*
 	 * Call bespoke table handler
@@ -199,11 +200,18 @@ async function format_request(options, dareInstance) {
 	// Format filters
 	if (options.filter) {
 
+		// Filter must be an object with key=>values
+		if (typeof options.filter !== 'object') {
+
+			throw new DareError(DareError.INVALID_REFERENCE, `The filter property value '${options.filter}' is invalid. Expected a JS object`);
+
+		}
+
 		// Extract nested filters handler
 		const extract = extractJoined.bind(null, 'filter', false);
 
 		// Return array of immediate props
-		const arr = reduceConditions(options.filter, {extract, propName: 'filter', table_schema, conditional_operators_in_value});
+		const arr = reduceConditions(options.filter, {extract, sql_alias, table_schema, conditional_operators_in_value});
 
 		options._filter = arr.length ? arr : null;
 
@@ -233,21 +241,30 @@ async function format_request(options, dareInstance) {
 	// Format conditional joins
 	if (options.join) {
 
+		// Filter must be an object with key=>values
+		if (typeof options.join !== 'object') {
+
+			throw new DareError(DareError.INVALID_REFERENCE, `The join property value '${options.join}' is invalid, expected an JS object.`);
+
+		}
+
+		// Is a required join?
+		if ('_required' in options.join) {
+
+			// Has _required join?
+			options.required_join = options.join._required;
+
+			// Filter out _required
+			delete options.join._required;
+
+		}
+
 		// Extract nested joins handler
 		const extract = extractJoined.bind(null, 'join', false);
 
 		// Return array of immediate props
-		options._join = reduceConditions(options.join, {extract, propName: 'join', table_schema, conditional_operators_in_value});
+		options._join = reduceConditions(options.join, {extract, sql_alias, table_schema, conditional_operators_in_value});
 
-		// Has _required join?
-		options.required_join = options._join.some(([field]) => field === '_required');
-
-		if (options.required_join) {
-
-			// Filter out _required
-			options._join = options._join.filter(([field]) => field !== '_required');
-
-		}
 
 		/*
 		 * Convert root joins to filters...
@@ -397,13 +414,7 @@ async function format_request(options, dareInstance) {
 		if (options._filter) {
 
 			// Get current filters
-			sql_where_conditions.push(...options._filter.map(([field, condition, prepValues]) => {
-
-				const arrStr = formCondition(options.sql_alias, field, condition).split('?');
-
-				return SQL(arrStr, ...prepValues);
-
-			}));
+			sql_where_conditions.push(...options._filter);
 
 		}
 
@@ -433,13 +444,7 @@ async function format_request(options, dareInstance) {
 
 		if (options._join) {
 
-			sql_join_condition.push(...options._join.map(([field, condition, prepValues]) => {
-
-				const arrStr = formCondition(options.sql_alias, field, condition).split('?');
-
-				return SQL(arrStr, ...prepValues);
-
-			}));
+			sql_join_condition.push(...options._join);
 
 			// Prevent join condifions from being applied twice in buildQuery
 			options._join.length = 0;
@@ -508,8 +513,10 @@ async function format_request(options, dareInstance) {
 
 			sql_where_conditions = [SQL`${raw(parentReferences)} 
 				NOT IN (
-					SELECT ${raw(options.fields)} FROM (${sub_query}
-				) AS ${raw(options.sql_alias)}_tmp)
+					SELECT ${raw(options.fields)} FROM (
+						${sub_query}
+					) AS ${raw(options.sql_alias)}_tmp
+				)
 			`];
 
 		}

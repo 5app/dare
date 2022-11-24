@@ -168,7 +168,7 @@ export default function buildQuery(opts, dareInstance) {
 		${optionalJoin(sql_filter, ' AND ', 'WHERE ')}
 		${optionalJoin(sql_groupby, ',', 'GROUP BY ')}
 		${optionalJoin(sql_orderby, ',', 'ORDER BY ')}
-		${opts.limit ? SQL`LIMIT ${opts.start ? raw(`${opts.start},`) : empty}${raw(opts.limit)}` : ''}
+		${opts.limit ? SQL`LIMIT ${opts.start ? raw(`${opts.start},`) : empty}${raw(opts.limit)}` : empty}
 	`;
 
 	if (alias) {
