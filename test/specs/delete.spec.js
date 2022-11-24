@@ -32,8 +32,8 @@ describe('del', () => {
 		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(sql, 'DELETE FROM test WHERE id = ? LIMIT 1');
-			expect(values).to.deep.equal([1]);
+			sqlEqual(sql, 'DELETE FROM test WHERE test.id = ? LIMIT ?');
+			expect(values).to.deep.equal([1, 1]);
 			return {success: true};
 
 		};
@@ -71,21 +71,21 @@ describe('del', () => {
 		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(sql, 'DELETE FROM tablename WHERE id = ? LIMIT 1');
-			expect(values).to.deep.equal([1]);
+			sqlEqual(sql, 'DELETE FROM test WHERE test.id = ? LIMIT ?');
+			expect(values).to.deep.equal([1, 1]);
 			return {success: true};
 
 		};
 
 		dare.options.models = {
-			'test': {
-				table: 'tablename'
+			'alias': {
+				table: 'test'
 			}
 		};
 
 		return dare
 			.del({
-				table: 'test',
+				table: 'alias',
 				filter: {id: 1}
 			});
 
@@ -95,8 +95,8 @@ describe('del', () => {
 
 		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(sql, 'DELETE FROM test WHERE id = ? LIMIT 1');
-			expect(values).to.deep.equal([1]);
+			sqlEqual(sql, 'DELETE FROM test WHERE test.id = ? LIMIT ?');
+			expect(values).to.deep.equal([1, 1]);
 			return {success: true};
 
 		};
@@ -125,8 +125,8 @@ describe('del', () => {
 
 		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(sql, 'DELETE FROM tbl WHERE id = ? LIMIT 1');
-			expect(values).to.deep.equal([1]);
+			sqlEqual(sql, 'DELETE FROM test WHERE test.id = ? LIMIT ?');
+			expect(values).to.deep.equal([1, 1]);
 			return {success: true};
 
 		};
@@ -144,7 +144,7 @@ describe('del', () => {
 
 		return dare
 			.del({
-				table: 'tbl',
+				table: 'test',
 				filter: {id: 2}
 			});
 
@@ -220,7 +220,9 @@ describe('del', () => {
 	});
 
 
-	it('disallow nested filters: should throw an exception', () => {
+	it('allow nested filters (integration-tested)', async () => {
+
+		dare.sql = async () => ({affectedRows: 1});
 
 		dare.options.models = {
 			tbl: {
@@ -231,7 +233,7 @@ describe('del', () => {
 			}
 		};
 
-		const test = dare
+		const test = await dare
 			.del({
 				table: 'tbl',
 				filter: {
@@ -242,9 +244,35 @@ describe('del', () => {
 				}
 			});
 
-		return expect(test)
-			.to.be.eventually.rejectedWith(DareError)
-			.and.have.property('code', DareError.INVALID_REQUEST);
+		expect(test).to.have.property('affectedRows', 1);
+
+	});
+
+	it('should allow nested filters with negation prefix (integration-tested)', async () => {
+
+		dare.sql = async () => ({affectedRows: 1});
+
+		dare.options.models = {
+			tbl: {
+				schema: {
+					// Create a reference to tblB
+					ref_id: ['tblB.id']
+				}
+			}
+		};
+
+		const test = await dare
+			.del({
+				table: 'tbl',
+				filter: {
+					id: 1,
+					'-tblB': {
+						id: 1
+					}
+				}
+			});
+
+		expect(test).to.have.property('affectedRows', 1);
 
 	});
 

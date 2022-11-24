@@ -1,4 +1,5 @@
 
+import SQL, {raw, join, empty} from 'sql-template-tag';
 
 import getHandler from './get.js';
 
@@ -204,40 +205,40 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 	// Set default notfound handler
 	setDefaultNotFoundHandler(opts);
 
-	const _this = this.use(opts);
+	const dareInstance = this.use(opts);
 
-	const req = await _this.format_request(_this.options);
+	const req = await dareInstance.format_request(dareInstance.options);
 
-	const {sql, values} = getHandler.call(_this, req);
+	const query = getHandler(req, dareInstance);
 
 	// Execute the query
-	const sql_response = await _this.sql({sql, values});
+	const sql_response = await dareInstance.sql(query);
 
 	// Format the response
-	let resp = await _this.response_handler(sql_response);
+	let resp = await dareInstance.response_handler(sql_response);
 
 	// If limit was not defined we should return the first result only.
-	if (_this.options.single) {
+	if (dareInstance.options.single) {
 
 		if (resp.length) {
 
 			resp = resp[0];
 
 		}
-		else if (typeof _this.options.notfound === 'function') {
+		else if (typeof dareInstance.options.notfound === 'function') {
 
-			_this.options.notfound();
+			dareInstance.options.notfound();
 
 		}
 		else {
 
-			resp = _this.options.notfound;
+			resp = dareInstance.options.notfound;
 
 		}
 
 	}
 
-	return _this.after(resp);
+	return dareInstance.after(resp);
 
 };
 
@@ -282,14 +283,14 @@ Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
 	opts.limit = undefined;
 	opts.start = undefined;
 
-	const _this = this.use(opts);
+	const dareInstance = this.use(opts);
 
-	const req = await _this.format_request(_this.options);
+	const req = await dareInstance.format_request(dareInstance.options);
 
-	const {sql, values} = getHandler.call(_this, req);
+	const query = getHandler(req, dareInstance);
 
 	// Execute the query
-	const [resp] = await _this.sql({sql, values});
+	const [resp] = await dareInstance.sql(query);
 
 	// Return the count
 	return resp.count;
@@ -319,42 +320,28 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	// Set default notfound handler
 	setDefaultNotFoundHandler(opts);
 
-	const _this = this.use(opts);
+	const dareInstance = this.use(opts);
 
-	const req = await _this.format_request(opts);
+	const req = await dareInstance.format_request(opts);
 
 	// Skip this operation?
 	if (req.skip) {
 
-		return _this.after(req.skip);
+		return dareInstance.after(req.skip);
 
 	}
-
-	/*
-	 * Disallow joins
-	 * @todo: support joins see #187
-	 */
-	disallowJoins(req);
 
 	// Validate Body
 	validateBody(req.body);
 
 	// Options
-	const {models, validateInput} = _this.options;
+	const {models, validateInput} = dareInstance.options;
 
 	// Get the model structure
 	const {schema: tableSchema} = models?.[req.name] || {};
 
 	// Prepare post
-	const {assignments, values} = prepareSet(req.body, tableSchema, validateInput);
-
-	// Prepare query
-	const sql_query = req._filter.map(([field, condition, prepValues]) => {
-
-		values.push(...prepValues);
-		return formCondition(field, condition);
-
-	});
+	const sql_set = prepareSQLSet(req.body, req.sql_alias, tableSchema, validateInput);
 
 	// If ignore duplicate keys is stated as ignore
 	let exec = '';
@@ -365,18 +352,19 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	}
 
 	// Construct a db update
-	const sql = `UPDATE ${exec}${req.sql_table}
+	const sql = SQL`UPDATE ${raw(exec)}${raw(req.sql_table)} ${raw(req.sql_alias)}
+			${req.sql_joins.length ? join(req.sql_joins, '\n') : empty}
 			SET
-				${serialize(assignments, '=', ',')}
+				${sql_set}
 			WHERE
-				${sql_query.join(' AND ')}
-			LIMIT ${req.limit}`;
+				${join(req.sql_where_conditions, ' AND ')}
+			${!req.sql_joins.length ? SQL`LIMIT ${req.limit}` : empty}`;
 
-	let resp = await this.sql({sql, values});
+	let resp = await this.sql(sql);
 
 	resp = mustAffectRows(resp, opts.notfound);
 
-	return _this.after(resp);
+	return dareInstance.after(resp);
 
 };
 
@@ -452,7 +440,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 
 		}
 
-		const {sql, values: getValues} = getHandler.call(getInstance, getRequest);
+		const {sql, values: getValues} = getHandler(getRequest, getInstance);
 
 		// Update the capturing variables...
 		query = sql;
@@ -644,59 +632,45 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 	// Set default notfound handler
 	setDefaultNotFoundHandler(opts);
 
-	const _this = this.use(opts);
+	const dareInstance = this.use(opts);
 
-	const req = await _this.format_request(opts);
+	const req = await dareInstance.format_request(opts);
 
 	// Skip this operation?
 	if (req.skip) {
 
-		return _this.after(req.skip);
+		return dareInstance.after(req.skip);
 
 	}
 
-	/*
-	 * Disallow joins
-	 * @todo: support joins see #187
-	 */
-	disallowJoins(req);
-
-	// Clone object before formatting
-	const values = [];
-	const sql_query = req._filter.map(([field, condition, prepValues]) => {
-
-		values.push(...prepValues);
-		return formCondition(field, condition);
-
-	});
-
 	// Construct a db update
-	const sql = `DELETE FROM ${req.sql_table}
+	const sql = SQL`DELETE ${req.sql_joins.length ? raw(req.sql_table) : empty} FROM ${raw(req.sql_table)}
+					${req.sql_joins.length ? join(req.sql_joins, '\n') : empty}
 					WHERE
-					${sql_query.join(' AND ')}
-					LIMIT ${req.limit}`;
+					${join(req.sql_where_conditions, ' AND ')}
+					${!req.sql_joins.length ? SQL`LIMIT ${req.limit}` : empty}`;
 
-	let resp = await this.sql({sql, values});
+	let resp = await this.sql(sql);
 
 	resp = mustAffectRows(resp, opts.notfound);
 
-	return _this.after(resp);
+	return dareInstance.after(resp);
 
 };
 
 
 /**
- * Prepared Set
+ * Prepared SQL Set
  * Prepare a SET assignments used in Patch
  * @param {object} body - body to format
+ * @param {string} sql_alias - SQL Alias for update table
  * @param {object} [tableSchema={}] - Schema for the current table
  * @param {Function} [validateInput] - Validate input function
  * @returns {object} {assignment, values}
  */
-function prepareSet(body, tableSchema = {}, validateInput) {
+function prepareSQLSet(body, sql_alias, tableSchema = {}, validateInput) {
 
-	const values = [];
-	const assignments = {};
+	const assignments = [];
 
 	for (const label in body) {
 
@@ -707,30 +681,11 @@ function prepareSet(body, tableSchema = {}, validateInput) {
 		const {field, value} = formatInputValue(tableSchema, label, body[label], validateInput);
 
 		// Replace value with a question using any mapped fieldName
-		assignments[field] = '?';
-
-		// Add to the array of items
-		values.push(value);
+		assignments.push(SQL`${raw(sql_alias)}.\`${raw(field)}\` = ${value}`);
 
 	}
 
-	return {
-		assignments,
-		values
-	};
-
-}
-
-function serialize(obj, separator, delimiter) {
-
-	const r = [];
-	for (const x in obj) {
-
-		const val = obj[x];
-		r.push(`\`${x}\` ${separator} ${val}`);
-
-	}
-	return r.join(` ${delimiter} `);
+	return join(assignments, ', ');
 
 }
 
@@ -870,13 +825,6 @@ function setDefaultNotFoundHandler(opts) {
 }
 
 
-function formCondition(field, condition) {
-
-	// Insert the field name in place
-	return condition.includes('$$') ? condition.replace(/\$\$/g, field) : `${field} ${condition}`;
-
-}
-
 /**
  * Migrate to Models
  * Backwards compatibility for {schema}
@@ -912,22 +860,6 @@ function migrateToModels(options) {
 			});
 
 		}
-
-	}
-
-}
-
-
-/**
- * DisallowJoins
- * @param {object} req - Formatted request object
- * @returns {void} Checks whether a join is included in the request
- */
-function disallowJoins(req) {
-
-	if (req._joins) {
-
-		throw new DareError(DareError.INVALID_REQUEST, `${req.method} cannot contain nested joins`);
 
 	}
 

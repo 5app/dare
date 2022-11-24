@@ -1,5 +1,4 @@
-import DareError from '../utils/error.js';
-
+import SQL, {raw, join, empty} from 'sql-template-tag';
 import checkKey from '../utils/validate_field.js';
 import checkTableAlias from '../utils/validate_alias.js';
 import formatDateTime from '../utils/format_datetime.js';
@@ -12,21 +11,14 @@ import unwrap_field from '../utils/unwrap_field.js';
  * @param {object} filter - Filter conditions
  * @param {object} options - Options object
  * @param {Function} options.extract - Extract (key, value) related to nested model
- * @param {string} options.propName - PropName, e.g. 'filter', 'join'
+ * @param {string} options.sql_alias - Table SQL Alias, e.g. 'a', 'b', etc..
  * @param {object} options.table_schema - Table schema
  * @param {string|null} options.conditional_operators_in_value - Allowable conditional operators in value
  * @returns {Array} Conditions object converted to SQL
  */
-export default function reduceConditions(filter, {extract, propName, table_schema, conditional_operators_in_value}) {
+export default function reduceConditions(filter, {extract, sql_alias, table_schema, conditional_operators_in_value}) {
 
 	const filterArr = [];
-
-	// Filter must be an object with key=>values
-	if (typeof filter !== 'object') {
-
-		throw new DareError(DareError.INVALID_REFERENCE, `The ${propName} '${filter}' is invalid.`);
-
-	}
 
 	// Explore the filter for any table joins
 	for (let key in filter) {
@@ -61,7 +53,7 @@ export default function reduceConditions(filter, {extract, propName, table_schem
 
 			const key_definition = table_schema[key];
 
-			filterArr.push(prepCondition({field: key, value, key_definition, operators, conditional_operators_in_value}));
+			filterArr.push(prepCondition({field: key, value, sql_alias, key_definition, operators, conditional_operators_in_value}));
 
 		}
 
@@ -97,12 +89,12 @@ function stripKey(key) {
 
 }
 
-function prepCondition({field, value, key_definition, operators, conditional_operators_in_value}) {
+function prepCondition({field, value, sql_alias, key_definition, operators, conditional_operators_in_value}) {
 
 	const {type, alias} = getFieldAttributes(key_definition);
 
 	// Does it have a negative comparison operator?
-	let negate = operators?.includes('-');
+	const negate = operators?.includes('-');
 
 	// Does it have a Likey comparison operator
 	const isLikey = operators?.includes('%');
@@ -127,17 +119,31 @@ function prepCondition({field, value, key_definition, operators, conditional_ope
 
 	}
 
+	// Define the field definition
+	let sql_field = raw(`${sql_alias}.${field}`);
+
+	/*
+	 * Should the field contain a SQL Function itself
+	 * -> Let's extract it...
+	 */
+	if (/[^\w$.]/.test(field)) {
+
+		const {prefix, suffix, field: rawField} = unwrap_field(field);
+
+		// Ammend the sql_field
+		sql_field = raw(`${prefix}${sql_alias}.${rawField}${suffix}`);
+
+	}
+
+	// Format date time values
 	if (type === 'datetime') {
 
 		value = formatDateTime(value);
 
 	}
 
-	// Set the default negate operator, if appropriate
-	negate = negate ? 'NOT ' : '';
-
-	let condition;
-	let values;
+	// Set a handly NOT value
+	const NOT = negate ? raw('NOT ') : empty;
 
 	/*
 	 * Range
@@ -149,69 +155,73 @@ function prepCondition({field, value, key_definition, operators, conditional_ope
 
 	if ((allow_conditional_range_operator_in_value || isRange) && Array.isArray(a) && a.length === 2) {
 
+		let sql;
+
 		if (a[0] && a[1]) {
 
-			condition = 'BETWEEN ? AND ?';
-			values = a;
+			sql = SQL`${sql_field} BETWEEN ${a[0]} AND ${a[1]}`;
 
 		}
 		else if (a[0]) {
 
-			condition = '$$ > ?';
-			values = [a[0]];
+			sql = SQL`${sql_field} > ${a[0]}`;
 
 		}
 		else {
 
-			condition = '$$ < ?';
-			values = [a[1]];
+			sql = SQL`${sql_field} < ${a[1]}`;
 
 		}
 
 		if (negate) {
 
-			condition = `(NOT ${condition} OR $$ IS NULL)`;
-			negate = '';
+			sql = SQL`(NOT ${sql} OR ${sql_field} IS NULL)`;
 
 		}
+
+		return sql;
 
 	}
 
 	// Not match
 	else if (typeof value === 'string' && allow_conditional_negate_operator_in_value && value[0] === '!') {
 
-		condition = 'LIKE ?';
-		values = [value.slice(1)];
-		negate = 'NOT ';
+		return SQL`${sql_field} NOT LIKE ${value.slice(1)}`;
 
 	}
 
 	// String partial match
 	else if (typeof value === 'string' && (isLikey || (allow_conditional_likey_operator_in_value && value.match('%')))) {
 
-		condition = 'LIKE ?';
-		values = [value];
+		return SQL`${sql_field} ${NOT}LIKE ${value}`;
 
 	}
 
 	// Null
 	else if (value === null) {
 
-		condition = `IS ${negate}NULL`;
-		values = [];
-		negate = ''; // Already negated
+		return SQL`${sql_field} IS ${NOT}NULL`;
+
+	}
+
+	/*
+	 * Request filter includes empty array of possible values
+	 * @todo break execution and return empty resultset.
+	 * This workaround adds SQL `...AND false` to the conditions which makes the response empty
+	 */
+	else if (Array.isArray(value) && value.length === 0) {
+
+		// If the filter array is empty, then if negated ignore it (... AND true), else exclude everything (... AND false)
+		return SQL`${sql_field} AND ${Boolean(negate)}`;
 
 	}
 
 	// Add to the array of items
-	else if (Array.isArray(value) && value.length > 0) {
+	else if (Array.isArray(value)) {
 
 		// Sub
 		const sub_values = [];
 		const conds = [];
-
-		// Clone the values
-		value = [...value];
 
 		// Filter the results of the array...
 		value = value.filter(item => {
@@ -233,81 +243,22 @@ function prepCondition({field, value, key_definition, operators, conditional_ope
 		// Use the `IN(...)` for items which can be grouped...
 		if (value.length) {
 
-			conds.push(`${negate}IN (${value.map(() => '?')})`);
+			conds.push(SQL`${sql_field} ${NOT}IN (${value})`);
 
 		}
 
 		// Other Values which can't be grouped ...
-		if (sub_values.length) {
+		conds.push(...sub_values.map(item => prepCondition({field, sql_alias, value: item, key_definition, operators, conditional_operators_in_value})));
 
-			// Cond
-			sub_values.forEach(item => {
-
-				const [, cond, values] = prepCondition({field: null, value: item, key_definition, operators, conditional_operators_in_value});
-
-				// Add to condition
-				conds.push(cond);
-
-				// Add Values
-				value.push(...values);
-
-			});
-
-		}
-
-		if (conds.length === 1) {
-
-			[condition] = conds;
-
-		}
-		else {
-
-			// Join...
-			condition = `(${conds.map(cond => `$$ ${cond}`).join(negate ? ' AND ' : ' OR ')})`;
-
-		}
-
-		negate = ''; // Already negated
-
-		values = value;
+		// Return a single or a wrapped group
+		return conds.length === 1 ? conds.at(0) : SQL`(${join(conds, negate ? ' AND ' : ' OR ')})`;
 
 	}
 
-	/*
-	 * Request filter includes empty array of possible values
-	 * @todo break execution and return empty resultset.
-	 * This workaround adds SQL `...AND false` to the conditions which makes the response empty
-	 */
-	else if (Array.isArray(value) && value.length === 0) {
-
-		// If the filter array is empty, then if negated ignore it (... AND true), else exclude everything (... AND false)
-		condition = `AND ${Boolean(negate)}`;
-		values = [];
-		negate = ''; // Already negated
-
-	}
 	else {
 
-		condition = '= ?';
-		values = [value];
-		negate = negate ? '!' : '';
+		return SQL`${sql_field} ${raw(negate ? '!' : '')}= ${value}`;
 
 	}
-
-	/*
-	 * Should the field contain a SQL Function itself
-	 * -> Let's extract it...
-	 */
-	if (/[^\w$.]/.test(field)) {
-
-		const {prefix, suffix, field: _field} = unwrap_field(field);
-
-		condition = `${prefix}$$${suffix} ${negate}${condition}`;
-		field = _field;
-		negate = '';
-
-	}
-
-	return [field, negate + condition, values];
 
 }

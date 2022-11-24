@@ -38,8 +38,8 @@ describe('patch', () => {
 		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(sql, 'UPDATE test SET `name` = ? WHERE id = ? LIMIT 1');
-			expect(values).to.deep.equal([name, id]);
+			sqlEqual(sql, 'UPDATE test a SET a.`name` = ? WHERE a.id = ? LIMIT ?');
+			expect(values).to.deep.equal([name, id, 1]);
 
 			return {success: true};
 
@@ -93,8 +93,8 @@ describe('patch', () => {
 				dare.execute = async ({sql, values}) => {
 
 					// Limit: 1
-					sqlEqual(sql, 'UPDATE test SET `input` = ? WHERE id = ? LIMIT 1');
-					expect(values).to.deep.equal([input, id]);
+					sqlEqual(sql, 'UPDATE test a SET a.`input` = ? WHERE a.id = ? LIMIT ?');
+					expect(values).to.deep.equal([input, id, 1]);
 					return {success: true};
 
 				};
@@ -188,8 +188,8 @@ describe('patch', () => {
 						dare.execute = async ({sql, values}) => {
 
 							// Limit: 1
-							sqlEqual(sql, 'UPDATE test SET `meta` = ? WHERE id = ? LIMIT 1');
-							expect(values).to.deep.equal([meta, id]);
+							sqlEqual(sql, 'UPDATE test a SET a.`meta` = ? WHERE a.id = ? LIMIT ?');
+							expect(values).to.deep.equal([meta, id, 1]);
 							return {success: true};
 
 						};
@@ -218,8 +218,8 @@ describe('patch', () => {
 		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(sql, 'UPDATE test SET `name` = ? WHERE id = ? LIMIT 11');
-			expect(values).to.deep.equal([name, id]);
+			sqlEqual(sql, 'UPDATE test a SET a.`name` = ? WHERE a.id = ? LIMIT ?');
+			expect(values).to.deep.equal([name, id, limit]);
 
 			return {success: true};
 
@@ -240,8 +240,8 @@ describe('patch', () => {
 		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(sql, 'UPDATE IGNORE test SET `name` = ? WHERE id = ? LIMIT 1');
-			expect(values).to.deep.equal([name, id]);
+			sqlEqual(sql, 'UPDATE IGNORE test a SET a.`name` = ? WHERE a.id = ? LIMIT ?');
+			expect(values).to.deep.equal([name, id, 1]);
 			return {success: true};
 
 		};
@@ -261,8 +261,8 @@ describe('patch', () => {
 		dare.execute = async ({sql, values}) => {
 
 			// Limit: 1
-			sqlEqual(sql, 'UPDATE tablename SET `name` = ? WHERE id = ? LIMIT 1');
-			expect(values).to.deep.equal([name, id]);
+			sqlEqual(sql, 'UPDATE tablename a SET a.`name` = ? WHERE a.id = ? LIMIT ?');
+			expect(values).to.deep.equal([name, id, 1]);
 			return {success: true};
 
 		};
@@ -289,8 +289,8 @@ describe('patch', () => {
 
 		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(sql, 'UPDATE tbl SET `name` = ? WHERE id = ? LIMIT 1');
-			expect(values).to.deep.equal([newName, id]);
+			sqlEqual(sql, 'UPDATE tbl a SET a.`name` = ? WHERE a.id = ? LIMIT ?');
+			expect(values).to.deep.equal([newName, id, 1]);
 
 			return {success: true};
 
@@ -323,8 +323,8 @@ describe('patch', () => {
 
 		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(sql, 'UPDATE tbl SET `name` = ? WHERE id = ? LIMIT 1');
-			expect(values).to.deep.equal([newName, id]);
+			sqlEqual(sql, 'UPDATE tbl a SET a.`name` = ? WHERE a.id = ? LIMIT ?');
+			expect(values).to.deep.equal([newName, id, 1]);
 			return {success: true};
 
 		};
@@ -431,8 +431,8 @@ describe('patch', () => {
 
 		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(sql, 'UPDATE tbl SET `name` = ? WHERE id = ? AND (NOT number < ? OR number IS NULL) LIMIT 1');
-			expect(values).to.deep.equal(['andrew', 1, '100']);
+			sqlEqual(sql, 'UPDATE tbl a SET a.`name` = ? WHERE a.id = ? AND (NOT a.number < ? OR a.number IS NULL) LIMIT ?');
+			expect(values).to.deep.equal(['andrew', 1, '100', 1]);
 			return {success: true};
 
 		};
@@ -448,7 +448,9 @@ describe('patch', () => {
 	});
 
 
-	it('disallow nested filters: should throw an exception', () => {
+	it('dallow nested filters', async () => {
+
+		dare.sql = async () => ({affectedRows: 1});
 
 		dare.options.models = {
 			tbl: {
@@ -459,7 +461,7 @@ describe('patch', () => {
 			}
 		};
 
-		const test = dare
+		const test = await dare
 			.patch({
 				table: 'tbl',
 				filter: {
@@ -471,9 +473,7 @@ describe('patch', () => {
 				body: {name: 'andrew'}
 			});
 
-		return expect(test)
-			.to.be.eventually.rejectedWith(DareError)
-			.and.have.property('code', DareError.INVALID_REQUEST);
+		expect(test).to.have.property('affectedRows', 1);
 
 	});
 
