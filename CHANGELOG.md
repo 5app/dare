@@ -1,3 +1,10 @@
+## [0.71.1](https://github.com/5app/dare/compare/v0.71.0...v0.71.1) (2022-12-01)
+
+
+### Bug Fixes
+
+* **group_concat:** remove the ghostly GROUP_CONCAT result ([9723daf](https://github.com/5app/dare/commit/9723dafca5d8ce82a10e045b7ac0ce28baeb5b30))
+
 # [0.71.0](https://github.com/5app/dare/compare/v0.70.2...v0.71.0) (2022-11-24)
 
 
