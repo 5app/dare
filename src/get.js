@@ -109,7 +109,12 @@ export default function buildQuery(opts, dareInstance) {
 
 		// Generate a Group Concat statement of the result
 		const address = opts.field_alias_path || opts._joins[0].field_alias_path;
-		const gc = group_concat(fields, address);
+		/*
+		 * Sql_alias._rowid IS NOT NULL
+		 * Get a non intermediate table for use as the sql_alias._rowid value.
+		 */
+		const gc_sql_alias = opts.field_alias_path ? sql_alias : opts._joins[0].sql_alias;
+		const gc = group_concat(fields, address, gc_sql_alias);
 		sql_fields = [raw(gc.expression)];
 		alias = gc.label;
 
@@ -403,7 +408,12 @@ function traverse(item, is_subquery, dareInstance) {
 
 		// Generate a Group Concat statement of the result
 		const address = item.field_alias_path || item._joins[0].field_alias_path;
-		const gc = group_concat(fields, address);
+		/*
+		 * Sql_alias._rowid IS NOT NULL
+		 * Get a non intermediate table for use as the sql_alias._rowid value.
+		 */
+		const gc_sql_alias = item.field_alias_path ? sql_alias : item._joins[0].sql_alias;
+		const gc = group_concat(fields, address, gc_sql_alias);
 
 		// Reset the fields array
 		fields.length = 0;
