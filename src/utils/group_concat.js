@@ -36,7 +36,7 @@ export default function group_concat(fields, address = '', sql_alias) {
 	}
 
 	// Multiple
-	expression = `CONCAT('[', GROUP_CONCAT(IF(${sql_alias}.id IS NOT NULL, ${expression}, '')), ']')`;
+	expression = `CONCAT('[', GROUP_CONCAT(IF(${sql_alias}.id IS NOT NULL, ${expression}, NULL)), ']')`;
 
 	label = fields.map(field => {
 
