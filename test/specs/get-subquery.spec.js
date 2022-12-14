@@ -134,7 +134,7 @@ describe('get - subquery', () => {
 
 				SELECT a.name AS 'name',
 				(
-					SELECT CONCAT('[', GROUP_CONCAT(IF(c.id IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(c.id, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(c.name, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), '')), ']')
+					SELECT CONCAT('[', GROUP_CONCAT(IF(c.id IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(c.id, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(c.name, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), NULL)), ']')
 					FROM assetCollections b
 					LEFT JOIN collections c ON (c.id = b.collection_id)
 					WHERE b.asset_id = a.id
@@ -176,7 +176,7 @@ describe('get - subquery', () => {
 
 				SELECT a.name AS 'name',
 				(
-					SELECT CONCAT('[', GROUP_CONCAT(IF(b.id IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(b.id, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(b.color, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), '')), ']')
+					SELECT CONCAT('[', GROUP_CONCAT(IF(b.id IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(b.id, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(b.color, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), NULL)), ']')
 					FROM assetCollections b
 					WHERE b.color = ? AND b.asset_id = a.id
 					LIMIT 1
@@ -255,7 +255,7 @@ describe('get - subquery', () => {
 
 			const expected = `
 				SELECT a.name AS 'name',
-					CONCAT('[', GROUP_CONCAT(IF(c.id IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(c.id, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(c.name, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), '')), ']') AS 'collections[id,name]'
+					CONCAT('[', GROUP_CONCAT(IF(c.id IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(c.id, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(c.name, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), NULL)), ']') AS 'collections[id,name]'
 				FROM assets a
 				LEFT JOIN assetCollections b ON(b.asset_id = a.id)
 				LEFT JOIN collections c ON (c.id = b.collection_id)
@@ -290,7 +290,7 @@ describe('get - subquery', () => {
 		dare.sql = ({sql}) => {
 
 			const expected = `
-				SELECT a.name AS 'name', CONCAT('[',GROUP_CONCAT(IF(b.id IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(COUNT(d.id), '\\\\', '\\\\\\\\'), '"','\\\\"'),'"',']'), '')),']') AS 'assetCollections[collections.descendents]'
+				SELECT a.name AS 'name', CONCAT('[',GROUP_CONCAT(IF(b.id IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(COUNT(d.id), '\\\\', '\\\\\\\\'), '"','\\\\"'),'"',']'), NULL)),']') AS 'assetCollections[collections.descendents]'
 				FROM assets a
 				LEFT JOIN assetCollections b ON(b.asset_id = a.id)
 				LEFT JOIN collections c ON(c.id = b.collection_id)

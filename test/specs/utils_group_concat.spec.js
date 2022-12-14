@@ -23,7 +23,7 @@ describe('utils/group_concat', () => {
 			label: 'collection.b'
 		}], 'collection.', 'a');
 
-		expect(gc.expression).to.eql(`CONCAT('[', GROUP_CONCAT(IF(a.id IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(table.b, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), '')), ']')`);
+		expect(gc.expression).to.eql(`CONCAT('[', GROUP_CONCAT(IF(a.id IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(table.b, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), NULL)), ']')`);
 		expect(gc.label).to.eql('collection[a,b]');
 
 	});
@@ -65,7 +65,7 @@ describe('utils/group_concat', () => {
 			label: 'collection.a'
 		}], 'collection.', 'a');
 
-		expect(gc.expression).to.eql(`CONCAT('[', GROUP_CONCAT(IF(a.id IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), '')), ']')`);
+		expect(gc.expression).to.eql(`CONCAT('[', GROUP_CONCAT(IF(a.id IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), NULL)), ']')`);
 		expect(gc.label).to.eql('collection[a]');
 
 	});
