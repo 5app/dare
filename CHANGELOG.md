@@ -1,3 +1,17 @@
+## [0.71.1](https://github.com/5app/dare/compare/v0.71.0...v0.71.1) (2022-12-01)
+
+
+### Bug Fixes
+
+* **group_concat:** remove the ghostly GROUP_CONCAT result ([9723daf](https://github.com/5app/dare/commit/9723dafca5d8ce82a10e045b7ac0ce28baeb5b30))
+
+# [0.71.0](https://github.com/5app/dare/compare/v0.70.2...v0.71.0) (2022-11-24)
+
+
+### Features
+
+* **patch/del:** nested filters, [#187](https://github.com/5app/dare/issues/187) ([#259](https://github.com/5app/dare/issues/259)) ([ba503bd](https://github.com/5app/dare/commit/ba503bdc6ec2e4b33392ad02b13ad24af1d85c7b))
+
 ## [0.70.2](https://github.com/5app/dare/compare/v0.70.1...v0.70.2) (2022-10-25)
 
 

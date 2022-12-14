@@ -1,4 +1,5 @@
 import Dare from '../../src/index.js';
+import {expect} from 'chai';
 
 // Test Generic DB functions
 import expectSQLEqual from '../lib/sql-equal.js';
@@ -294,7 +295,7 @@ describe('get - request object', () => {
 							AND a.b = ?
 							AND NOT EXISTS (
 								SELECT 1 FROM apps b
-								WHERE b.id = a.ref_id AND b.name = ?
+								WHERE  b.id = a.ref_id AND b.name = ?
 								LIMIT 1
 							)
 						LIMIT 5`);
@@ -328,12 +329,14 @@ describe('get - request object', () => {
 
 		describe('should accept', () => {
 
+			const type = 'mobile';
+
 			[
 				{
 					fields: ['id', {asset: ['name']}],
 					join: {
 						asset: {
-							type: 'mobile'
+							type
 						}
 					},
 					expected: `
@@ -347,7 +350,7 @@ describe('get - request object', () => {
 					fields: ['id', {'asset$1': ['name']}],
 					join: {
 						'asset$1': {
-							type: 'mobile'
+							type
 						}
 					},
 					expected: `
@@ -361,7 +364,7 @@ describe('get - request object', () => {
 					fields: ['id', {'Count': 'COUNT(DISTINCT asset$1.id)'}],
 					join: {
 						'asset$1': {
-							type: 'mobile'
+							type
 						}
 					},
 					expected: `
@@ -374,7 +377,7 @@ describe('get - request object', () => {
 				{
 					fields: ['id'],
 					join: {
-						type: 'mobile'
+						type
 					},
 					expected: `
 						SELECT a.id
@@ -390,7 +393,9 @@ describe('get - request object', () => {
 
 				it(`valid: ${JSON.stringify(test.join)}`, async () => {
 
-					dare.sql = ({sql}) => {
+					dare.sql = ({sql, values}) => {
+
+						expect(values).to.deep.equal([type]);
 
 						expectSQLEqual(sql, expected);
 

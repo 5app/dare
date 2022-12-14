@@ -1,4 +1,4 @@
-import Dare from '../../src/index.js';
+import Dare, {DareError} from '../../src/index.js';
 import Debug from 'debug';
 import mysql from 'mysql2/promise';
 import {options} from './helpers/api.js';
@@ -66,6 +66,19 @@ const schema = {
 			const resp = await dare.get('users', ['username']);
 
 			expect(resp).to.have.property('username', newName);
+
+		});
+
+		it('can delete results', async () => {
+
+			const username = 'A Name';
+			const {insertId} = await dare.post('users', {username});
+
+			await dare.del('users', {id: insertId});
+
+			await expect(dare.get('users', ['username'], {id: insertId}))
+				.to.be.eventually.rejectedWith(DareError)
+				.and.have.property('code', DareError.NOT_FOUND);
 
 		});
 

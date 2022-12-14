@@ -130,8 +130,8 @@ describe('get', () => {
 
 			dare.execute = async ({sql, values}) => {
 
-				sqlEqual(sql, 'SELECT a.id, a.name FROM test a WHERE a.id IN (?, ?) LIMIT 2');
-				expect(values).to.deep.equal(ids);
+				sqlEqual(sql, 'SELECT a.id, a.name FROM test a WHERE a.id IN (?) LIMIT 2');
+				expect(values).to.deep.equal([ids]);
 
 				return [basic_record, basic_record];
 

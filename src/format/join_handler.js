@@ -74,7 +74,6 @@ export default function(join_object, root_object, dareInstance) {
 		 * Also give this link table a unique Alias
 		 */
 		return {
-			alias: dareInstance.get_unique_alias(),
 			table: linkTable,
 			joins: [
 				Object.assign(join_object, join_conditions)

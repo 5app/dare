@@ -1,5 +1,5 @@
 
-
+import SQL, {join, raw} from 'sql-template-tag';
 import DareError from './utils/error.js';
 import fieldReducer from './format/field_reducer.js';
 import groupbyReducer from './format/groupby_reducer.js';
@@ -9,6 +9,7 @@ import limitClause from './format/limit_clause.js';
 import joinHandler from './format/join_handler.js';
 import getFieldAttributes from './utils/field_attributes.js';
 import extend from './utils/extend.js';
+import buildQuery from './get.js';
 
 /**
  * Format Request initiation
@@ -79,6 +80,29 @@ async function format_request(options, dareInstance) {
 	 * Set the SQL Table, If the model redefines the table name otherwise use the model Name
 	 */
 	options.sql_table = model.table || options.name;
+
+	/**
+	 * Hack
+	 * To resolve mysql bug with aliasing in DELETE operations with a LIMIT https://bugs.mysql.com/bug.php?id=89410
+	 * Preset the sql_table based upon the actual table name conditions with the same alias will work.
+	 * TODO [MySQL-5.6/5.7] remove when only supporting MySQL-8
+	 * TODO [mysql#89410]: Remove the conditional assignment when we're not presetting sql_alias in DELETE operation
+	 */
+	if (options.method === 'del' && !options.parent) {
+
+		options.sql_alias = options.sql_table;
+
+	}
+
+	/** EOF Hack */
+
+	else {
+
+		options.sql_alias = dareInstance.get_unique_alias();
+
+	}
+
+	const {sql_alias} = options;
 
 	/*
 	 * Call bespoke table handler
@@ -176,11 +200,18 @@ async function format_request(options, dareInstance) {
 	// Format filters
 	if (options.filter) {
 
+		// Filter must be an object with key=>values
+		if (typeof options.filter !== 'object') {
+
+			throw new DareError(DareError.INVALID_REFERENCE, `The filter property value '${options.filter}' is invalid. Expected a JS object`);
+
+		}
+
 		// Extract nested filters handler
 		const extract = extractJoined.bind(null, 'filter', false);
 
 		// Return array of immediate props
-		const arr = reduceConditions(options.filter, {extract, propName: 'filter', table_schema, conditional_operators_in_value});
+		const arr = reduceConditions(options.filter, {extract, sql_alias, table_schema, conditional_operators_in_value});
 
 		options._filter = arr.length ? arr : null;
 
@@ -210,22 +241,50 @@ async function format_request(options, dareInstance) {
 	// Format conditional joins
 	if (options.join) {
 
+		// Filter must be an object with key=>values
+		if (typeof options.join !== 'object') {
+
+			throw new DareError(DareError.INVALID_REFERENCE, `The join property value '${options.join}' is invalid, expected an JS object.`);
+
+		}
+
+		// Is a required join?
+		if ('_required' in options.join) {
+
+			// Has _required join?
+			options.required_join = options.join._required;
+
+			// Filter out _required
+			delete options.join._required;
+
+		}
+
 		// Extract nested joins handler
 		const extract = extractJoined.bind(null, 'join', false);
 
 		// Return array of immediate props
-		options._join = reduceConditions(options.join, {extract, propName: 'join', table_schema, conditional_operators_in_value});
+		options._join = reduceConditions(options.join, {extract, sql_alias, table_schema, conditional_operators_in_value});
+
 
 		/*
-		 * TODO [#187]: Construct the WHERE conditions in this function from _filter and _join
-		 * without having to merge them here for del and patch which dont support them
+		 * Convert root joins to filters...
 		 */
-		if (options._join.length && ['patch', 'del'].includes(method)) {
+		if (options._join.length && !options.parent) {
 
 			options._filter ??= [];
 			options._filter.push(...options._join);
 
 		}
+
+	}
+
+	/**
+	 * Can we stop here?
+	 */
+	if (options.parent && !options.required_join && !options.has_fields && !options.has_filter) {
+
+		// Prevent this join from being included.
+		return;
 
 	}
 
@@ -272,6 +331,7 @@ async function format_request(options, dareInstance) {
 		Object.assign(options, limits);
 
 	}
+
 
 	// Joins
 	{
@@ -333,9 +393,138 @@ async function format_request(options, dareInstance) {
 			});
 
 			// Add Joins
-			options._joins = await Promise.all(a);
+			const arr = await Promise.all(a);
+
+			options._joins = arr.filter(Boolean);
 
 		}
+
+	}
+
+	/*
+	 * Construct the SQL WHERE Condition
+	 */
+
+	{
+
+		// Place holder
+		const sql_where_conditions = [];
+
+
+		if (options._filter) {
+
+			// Get current filters
+			sql_where_conditions.push(...options._filter);
+
+		}
+
+		// Get nested filters
+		if (options._joins) {
+
+			sql_where_conditions.push(...options._joins.flatMap(({sql_where_conditions}) => sql_where_conditions));
+
+		}
+
+		// Assign
+		options.sql_where_conditions = sql_where_conditions.filter(Boolean);
+
+	}
+
+	// Initial SQL JOINS reference
+	options.sql_joins = [];
+
+	/**
+	 * Construct the join conditions
+	 * If this item has a parent, it'll require a join statement with conditions
+	 */
+	if (options.parent) {
+
+		// Update the values with the alias of the parent
+		const sql_join_condition = [];
+
+		if (options._join) {
+
+			sql_join_condition.push(...options._join);
+
+			// Prevent join condifions from being applied twice in buildQuery
+			options._join.length = 0;
+
+		}
+
+		// Always going to be defined
+		for (const x in options.join_conditions) {
+
+			const val = options.join_conditions[x];
+			sql_join_condition.push(raw(`${options.sql_alias}.${x} = ${options.parent.sql_alias}.${val}`));
+
+		}
+
+		options.sql_join_condition = join(sql_join_condition, ' AND ');
+
+		// Create the SQL JOIN conditions syntax
+		options.sql_joins.push(SQL`JOIN ${raw(options.sql_table)} ${raw(options.sql_alias)} ON (${options.sql_join_condition})`);
+
+	}
+
+	// Add nested joins
+	if (Array.isArray(options._joins)) {
+
+		options.sql_joins.push(...options._joins.flatMap(({sql_joins}) => sql_joins).filter(Boolean));
+
+	}
+
+	/**
+	 * Negate
+	 * NOT EXIST (SELECT 1 FROM alias WHERE join_conditions)
+	 */
+	if (options.negate) {
+
+		// Mark as another subquery
+		let sql_where_conditions = [];
+
+		if (method === 'get') {
+
+			// Get queries can be much simpler, we're allowed to use the same table in an exist statement like...
+			options.is_subquery = true;
+
+			// Create sub_query
+			const sub_query = buildQuery(options, dareInstance);
+
+			sql_where_conditions = [SQL`NOT EXISTS (${sub_query})`];
+
+		}
+		else {
+
+			/*
+			 * Whilst patch and delete will throw an ER_UPDATE_TABLE_USED error
+			 * The query must not reference the table, so we need to be quite sneaky
+			 */
+
+			const parentReferences = Object.values(options.join_conditions).map(val => `${options.parent.sql_alias}.${val}`);
+
+			// Create sub_query
+			options.fields = Object.keys(options.join_conditions);
+			options.limit = null; // MySQL 5.6 doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'
+			options.many = null; // Do not attempt to CONCAT the fields
+			options.field_alias_path = ''; // Do not prefix the fields labels
+			options.parent = null; // Do not add superfluous joins
+
+			const sub_query = buildQuery(options, dareInstance);
+
+			sql_where_conditions = [SQL`${raw(parentReferences)} 
+				NOT IN (
+					SELECT ${raw(options.fields)} FROM (
+						${sub_query}
+					) AS ${raw(options.sql_alias)}_tmp
+				)
+			`];
+
+		}
+
+		// Update the filters
+		return {
+			sql_where_conditions
+		};
 
 	}
 
