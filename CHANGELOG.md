@@ -1,3 +1,10 @@
+## [0.71.2](https://github.com/5app/dare/compare/v0.71.1...v0.71.2) (2022-12-14)
+
+
+### Bug Fixes
+
+* **group_concat:** empty results NULL fixes [#260](https://github.com/5app/dare/issues/260) ([61bb698](https://github.com/5app/dare/commit/61bb69877a7434639d45f9f12a3c4be0c9b5f490))
+
 ## [0.71.1](https://github.com/5app/dare/compare/v0.71.0...v0.71.1) (2022-12-01)
 
 
