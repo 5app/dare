@@ -30,7 +30,7 @@ describe('getCount', () => {
 
 		dare.execute = async ({sql, values}) => {
 
-			sqlEqual(sql, 'SELECT COUNT(DISTINCT a.id) AS \'count\' FROM test a WHERE a.id = ? LIMIT 1');
+			sqlEqual(sql, 'SELECT COUNT(DISTINCT a._rowid) AS \'count\' FROM test a WHERE a.id = ? LIMIT 1');
 			expect(values).to.deep.equal([id]);
 			return [{count}];
 

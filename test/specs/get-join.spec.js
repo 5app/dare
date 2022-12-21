@@ -496,7 +496,7 @@ describe('get - request object', () => {
 					LEFT JOIN apps b ON (b.type = ? AND b.id = a.ref_id)
 					LEFT JOIN assetDomains c ON (c.asset_id = b.id)
 					WHERE (c.asset_id = b.id OR b.id IS NULL)
-					GROUP BY a.id
+					GROUP BY a._rowid
 					LIMIT 5
 				`;
 
@@ -538,7 +538,7 @@ describe('get - request object', () => {
 					FROM apps a
 					LEFT JOIN activityEvents b ON(b.ref_id = a.id)
 					WHERE b.type = ?
-					GROUP BY a.id
+					GROUP BY a._rowid
 					LIMIT 5
 				`;
 
