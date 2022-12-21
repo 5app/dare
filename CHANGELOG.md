@@ -1,3 +1,10 @@
+# [0.72.0](https://github.com/5app/dare/compare/v0.71.2...v0.72.0) (2022-12-21)
+
+
+### Features
+
+* **rowid:** use mysql's pk reference _rowid ([27fbbb4](https://github.com/5app/dare/commit/27fbbb41875b570668c0a7db7fde2aca615850b5))
+
 ## [0.71.2](https://github.com/5app/dare/compare/v0.71.1...v0.71.2) (2022-12-14)
 
 
