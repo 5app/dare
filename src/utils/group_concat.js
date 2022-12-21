@@ -3,7 +3,7 @@
  * Label the GROUP CONCAT(..) AS 'address[fields,...]'
  * Wrap all the fields in a GROUP_CONCAT statement
  */
-export default function group_concat(fields, address = '', sql_alias) {
+export default function group_concat(fields, address = '', sql_alias, rowid) {
 
 	// Is this an aggregate list?
 	const agg = fields.reduce((prev, curr) => (prev || curr.agg || curr.label.indexOf(address) !== 0), false);
@@ -36,7 +36,7 @@ export default function group_concat(fields, address = '', sql_alias) {
 	}
 
 	// Multiple
-	expression = `CONCAT('[', GROUP_CONCAT(IF(${sql_alias}.id IS NOT NULL, ${expression}, NULL)), ']')`;
+	expression = `CONCAT('[', GROUP_CONCAT(IF(${sql_alias}.${rowid} IS NOT NULL, ${expression}, NULL)), ']')`;
 
 	label = fields.map(field => {
 

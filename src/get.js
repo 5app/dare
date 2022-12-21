@@ -89,7 +89,7 @@ export default function buildQuery(opts, dareInstance) {
 		if (!all_aggs) {
 
 			// Determine whether there are non?
-			groupby.push({expression: `${opts.sql_alias}.id`});
+			groupby.push({expression: `${opts.sql_alias}.${dareInstance.rowid}`});
 
 		}
 
@@ -114,7 +114,7 @@ export default function buildQuery(opts, dareInstance) {
 		 * Get a non intermediate table for use as the sql_alias._rowid value.
 		 */
 		const gc_sql_alias = opts.field_alias_path ? sql_alias : opts._joins[0].sql_alias;
-		const gc = group_concat(fields, address, gc_sql_alias);
+		const gc = group_concat(fields, address, gc_sql_alias, dareInstance.rowid);
 		sql_fields = [raw(gc.expression)];
 		alias = gc.label;
 
@@ -146,7 +146,7 @@ export default function buildQuery(opts, dareInstance) {
 
 		// Change the rows to show the count of the rows returned
 		sql_fields = [
-			SQL`COUNT(DISTINCT ${sql_groupby.length ? join(sql_groupby) : raw(`${opts.sql_alias}.id`)}) AS 'count'`
+			SQL`COUNT(DISTINCT ${sql_groupby.length ? join(sql_groupby) : raw(`${opts.sql_alias}.${dareInstance.rowid}`)}) AS 'count'`
 		];
 
 		// Remove groupby and orderby...
@@ -413,7 +413,7 @@ function traverse(item, is_subquery, dareInstance) {
 		 * Get a non intermediate table for use as the sql_alias._rowid value.
 		 */
 		const gc_sql_alias = item.field_alias_path ? sql_alias : item._joins[0].sql_alias;
-		const gc = group_concat(fields, address, gc_sql_alias);
+		const gc = group_concat(fields, address, gc_sql_alias, dareInstance.rowid);
 
 		// Reset the fields array
 		fields.length = 0;

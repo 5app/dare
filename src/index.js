@@ -56,6 +56,9 @@ Dare.prototype.execute = async () => {
 // Group concat
 Dare.prototype.group_concat = '$$';
 
+// Rowid, name of primary key field used in grouping operations
+Dare.prototype.rowid = '_rowid';
+
 // Set the Max Limit for SELECT statements
 Dare.prototype.MAX_LIMIT = null;
 

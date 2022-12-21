@@ -4,6 +4,8 @@
 // Test Generic DB functions
 import group_concat from '../../src/utils/group_concat.js';
 
+const rowid = '_rowid';
+
 describe('utils/group_concat', () => {
 
 
@@ -21,9 +23,9 @@ describe('utils/group_concat', () => {
 		}, {
 			expression: 'table.b',
 			label: 'collection.b'
-		}], 'collection.', 'a');
+		}], 'collection.', 'a', rowid);
 
-		expect(gc.expression).to.eql(`CONCAT('[', GROUP_CONCAT(IF(a.id IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(table.b, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), NULL)), ']')`);
+		expect(gc.expression).to.eql(`CONCAT('[', GROUP_CONCAT(IF(a._rowid IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(table.b, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), NULL)), ']')`);
 		expect(gc.label).to.eql('collection[a,b]');
 
 	});
@@ -63,9 +65,9 @@ describe('utils/group_concat', () => {
 		const gc = group_concat([{
 			expression: 'table.a',
 			label: 'collection.a'
-		}], 'collection.', 'a');
+		}], 'collection.', 'a', rowid);
 
-		expect(gc.expression).to.eql(`CONCAT('[', GROUP_CONCAT(IF(a.id IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), NULL)), ']')`);
+		expect(gc.expression).to.eql(`CONCAT('[', GROUP_CONCAT(IF(a._rowid IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), NULL)), ']')`);
 		expect(gc.label).to.eql('collection[a]');
 
 	});
