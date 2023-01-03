@@ -9,7 +9,8 @@
 
 
 
-Dare is a lovely API for generating SQL out of structured Javascript object. It's more than just sugar to querying a SQL database though, as you will discover.
+Dare is a brave API for generating SQL out of structured Javascript objects.
+
 # Example usage...
 
 This is a simple setup to get started with, it'll make a basic SELECT query.
