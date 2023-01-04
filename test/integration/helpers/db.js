@@ -29,7 +29,7 @@ class DB {
 		// Stream query results from the DB
 		this.conn.connection
 			.query(query)
-			.stream(streamOptions)
+			.stream()
 			.pipe(resultStream);
 
 		return resultStream;
