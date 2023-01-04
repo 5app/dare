@@ -522,5 +522,63 @@ describe('get', () => {
 
 	});
 
+	describe('rowHandler', () => {
+
+		it('should be settable from the dare.get({rowHandler}) option', async () => {
+
+			dare.execute = async () => ([{name: 'Jupiter'}]);
+
+			const resp = await dare.get({
+				table: 'test',
+				fields: ['name'],
+				rowHandler(row) {
+
+					row.age = 4;
+					return row;
+
+				}
+			});
+
+			expect(resp).to.have.property('name', 'Jupiter');
+			expect(resp).to.have.property('age', 4);
+
+
+		});
+
+		it('execute should be able to call addRow instead of returning an array', async () => {
+
+			const data = [];
+
+			dare.execute = async function() {
+
+				this.addRow({name: 'Jupiter'});
+
+			};
+
+			const resp = await dare.get({
+				table: 'test',
+				fields: ['name'],
+				rowHandler(row) {
+
+					row.age = 4;
+
+					// Add to external array
+					data.push(row);
+
+					// Do not return anything = does not add to internal resultset
+
+				}
+			});
+
+			expect(resp).to.equal(undefined);
+
+			expect(data[0]).to.have.property('name', 'Jupiter');
+			expect(data[0]).to.have.property('age', 4);
+
+
+		});
+
+	});
+
 });
 

@@ -15,7 +15,7 @@ import clone from 'tricks/object/clone.js';
 
 import format_request from './format_request.js';
 
-import response_handler from './response_handler.js';
+import response_handler, {responseRowHandler} from './response_handler.js';
 
 /*
  * Export Dare Error object
@@ -139,12 +139,38 @@ Dare.prototype.use = function(options = {}) {
 	// Create a new options, merging inheritted and new
 	inst.options = extend(clone(this.options), options);
 
+	// Define the Row handler to format the results
+	if (options.rowHandler) {
+
+		inst.response_row_handler = options.rowHandler;
+
+	}
+
 	// Set the generate_fields array
 	inst.generated_fields = [];
 
 	// Set SQL level states
 	inst.unique_alias_index = 0;
 	return inst;
+
+};
+
+/**
+ * Add a row to the resultset
+ * @param {object} row - Row record to add to the rows resultset
+ */
+Dare.prototype.addRow = function(row) {
+
+	// Format the SQL Row
+	const item = responseRowHandler.call(this, row);
+
+	// If this is not undefined...
+	if (item !== undefined) {
+
+		this.resultset ??= [];
+		this.resultset.push(item);
+
+	}
 
 };
 
@@ -166,7 +192,8 @@ Dare.prototype.sql = async function sql(sql, values) {
 
 	}
 
-	return this.execute(req);
+	const resp = await this.execute(req);
+	return resp || this.resultset;
 
 };
 
@@ -216,6 +243,12 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 
 	// Execute the query
 	const sql_response = await dareInstance.sql(query);
+
+	if (sql_response === undefined) {
+
+		return;
+
+	}
 
 	// Format the response
 	let resp = await dareInstance.response_handler(sql_response);

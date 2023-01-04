@@ -55,6 +55,26 @@ describe('Dare', () => {
 
 	});
 
+
+	it('execute should be able to call addRow', async () => {
+
+		const dare = new Dare();
+
+		dare.execute = async function() {
+
+			this.addRow({name: 'Jupiter'});
+
+		};
+
+		const resp = await dare.get({
+			table: 'test',
+			fields: ['name']
+		});
+
+		expect(resp).to.have.property('name', 'Jupiter');
+
+	});
+
 	describe('dare.use to extend the instance', () => {
 
 		let dare;

@@ -1,4 +1,5 @@
 import Dare from '../../src/index.js';
+import {getTargetPath} from '../../src/format/field_reducer.js';
 
 describe('response_handler', () => {
 
@@ -181,7 +182,12 @@ describe('response_handler', () => {
 				handler,
 				extraFields
 			}
-		];
+		].map(obj => {
+
+			obj.targetAddress = getTargetPath(obj.field_alias_path, obj.field);
+			return obj;
+
+		});
 
 		const data = dare.response_handler([{
 			'field': 'value',
@@ -264,7 +270,12 @@ describe('response_handler', () => {
 				handler,
 				extraFields
 			}
-		];
+		].map(obj => {
+
+			obj.targetAddress = getTargetPath(obj.field_alias_path, obj.field);
+			return obj;
+
+		});
 
 		const data = dare.response_handler([{
 			'a[id,name]': '[["1","a"]]',
