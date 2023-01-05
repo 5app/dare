@@ -66,7 +66,7 @@ async function createNewDb() {
 
 	// We have to connect to the docker instance to run in the mysql dump via a query
 	execSync(
-		`docker-compose exec -T mysql sh -c 'MYSQL_PWD=${MYSQL_PASSWORD} mysql -u${MYSQL_USER}'`,
+		`docker exec -i --env MYSQL_PWD=${MYSQL_PASSWORD} dare_mysql mysql -u${MYSQL_USER}`,
 		{input: `CREATE DATABASE ${dbName}; USE ${dbName}; ${schemaSql}`}
 	);
 
@@ -92,7 +92,7 @@ const mochaHooks = {
 	async beforeAll() {
 
 		// BeforeAll happens per-process/thread, so each subsequent test can reset the db without it interfering with other tests in that thread
-		this.timeout(5000);
+		this.timeout(20000);
 
 		// To support parallel tests, we create a separate db per-process/thread and just reset the state (truncate tables) per-test.
 		await createNewDb();

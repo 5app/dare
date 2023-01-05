@@ -94,13 +94,17 @@ jobs:
           path: /tmp/test-results
 
   integration:
+    parameters:
+      mysql_version:
+        default: "5.6"
+        type: string
     executor: ubuntu-machine
     steps:
       - install_node
       - *attach_workspace
       - run:
           name: Run integration tests
-          command: npm run test:integration -- --exit --timeout=4000
+          command: MYSQL_VERSION=<< parameters.mysql_version >> npm run test:integration -- --exit --timeout=4000
 
   release:
     executor: node
@@ -122,6 +126,9 @@ workflows:
           requires:
             - checkout_code
       - integration:
+          matrix:
+            parameters:
+              mysql_version: ["5.6", "5.7"]
           requires:
             - checkout_code
       - release:

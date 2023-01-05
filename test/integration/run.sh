@@ -9,7 +9,7 @@
 # 6. if KEEP_DOCKER=1 is set, docker-compose isn't pulled down after
 
 set -e
-
+# set -x
 CURR_SCRIPT_RELATIVE="${BASH_SOURCE[0]}"
 CURR_DIR_RELATIVE="$(dirname "${CURR_SCRIPT_RELATIVE}")"
 INTEGRATION_TEST_DIR="$(cd "${CURR_DIR_RELATIVE}" >/dev/null 2>&1 && pwd)/"
@@ -22,6 +22,7 @@ cd "$INTEGRATION_TEST_DIR" || exit 1
 
 MYSQL_ROOT_USER="root"
 MYSQL_ROOT_PASSWORD="test_pass"
+MYSQL_VERSION=${MYSQL_VERSION:-5.6}
 
 export TEST_DB_SCHEMA_PATH="${INTEGRATION_TEST_DIR}data/schema.sql"
 export TEST_DB_DATA_PATH="${INTEGRATION_TEST_DIR}data/data.sql"
@@ -33,8 +34,26 @@ export MYSQL_PORT=3308
 
 export TZ="UTC"
 
-docker-compose up -d || {
-  echo 'docker-compose failed'
+docker rm -vf "dare_mysql"
+
+echo "Starting mysql:$MYSQL_VERSION"
+
+docker run \
+  --name="dare_mysql" \
+  --tmpfs=/var/lib/mysql \
+  -d \
+  -p 3308:3306 \
+  --env MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD}" \
+  --env MYSQL_DATABASE="dare" \
+  --env MYSQL_USER="${MYSQL_USER}" \
+  --env MYSQL_PASSWORD="${MYSQL_PASSWORD}" \
+  --env MYSQL_PORT=3306 \
+  --health-cmd="/usr/bin/mysql --user=root -p${MYSQL_ROOT_PASSWORD} --execute=\"SHOW DATABASES;\"" \
+  --health-interval="4s" \
+  --health-timeout="3s" \
+  --health-retries=20 \
+  mysql:$MYSQL_VERSION --group-concat-max-len=1000000 --sql-mode="" || {
+  echo 'docker run failed'
   exit 1
 }
 
@@ -54,7 +73,7 @@ for dep in mysql; do
     sleep 2
     if [[ "$i" -gt '20' ]]; then
       echo "${dep} failed to start. Final status: $(docker inspect --format='{{.State.Health.Status}}' "dare_${dep}")"
-      docker-compose down -v -t 6
+      docker rm -v -f "dare_${dep}"
       exit 1
     fi
   done
@@ -63,13 +82,7 @@ done
 
 echo 'building template db...'
 export TEST_DB_PREFIX="test_"
-mysql="docker-compose exec -e MYSQL_PWD=${MYSQL_ROOT_PASSWORD} -T mysql mysql -u${MYSQL_ROOT_USER} "
-
-echo '...'
-
-$mysql <<INITDB
-GRANT ALL PRIVILEGES ON *.* TO '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}' WITH GRANT OPTION;
-INITDB
+docker exec -e MYSQL_PWD=${MYSQL_ROOT_PASSWORD} dare_mysql mysql -u${MYSQL_ROOT_USER} -e "GRANT ALL PRIVILEGES ON *.* TO '${MYSQL_USER}'@'%' WITH GRANT OPTION;"
 
 echo 'template db built'
 
@@ -99,7 +112,8 @@ if [[ -n "$KEEP_DOCKER" ]]; then
   fi
 else
   echo "shutting down docker..."
-  docker-compose down -v
+  docker rm -v -f "dare_mysql"
+
 fi
 echo "finished (tests exit code: $EXIT_CODE)"
 
