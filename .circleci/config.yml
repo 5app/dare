@@ -8,8 +8,6 @@ aliases:
   - &attach_workspace
     attach_workspace:
       at: *dir
-  - &cache-key dependency-cache-{{ checksum "package.json" }}
-  - &cache-key-fallback dependency-cache-
 
 ################################
 # Executors
@@ -31,30 +29,11 @@ executors:
       # https://circleci.com/docs/2.0/docker-compose/#using-docker-compose-with-docker-executor
       image: ubuntu-2004:202111-01
 
-
 ################################
-# Commands
+# Orbs
 
-commands:
-
-  install_node:
-    description: Install Node
-    steps:
-      - run:
-          # $BASH_ENV contains the path to a file which is sourced on every step,
-          # so we add exporting the NVM_DIR var and sourcing the nvm.sh bootstrapper to it.
-          # This way, it bootstraps the same nvm install on every subsequent step,
-          # including the next one which installs the right version of node.
-          name: Setup nvm
-          command: |
-            echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
-            echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> $BASH_ENV
-      - run:
-          name: Install node@16
-          command: |
-            nvm install v14
-            nvm alias default v14
-            node --version
+orbs:
+    node: circleci/node@5
 
 
 ################################
@@ -65,15 +44,7 @@ jobs:
     executor: node
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - *cache-key
-            - *cache-key-fallback
-      - run: npm install
-      - save_cache:
-          key: *cache-key
-          paths:
-            - ./node_modules
+      - node/install-packages
       - persist_to_workspace:
           root: *dir
           paths:
@@ -96,8 +67,8 @@ jobs:
   integration:
     executor: ubuntu-machine
     steps:
-      - install_node
       - *attach_workspace
+      - node/install-packages
       - run:
           name: Run integration tests
           command: npm run test:integration -- --exit --timeout=4000
