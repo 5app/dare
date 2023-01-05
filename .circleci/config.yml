@@ -27,7 +27,7 @@ executors:
       # The alternative (Docker-in-docker via circle-ci) requires some oddities for mounting
       # volumes and networking, so using a real VM is the easiest option:
       # https://circleci.com/docs/2.0/docker-compose/#using-docker-compose-with-docker-executor
-      image: ubuntu-2004:202111-01
+      image: ubuntu-2004:2022.10.1
 
 ################################
 # Orbs
