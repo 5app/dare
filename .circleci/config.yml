@@ -33,7 +33,7 @@ executors:
 # Orbs
 
 orbs:
-  node: circleci/node@5
+  node: circleci/node@5.0.3
 
 
 ################################
