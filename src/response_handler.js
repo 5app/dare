@@ -7,39 +7,10 @@ export default function responseHandler(resp) {
 
 	const dareInstance = this;
 
-	// Format generated_fields
-
-	this.generated_fields.forEach(obj => {
-
-		// Extend with preformatted target address...
-		obj.targetAddress = getTargetPath(obj.field_alias_path, obj.field)
-			.split('.')
-			.filter(Boolean);
-
-	});
-
 	// Iterate over the response array and trigger formatting
 	return resp.reduce((items, row, index) => {
 
-		// Expand row...
-		let item = formatHandler(row);
-
-		// Add generate fields for generating fields etc...
-
-		this.generated_fields.forEach(obj => {
-
-			// Generate the fields handler
-			generatedFieldsHandler({...obj, target: item}, dareInstance);
-
-		});
-
-
-		// Add custom response_row_handler, for handling the record
-		if (this.response_row_handler) {
-
-			item = this.response_row_handler(item, index);
-
-		}
+		const item = responseRowHandler.call(dareInstance, row, index);
 
 		// Push to the out going
 		if (typeof item !== 'undefined') {
@@ -47,11 +18,40 @@ export default function responseHandler(resp) {
 			items.push(item);
 
 		}
+
 		return items;
 
 	}, []);
 
 }
+
+export function responseRowHandler(row, index) {
+
+	const dareInstance = this;
+
+	// Expand row...
+	let item = formatHandler(row);
+
+	// Add generate fields for generating fields etc...
+
+	this.generated_fields.forEach(obj => {
+
+		// Generate the fields handler
+		generatedFieldsHandler({...obj, target: item}, dareInstance);
+
+	});
+
+
+	// Add custom response_row_handler, for handling the record
+	if (this.response_row_handler) {
+
+		item = this.response_row_handler(item, index);
+
+	}
+	return item;
+
+}
+
 
 // Format
 function formatHandler(item) {
@@ -257,27 +257,6 @@ function generatedFieldsHandler({label, field, handler, targetAddress, target, e
 	}
 
 }
-
-
-/**
- * Get target path
- * Given a model path, such as `picture`, reduce it of the parent path in the request path like `picture.url`
- * So the result would be empty path because the target is on the base.
- * If model path is `picture` and the request path is `url`, then the target path is just `picture`
- * @param {string} modelPath - Model Path
- * @param {string} requestPath - Request Path (incl. field)
- * @returns {string} Target path
- */
-function getTargetPath(modelPath, requestPath) {
-
-	// Remove the field from the request Path
-	const requestModelPath = requestPath.slice(0, requestPath.lastIndexOf('.') + 1);
-
-	// Remove the requestModelPath from the modelPath
-	return modelPath.replace(new RegExp(`${requestModelPath}$`), '');
-
-}
-
 
 /**
  * GetHandlerPropsByAddress

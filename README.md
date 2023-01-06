@@ -1090,6 +1090,98 @@ dare.post('emails', {hello: "What's this?"});
 // Someone should write field definitions for hello 👉`
 ```
 
+# `options.rowHandler`
+
+The `options.rowHandler` can be used to additionally preformat the response array, whilst it's already iterating on the response, or to redirect the records to another service (When this is used with [Streaming](#Streaming) it can drastically reduce the memory used by Dare).
+
+E.g. here the records are redirected back to the client
+
+```js
+// create a new dare instance to avoid polluting the others.
+const resp = await dare.get({
+	table: 'users',
+	fields: ['name', /*... and more*/],
+	limit: 1_000_000, // a big number
+	// Define a rowHandler for the request...
+	rowHandler(row) {
+		// rudimentary write out as CSV.
+		res.write(Object.keys(item).join(',') + '\n');
+
+		// do not return anything, save dare building up resultset internally
+	}
+}); 
+
+
+console.log(resp === undefined); // empty response... as it was all redirected
+```
+
+
+# Streaming
+Typically databases will buffer the resultset into memory and send over one large payload. Whereas streaming sends over the results to the SQL Client as they are available. This has the benefit of being much more performant and memory efficient on large datasets.
+
+Dare, has some functions to take advantage of Streaming
+
+- `this.addRow(record)`: process an individual record
+- `options.rowHandler`: See above 
+
+When combined we can efficiently redirect the results immediatly without building up an internal memory.
+
+```js
+// Define an execute handler and call `this.addRow(record)`
+dare.execute = async function(query) {
+
+	// Define the current Dare Instance
+	const dareInstance = this;
+
+	// Return a promise out of a stream...
+	return new Promise((accept, reject) => {
+
+		// Create resultStream
+		const resultStream = new PassThrough({objectMode: true});
+
+		// Pipe results into resultStream...
+		dbconn.connection
+			.query(query)
+			.stream()
+			.pipe(resultStream);
+
+		// Catch errors...
+		resultStream.on('error', reject);
+
+		// Event handlers...
+		resultStream.on('data', row => {
+
+			// Process the row record with Dare, i.e. for formatting etc...
+			dareInstance.addRow(row);
+
+		});
+
+		// on:end; resolve with empty Promise
+		resultStream.on('end', () => accept());
+
+	});
+
+};
+
+// Construct the Dare Request
+// define a `rowHandler` to pass through the newly formatted records as and when they come in.
+await dare.get({
+	table: 'users',
+	fields: ['name', /*... and more*/],
+	limit: 1_000_000, // a big number
+	// Define a rowHandler for the request...
+	rowHandler(row) {
+		// rudimentary write out as CSV.
+		res.write(Object.keys(item).join(',') + '\n');
+
+		// do not return anything - saves dare from building up internal resultset
+	}
+}); // returns: undefined
+
+```
+
+
+
 
 # Additional Options
 
@@ -1243,30 +1335,6 @@ await dare.get({
 // Fallbacks to the '=' conditional operator
 // ... SELECT id FROM mytable WHERE name = '%compare%' AND created = '2022-01-01..'
 
-```
-
-### Post format the response
-
-The `dare.response_row_handler` is a little helper to format or redirect the response data as it's being processed. Using this approach to post-processing should give better performance on large datasets.
-
-E.g.
-
-```js
-// create a new dare instance to avoid polluting the others.
-dare = dare.use(); 
-
-// Define a response_row_handler on the new instance...
-await dare.response_row_handler = (item) => {
-	// rudimentary write out as CSV.
-	res.write(Object.keys(item).join(',') + '\n');
-
-	// Do not return anything unless you want to include it in `data` (see below)
-};
-
-// Execute the query
-const data = await dare.get('users', ['name'], {limit: 10000000});
-
-console.log(data.length === 0); // empty array
 ```
 
 

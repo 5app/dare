@@ -200,7 +200,8 @@ function fieldMapping({field, label, fieldsArray, originalArray, field_alias_pat
 				field,
 				field_alias_path,
 				handler: generated_field,
-				extraFields
+				extraFields,
+				targetAddress: getTargetPath(field_alias_path, field)
 			});
 
 			return;
@@ -268,7 +269,8 @@ function fieldMapping({field, label, fieldsArray, originalArray, field_alias_pat
 			label,
 			field,
 			field_alias_path,
-			handler: item => jsonParse(item[label]) || {}
+			handler: item => jsonParse(item[label]) || {},
+			targetAddress: getTargetPath(field_alias_path, field)
 		});
 
 		// Continue...
@@ -316,5 +318,26 @@ function isEmpty(value) {
 function arrayDiff(a, b) {
 
 	return a.filter(item => !b.includes(item));
+
+}
+
+/**
+ * Get target path
+ * Given a model path, such as `picture`, reduce it of the parent path in the request path like `picture.url`
+ * So the result would be empty path because the target is on the base.
+ * If model path is `picture` and the request path is `url`, then the target path is just `picture`
+ * @param {string} modelPath - Model Path
+ * @param {string} requestPath - Request Path (incl. field)
+ * @returns {string} Target path
+ */
+export function getTargetPath(modelPath, requestPath) {
+
+	// Remove the field from the request Path
+	const requestModelPath = requestPath.slice(0, requestPath.lastIndexOf('.') + 1);
+
+	// Remove the requestModelPath from the modelPath
+	return modelPath.replace(new RegExp(`${requestModelPath}$`), '')
+		.split('.')
+		.filter(Boolean);
 
 }
