@@ -18,7 +18,8 @@ const {
 	MYSQL_PASSWORD = 'password',
 	TEST_DB_DATA_PATH,
 	TEST_DB_SCHEMA_PATH,
-	TEST_DB_PREFIX = 'test_'
+	TEST_DB_PREFIX = 'test_',
+	MYSQL_VERSION = '5.6'
 } = process.env;
 
 const mysqlSettings = {
@@ -34,6 +35,18 @@ const insertDataSql = fs.readFileSync(TEST_DB_DATA_PATH);
 const dbName = `${TEST_DB_PREFIX}${Date.now()}_${process.pid}`;
 let dbTables = [];
 let dbConn;
+let TABLE_NAME = 'table_name';
+
+
+/**
+ * Environment specific changes...
+ */
+if (MYSQL_VERSION >= 8) {
+
+	TABLE_NAME = TABLE_NAME.toUpperCase();
+
+}
+
 
 /**
  * Reset Database - Truncate Tables
@@ -41,7 +54,7 @@ let dbConn;
  */
 async function resetDbState() {
 
-	const truncateTablesSql = `${dbTables.map(({table_name: table}) => `TRUNCATE TABLE ${table}`).join(';\n')};`;
+	const truncateTablesSql = `${dbTables.map(({[TABLE_NAME]: table}) => `TRUNCATE TABLE ${table}`).join(';\n')};`;
 	const resetDataSql = `
 SET FOREIGN_KEY_CHECKS=0;
 ${truncateTablesSql}
@@ -66,7 +79,7 @@ async function createNewDb() {
 
 	// We have to connect to the docker instance to run in the mysql dump via a query
 	execSync(
-		`docker-compose exec -T mysql sh -c 'MYSQL_PWD=${MYSQL_PASSWORD} mysql -u${MYSQL_USER}'`,
+		`docker exec -i --env MYSQL_PWD=${MYSQL_PASSWORD} dare_mysql mysql -u${MYSQL_USER}`,
 		{input: `CREATE DATABASE ${dbName}; USE ${dbName}; ${schemaSql}`}
 	);
 
@@ -79,7 +92,7 @@ async function createNewDb() {
 
 	// Extract the tables
 	const [tables] = await dbConn.query(`
-		SELECT table_name
+		SELECT ${TABLE_NAME}
 		FROM information_schema.tables
 		WHERE table_schema = "${dbName}"
 	`);
