@@ -10,6 +10,9 @@
 
 set -e
 # set -x
+
+node --version
+
 CURR_SCRIPT_RELATIVE="${BASH_SOURCE[0]}"
 CURR_DIR_RELATIVE="$(dirname "${CURR_SCRIPT_RELATIVE}")"
 INTEGRATION_TEST_DIR="$(cd "${CURR_DIR_RELATIVE}" >/dev/null 2>&1 && pwd)/"
