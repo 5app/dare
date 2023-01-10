@@ -1,4 +1,3 @@
-
 import SQL, {raw, join, empty} from 'sql-template-tag';
 
 import getHandler from './get.js';
@@ -30,7 +29,6 @@ export {DareError};
  * @returns {object} instance of dare
  */
 function Dare(options = {}) {
-
 	// Backwards compatibility for {schema}
 	migrateToModels(options);
 
@@ -38,7 +36,6 @@ function Dare(options = {}) {
 	this.options = extend(clone(this.options), options);
 
 	return this;
-
 }
 
 export default Dare;
@@ -48,9 +45,10 @@ Dare.DareError = DareError;
 
 // Set default function
 Dare.prototype.execute = async () => {
-
-	throw new DareError(DareError.INVALID_SETUP, 'Define dare.execute to continue');
-
+	throw new DareError(
+		DareError.INVALID_SETUP,
+		'Define dare.execute to continue'
+	);
 };
 
 // Group concat
@@ -68,30 +66,24 @@ Dare.prototype.options = {
 	infer_intermediate_models: true,
 
 	// Allow conditional operators in value
-	conditional_operators_in_value: '%!~'
+	conditional_operators_in_value: '%!~',
 };
 
 // Set default table_alias handler
-Dare.prototype.table_alias_handler = function(name) {
-
+Dare.prototype.table_alias_handler = function (name) {
 	return name.replace(/^-/, '').split('$')[0];
-
 };
 
 Dare.prototype.unique_alias_index = 0;
 
-Dare.prototype.get_unique_alias = function(iterate = 1) {
-
+Dare.prototype.get_unique_alias = function (iterate = 1) {
 	this.unique_alias_index += iterate;
 	const i = this.unique_alias_index;
 	const str = String.fromCharCode(96 + i);
 	if (i <= 26) {
-
 		return str;
-
 	}
 	return `\`${str}\``;
-
 };
 
 Dare.prototype.format_request = format_request;
@@ -105,22 +97,20 @@ Dare.prototype.response_handler = response_handler;
  * @param {object|Array} resp - Response object
  * @returns {object} response data formatted or not
  */
-Dare.prototype.after = function(resp) {
-
+Dare.prototype.after = function (resp) {
 	// Define the after handler
-	const handler = `after${this.options.method.replace(/^[a-z]/, m => m.toUpperCase())}`;
+	const handler = `after${this.options.method.replace(/^[a-z]/, m =>
+		m.toUpperCase()
+	)}`;
 	const table = this.options.name;
 
 	// Trigger after handlers following a request
 	if (handler in this.options && table in this.options[handler]) {
-
 		// Trigger handler
 		return this.options[handler][table].call(this, resp) || resp;
-
 	}
 
 	return resp;
-
 };
 
 /**
@@ -129,8 +119,7 @@ Dare.prototype.after = function(resp) {
  * @param {object} options - set of instance options
  * @returns {object} Instance of Dare
  */
-Dare.prototype.use = function(options = {}) {
-
+Dare.prototype.use = function (options = {}) {
 	const inst = Object.create(this);
 
 	// Backwards compatibility for {schema}
@@ -141,9 +130,7 @@ Dare.prototype.use = function(options = {}) {
 
 	// Define the Row handler to format the results
 	if (options.rowHandler) {
-
 		inst.response_row_handler = options.rowHandler;
-
 	}
 
 	// Set the generate_fields array
@@ -152,26 +139,21 @@ Dare.prototype.use = function(options = {}) {
 	// Set SQL level states
 	inst.unique_alias_index = 0;
 	return inst;
-
 };
 
 /**
  * Add a row to the resultset
  * @param {object} row - Row record to add to the rows resultset
  */
-Dare.prototype.addRow = function(row) {
-
+Dare.prototype.addRow = function (row) {
 	// Format the SQL Row
 	const item = responseRowHandler.call(this, row);
 
 	// If this is not undefined...
 	if (item !== undefined) {
-
 		this.resultset ??= [];
 		this.resultset.push(item);
-
 	}
-
 };
 
 /**
@@ -183,18 +165,14 @@ Dare.prototype.addRow = function(row) {
  * @returns {Promise<object|Array>} Returns response object or array of values
  */
 Dare.prototype.sql = async function sql(sql, values) {
-
 	let req = {sql, values};
 
 	if (typeof sql === 'object') {
-
 		req = sql;
-
 	}
 
 	const resp = await this.execute(req);
 	return resp || this.resultset;
-
 };
 
 /**
@@ -208,25 +186,17 @@ Dare.prototype.sql = async function sql(sql, values) {
  * @returns {Promise<object|Array>} Results
  */
 Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
-
 	// Get Request Object
 	if (typeof table === 'object') {
-
 		opts = {...table};
-
-	}
-	else {
-
+	} else {
 		// Shuffle
 		if (typeof fields === 'object' && !Array.isArray(fields)) {
-
 			// Fields must be defined
 			throw new DareError(DareError.INVALID_REQUEST);
-
 		}
 
 		opts = {...opts, table, fields, filter};
-
 	}
 
 	// Define method
@@ -245,9 +215,7 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 	const sql_response = await dareInstance.sql(query);
 
 	if (sql_response === undefined) {
-
 		return;
-
 	}
 
 	// Format the response
@@ -255,27 +223,16 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
 
 	// If limit was not defined we should return the first result only.
 	if (dareInstance.options.single) {
-
 		if (resp.length) {
-
 			resp = resp[0];
-
-		}
-		else if (typeof dareInstance.options.notfound === 'function') {
-
+		} else if (typeof dareInstance.options.notfound === 'function') {
 			dareInstance.options.notfound();
-
-		}
-		else {
-
+		} else {
 			resp = dareInstance.options.notfound;
-
 		}
-
 	}
 
 	return dareInstance.after(resp);
-
 };
 
 /**
@@ -288,19 +245,13 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
  * @returns {Promise<integer>} Number of matched items
  */
 Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
-
 	// Get Request Object
 	if (typeof table === 'object') {
-
 		// Clone
 		opts = {...table};
-
-	}
-	else {
-
+	} else {
 		// Clone and extend
 		opts = {...opts, table, filter};
-
 	}
 
 	// Define method
@@ -330,7 +281,6 @@ Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
 
 	// Return the count
 	return resp.count;
-
 };
 
 /**
@@ -346,9 +296,11 @@ Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
  * @returns {Promise<object>} Affected Rows statement
  */
 Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
-
 	// Get Request Object
-	opts = typeof table === 'object' ? table : Object.assign(opts, {table, filter, body});
+	opts =
+		typeof table === 'object'
+			? table
+			: Object.assign(opts, {table, filter, body});
 
 	// Define method
 	opts.method = 'patch';
@@ -362,9 +314,7 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 
 	// Skip this operation?
 	if (req.skip) {
-
 		return dareInstance.after(req.skip);
-
 	}
 
 	// Validate Body
@@ -377,18 +327,26 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	const {schema: tableSchema} = models?.[req.name] || {};
 
 	// Prepare post
-	const sql_set = prepareSQLSet(req.body, req.sql_alias, tableSchema, validateInput);
+	const sql_set = prepareSQLSet(
+		req.body,
+		req.sql_alias,
+		tableSchema,
+		validateInput
+	);
 
 	// If ignore duplicate keys is stated as ignore
 	let exec = '';
-	if (req.duplicate_keys && req.duplicate_keys.toString().toLowerCase() === 'ignore') {
-
+	if (
+		req.duplicate_keys &&
+		req.duplicate_keys.toString().toLowerCase() === 'ignore'
+	) {
 		exec = 'IGNORE ';
-
 	}
 
 	// Construct a db update
-	const sql = SQL`UPDATE ${raw(exec)}${raw(req.sql_table)} ${raw(req.sql_alias)}
+	const sql = SQL`UPDATE ${raw(exec)}${raw(req.sql_table)} ${raw(
+		req.sql_alias
+	)}
 			${req.sql_joins.length ? join(req.sql_joins, '\n') : empty}
 			SET
 				${sql_set}
@@ -401,9 +359,7 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	resp = mustAffectRows(resp, opts.notfound);
 
 	return dareInstance.after(resp);
-
 };
-
 
 /**
  * Dare.post
@@ -418,9 +374,9 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
  */
 
 Dare.prototype.post = async function post(table, body, opts = {}) {
-
 	// Get Request Object
-	opts = typeof table === 'object' ? table : Object.assign(opts, {table, body});
+	opts =
+		typeof table === 'object' ? table : Object.assign(opts, {table, body});
 
 	// Post
 	opts.method = 'post';
@@ -432,9 +388,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 
 	// Skip this operation?
 	if (req.skip) {
-
 		return _this.after(req.skip);
-
 	}
 
 	// Capture fields...
@@ -447,33 +401,38 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	let query;
 
 	if (req.query) {
-
 		/*
 		 * Validate all fields are simple ones
 		 * Test: are there nested fields
 		 */
 		const invalidQueryFields = req.query.fields
-			.flatMap(field => (typeof field === 'string' ? field : Object.values(field)))
-			.some(value => value !== null && typeof(value) === 'object');
+			.flatMap(field =>
+				typeof field === 'string' ? field : Object.values(field)
+			)
+			.some(value => value !== null && typeof value === 'object');
 
 		// Throw an error if the fields are missing, perhaps indented
 		if (invalidQueryFields) {
-
-			throw new DareError(DareError.INVALID_REQUEST, 'Nested fields forbidden in post-query');
-
+			throw new DareError(
+				DareError.INVALID_REQUEST,
+				'Nested fields forbidden in post-query'
+			);
 		}
 
 		const getInstance = this.use(req.query);
 
 		getInstance.options.method = 'get';
 
-		const getRequest = await getInstance.format_request(getInstance.options);
+		const getRequest = await getInstance.format_request(
+			getInstance.options
+		);
 
 		// Throw an error if there are any generated fields
 		if (getInstance.generated_fields.length) {
-
-			throw new DareError(DareError.INVALID_REQUEST, 'Generated fields forbidden in post-query');
-
+			throw new DareError(
+				DareError.INVALID_REQUEST,
+				'Generated fields forbidden in post-query'
+			);
 		}
 
 		const {sql, values: getValues} = getHandler(getRequest, getInstance);
@@ -483,15 +442,10 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 
 		fields.push(...walkRequestGetField(getRequest));
 
-
 		values.push(...getValues);
-
-	}
-	else {
-
+	} else {
 		// Validate Body
 		validateBody(req.body);
-
 	}
 
 	// Set table
@@ -499,9 +453,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 
 	// Clone object before formatting
 	if (!Array.isArray(post)) {
-
 		post = [post];
-
 	}
 
 	// If ignore duplicate keys is stated as ignore
@@ -513,110 +465,94 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	// Get the schema
 	const {schema: modelSchema = {}} = models?.[req.name] || {};
 
-	const data = post.map(item => {
+	const data = post
+		.map(item => {
+			const _data = [];
 
-		const _data = [];
+			/*
+			 * Iterate through the properties
+			 * Format, validate and insert
+			 */
+			for (const prop in item) {
+				// Format key and values...
+				const {field, value} = formatInputValue(
+					modelSchema,
+					prop,
+					item[prop],
+					validateInput
+				);
 
-		/*
-		 * Iterate through the properties
-		 * Format, validate and insert
-		 */
-		for (const prop in item) {
+				// Get the index in the field list
+				let i = fields.indexOf(field);
 
-			// Format key and values...
-			const {field, value} = formatInputValue(modelSchema, prop, item[prop], validateInput);
+				if (i === -1) {
+					i = fields.length;
 
-			// Get the index in the field list
-			let i = fields.indexOf(field);
-
-			if (i === -1) {
-
-				i = fields.length;
-
-				fields.push(field);
-
-			}
-
-			// Insert the value at that position
-			_data[i] = value;
-
-		}
-
-		/*
-		 * Let's catch the omitted properties
-		 * --> Loop through the modelSchema
-		 */
-		Object.entries(modelSchema).forEach(([field, fieldObject]) => {
-
-			// For each property which was not covered by the input
-			if (field !== 'default' && !(field in item)) {
-
-				// Get a formatted object of field attributes
-				const fieldAttributes = getFieldAttributes(fieldObject);
-
-				/*
-				 * Get the default Value of the post operation
-				 * -> Reassign it back to the fieldAttributes.defaultValue, no need for the others
-				 */
-				const defaultValue = fieldAttributes.defaultValue?.post;
-				if (fieldAttributes.defaultValue) {
-
-					Object.assign(fieldAttributes, {defaultValue});
-
+					fields.push(field);
 				}
 
-				// Validate with an undefined value
-				validateInput?.(fieldAttributes, field);
+				// Insert the value at that position
+				_data[i] = value;
+			}
 
-				// Default values?
-				if (defaultValue) {
+			/*
+			 * Let's catch the omitted properties
+			 * --> Loop through the modelSchema
+			 */
+			Object.entries(modelSchema).forEach(([field, fieldObject]) => {
+				// For each property which was not covered by the input
+				if (field !== 'default' && !(field in item)) {
+					// Get a formatted object of field attributes
+					const fieldAttributes = getFieldAttributes(fieldObject);
 
-					// Get the index in the field list
-					let i = fields.indexOf(field);
-
-					if (i === -1) {
-
-						i = fields.length;
-
-						fields.push(field);
-
+					/*
+					 * Get the default Value of the post operation
+					 * -> Reassign it back to the fieldAttributes.defaultValue, no need for the others
+					 */
+					const defaultValue = fieldAttributes.defaultValue?.post;
+					if (fieldAttributes.defaultValue) {
+						Object.assign(fieldAttributes, {defaultValue});
 					}
 
-					// Insert the defaultValue at that position
-					_data[i] = defaultValue;
+					// Validate with an undefined value
+					validateInput?.(fieldAttributes, field);
 
+					// Default values?
+					if (defaultValue) {
+						// Get the index in the field list
+						let i = fields.indexOf(field);
+
+						if (i === -1) {
+							i = fields.length;
+
+							fields.push(field);
+						}
+
+						// Insert the defaultValue at that position
+						_data[i] = defaultValue;
+					}
+				}
+			});
+
+			return _data;
+		})
+		.map(_data => {
+			// Create prepared values
+			const a = fields.map((_, index) => {
+				// If any of the values are missing, set them as DEFAULT
+				if (_data[index] === undefined) {
+					return 'DEFAULT';
 				}
 
-			}
+				// Else add the value to prepared statement list
+				values.push(_data[index]);
 
+				// Return the prepared statement placeholder
+				return '?';
+			});
+
+			return `(${a.join(',')})`;
 		});
-
-		return _data;
-
-	}).map(_data => {
-
-		// Create prepared values
-		const a = fields.map((_, index) => {
-
-			// If any of the values are missing, set them as DEFAULT
-			if (_data[index] === undefined) {
-
-				return 'DEFAULT';
-
-			}
-
-			// Else add the value to prepared statement list
-			values.push(_data[index]);
-
-			// Return the prepared statement placeholder
-			return '?';
-
-		});
-
-		return `(${a.join(',')})`;
-
-	});
-
 
 	// Create unalias function
 	const unAliaser = field => unAliasFields(modelSchema, field);
@@ -624,14 +560,16 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	// Options
 	let on_duplicate_keys_update = '';
 	if (req.duplicate_keys_update) {
-
-		on_duplicate_keys_update = onDuplicateKeysUpdate(req.duplicate_keys_update.map(unAliaser));
-
-	}
-	else if (req.duplicate_keys && req.duplicate_keys.toString().toLowerCase() === 'ignore') {
-
-		on_duplicate_keys_update = `${onDuplicateKeysUpdate()}${req.sql_table}._rowid=${req.sql_table}._rowid`;
-
+		on_duplicate_keys_update = onDuplicateKeysUpdate(
+			req.duplicate_keys_update.map(unAliaser)
+		);
+	} else if (
+		req.duplicate_keys &&
+		req.duplicate_keys.toString().toLowerCase() === 'ignore'
+	) {
+		on_duplicate_keys_update = `${onDuplicateKeysUpdate()}${
+			req.sql_table
+		}._rowid=${req.sql_table}._rowid`;
 	}
 
 	// Construct a db update
@@ -644,9 +582,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	const resp = await _this.sql({sql, values});
 
 	return _this.after(resp);
-
 };
-
 
 /**
  * Dare.del
@@ -658,9 +594,11 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
  * @returns {Promise<object>} Affected Rows statement
  */
 Dare.prototype.del = async function del(table, filter, opts = {}) {
-
 	// Get Request Object
-	opts = typeof table === 'object' ? table : Object.assign(opts, {table, filter});
+	opts =
+		typeof table === 'object'
+			? table
+			: Object.assign(opts, {table, filter});
 
 	// Delete
 	opts.method = 'del';
@@ -674,13 +612,13 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 
 	// Skip this operation?
 	if (req.skip) {
-
 		return dareInstance.after(req.skip);
-
 	}
 
 	// Construct a db update
-	const sql = SQL`DELETE ${req.sql_joins.length ? raw(req.sql_table) : empty} FROM ${raw(req.sql_table)}
+	const sql = SQL`DELETE ${
+		req.sql_joins.length ? raw(req.sql_table) : empty
+	} FROM ${raw(req.sql_table)}
 					${req.sql_joins.length ? join(req.sql_joins, '\n') : empty}
 					WHERE
 					${join(req.sql_where_conditions, ' AND ')}
@@ -691,9 +629,7 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 	resp = mustAffectRows(resp, opts.notfound);
 
 	return dareInstance.after(resp);
-
 };
-
 
 /**
  * Prepared SQL Set
@@ -705,48 +641,41 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
  * @returns {object} {assignment, values}
  */
 function prepareSQLSet(body, sql_alias, tableSchema = {}, validateInput) {
-
 	const assignments = [];
 
 	for (const label in body) {
-
 		/*
 		 * Get the real field in the db,
 		 * And formatted value...
 		 */
-		const {field, value} = formatInputValue(tableSchema, label, body[label], validateInput);
+		const {field, value} = formatInputValue(
+			tableSchema,
+			label,
+			body[label],
+			validateInput
+		);
 
 		// Replace value with a question using any mapped fieldName
 		assignments.push(SQL`${raw(sql_alias)}.\`${raw(field)}\` = ${value}`);
-
 	}
 
 	return join(assignments, ', ');
-
 }
 
 function mustAffectRows(result, notfound) {
-
 	if (result.affectedRows === 0) {
-
 		if (typeof notfound === 'function') {
-
 			return notfound();
-
 		}
 		return notfound;
-
 	}
 	return result;
-
 }
 
 function onDuplicateKeysUpdate(keys = []) {
-
 	const s = keys.map(name => `\`${name}\`=VALUES(\`${name}\`)`).join(',');
 
 	return `ON DUPLICATE KEY UPDATE ${s}`;
-
 }
 
 /**
@@ -761,12 +690,12 @@ function onDuplicateKeysUpdate(keys = []) {
  * @returns {string} A singular value which can be inserted
  */
 function formatInputValue(tableSchema = {}, field, value, validateInput) {
-
-	const fieldAttributes = (field in tableSchema)
-		? getFieldAttributes(tableSchema[field])
-		: ('default' in tableSchema
+	const fieldAttributes =
+		field in tableSchema
+			? getFieldAttributes(tableSchema[field])
+			: 'default' in tableSchema
 			? getFieldAttributes(tableSchema.default)
-			: null);
+			: null;
 
 	const {alias, writeable, type} = fieldAttributes || {};
 
@@ -775,53 +704,53 @@ function formatInputValue(tableSchema = {}, field, value, validateInput) {
 
 	// Rudimentary validation of content
 	if (writeable === false) {
-
-		throw new DareError(DareError.INVALID_REFERENCE, `Field '${field}' is not writeable`);
-
+		throw new DareError(
+			DareError.INVALID_REFERENCE,
+			`Field '${field}' is not writeable`
+		);
 	}
 
 	// Stringify object
 	if (type === 'json') {
-
 		// Value must be an object
 		if (typeof value !== 'object') {
-
-			throw new DareError(DareError.INVALID_VALUE, `Field '${field}' must be an object: ${JSON.stringify(value)} provided`);
-
+			throw new DareError(
+				DareError.INVALID_VALUE,
+				`Field '${field}' must be an object: ${JSON.stringify(
+					value
+				)} provided`
+			);
 		}
 
 		// Stringify
 		if (value !== null) {
-
 			value = JSON.stringify(value);
-
 		}
-
 	}
 
 	// Check this is not an object
 	if (value && typeof value === 'object') {
-
-		throw new DareError(DareError.INVALID_VALUE, `Field '${field}' does not accept objects as values: '${JSON.stringify(value)}'`);
-
+		throw new DareError(
+			DareError.INVALID_VALUE,
+			`Field '${field}' does not accept objects as values: '${JSON.stringify(
+				value
+			)}'`
+		);
 	}
 
 	if (alias) {
-
 		if (/[^\w$.]/.test(alias)) {
-
-			throw new DareError(DareError.INVALID_REQUEST, `Field '${field}' is an alias for a derived value '${field}', cannot mutate`);
-
+			throw new DareError(
+				DareError.INVALID_REQUEST,
+				`Field '${field}' is an alias for a derived value '${field}', cannot mutate`
+			);
 		}
 
 		field = alias;
-
 	}
 
 	return {field, value};
-
 }
-
 
 /**
  * Return un-aliased field names
@@ -831,10 +760,8 @@ function formatInputValue(tableSchema = {}, field, value, validateInput) {
  * @returns {string} Unaliased field name
  */
 function unAliasFields(tableSchema = {}, field) {
-
 	const {alias} = getFieldAttributes(tableSchema[field]);
 	return alias || field;
-
 }
 
 /**
@@ -844,22 +771,15 @@ function unAliasFields(tableSchema = {}, field) {
  * @returns {void}
  */
 function setDefaultNotFoundHandler(opts) {
-
 	if (!('notfound' in opts)) {
-
 		// Default handler is called when there are no results on a request for a single item
 		opts.notfound = () => {
-
 			throw new DareError(DareError.NOT_FOUND);
-
 		};
-
 	}
 
 	return opts;
-
 }
-
 
 /**
  * Migrate to Models
@@ -868,37 +788,30 @@ function setDefaultNotFoundHandler(opts) {
  * @returns {void} Extends paramater
  */
 function migrateToModels(options) {
-
 	if (options.models) {
-
 		// Nothing to do
 		return;
-
 	}
 
 	// Legacy input...
 	for (const prop in options) {
-
-		if (!['schema', 'patch', 'post', 'del', 'get'].includes(prop) || !options[prop]) {
-
+		if (
+			!['schema', 'patch', 'post', 'del', 'get'].includes(prop) ||
+			!options[prop]
+		) {
 			continue;
-
 		}
 
 		for (const table in options[prop]) {
-
 			extend(options, {
 				models: {
 					[table]: {
-						[prop]: options[prop][table]
-					}
-				}
+						[prop]: options[prop][table],
+					},
+				},
 			});
-
 		}
-
 	}
-
 }
 
 /**
@@ -908,23 +821,21 @@ function migrateToModels(options) {
  * @returns {Array} an array of field names
  */
 function walkRequestGetField(request) {
-
 	const fields = [];
 
 	// Get the field names of the current request...
 	if (Array.isArray(request.fields)) {
-
-		fields.push(...request.fields.flatMap(field => (typeof field === 'string' ? field : Object.keys(field))));
-
+		fields.push(
+			...request.fields.flatMap(field =>
+				typeof field === 'string' ? field : Object.keys(field)
+			)
+		);
 	}
 
 	// Iterate through the nested table joins and retrieve their fields
 	if (Array.isArray(request._joins)) {
-
 		fields.push(...request._joins.flatMap(walkRequestGetField));
-
 	}
 
 	return fields;
-
 }

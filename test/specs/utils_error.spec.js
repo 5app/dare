@@ -6,10 +6,7 @@
 import DareError from '../../src/utils/error.js';
 
 describe('utils/error', () => {
-
-
 	it('should return instance of DareError with code and message property', () => {
-
 		// Call the field with the
 		const error = new DareError(DareError.INVALID_REFERENCE);
 
@@ -17,8 +14,5 @@ describe('utils/error', () => {
 		expect(error).to.have.property('code', 'INVALID_REFERENCE');
 		expect(error).to.have.property('status', 400);
 		expect(error).to.have.property('message', 'Invalid request');
-
 	});
-
 });
-

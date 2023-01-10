@@ -10,43 +10,35 @@ import DareError from '../utils/error.js';
  * @returns {void}
  */
 export default function limitClause({limit, start}, MAX_LIMIT) {
-
 	let single;
 	if (limit === undefined) {
-
 		limit = 1;
 		single = true;
-
-	}
-
-	else {
-
+	} else {
 		limit = +limit;
 
 		if (isNaN(limit) || (MAX_LIMIT && limit > MAX_LIMIT) || limit < 1) {
-
-			throw new DareError(DareError.INVALID_LIMIT, `Out of bounds limit value: '${limit}'`);
-
+			throw new DareError(
+				DareError.INVALID_LIMIT,
+				`Out of bounds limit value: '${limit}'`
+			);
 		}
-
 	}
 
 	if (start !== undefined) {
-
 		start = +start;
 
 		if (typeof start !== 'number' || isNaN(start) || start < 0) {
-
-			throw new DareError(DareError.INVALID_START, `Out of bounds start value: '${start}'`);
-
+			throw new DareError(
+				DareError.INVALID_START,
+				`Out of bounds start value: '${start}'`
+			);
 		}
-
 	}
 
 	return {
 		limit,
 		...(start && {start}),
-		...(single && {single})
+		...(single && {single}),
 	};
-
 }

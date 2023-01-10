@@ -3,7 +3,6 @@
 import format_datetime from '../../src/utils/format_datetime.js';
 
 describe('utils/format_datetime', () => {
-
 	// Should create date ranges from years/months/days...
 	[
 		['2016-03-01T00:00:00', '2016-03-01T00:00:00'],
@@ -17,39 +16,26 @@ describe('utils/format_datetime', () => {
 		// Should construct ranges from shorthand, and backfill single digit dates.
 
 		['2018-01-01..02', '2018-01-01T00:00:00..2018-01-02T23:59:59'],
-		['2018-1-1..2', '2018-01-01T00:00:00..2018-01-02T23:59:59']
+		['2018-1-1..2', '2018-01-01T00:00:00..2018-01-02T23:59:59'],
 	].forEach(test => {
-
 		const [input, expected] = test;
 
 		it(`where ${input}`, () => {
-
 			// Call the field with the
 			const formatted = format_datetime(input);
 
 			// Expect the formatted list of fields to be identical to the inputted value
 			expect(formatted).to.eql(expected);
-
 		});
-
 	});
 
-	[
-		0,
-		null,
-		{}
-	].forEach(input => {
-
+	[0, null, {}].forEach(input => {
 		it(`ignore ${input}`, () => {
-
 			// Call the field with the
 			const formatted = format_datetime(input);
 
 			// Expect the formatted list of fields to be identical to the inputted value
 			expect(formatted).to.eql(input);
-
 		});
-
 	});
-
 });

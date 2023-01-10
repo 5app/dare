@@ -1,8 +1,6 @@
 {
-  "rangeStrategy": "replace",
-  "automerge": true,
-  "extends": [
-    "config:base"
-	],
+	"rangeStrategy": "replace",
+	"automerge": true,
+	"extends": ["config:base"],
 	"ignoreDeps": ["husky"]
 }

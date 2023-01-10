@@ -2,7 +2,6 @@ import DareError from './error.js';
 import validate_alias from './validate_alias.js';
 
 export default function validate_field(key) {
-
 	const a = key.split('.');
 
 	const field = a
@@ -14,21 +13,19 @@ export default function validate_field(key) {
 
 	// Capture errors in the key
 	if (!field.match(reg)) {
-
-		throw new DareError(DareError.INVALID_REFERENCE, `The key '${key}' must match ${reg}`);
-
+		throw new DareError(
+			DareError.INVALID_REFERENCE,
+			`The key '${key}' must match ${reg}`
+		);
 	}
 
 	// Validate the path
 
 	if (a.length) {
-
 		const path = a.join('.');
 
 		validate_alias(path);
-
 	}
 
 	return [...a, field].join('.');
-
 }

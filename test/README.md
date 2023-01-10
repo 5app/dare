@@ -6,7 +6,7 @@
 npm test
 ```
 
-## Integration tests 
+## Integration tests
 
 ```sh
 DEBUG=sql npm run test:integration -- \

@@ -1,5 +1,3 @@
-
-
 import DareError from './utils/error.js';
 import group_concat from './utils/group_concat.js';
 import field_format from './utils/field_format.js';
@@ -7,63 +5,44 @@ import orderbyUnwrap from './utils/orderby_unwrap.js';
 import SQL, {Sql, raw, join, empty} from 'sql-template-tag';
 
 function optionalJoin(...params) {
-
 	if (!params.at(0).length) {
-
 		return empty;
-
-	}
-	else {
-
+	} else {
 		return join(...params);
-
 	}
-
 }
 
 export default function buildQuery(opts, dareInstance) {
-
 	opts.root = true;
 
 	// SubQuery
 	const {is_subquery} = opts;
 
 	// Traverse the Request Object
-	const {
-		fields,
-		has_many_join,
-		sql_joins,
-		sql_filter,
-		groupby,
-		orderby
-	} = traverse(opts, is_subquery, dareInstance);
+	const {fields, has_many_join, sql_joins, sql_filter, groupby, orderby} =
+		traverse(opts, is_subquery, dareInstance);
 
 	// Get the root tableID
 	const {sql_table, sql_alias} = opts;
 
 	{
-
 		// Count is a special field, find and replace ...
-		fields.filter(item => item.expression === `${sql_alias}._count`)
+		fields
+			.filter(item => item.expression === `${sql_alias}._count`)
 			.forEach(item => {
-
 				item.expression = 'COUNT(*)';
 				item.label = '_count';
 				item.agg = true;
-
 			});
 
 		// Find the special _group column...
 		fields
 			.filter(item => item.expression === `${sql_alias}._group`)
 			.forEach(item => {
-
 				// Pick the first_groupby statement
 				item.expression = groupby[0].expression;
 				item.label = '_group';
-
 			});
-
 	}
 
 	/*
@@ -71,9 +50,7 @@ export default function buildQuery(opts, dareInstance) {
 	 * e.g. filter= {category: asset, action: open, created_time: 2016-04-12T13:29:23Z..]
 	 */
 	if (opts.sql_where_conditions?.length) {
-
 		sql_filter.push(...opts.sql_where_conditions);
-
 	}
 
 	/*
@@ -82,17 +59,15 @@ export default function buildQuery(opts, dareInstance) {
 	 * Ensure that the parent has opts.groupby when we're joining tables
 	 */
 	if (!is_subquery && !groupby.length && has_many_join) {
-
 		// Are all the fields aggregates?
 		const all_aggs = fields.every(item => item.agg);
 
 		if (!all_aggs) {
-
 			// Determine whether there are non?
-			groupby.push({expression: `${opts.sql_alias}.${dareInstance.rowid}`});
-
+			groupby.push({
+				expression: `${opts.sql_alias}.${dareInstance.rowid}`,
+			});
 		}
-
 	}
 
 	// Format Fields
@@ -100,39 +75,38 @@ export default function buildQuery(opts, dareInstance) {
 	let alias;
 
 	if (opts.negate && fields.length === 0) {
-
 		sql_fields = [raw(1)];
-
-	}
-
-	else if (is_subquery) {
-
+	} else if (is_subquery) {
 		// Generate a Group Concat statement of the result
-		const address = opts.field_alias_path || opts._joins[0].field_alias_path;
+		const address =
+			opts.field_alias_path || opts._joins[0].field_alias_path;
 		/*
 		 * Sql_alias._rowid IS NOT NULL
 		 * Get a non intermediate table for use as the sql_alias._rowid value.
 		 */
-		const gc_sql_alias = opts.field_alias_path ? sql_alias : opts._joins[0].sql_alias;
-		const gc = group_concat(fields, address, gc_sql_alias, dareInstance.rowid);
+		const gc_sql_alias = opts.field_alias_path
+			? sql_alias
+			: opts._joins[0].sql_alias;
+		const gc = group_concat(
+			fields,
+			address,
+			gc_sql_alias,
+			dareInstance.rowid
+		);
 		sql_fields = [raw(gc.expression)];
 		alias = gc.label;
-
-	}
-	else {
-
+	} else {
 		sql_fields = fields.map(field => {
-
 			if (field instanceof Sql) {
-
 				return field;
-
 			}
 
-			return raw(`${field.expression}${field.label ? ` AS '${field.label}'` : ''}`);
-
+			return raw(
+				`${field.expression}${
+					field.label ? ` AS '${field.label}'` : ''
+				}`
+			);
 		});
-
 	}
 
 	// Clean up sql_orderby
@@ -143,27 +117,27 @@ export default function buildQuery(opts, dareInstance) {
 
 	// Convert to count the resultset
 	if (opts.countRows) {
-
 		// Change the rows to show the count of the rows returned
 		sql_fields = [
-			SQL`COUNT(DISTINCT ${sql_groupby.length ? join(sql_groupby) : raw(`${opts.sql_alias}.${dareInstance.rowid}`)}) AS 'count'`
+			SQL`COUNT(DISTINCT ${
+				sql_groupby.length
+					? join(sql_groupby)
+					: raw(`${opts.sql_alias}.${dareInstance.rowid}`)
+			}) AS 'count'`,
 		];
 
 		// Remove groupby and orderby...
 		sql_groupby.length = 0;
 		sql_orderby.length = 0;
-
 	}
 
 	// Fields should be a non-empty array
 	if (!sql_fields.length) {
-
 		/*
 		 * This query does not contain any fields
 		 * And so we should not include it
 		 */
 		throw new DareError(DareError.INVALID_REQUEST, 'Missing fields');
-
 	}
 
 	// Put it all together
@@ -173,23 +147,24 @@ export default function buildQuery(opts, dareInstance) {
 		${optionalJoin(sql_filter, ' AND ', 'WHERE ')}
 		${optionalJoin(sql_groupby, ',', 'GROUP BY ')}
 		${optionalJoin(sql_orderby, ',', 'ORDER BY ')}
-		${opts.limit ? SQL`LIMIT ${opts.start ? raw(`${opts.start},`) : empty}${raw(opts.limit)}` : empty}
+		${
+			opts.limit
+				? SQL`LIMIT ${opts.start ? raw(`${opts.start},`) : empty}${raw(
+						opts.limit
+				  )}`
+				: empty
+		}
 	`;
 
 	if (alias) {
-
 		// Wrap the whole thing in an alias
 		sql = SQL`(${sql}) AS '${raw(alias)}'`;
-
 	}
 
 	return sql;
-
 }
 
-
 function traverse(item, is_subquery, dareInstance) {
-
 	// Filters populate the filter and values (prepared statements)
 	const sql_filter = [];
 
@@ -211,7 +186,6 @@ function traverse(item, is_subquery, dareInstance) {
 	// SQL GroupBy
 	const orderby = [];
 
-
 	const {parent} = item;
 
 	const resp = {
@@ -221,12 +195,11 @@ function traverse(item, is_subquery, dareInstance) {
 		orderby,
 		fields,
 		list,
-		has_many_join: false
+		has_many_join: false,
 	};
 
 	// Things to change if this isn't the root.
 	if (parent) {
-
 		// Adopt the parents settings
 		const {many} = item;
 
@@ -240,20 +213,14 @@ function traverse(item, is_subquery, dareInstance) {
 		let ancestors_many = false;
 
 		{
-
 			let x = item;
 			while (x.parent) {
-
 				if (x.parent.many) {
-
 					ancestors_many = true;
 					break;
-
 				}
 				x = x.parent;
-
 			}
-
 		}
 
 		/*
@@ -261,8 +228,15 @@ function traverse(item, is_subquery, dareInstance) {
 		 * The join is not required for filtering,
 		 * And has a one to many relationship with its parent.
 		 */
-		if (dareInstance.group_concat && !is_subquery && !ancestors_many && !item.required_join && !item.has_filter && many && !item.groupby) {
-
+		if (
+			dareInstance.group_concat &&
+			!is_subquery &&
+			!ancestors_many &&
+			!item.required_join &&
+			!item.has_filter &&
+			many &&
+			!item.groupby
+		) {
 			// Mark as subquery
 			item.is_subquery = true;
 
@@ -274,25 +248,22 @@ function traverse(item, is_subquery, dareInstance) {
 
 			// The rest has been handled in the sub-query
 			return resp;
-
 		}
-
 	}
 
 	const {sql_alias} = item;
 
 	if (parent) {
-
 		// Update the values with the alias of the parent
 		const sql_join_condition = item.sql_join_condition;
 
 		const {required_join} = item;
 
 		// Required Join
-		item.required_join = required_join && (parent.required_join || parent.root);
+		item.required_join =
+			required_join && (parent.required_join || parent.root);
 
 		if (!item.is_subquery) {
-
 			/*
 			 * Required JOIN is used to lock table records together
 			 * This ensures that authorisation in can be handled by another
@@ -300,28 +271,27 @@ function traverse(item, is_subquery, dareInstance) {
 
 			// If the parent is not required or the root
 			if (required_join && !(parent.required_join || parent.root)) {
-
 				// Enforce a join by adding filters based on the table relationships
 				for (const x in item.join_conditions) {
-
 					const val = item.join_conditions[x];
-					sql_filter.push(raw(`(${sql_alias}.${x} = ${parent.sql_alias}.${val} OR ${parent.sql_alias}.${val} IS NULL)`));
-
+					sql_filter.push(
+						raw(
+							`(${sql_alias}.${x} = ${parent.sql_alias}.${val} OR ${parent.sql_alias}.${val} IS NULL)`
+						)
+					);
 				}
-
 			}
 
 			// Append to the sql_join
-			sql_joins.push(SQL`${item.required_join ? empty : raw('LEFT ')}JOIN ${raw(item.sql_table)} ${raw(sql_alias)} ON (${sql_join_condition})`);
-
-		}
-		else {
-
+			sql_joins.push(
+				SQL`${item.required_join ? empty : raw('LEFT ')}JOIN ${raw(
+					item.sql_table
+				)} ${raw(sql_alias)} ON (${sql_join_condition})`
+			);
+		} else {
 			// Merge the join condition on the filter
 			sql_filter.push(sql_join_condition);
-
 		}
-
 	}
 
 	/*
@@ -329,60 +299,52 @@ function traverse(item, is_subquery, dareInstance) {
 	 * e.g. fields = [action, category, count, ...]
 	 */
 	if (item.fields) {
-
 		// Yes, believe it or not but some queries do have them...
 		item.fields.map(prepField).forEach(([expression, label]) => {
-
-			fields.push(field_format(expression, label, sql_alias, item.field_alias_path));
-
+			fields.push(
+				field_format(
+					expression,
+					label,
+					sql_alias,
+					item.field_alias_path
+				)
+			);
 		});
-
 	}
 
 	// Traverse the next ones...
 	if (item._joins) {
-
 		item._joins.forEach(child => {
-
 			// Traverse the decendent arrays
 			const child_resp = traverse(child, is_subquery, dareInstance);
 
 			// Merge the results into this
 			for (const x in resp) {
-
 				const a = resp[x];
 				const b = child_resp[x];
 				if (Array.isArray(a)) {
-
 					a.push(...b);
-
-				}
-				else if (b) {
-
+				} else if (b) {
 					resp[x] = b;
-
 				}
-
 			}
-
 		});
-
 	}
 
 	// Groupby
 	if (item.groupby) {
-
 		// Either an empty groupby
-		groupby.push(...item.groupby.map(field => field_format(field, null, sql_alias, item.field_alias_path)));
-
+		groupby.push(
+			...item.groupby.map(field =>
+				field_format(field, null, sql_alias, item.field_alias_path)
+			)
+		);
 	}
 
 	// Orderby
 	if (item.orderby) {
-
 		// Either an empty groupby
 		const a = item.orderby.map(entry => {
-
 			// Split the entry into field and direction
 			const {field, direction} = orderbyUnwrap(entry);
 
@@ -391,12 +353,13 @@ function traverse(item, is_subquery, dareInstance) {
 			 * Extend object with direction
 			 * Return the object
 			 */
-			return Object.assign(field_format(field, null, sql_alias, item.field_alias_path), {direction});
-
+			return Object.assign(
+				field_format(field, null, sql_alias, item.field_alias_path),
+				{direction}
+			);
 		});
 
 		orderby.push(...a);
-
 	}
 
 	/*
@@ -405,35 +368,37 @@ function traverse(item, is_subquery, dareInstance) {
 	 * Groups all the fields into GROUP_CONCAT
 	 */
 	if (item.many && !is_subquery && fields.length) {
-
 		// Generate a Group Concat statement of the result
-		const address = item.field_alias_path || item._joins[0].field_alias_path;
+		const address =
+			item.field_alias_path || item._joins[0].field_alias_path;
 		/*
 		 * Sql_alias._rowid IS NOT NULL
 		 * Get a non intermediate table for use as the sql_alias._rowid value.
 		 */
-		const gc_sql_alias = item.field_alias_path ? sql_alias : item._joins[0].sql_alias;
-		const gc = group_concat(fields, address, gc_sql_alias, dareInstance.rowid);
+		const gc_sql_alias = item.field_alias_path
+			? sql_alias
+			: item._joins[0].sql_alias;
+		const gc = group_concat(
+			fields,
+			address,
+			gc_sql_alias,
+			dareInstance.rowid
+		);
 
 		// Reset the fields array
 		fields.length = 0;
 		fields.push(gc);
-
 	}
 
 	// Add this resource to the internal list
 	list.push(item);
 
 	return resp;
-
 }
 
 function prepField(field) {
-
 	if (typeof field === 'string') {
-
 		return [field];
-
 	}
 
 	let expression;
@@ -441,23 +406,17 @@ function prepField(field) {
 
 	// Get the first entry of the object and return
 	for (const _label in field) {
-
 		expression = field[_label];
 		label = _label;
 		continue;
-
 	}
 
 	return [expression, label];
-
 }
 
 function aliasOrderAndGroupFields(arr, fields) {
-
 	if (arr && arr.length) {
-
 		return arr.map(({expression, label, direction, original}) => {
-
 			/*
 			 * _count, etc...
 			 * Is the value a shortcut to a labelled field?
@@ -469,29 +428,23 @@ function aliasOrderAndGroupFields(arr, fields) {
 			 */
 
 			for (const field of fields) {
-
 				// Does the expression belong to something in the fields?
-				if (field.label && (field.label === label)) {
-
+				if (field.label && field.label === label) {
 					expression = `\`${field.label}\``;
 					break;
-
 				}
 				if (field.label && field.label === original) {
-
 					expression = `\`${field.label}\``;
 					break;
-
 				}
-
 			}
 
-			return join([expression, direction].filter(v => !!v).map(item => raw(item)), ' ');
-
+			return join(
+				[expression, direction].filter(v => !!v).map(item => raw(item)),
+				' '
+			);
 		});
-
 	}
 
 	return [];
-
 }

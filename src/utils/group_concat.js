@@ -4,53 +4,52 @@
  * Wrap all the fields in a GROUP_CONCAT statement
  */
 export default function group_concat(fields, address = '', sql_alias, rowid) {
-
 	// Is this an aggregate list?
-	const agg = fields.reduce((prev, curr) => (prev || curr.agg || curr.label.indexOf(address) !== 0), false);
+	const agg = fields.reduce(
+		(prev, curr) => prev || curr.agg || curr.label.indexOf(address) !== 0,
+		false
+	);
 	let label = fields.map(field => field.label).join(',');
 	let expression;
 
 	// Return solitary value
 	if (agg && fields.length === 1) {
-
 		expression = fields[0].expression;
 		return {
 			expression,
-			label
+			label,
 		};
-
 	}
 
-
 	// Convert to JSON Array
-	expression = fields.map(field => `'"', REPLACE(REPLACE(${field.expression}, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"'`);
-	expression = `CONCAT_WS('', '[', ${expression.join(', \',\', ')}, ']')`;
+	expression = fields.map(
+		field =>
+			`'"', REPLACE(REPLACE(${field.expression}, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"'`
+	);
+	expression = `CONCAT_WS('', '[', ${expression.join(", ',', ")}, ']')`;
 
 	if (agg) {
-
 		return {
 			expression,
-			label
+			label,
 		};
-
 	}
 
 	// Multiple
 	expression = `CONCAT('[', GROUP_CONCAT(IF(${sql_alias}.${rowid} IS NOT NULL, ${expression}, NULL)), ']')`;
 
-	label = fields.map(field => {
-
-		const {label} = field;
-		// Trim the parent address from the start of the label
-		return label.slice(address.length);
-
-	}).join(',');
+	label = fields
+		.map(field => {
+			const {label} = field;
+			// Trim the parent address from the start of the label
+			return label.slice(address.length);
+		})
+		.join(',');
 
 	label = `${address.slice(0, address.lastIndexOf('.'))}[${label}]`;
 
 	return {
 		expression,
-		label
+		label,
 	};
-
 }
