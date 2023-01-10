@@ -40,7 +40,7 @@ let TABLE_NAME = 'table_name';
 /**
  * Environment specific changes...
  */
-if (MYSQL_VERSION >= 8) {
+if (MYSQL_VERSION.match(/\d+/)?.[0] >= 8) {
 	TABLE_NAME = TABLE_NAME.toUpperCase();
 }
 
