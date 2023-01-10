@@ -65,7 +65,7 @@
     "mocha-circleci-reporter": "0.0.3",
     "mysql2": "^2.3.3",
     "pre-commit": "^1.2.2",
-    "semantic-release": "^19.0.3"
+    "semantic-release": "^20.0.0"
   },
   "dependencies": {
     "sql-template-tag": "^5.0.3",
