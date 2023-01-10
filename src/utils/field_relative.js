@@ -7,7 +7,6 @@
  * Return the various parts as an array ['this', '.is.not', '.over']
  */
 export default (a, b) => {
-
 	let path = b;
 
 	/*
@@ -15,22 +14,17 @@ export default (a, b) => {
 	 * Continue to do this
 	 */
 	while (path && !a.endsWith(path)) {
-
 		// What is the position of the separator
 		const i = path.lastIndexOf('.', path.length - 2);
 
 		if (i <= 0) {
-
 			// No, this is relative field
 			path = '';
 			break;
-
 		}
 
 		path = path.slice(0, i + 1);
-
 	}
 
 	return b.slice(path.length);
-
 };

@@ -4,106 +4,104 @@ version: 2.1
 # Aliases
 
 aliases:
-  - &dir ~/repo
-  - &attach_workspace
-    attach_workspace:
-      at: *dir
+    - &dir ~/repo
+    - &attach_workspace
+      attach_workspace:
+          at: *dir
 
 ################################
 # Executors
 
 executors:
-  node:
-    working_directory: *dir
-    docker:
-      - image: cimg/node:lts
+    node:
+        working_directory: *dir
+        docker:
+            - image: cimg/node:lts
 
-  ubuntu-machine:
-    working_directory: *dir
-    machine:
-      # locally we use docker-compose to manage the services for our integration tests,
-      # and we use the mysql cli (docker-compose exec) to import data for each test.
-      # this means, we can't use docker as our executor.
-      # The alternative (Docker-in-docker via circle-ci) requires some oddities for mounting
-      # volumes and networking, so using a real VM is the easiest option:
-      # https://circleci.com/docs/2.0/docker-compose/#using-docker-compose-with-docker-executor
-      image: ubuntu-2004:2022.10.1
+    ubuntu-machine:
+        working_directory: *dir
+        machine:
+            # locally we use docker-compose to manage the services for our integration tests,
+            # and we use the mysql cli (docker-compose exec) to import data for each test.
+            # this means, we can't use docker as our executor.
+            # The alternative (Docker-in-docker via circle-ci) requires some oddities for mounting
+            # volumes and networking, so using a real VM is the easiest option:
+            # https://circleci.com/docs/2.0/docker-compose/#using-docker-compose-with-docker-executor
+            image: ubuntu-2004:2022.10.1
 
 ################################
 # Orbs
 
 orbs:
-  node: circleci/node@5.0.3
-
+    node: circleci/node@5.0.3
 
 ################################
 # Jobs
 
 jobs:
-  checkout_code:
-    executor: node
-    steps:
-      - checkout
-      - node/install-packages
-      - persist_to_workspace:
-          root: *dir
-          paths:
-            - .
+    checkout_code:
+        executor: node
+        steps:
+            - checkout
+            - node/install-packages
+            - persist_to_workspace:
+                  root: *dir
+                  paths:
+                      - .
 
-  test:
-    executor: node
-    steps:
-      - *attach_workspace
-      - run:
-          environment:
-            MOCHA_FILE: /tmp/test-results/mocha.xml
-          name: run mocha tests
-          command: |
-            mkdir /tmp/test-results
-            npm run test:ci
-      - store_test_results:
-          path: /tmp/test-results
+    test:
+        executor: node
+        steps:
+            - *attach_workspace
+            - run:
+                  environment:
+                      MOCHA_FILE: /tmp/test-results/mocha.xml
+                  name: run mocha tests
+                  command: |
+                      mkdir /tmp/test-results
+                      npm run test:ci
+            - store_test_results:
+                  path: /tmp/test-results
 
-  integration:
-    parameters:
-      mysql_version:
-        default: "5.6"
-        type: string
-    executor: ubuntu-machine
-    steps:
-      - *attach_workspace
-      - node/install-packages
-      - run:
-          name: Run integration tests
-          command: MYSQL_VERSION=<< parameters.mysql_version >> npm run test:integration -- --exit --timeout=4000
+    integration:
+        parameters:
+            mysql_version:
+                default: '5.6'
+                type: string
+        executor: ubuntu-machine
+        steps:
+            - *attach_workspace
+            - node/install-packages
+            - run:
+                  name: Run integration tests
+                  command: MYSQL_VERSION=<< parameters.mysql_version >> npm run test:integration -- --exit --timeout=4000
 
-  release:
-    executor: node
-    steps:
-      - *attach_workspace
-      - checkout
-      - run: npx semantic-release
-
+    release:
+        executor: node
+        steps:
+            - *attach_workspace
+            - checkout
+            - run: npx semantic-release
 
 ################################
 # Workflows
 
 workflows:
-  version: 2
-  build:
-    jobs:
-      - checkout_code
-      - test:
-          requires:
+    version: 2
+    build:
+        jobs:
             - checkout_code
-      - integration:
-          matrix:
-            parameters:
-              mysql_version: ["5.6", "5.7", "8.0"]
-          requires:
-            - checkout_code
-      - release:
-          context: org-global
-          requires:
-            - test
-            - integration
+            - test:
+                  requires:
+                      - checkout_code
+            - integration:
+                  matrix:
+                      parameters:
+                          mysql_version: ['5.6', '5.7', '8.0']
+                  requires:
+                      - checkout_code
+            - release:
+                  context: org-global
+                  requires:
+                      - test
+                      - integration

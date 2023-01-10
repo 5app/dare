@@ -7,7 +7,6 @@ import unwrap_field from '../../src/utils/unwrap_field.js';
 import DareError from '../../src/utils/error.js';
 
 describe('utils/unwrap_field', () => {
-
 	/*
 	 * Supported Field Expressions
 	 * Should unwrap SQL Formating to underlying column name
@@ -41,25 +40,20 @@ describe('utils/unwrap_field', () => {
 		'ROUND(field, 2)',
 		'ROUND(AVG(field) * 100, 2)',
 		'RIGHT(field, 4)',
-		'FORMAT(field,\'en_GB\')',
-		'CONCAT(ROUND(field * 100, 2), \'%\')',
-		'FORMAT(ROUND(field * 5, 2), \'en_GB\')',
-		'FORMAT(ROUND(field * 5.5, 2), \'en_GB\')',
-		'FORMAT(ROUND(field / 5, 2), \'en_GB\')'
+		"FORMAT(field,'en_GB')",
+		"CONCAT(ROUND(field * 100, 2), '%')",
+		"FORMAT(ROUND(field * 5, 2), 'en_GB')",
+		"FORMAT(ROUND(field * 5.5, 2), 'en_GB')",
+		"FORMAT(ROUND(field / 5, 2), 'en_GB')",
 	].forEach(test => {
-
 		it(`where ${JSON.stringify(test)}`, () => {
-
 			// Call the field with the
 			const unwrapped = unwrap_field(test);
 
 			// Expect the formatted list of fields to be identical to the inputted value
 			expect(unwrapped.field).to.eql('field');
-
 		});
-
 	});
-
 
 	/*
 	 * Unsupported field expressions
@@ -83,18 +77,11 @@ describe('utils/unwrap_field', () => {
 
 		// More than 1 field requested
 		'CONCAT(field, secret)',
-		'IF(field < field2, "yes", "no")'
-
+		'IF(field < field2, "yes", "no")',
 	].forEach(test => {
-
 		it(`errors: ${JSON.stringify(test)}`, () => {
-
 			// Expect the field expression unwrapping to throw a Dare Error
 			expect(unwrap_field.bind(null, test)).to.throw(DareError);
-
 		});
-
 	});
-
 });
-

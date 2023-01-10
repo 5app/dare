@@ -9,30 +9,24 @@ const {db} = global;
 
 export {options};
 
-export default function() {
-
+export default function () {
 	// Initiate
 	const dare = new Dare(options);
 
 	// Set a test instance
 	// eslint-disable-next-line arrow-body-style
 	dare.execute = async query => {
-
 		// DEBUG
 		debug(mysql.format(query.sql, query.values));
 
 		const resp = await db.query(query);
 
 		if (!Array.isArray(resp)) {
-
 			debug(`Affected rows: ${resp.affectedRows}`);
-
 		}
 
 		return resp;
-
 	};
 
 	return dare;
-
 }

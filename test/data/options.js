@@ -1,12 +1,11 @@
 const created_time = {
-	type: 'datetime'
+	type: 'datetime',
 };
 
 export default {
 	models: {
 		// Users table
 		users: {
-
 			schema: {
 				/*
 				 * Field alias
@@ -24,7 +23,7 @@ export default {
 				 * JSON data type
 				 */
 				meta: {
-					type: 'json'
+					type: 'json',
 				},
 
 				/**
@@ -33,96 +32,81 @@ export default {
 				 * @returns {string|Function} Can return a function or a field definition.
 				 */
 				url(fields) {
-
 					// This is a generated function
 					fields.push('id');
 
 					return ({id}) => `/user/${id}`;
-
 				},
 
 				generatedUrl(fields) {
-
 					// This is a generated function
 					fields.push('id');
 
 					return ({id}) => `/user/${id}`;
-
 				},
 
 				/*
 				 * Date Type
 				 */
-				created_time
-			}
-
+				created_time,
+			},
 		},
 
 		// Users have multiple emails
 		users_email: {
-
 			schema: {
-
 				/*
 				 * User_id defines a field which references the users table
 				 */
 				user_id: {
-					references: ['users.id']
+					references: ['users.id'],
 				},
 
 				/*
 				 * Date Type
 				 */
-				created_time
-			}
+				created_time,
+			},
 		},
 
 		teams: {},
 
 		userTeams: {
-
 			schema: {
-				'user_id': ['users.id'],
-				'team_id': ['teams.id']
-			}
+				user_id: ['users.id'],
+				team_id: ['teams.id'],
+			},
 		},
 
 		country: {
-
 			schema: {
-
 				name: {
-					type: 'string'
+					type: 'string',
 				},
 
 				/*
 				 * Date Type
 				 */
-				created_time
-			}
-
+				created_time,
+			},
 		},
 
 		comments: {
-
 			schema: {
-
 				author_id: {
-					references: 'users.id'
+					references: 'users.id',
 				},
 				/*
 				 * Date Type
 				 */
-				created_time
-			}
+				created_time,
+			},
 		},
 
 		activityEvents: {
-
 			schema: {
-
 				session_id: {
-					references: 'activitySession.id'
+					references: 'activitySession.id',
 				},
 
 				ref_id: ['asset.id'],
@@ -130,35 +114,29 @@ export default {
 				/*
 				 * Date Type
 				 */
-				created_time
-			}
+				created_time,
+			},
 		},
 
 		asset: {
-
 			table: 'apps',
 			schema: {
-
 				/*
 				 * Date Type
 				 */
-				created_time
-			}
+				created_time,
+			},
 		},
 
 		assetDomains: {
-
 			schema: {
-
 				asset_id: ['asset.id'],
 
 				/*
 				 * Date Type
 				 */
-				created_time
-			}
-		}
-
-	}
-
+				created_time,
+			},
+		},
+	},
 };

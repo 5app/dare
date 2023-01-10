@@ -6,27 +6,21 @@
  * @returns {object} extended object
  */
 function extend(base, ...args) {
-
 	args.forEach(current => {
-
-		if (!Array.isArray(current) && base instanceof Object && current instanceof Object && base !== current) {
-
+		if (
+			!Array.isArray(current) &&
+			base instanceof Object &&
+			current instanceof Object &&
+			base !== current
+		) {
 			for (const x in current) {
-
 				base[x] = extend(base[x], current[x]);
-
 			}
-
-		}
-		else {
-
+		} else {
 			base = current;
-
 		}
-
 	});
 	return base;
-
 }
 
 export default extend;
