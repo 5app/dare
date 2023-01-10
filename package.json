@@ -12,6 +12,7 @@
 		"node": ">=16.9"
 	},
 	"scripts": {
+    "prepare": "is-ci || husky install",
 		"pretest": "npm run lint",
 		"test": "npm run spec && ((c8 report --reporter=text-lcov | coveralls) || exit 0)",
 		"test:ci": "eslint ./ && c8 mocha test/specs/**/*.spec.js --reporter mocha-circleci-reporter && (c8 report --reporter=text-lcov | coveralls)",
