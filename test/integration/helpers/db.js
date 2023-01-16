@@ -21,6 +21,12 @@ class DB {
 		return rows;
 
 	}
+	end() {
+
+		// Close this connection
+		return this.conn.end();
+
+	}
 
 }
 

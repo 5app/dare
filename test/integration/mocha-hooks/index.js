@@ -14,6 +14,9 @@ const mochaHooks = {
 	],
 	beforeEach: [
 		mysql.mochaHooks.beforeEach
+	],
+	afterAll: [
+		mysql.mochaHooks.afterAll
 	]
 };
 
