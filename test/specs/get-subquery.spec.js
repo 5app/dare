@@ -9,7 +9,6 @@ let dare;
 // Create a schema
 const options = {
 	models: {
-
 		// Define Datasets
 		assets: {},
 		collections: {},
@@ -18,33 +17,26 @@ const options = {
 		assetCollections: {
 			schema: {
 				asset_id: ['assets.id'],
-				collection_id: ['collections.id']
-			}
+				collection_id: ['collections.id'],
+			},
 		},
 
 		// Collection children
 		collectionChildren: {
 			schema: {
-				collection_id: ['collections.id']
-			}
-		}
-	}
+				collection_id: ['collections.id'],
+			},
+		},
+	},
 };
 
-
 describe('get - subquery', () => {
-
 	beforeEach(() => {
-
 		dare = new Dare(options);
-
 	});
 
-
 	it('should write one to many requests with a subquery', async () => {
-
 		dare.sql = ({sql}) => {
-
 			const expected = `
 
 				SELECT a.name AS 'asset_name',
@@ -63,30 +55,28 @@ describe('get - subquery', () => {
 
 			expectSQLEqual(sql, expected);
 
-			return Promise.resolve([{
-				asset_name: 'name',
-				collection_count: 42
-			}]);
-
+			return Promise.resolve([
+				{
+					asset_name: 'name',
+					collection_count: 42,
+				},
+			]);
 		};
 
 		const resp = await dare.get({
 			table: 'assets',
 			fields: {
-				'asset_name': 'name',
-				'collection_count': 'COUNT(collections.id)'
-			}
+				asset_name: 'name',
+				collection_count: 'COUNT(collections.id)',
+			},
 		});
 
 		expect(resp).to.have.property('asset_name', 'name');
 		expect(resp).to.have.property('collection_count', 42);
-
 	});
 
 	it('should export the response in the format given', async () => {
-
 		dare.sql = ({sql}) => {
-
 			const expected = `
 
 				SELECT a.name AS 'asset_name',
@@ -105,31 +95,31 @@ describe('get - subquery', () => {
 
 			expectSQLEqual(sql, expected);
 
-			return Promise.resolve([{
-				asset_name: 'name',
-				'collections.count': 42
-			}]);
-
+			return Promise.resolve([
+				{
+					asset_name: 'name',
+					'collections.count': 42,
+				},
+			]);
 		};
 
 		const resp = await dare.get({
 			table: 'assets',
 			fields: {
-				'asset_name': 'name',
-				'collections': [{
-					'count': 'COUNT(id)'
-				}]
-			}
+				asset_name: 'name',
+				collections: [
+					{
+						count: 'COUNT(id)',
+					},
+				],
+			},
 		});
 
 		expect(resp.collections).to.have.property('count', 42);
-
 	});
 
 	it('should concatinate many expressions into an array using GROUP_CONCAT', async () => {
-
 		dare.sql = ({sql}) => {
-
 			const expected = `
 
 				SELECT a.name AS 'name',
@@ -147,31 +137,29 @@ describe('get - subquery', () => {
 			`;
 			expectSQLEqual(sql, expected);
 
-			return Promise.resolve([{
-				asset_name: 'name',
-				'collections[id,name]': '[["1","a"],["2","b"]]'
-			}]);
-
+			return Promise.resolve([
+				{
+					asset_name: 'name',
+					'collections[id,name]': '[["1","a"],["2","b"]]',
+				},
+			]);
 		};
 
 		const resp = await dare.get({
 			table: 'assets',
 			fields: {
-				'name': 'name',
-				'collections': ['id', 'name']
-			}
+				name: 'name',
+				collections: ['id', 'name'],
+			},
 		});
 
 		expect(resp.collections).to.be.an('array');
 		expect(resp.collections[0]).to.have.property('id', '1');
 		expect(resp.collections[0]).to.have.property('name', 'a');
-
 	});
 
 	it('should concatinate many expressions into an array using GROUP_CONCAT', async () => {
-
 		dare.sql = ({sql}) => {
-
 			const expected = `
 
 				SELECT a.name AS 'name',
@@ -188,36 +176,34 @@ describe('get - subquery', () => {
 			`;
 			expectSQLEqual(sql, expected);
 
-			return Promise.resolve([{
-				asset_name: 'name',
-				'assetCollections[id,color]': '[["1","red"],["2","blue"]]'
-			}]);
-
+			return Promise.resolve([
+				{
+					asset_name: 'name',
+					'assetCollections[id,color]': '[["1","red"],["2","blue"]]',
+				},
+			]);
 		};
 
 		const resp = await dare.get({
 			table: 'assets',
 			fields: {
-				'name': 'name',
-				'assetCollections': ['id', 'color']
+				name: 'name',
+				assetCollections: ['id', 'color'],
 			},
 			join: {
 				assetCollections: {
-					color: 'red'
-				}
-			}
+					color: 'red',
+				},
+			},
 		});
 
 		expect(resp.assetCollections).to.be.an('array');
 		expect(resp.assetCollections[0]).to.have.property('id', '1');
 		expect(resp.assetCollections[0]).to.have.property('color', 'red');
-
 	});
 
 	it('should *not* subquery a nested object without fields', async () => {
-
 		dare.sql = ({sql}) => {
-
 			const expected = `
 
 				SELECT a.name AS 'name'
@@ -227,32 +213,30 @@ describe('get - subquery', () => {
 			`;
 			expectSQLEqual(sql, expected);
 
-			return Promise.resolve([{
-				asset_name: 'name'
-			}]);
-
+			return Promise.resolve([
+				{
+					asset_name: 'name',
+				},
+			]);
 		};
 
 		const resp = await dare.get({
 			table: 'assets',
 			fields: {
-				'name': 'name'
+				name: 'name',
 			},
 			join: {
-				'collections': {
-					name: 'a'
-				}
-			}
+				collections: {
+					name: 'a',
+				},
+			},
 		});
 
 		expect(resp).to.have.property('asset_name', 'name');
-
 	});
 
 	it('should *not* use a subquery when the many table is used in the filter', async () => {
-
 		dare.sql = ({sql}) => {
-
 			const expected = `
 				SELECT a.name AS 'name',
 					CONCAT('[', GROUP_CONCAT(IF(c._rowid IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(c.id, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(c.name, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), NULL)), ']') AS 'collections[id,name]'
@@ -267,28 +251,24 @@ describe('get - subquery', () => {
 			expectSQLEqual(sql, expected);
 
 			return Promise.resolve([{}]);
-
 		};
 
 		return dare.get({
 			table: 'assets',
 			fields: {
-				'name': 'name',
-				'collections': ['id', 'name']
+				name: 'name',
+				collections: ['id', 'name'],
 			},
 			filter: {
 				collections: {
-					name: 'myCollection'
-				}
-			}
+					name: 'myCollection',
+				},
+			},
 		});
-
 	});
 
 	it('should *not* subquery a table off a join with a possible set of values', async () => {
-
 		dare.sql = ({sql}) => {
-
 			const expected = `
 				SELECT a.name AS 'name', CONCAT('[',GROUP_CONCAT(IF(b._rowid IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(COUNT(d.id), '\\\\', '\\\\\\\\'), '"','\\\\"'),'"',']'), NULL)),']') AS 'assetCollections[collections.descendents]'
 				FROM assets a
@@ -303,33 +283,28 @@ describe('get - subquery', () => {
 			expectSQLEqual(sql, expected);
 
 			return Promise.resolve([{}]);
-
 		};
 
 		return dare.get({
 			table: 'assets',
 			fields: {
-				'name': 'name',
-				'assetCollections': {
-					'collections': {
-						descendents: 'COUNT(collectionChildren.id)'
-					}
-				}
+				name: 'name',
+				assetCollections: {
+					collections: {
+						descendents: 'COUNT(collectionChildren.id)',
+					},
+				},
 			},
 			filter: {
 				assetCollections: {
-					is_deleted: false
-				}
-			}
+					is_deleted: false,
+				},
+			},
 		});
-
 	});
 
 	it('should aggregate single field requests in a subquery, aka without group_concat', async () => {
-
-
 		dare.sql = ({sql}) => {
-
 			const expected = `
 				SELECT a.id,a.name,a.created_time,
 				(
@@ -347,15 +322,14 @@ describe('get - subquery', () => {
 			expectSQLEqual(sql, expected);
 
 			return Promise.resolve([{}]);
-
 		};
 
 		dare.options = {
 			models: {
 				userEmails: {
-					schema: {user_id: ['users.id']}
-				}
-			}
+					schema: {user_id: ['users.id']},
+				},
+			},
 		};
 
 		return dare.get({
@@ -365,49 +339,40 @@ describe('get - subquery', () => {
 				'name',
 				{
 					email_id: 'userEmails.id',
-					email: 'userEmails.email'
+					email: 'userEmails.email',
 				},
-				'created_time'
+				'created_time',
 			],
 			filter: {},
 			join: {},
 			groupby: 'id',
-			orderby: 'name'
+			orderby: 'name',
 		});
-
 	});
 
 	describe('with groupby', () => {
-
 		it('should allow multiple groupby on nested tables', async () => {
-
 			dare.sql = async ({sql}) => {
-
 				expect(sql).to.contain('GROUP BY c.id,a.id');
 
-				return [{
-					'AssetID': 1,
-					'CollectionID': 2,
-					'Collection': 'b'
-				}];
-
+				return [
+					{
+						AssetID: 1,
+						CollectionID: 2,
+						Collection: 'b',
+					},
+				];
 			};
 
 			return dare.get({
-				'table': 'assets',
-				'fields': {
-					'AssetID': 'id',
-					'CollectionID': 'assetCollections.collections.id',
-					'Collection': 'assetCollections.collections.name'
+				table: 'assets',
+				fields: {
+					AssetID: 'id',
+					CollectionID: 'assetCollections.collections.id',
+					Collection: 'assetCollections.collections.name',
 				},
-				'groupby': [
-					'id',
-					'assetCollections.collections.id'
-				]
+				groupby: ['id', 'assetCollections.collections.id'],
 			});
-
 		});
-
 	});
-
 });

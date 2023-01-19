@@ -6,69 +6,62 @@
  */
 
 export default fieldDefinition => {
-
-	if (fieldDefinition && typeof fieldDefinition === 'object' && !Array.isArray(fieldDefinition)) {
-
+	if (
+		fieldDefinition &&
+		typeof fieldDefinition === 'object' &&
+		!Array.isArray(fieldDefinition)
+	) {
 		/*
 		 * If 'defaultValue' is defined
 		 * Expand default value
 		 */
-		if (Object.hasOwn(fieldDefinition, 'defaultValue') && (fieldDefinition.defaultValue === null || typeof fieldDefinition.defaultValue !== 'object')) {
-
+		if (
+			Object.hasOwn(fieldDefinition, 'defaultValue') &&
+			(fieldDefinition.defaultValue === null ||
+				typeof fieldDefinition.defaultValue !== 'object')
+		) {
 			const val = fieldDefinition.defaultValue;
 
 			fieldDefinition.defaultValue = {
 				get: val,
 				post: val,
 				patch: val,
-				del: val
+				del: val,
 			};
-
 		}
-
 
 		// This is already a definition object
 		return fieldDefinition;
-
 	}
 
 	if (typeof fieldDefinition === 'string') {
-
 		// This is an alias reference, the name is an alias of another
 		return {
-			alias: fieldDefinition
+			alias: fieldDefinition,
 		};
-
 	}
 
 	if (Array.isArray(fieldDefinition)) {
-
 		// This is an reference to another table, this field can be used in a table join
 		return {
-			references: fieldDefinition
+			references: fieldDefinition,
 		};
-
 	}
 
 	if (typeof fieldDefinition === 'function') {
-
 		// This is a generated field
 		return {
-			handler: fieldDefinition
+			handler: fieldDefinition,
 		};
-
 	}
 
 	if (fieldDefinition === false) {
-
 		// Mark as inaccessible
 		return {
 			readable: false,
-			writeable: false
+			writeable: false,
 		};
-
 	}
 
 	return {};
-
 };

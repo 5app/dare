@@ -7,8 +7,6 @@
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![codebeat badge](https://codebeat.co/badges/718b30e2-76fa-4c61-b770-751b22c5ea5e)](https://codebeat.co/projects/github-com-5app-dare-main)
 
-
-
 Dare is a brave API for generating SQL out of structured Javascript objects.
 
 # Example usage...
@@ -48,12 +46,12 @@ npm i dare --save
 
 The `dare.get` method is used to build and execute a `SELECT ...` SQL statement.
 
-| property | Type              | Description
-|----------|-------------------|----------------
-| table    | string            | Name of the table to access
-| fields   | Array strings     | Fields Array
-| filter   | Hash (key=>Value) | Query Object
-| options  | Hash (key=>Value) | Additional Options
+| property | Type              | Description                 |
+| -------- | ----------------- | --------------------------- |
+| table    | string            | Name of the table to access |
+| fields   | Array strings     | Fields Array                |
+| filter   | Hash (key=>Value) | Query Object                |
+| options  | Hash (key=>Value) | Additional Options          |
 
 e.g.
 
@@ -73,8 +71,8 @@ await dare.get({
 	table: 'users',
 	fields: ['name'],
 	filter: {
-		id: 1
-	}
+		id: 1,
+	},
 });
 ```
 
@@ -95,22 +93,20 @@ The array items can also be Objects.
 
 **Aliasing fields**
 
-It's sometimes appropriate to return a field by another name, this is called *aliasing*.
+It's sometimes appropriate to return a field by another name, this is called _aliasing_.
 
 To achieve that, instead of having a string item in the fields array, an object is provided instead. The object has one property where the key of that property defines the new name, and the value the db field.
 
 e.g. here we rename email to emailAddress
 
 ```js
-await dare.get('users',
-	[
-		'name', // also including a regular string field alongside for comparison
-		{
-			// label : db field
-			'emailAddress': 'email'
-		}
-	]
-);
+await dare.get('users', [
+	'name', // also including a regular string field alongside for comparison
+	{
+		// label : db field
+		emailAddress: 'email',
+	},
+]);
 // sql: SELECT email AS emailAddress FROM users ...
 ```
 
@@ -121,60 +117,55 @@ The object structure used for **aliasing** can also be used to label a response 
 E.g. Below we're using the `DATE` function to format the `created_date`, and we're aliasing it so it will be returned with prop key `date`.
 
 ```js
-await dare.get('users',
-	[
-	  {
-	  	'date': 'DATE(created_date)'
-	  }
-	]
-);
+await dare.get('users', [
+	{
+		date: 'DATE(created_date)',
+	},
+]);
 // sql: SELECT name, DATE(created_date) AS date ...
 ```
 
-
 **Supported SQL Functions**:
 
-SQL Functions have to adhere to a pattern. 
+SQL Functions have to adhere to a pattern.
 
-*note*: It is currently limited to defining just one table field, we hope this will change
+_note_: It is currently limited to defining just one table field, we hope this will change
 
 `FUNCTION_NAME([FIELD_PREFIX]? field_name [MATH_OPERATOR MATH_VALUE]?[, ADDITIONAL_PARAMETERS]*)`
 
-- *FUNCTION_NAME*: uppercase, no spaces
-- *FIELD_PREFIX*: optional, uppercase
-- *field_name*: db field reference
-- *MATH_OPERATOR* *MATH_VALUE*: optional
-- *ADDITIONAL_PARAMETERS*: optional, prefixed with `,`, (uppercase, digit or quoted string)
+-   _FUNCTION_NAME_: uppercase, no spaces
+-   _FIELD_PREFIX_: optional, uppercase
+-   _field_name_: db field reference
+-   _MATH_OPERATOR_ _MATH_VALUE_: optional
+-   _ADDITIONAL_PARAMETERS_: optional, prefixed with `,`, (uppercase, digit or quoted string)
 
-*e.g.*
+_e.g._
 
-Field Defition | Description
---|--
-`FORMAT(field, 2, 'de_DE')` | Rounding to 2 decimal places and convert to a string with German formatting.
-`CONCAT(ROUND(field * 100), '%')` | Multiplying a number by 100. Rounding to 2 decimal places and appending a '%' to the end to convert a decimal value to a percentage.
-`DATE_FORMAT(field, "%Y-%m-%dT%T.%fZ")` | Format date field
-`!ISNULL(field)` | Function prefixed with negation operator `!`
+| Field Defition                          | Description                                                                                                                          |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `FORMAT(field, 2, 'de_DE')`             | Rounding to 2 decimal places and convert to a string with German formatting.                                                         |
+| `CONCAT(ROUND(field * 100), '%')`       | Multiplying a number by 100. Rounding to 2 decimal places and appending a '%' to the end to convert a decimal value to a percentage. |
+| `DATE_FORMAT(field, "%Y-%m-%dT%T.%fZ")` | Format date field                                                                                                                    |
+| `!ISNULL(field)`                        | Function prefixed with negation operator `!`                                                                                         |
 
 #### Nesting Fields
 
-Nesting can return data structures from across tables. 
+Nesting can return data structures from across tables.
 
-*note*: a **Model** Field Attribute `reference`, which defines the join between the two tables, is required to make nested joins.
+_note_: a **Model** Field Attribute `reference`, which defines the join between the two tables, is required to make nested joins.
 
 Request nested data with an object; where the key is the name of the table to be joined, and the value is the Array of fields to return from the joined table.
 
 ```js
-	// fields attribute...
-	[
-		'name',
-		{
-			'country': [
-				'name'
-			]
-		}
-	]
+// fields attribute...
+[
+	'name',
+	{
+		country: ['name'],
+	},
+];
 
-	// sql: SELECT name, county.name
+// sql: SELECT name, county.name
 ```
 
 The SQL this creates renames the fields and then recreates the structured format that was requested. So with the above request: a typical response would have the following structure...
@@ -189,9 +180,8 @@ The SQL this creates renames the fields and then recreates the structured format
 	}
 ```
 
-- At the moment this only supports *n:1* mapping.
-- The relationship between the tables must be defined in a model field reference.
-
+-   At the moment this only supports _n:1_ mapping.
+-   The relationship between the tables must be defined in a model field reference.
 
 ### Filter `filter`
 
@@ -212,15 +202,14 @@ e.g.
 
 The filter object can contain nested objects (Similar to the Fields Object). Nested objects define conditions on Relational tables.
 
-*note*: a **Model** Field Attribute `reference`, which defines the join between the two tables, is required to make nested joins.
-
+_note_: a **Model** Field Attribute `reference`, which defines the join between the two tables, is required to make nested joins.
 
 ```js
-	{
-		country: {
-			name: 'UK'
-		}
+{
+	country: {
+		name: 'UK';
 	}
+}
 ```
 
 OR shorthand, nested subkeys are represented with a '.'
@@ -243,36 +232,34 @@ The type of value affects the choice of SQL Condition syntax to use. For example
 
 Prefixing the prop with:
 
-- `%`: creates a `LIKE` comparison
-- `-`: hyhen negates the value
-- `~`: creates a range
+-   `%`: creates a `LIKE` comparison
+-   `-`: hyhen negates the value
+-   `~`: creates a range
 
-
-| Key     | Value                     | Type           | = SQL Condition
-|---------|---------------------------|----------------|----------------
-| id      | 1                         | number         | `id = 1`
-| name    | 'Andrew'                  | string         | `name = 'Andrew'`
-| %name   | 'And%'                    | Pattern        | `name LIKE 'And%'`
-| -%name  | 'And%'                    | Pattern        | `name NOT LIKE 'And%'`
-| name$1  | any                  	  | any            | e.g. `name LIKE '%And%` $suffixing gives `name` alternative unique object key values, useful when writing `name LIKE %X% AND name LIKE %Y%`
-| tag     | [1, 'a']                  | Array values   | `tag IN (1, 'a')`
-| -tag    | [1, 'a']                  | Array values   | `tag NOT IN (1, 'a')`
-| -status | ['deleted', null]         | Array values   | `(status NOT IN ('deleted') AND status IS NOT NULL)` Mixed type including `null`
-| ~date   | '2016-03-04T16:08:32Z..'  | Greater than   | `date > '2016-03-04T16:08:32Z'`
-| ~date   | '2016-03-04..2016-03-05'  | Between        | `date BETWEEN '2016-03-04' AND '2016-03-05'`
-| -~date  | '2016-03-04..'            | !Greater than  | `(NOT date > '2016-03-04T00:00:00' OR date IS NULL)`
-| flag    | null                      | null           | `flag IS NULL`
-| -flag   | null                      | null           | `flag IS NOT NULL`
-
-
+| Key     | Value                    | Type          | = SQL Condition                                                                                                                             |
+| ------- | ------------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| id      | 1                        | number        | `id = 1`                                                                                                                                    |
+| name    | 'Andrew'                 | string        | `name = 'Andrew'`                                                                                                                           |
+| %name   | 'And%'                   | Pattern       | `name LIKE 'And%'`                                                                                                                          |
+| -%name  | 'And%'                   | Pattern       | `name NOT LIKE 'And%'`                                                                                                                      |
+| name$1  | any                      | any           | e.g. `name LIKE '%And%` $suffixing gives `name` alternative unique object key values, useful when writing `name LIKE %X% AND name LIKE %Y%` |
+| tag     | [1, 'a']                 | Array values  | `tag IN (1, 'a')`                                                                                                                           |
+| -tag    | [1, 'a']                 | Array values  | `tag NOT IN (1, 'a')`                                                                                                                       |
+| -status | ['deleted', null]        | Array values  | `(status NOT IN ('deleted') AND status IS NOT NULL)` Mixed type including `null`                                                            |
+| ~date   | '2016-03-04T16:08:32Z..' | Greater than  | `date > '2016-03-04T16:08:32Z'`                                                                                                             |
+| ~date   | '2016-03-04..2016-03-05' | Between       | `date BETWEEN '2016-03-04' AND '2016-03-05'`                                                                                                |
+| -~date  | '2016-03-04..'           | !Greater than | `(NOT date > '2016-03-04T00:00:00' OR date IS NULL)`                                                                                        |
+| flag    | null                     | null          | `flag IS NULL`                                                                                                                              |
+| -flag   | null                     | null          | `flag IS NOT NULL`                                                                                                                          |
 
 #### Negate entire joins (i.e. NOT EXISTS)
 
-*note*: a **Model** Field Attribute `reference`, which defines the join between the two tables, is required to make nested joins.
+_note_: a **Model** Field Attribute `reference`, which defines the join between the two tables, is required to make nested joins.
 
 If there is a nested section on a filter which should act to exclude items from the resultset. Then it can be appropriate to use `-` in front of the table name.
 
-Example: Retrieve all users who are *not* in the 'admin' team....
+Example: Retrieve all users who are _not_ in the 'admin' team....
+
 ```js
 await dare.get({
 	table: 'users',
@@ -285,21 +272,18 @@ await dare.get({
 // SELECT u.name FROM users u WHERE NOT EXISTS (SELECT 1 FROM team t WHERE name = 'admin' AND t.user_id = u.id)...
 ```
 
-note: this is very different from having the negation on the field definition, i.e.  `-name:'admin'`, which is described in Filter Syntax.
-
+note: this is very different from having the negation on the field definition, i.e. `-name:'admin'`, which is described in Filter Syntax.
 
 ### Group by `groupby`
 
 `groupby` accepts the same format as a single `field` expression. It can be a single value or an array of multiple expressions. I.e.
 
 ```js
-groupby: [
-	'type',
-	'YEAR_MONTH(created_date)'
-]
+groupby: ['type', 'YEAR_MONTH(created_date)'];
 ```
 
 Generates
+
 ```sql
 	GROUP BY type, YEAR_MONTH(created_date)
 ```
@@ -309,34 +293,31 @@ Generates
 `orderby` accepts the same format as a single `field` expression. It can be a single value or an array of multiple expressions. I.e.
 
 ```js
-orderby: [
-	'type',
-	'YEAR_MONTH(created_date)'
-]
+orderby: ['type', 'YEAR_MONTH(created_date)'];
 ```
 
 Generates
+
 ```sql
 	ORDER BY type, YEAR_MONTH(created_date)
 ```
 
 ### Join
 
-*note*: a **Model** Field Attribute `reference`, which defines the join between the two tables, is required to make nested joins.
+_note_: a **Model** Field Attribute `reference`, which defines the join between the two tables, is required to make nested joins.
 
 The Join Object is a Fields=>Value object literal. It accepts the same syntax to the Filter Object, and defines those conditions on the SQL JOIN Condition.
 
 e.g.
 
 ```js
-
-	join: {
-		county: {
-			is_hidden: 0
-		}
+join: {
+	county: {
+		is_hidden: 0;
 	}
+}
 
-	// ... LEFT JOIN county b ON (b.id = a.country_id AND b.is_hidden = 0)
+// ... LEFT JOIN county b ON (b.id = a.country_id AND b.is_hidden = 0)
 ```
 
 The JOIN object is useful when restricting results in the join table without affecting the results returned in the primary table.
@@ -378,6 +359,7 @@ await dare.get({
 ```
 
 ### No `limit` set and `notfound`
+
 Dare returns a single item when no `limit` is set. When the item is not found Dare rejects the request with `DareError.NOT_FOUND`. To override this default behaviour simply set the `notfound` to the value to respond with in the event of a notfound event being triggered. This can be a simple value or if a function is provided, then that function will be called e.g.
 
 ```js
@@ -398,11 +380,11 @@ console.log(resp); // null
 
 The `dare.getCount` method like the `dare.get` method builds and executes a `SELECT ...` SQL statement. It differs from the `get` in that it does not operate on the `fields` option. It merely calculates and returns the number of results which match the request options. It is intended to be used when constructing pagination, or other summaries.
 
-| property | Type              | Description
-|----------|-------------------|----------------
-| table    | string            | Name of the table to access
-| filter   | Hash (key=>Value) | Query Object
-| options  | Hash (key=>Value) | Additional Options
+| property | Type              | Description                 |
+| -------- | ----------------- | --------------------------- |
+| table    | string            | Name of the table to access |
+| filter   | Hash (key=>Value) | Query Object                |
+| options  | Hash (key=>Value) | Additional Options          |
 
 e.g.
 
@@ -413,7 +395,7 @@ const count = await dare.getCount('profile', {first_name: 'Andrew'});
 
 ## dare.getCount(options Object)
 
-Using an options Object allows for  `date.getCount(options)` to be paired with a request to `dare.get(options)`.
+Using an options Object allows for `date.getCount(options)` to be paired with a request to `dare.get(options)`.
 
 e.g.
 
@@ -429,7 +411,7 @@ const requestOptions = {
 // Get the first 10 items, and the number of possible rows
 const [items, foundRows] = await Promise.all([
 
-	// Make a request for members matching the condition 
+	// Make a request for members matching the condition
 	dare.get(requestOptions)
 
 	// Get the number of possible results
@@ -437,17 +419,15 @@ const [items, foundRows] = await Promise.all([
 ]);
 ```
 
-
-
 ## dare.post(table, body[, options])
 
 The `dare.post` method is used to build and execute an `INSERT ...` SQL statement.
 
-| property | Type              | Description
-|----------|-------------------|----------------
-| table    | string            | Name of the table to insert into
-| body     | Object            | Post Object or Array of Post Objects
-| options  | Hash (key=>Value) | Additional Options
+| property | Type              | Description                          |
+| -------- | ----------------- | ------------------------------------ |
+| table    | string            | Name of the table to insert into     |
+| body     | Object            | Post Object or Array of Post Objects |
+| options  | Hash (key=>Value) | Additional Options                   |
 
 e.g.
 
@@ -467,10 +447,9 @@ await dare.post({
 	table: 'user',
 	body: {
 		name: 'Andrew',
-		profession: 'Mad scientist'
-	}
+		profession: 'Mad scientist',
+	},
 });
-
 ```
 
 ## dare.post(options Object) with multiple values
@@ -482,24 +461,27 @@ e.g.
 ```js
 await dare.post({
 	table: 'user',
-	body: [{
-		name: 'Andrew',
-		profession: 'Mad scientist'
-	}, {
-		name: 'Peppa'
-	}]
+	body: [
+		{
+			name: 'Andrew',
+			profession: 'Mad scientist',
+		},
+		{
+			name: 'Peppa',
+		},
+	],
 });
 ```
 
-This generates `INSERT INTO user (name, profession) VALUES ('Andrew', 'Mad Scientist'), ('Peppa', DEFAULT)`. Note where the key's differ between items in the Array the `DEFAULT` value is inserted instead. 
+This generates `INSERT INTO user (name, profession) VALUES ('Andrew', 'Mad Scientist'), ('Peppa', DEFAULT)`. Note where the key's differ between items in the Array the `DEFAULT` value is inserted instead.
 
 ### Post `options` (additional)
 
-| Prop           | Type             | Description
-|----------------|------------------|----------------
-| duplicate_keys | 'ignore'         | Appends `ON DUPLICATE KEYS UPDATE _rowid=_rowid`
-| duplicate_keys_update | Array(field1, field2, ...) | Appends `ON DUPLICATE KEYS UPDATE field1=VALUES(field1)`
-| query          | Get Options		| See the dare.get options
+| Prop                  | Type                       | Description                                              |
+| --------------------- | -------------------------- | -------------------------------------------------------- |
+| duplicate_keys        | 'ignore'                   | Appends `ON DUPLICATE KEYS UPDATE _rowid=_rowid`         |
+| duplicate_keys_update | Array(field1, field2, ...) | Appends `ON DUPLICATE KEYS UPDATE field1=VALUES(field1)` |
+| query                 | Get Options                | See the dare.get options                                 |
 
 #### query
 
@@ -524,52 +506,41 @@ await dare.post({
 });
 ```
 
-
 ## dare.patch(table, filter, body[, options])
 
 Updates records within the `table` with the `body` object when they match `filter`.
 
-| property | Type              | Description
-|----------|-------------------|----------------
-| table    | string            | Name of the table to insert into
-| filter   | Object            | Filter object of the results
-| body     | Object            | Post Object to apply
-| options  | Hash (key=>Value) | Additional Options
-
+| property | Type              | Description                      |
+| -------- | ----------------- | -------------------------------- |
+| table    | string            | Name of the table to insert into |
+| filter   | Object            | Filter object of the results     |
+| body     | Object            | Post Object to apply             |
+| options  | Hash (key=>Value) | Additional Options               |
 
 ### Patch `options` (additional)
 
-| Prop          | Type      | Description
-|---------------|-----------|----------------
-| duplicate_keys | 'ignore' | Adds keyword `IGNORE`, e.g. `UPDATE IGNORE table ...`
-| limit         | number    | Default: `1`. Limit the number of results which can be affected by patch
-| notfound      | *         | Value to return when there are no affected rows. If it's a function the function will be called. Default throws `DareError.NOT_FOUND`
-
+| Prop           | Type     | Description                                                                                                                           |
+| -------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| duplicate_keys | 'ignore' | Adds keyword `IGNORE`, e.g. `UPDATE IGNORE table ...`                                                                                 |
+| limit          | number   | Default: `1`. Limit the number of results which can be affected by patch                                                              |
+| notfound       | \*       | Value to return when there are no affected rows. If it's a function the function will be called. Default throws `DareError.NOT_FOUND` |
 
 ## dare.del(table, filter[, options])
 
 Deletes records within the `table` when they match `filter`.
 
-| property | Type              | Description
-|----------|-------------------|----------------
-| table    | string            | Name of the table to insert into
-| filter   | Object            | Filter object of the results
-| options  | Hash (key=>Value) | Additional Options
-
+| property | Type              | Description                      |
+| -------- | ----------------- | -------------------------------- |
+| table    | string            | Name of the table to insert into |
+| filter   | Object            | Filter object of the results     |
+| options  | Hash (key=>Value) | Additional Options               |
 
 ### Del `options` (additional)
 
-| Prop          | Type      | Description
-|---------------|-----------|----------------
-| notfound      | *         | Value to return when there are no affected rows. If it's a function the function will be called. Default throws `DareError.NOT_FOUND`
-| limit         | number    | Default: `1`. Limit the number of results which can be affected by delete
-
-
-
-
-
-
-
+| Prop     | Type   | Description                                                                                                                           |
+| -------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| notfound | \*     | Value to return when there are no affected rows. If it's a function the function will be called. Default throws `DareError.NOT_FOUND` |
+| limit    | number | Default: `1`. Limit the number of results which can be affected by delete                                                             |
 
 # `options` Object
 
@@ -581,7 +552,7 @@ The `options` themselves are a set of properties used to interpret and manipulat
 // Create an options Object
 const options = {
 	// Some options...
-}
+};
 
 // Apply options at the point where Dare is invoked...
 const dare = new Dare(options);
@@ -593,18 +564,17 @@ const dare2 = dare.use(options);
 await dare.get({
 	table: 'sometable',
 	fields: ['id', 'name'],
-	...options
-})
+	...options,
+});
 ```
 
-As you can see, to apply `options` you have... um *options*.
+As you can see, to apply `options` you have... um _options_.
 
 # `options.models`
 
 The `options.models` object, allows us to apply all our models to Dare. Where the object key is the label for which we'll refer to that model.
 
 See next section **Model** for what a model looks like.
-
 
 ```js
 // options Object containing a property called `models`
@@ -614,8 +584,8 @@ const options = {
 		// modelA,
 		// modelB,
 		// etc...
-	}
-}
+	},
+};
 
 // options applied to dare as before.
 ```
@@ -625,10 +595,11 @@ const options = {
 Perhaps the most important part of the **Dare** library is concept of a **model**.
 
 A **model** defines:
-- how data is interlinked, i.e. how one relational data table is joined to another via a key
-- mutation handlers, for changing requests. This allows access permissions to be applied, to filter results, to restrict or mutate input data.
 
-E.g. here are available properties which can be defined on a model, 
+-   how data is interlinked, i.e. how one relational data table is joined to another via a key
+-   mutation handlers, for changing requests. This allows access permissions to be applied, to filter results, to restrict or mutate input data.
+
+E.g. here are available properties which can be defined on a model,
 
 ```js
 const myModel = {
@@ -638,9 +609,8 @@ const myModel = {
 	post, // Function to modify the request when posting data
 	patch, // Function to modify the request when patching data
 	del, // Function to modify the request when deleting data
-}
+};
 ```
-
 
 ## Model Table `table`
 
@@ -648,10 +618,11 @@ The underlying Database SQL Table to use when querying this model, if omitted Da
 
 ```js
 const myModel = {
-	table: 't_mytable' // an example table name: some dba's do like to prefix table names, however it's not a convention which makes for a nice api.
+	table: 't_mytable', // an example table name: some dba's do like to prefix table names, however it's not a convention which makes for a nice api.
 	// ...
-}
+};
 ```
+
 ## Model Schema `schema`
 
 The `schema` property defines an object, containing field attribute references in key=>value pair, i.e. `fieldName (key) => field attributes (value)`.
@@ -661,7 +632,7 @@ const mySchema = {
 	id, // id field attributes
 	name, // name field attributes
 	//etc...
-}
+};
 ```
 
 ### Field Attributes
@@ -670,42 +641,39 @@ Can define how a field corresponds to a DB table field, whether it's readable/wr
 
 Defining a field attribute, can be verbose using an object with special keys, or can be shorthanded with specific datatypes
 
-Property | Attr Example | Shorthand DataType | ShortHand Example | Description
---|--|--|--|--
-`references` | e.g. `{references: ['country.id']}` | `Array` | `county_id: ['country.id']` | Relationship with other models
-`alias` | e.g. `{alias: 'email'}` | `String` | `emailAddress: 'email'` | Alias a field with a DB Table field
-`handler` | e.g. `{handler: Function}` | `Function` | `url: urlFunction` | Generated Field
-`type` | e.g. `{type: 'json'}` | na | na | Type of data in field, this has various uses.
-`defaultValue` | e.g. `{defaultValue: 'active'}` | na | na | Default Value to insert during post, and filter with get/patch/del
-`readable` | e.g. `{readable: false}` | na | na | Disables/Enables request access to a field
-`writeable` | e.g. `{writeable: false}` | na | na | Disables/Enables write access to a field
-na | e.g. `{writeable: false: readable: false}` | `Boolean` | `{password: false}` | Disables/Enables both write and read access to a field
-
+| Property       | Attr Example                               | Shorthand DataType | ShortHand Example           | Description                                                        |
+| -------------- | ------------------------------------------ | ------------------ | --------------------------- | ------------------------------------------------------------------ |
+| `references`   | e.g. `{references: ['country.id']}`        | `Array`            | `county_id: ['country.id']` | Relationship with other models                                     |
+| `alias`        | e.g. `{alias: 'email'}`                    | `String`           | `emailAddress: 'email'`     | Alias a field with a DB Table field                                |
+| `handler`      | e.g. `{handler: Function}`                 | `Function`         | `url: urlFunction`          | Generated Field                                                    |
+| `type`         | e.g. `{type: 'json'}`                      | na                 | na                          | Type of data in field, this has various uses.                      |
+| `defaultValue` | e.g. `{defaultValue: 'active'}`            | na                 | na                          | Default Value to insert during post, and filter with get/patch/del |
+| `readable`     | e.g. `{readable: false}`                   | na                 | na                          | Disables/Enables request access to a field                         |
+| `writeable`    | e.g. `{writeable: false}`                  | na                 | na                          | Disables/Enables write access to a field                           |
+| na             | e.g. `{writeable: false: readable: false}` | `Boolean`          | `{password: false}`         | Disables/Enables both write and read access to a field             |
 
 Fields dont need to be explicitly defined in the `options.models.*tbl*.schema` where they map one to one with a DB table fields the request will just go through verbatim.
-
 
 #### Field attribute: `reference`
 
 In the example below the fields `users.country_id` defines a reference with `country.id` which is used to construct SQL JOIN Conditions.
 
-
 ```js
 const dare = new Dare({
-	models : {
+	models: {
 		users: {
 			schema: {
 				// users fields...
-				country_id: ['country.id']
+				country_id: ['country.id'],
 			},
 		},
 		country: {
 			schema: {
 				// country fields...
-				id: {}
+				id: {},
 			},
-		}
-	}
+		},
+	},
 });
 ```
 
@@ -723,11 +691,11 @@ const dare = new Dare({
 		users: {
 			schema: {
 				created_time: {
-					type: 'datetime'
-				}
-			}
-		}
-	}
+					type: 'datetime',
+				},
+			},
+		},
+	},
 });
 ```
 
@@ -738,6 +706,7 @@ Serializes Objects and Deserializes JSON strings in `get`, `post` and `patch` op
 e.g.
 
 Schema: field definition...
+
 ```js
 const dare = new Dare({
 	models: {
@@ -745,15 +714,16 @@ const dare = new Dare({
 			schema: {
 				meta: {
 					// Define a field meta with data type of json
-					type: 'json'
-				}
-			}
-		}
-	}
+					type: 'json',
+				},
+			},
+		},
+	},
 });
 ```
 
 Example set and get
+
 ```js
 	// Arbitary object...
 	const meta = {
@@ -781,7 +751,6 @@ Example set and get
 
 ```
 
-
 #### Field attribute: `handler`
 
 When the value is a function, the function will be invoked when interpretting the request as part of a field value. The response of this function can either be a static value or it can be an additional function which is optionally run on all items in the response, to return a generated field.
@@ -796,14 +765,13 @@ const dare = new Dare({
 		users: {
 			schema: {
 				avatar_url(fields) {
-
 					fields.push('id'); // require additional field from users table.
 
-					return (item) => `/images/avatars/${item.id}`;
-				}
-			}
-		}
-	}
+					return item => `/images/avatars/${item.id}`;
+				},
+			},
+		},
+	},
 });
 ```
 
@@ -811,16 +779,15 @@ const dare = new Dare({
 
 To alias a field, so that you can use a name different to the db column name, assign it a string name of the field in the current table. e.g. `emailAddress: 'email'`
 
-
 ```js
 const dare = new Dare({
 	models: {
 		users: {
 			schema: {
-				emailAddress: 'email'
-			}
-		}
-	}
+				emailAddress: 'email',
+			},
+		},
+	},
 });
 ```
 
@@ -832,7 +799,6 @@ await dare.get('users', ['emailAddress'], {emailAddress: 'andrew@%'});
 
 await dare.post('users', {emailAddress: 'andrew@example.com'});
 // INSERT INTO users (email) VALUES ('andrew@example.com')
-
 ```
 
 ##### Nested and SQL `alias`'s
@@ -840,6 +806,7 @@ await dare.post('users', {emailAddress: 'andrew@example.com'});
 The aliasing can also be used for common functions and define fields on another table to abstract away some of the complexity in your relational schema and provide a cleaner api interface.
 
 e.g.
+
 ```js
 const dare = new Dare({
 	models: {
@@ -848,23 +815,22 @@ const dare = new Dare({
 				emailAddress: {
 					// Explicitly define the alias
 					// Reference the email define on another table, we can also wrap in SQL functions.
-					alias: 'LOWER(usersEmails.email)'
+					alias: 'LOWER(usersEmails.email)',
 				},
-			}
+			},
 		},
 		// Any cross table join needs fields to map
 		usersEmails: {
 			schema: {
-				user_id: ['users.id']
-			}
-		}
-	}
+				user_id: ['users.id'],
+			},
+		},
+	},
 });
 ```
 
 note: Defining an alias which includes SQL or points to another table will let it be used in a query filter and join conditions.
 However an error will throw if attempting to set a value to such an alias.
-
 
 #### Field attribute: `defaultValue`
 
@@ -893,11 +859,11 @@ const dare = new Dare({
 		users: {
 			schema: {
 				status: {
-					defaultValue: 'active'
-				}
-			}
-		}
-	}
+					defaultValue: 'active',
+				},
+			},
+		},
+	},
 });
 
 // And now requests will by default include that value
@@ -918,15 +884,15 @@ const dare = new Dare({
 				// Explicit object
 				id: {
 					readable: true,
-					writeable: false // non-writeable
+					writeable: false, // non-writeable
 				},
 
 				// Shorthand for non-readable + non-writeable
-				password: false 
-			}
-		}
-	}
-})
+				password: false,
+			},
+		},
+	},
+});
 ```
 
 With the above `writeable`/`readable` field definitions an error is thrown whenever attempting to access the field e.g.
@@ -943,7 +909,6 @@ await dare.patch('users', {id: 321}, {id: 1337});
 // throws {code: INVALID_REFERENCE}
 ```
 
-
 ## `model.get`
 
 Here's an example of setting a model to be invoked whenever we access `users` model, we'll go into each of the properties afterwards.
@@ -957,16 +922,16 @@ function get(options) {
 const dare = new Dare({
 	models: {
 		users: {
-			get
-		}
-	}
+			get,
+		},
+	},
 });
 
 // Here we're using `table:users`, so the model's `get` Function would be invoked
 await dare.get({
 	table: 'users',
 	fields: ['name'],
-	limit: 100
+	limit: 100,
 });
 
 // SELECT name FROM users WHERE deleted = false LIMIT 100;
@@ -978,16 +943,15 @@ Dare has limited validation built in (see above). Set your own `validationInput`
 
 ## validateInput(fieldAttributes, field, value)
 
-The `validateInput` validation is called after any method model handlers. It contains the following parameters... 
+The `validateInput` validation is called after any method model handlers. It contains the following parameters...
 
-| property        | Type    | Description
-|-----------------|---------|----------------
-| fieldAttributes | Object  | Field Attributes
-| field           | string  | Field Name
-| value           | *       | Input value
+| property        | Type   | Description      |
+| --------------- | ------ | ---------------- |
+| fieldAttributes | Object | Field Attributes |
+| field           | string | Field Name       |
+| value           | \*     | Input value      |
 
-
-e.g. 
+e.g.
 
 ```js
 dare.use({
@@ -1000,16 +964,18 @@ dare.use({
 					type: 'string',
 					maxlength: 5,
 					test(value) {
-						if(!/\W/.test(value)) {
-							throw new Error(`😞: username should only contain alphabetical characters`);
+						if (!/\W/.test(value)) {
+							throw new Error(
+								`😞: username should only contain alphabetical characters`
+							);
 						}
-					}
+					},
 				},
 				age: {
 					// Another field
-				}
-			}
-		}
+				},
+			},
+		},
 	},
 
 	validateInput(fieldAttributes, field, value) {
@@ -1019,14 +985,19 @@ dare.use({
 		if (fieldAttributes.required && value === undefined) {
 			throw new Error(`😞: ${field} is missing`);
 		}
-		if (fieldAttributes.type && typeof (value) !== 'string') {
+		if (fieldAttributes.type && typeof value !== 'string') {
 			throw new Error(`😞: ${field} should be a string`);
 		}
-		if (fieldAttributes.maxlength && value.length > fieldAttributes.maxlength) {
-			throw new Error(`😞: ${field} should be less than ${fieldAttributes.maxlength} characters`);
+		if (
+			fieldAttributes.maxlength &&
+			value.length > fieldAttributes.maxlength
+		) {
+			throw new Error(
+				`😞: ${field} should be less than ${fieldAttributes.maxlength} characters`
+			);
 		}
 		fieldAttributes.test?.(value);
-	}
+	},
 });
 
 // Then see what errors you'd get...
@@ -1045,14 +1016,13 @@ dare.post('member', {username: 'Thisistoolong'});
 
 dare.post('member', {username: 'No strange characters !@£$%^YU'});
 // 😞: username should only contain alphabetical characters
-
 ```
 
 ### default attributes of model schema
 
 The `default` field definition can be defined per model. This is useful to say when to be strict with unknown fields.
 
-e.g. 
+e.g.
 
 ```js
 dare.use({
@@ -1062,23 +1032,25 @@ dare.use({
 			schema: {
 				default: {
 					// Be strict with the member model
-					writeable: false
+					writeable: false,
 				},
 				// ... other field definitions below
-			}
-		}
+			},
+		},
 	},
 
 	validateInput(fieldAttributes, field, value) {
 		if (!fieldAttribute) {
 			// Do nothing, We have no field definitions for this model
-			console.log(`Someone should write field definitions for ${field} 👉`);
+			console.log(
+				`Someone should write field definitions for ${field} 👉`
+			);
 		}
 		if (fieldAttributes.writeable === false) {
 			throw new Error(`😞: ${field} field is un-writeable`);
 		}
 		// ... other validation rules below
-	}
+	},
 });
 
 // So on the member table the default field would be replaced with an unknown field and would be caught
@@ -1090,6 +1062,84 @@ dare.post('emails', {hello: "What's this?"});
 // Someone should write field definitions for hello 👉`
 ```
 
+# `options.rowHandler`
+
+The `options.rowHandler` can be used to additionally preformat the response array, whilst it's already iterating on the response, or to redirect the records to another service (When this is used with [Streaming](#Streaming) it can drastically reduce the memory used by Dare).
+
+E.g. here the records are redirected back to the client
+
+```js
+// create a new dare instance to avoid polluting the others.
+const resp = await dare.get({
+	table: 'users',
+	fields: ['name' /*... and more*/],
+	limit: 1_000_000, // a big number
+	// Define a rowHandler for the request...
+	rowHandler(row) {
+		// rudimentary write out as CSV.
+		res.write(Object.keys(item).join(',') + '\n');
+
+		// do not return anything, save dare building up resultset internally
+	},
+});
+
+console.log(resp === undefined); // empty response... as it was all redirected
+```
+
+# Streaming
+
+Typically databases will buffer the resultset into memory and send over one large payload. Whereas streaming sends over the results to the SQL Client as they are available. This has the benefit of being much more performant and memory efficient on large datasets.
+
+Dare, has some functions to take advantage of Streaming
+
+-   `this.addRow(record)`: process an individual record
+-   `options.rowHandler`: See above
+
+When combined we can efficiently redirect the results immediatly without building up an internal memory.
+
+```js
+// Define an execute handler and call `this.addRow(record)`
+dare.execute = async function (query) {
+	// Define the current Dare Instance
+	const dareInstance = this;
+
+	// Return a promise out of a stream...
+	return new Promise((accept, reject) => {
+		// Create resultStream
+		const resultStream = new PassThrough({objectMode: true});
+
+		// Pipe results into resultStream...
+		dbconn.connection.query(query).stream().pipe(resultStream);
+
+		// Catch errors...
+		resultStream.on('error', reject);
+
+		// Event handlers...
+		resultStream.on('data', row => {
+			// Process the row record with Dare, i.e. for formatting etc...
+			dareInstance.addRow(row);
+		});
+
+		// on:end; resolve with empty Promise
+		resultStream.on('end', () => accept());
+	});
+};
+
+// Construct the Dare Request
+// define a `rowHandler` to pass through the newly formatted records as and when they come in.
+await dare.get({
+	table: 'users',
+	fields: ['name' /*... and more*/],
+	limit: 1_000_000, // a big number
+	// Define a rowHandler for the request...
+	rowHandler(row) {
+		// rudimentary write out as CSV.
+		res.write(Object.keys(item).join(',') + '\n');
+
+		// do not return anything - saves dare from building up internal resultset
+	},
+}); // returns: undefined
+```
 
 # Additional Options
 
@@ -1099,21 +1149,19 @@ In order to both: show all relationship on the join table AND filter the main re
 
 E.g. Include all the tags associated with users AND only show users whom include the tag "Andrew"
 
-
 ```js
 await dare.get({
 	table: 'users',
-	fields: ['name', {'tags': ['name']}],
+	fields: ['name', {tags: ['name']}],
 	filter: {
 		tags$a: {
-			name: 'Andrew'
-		}
-	}
+			name: 'Andrew',
+		},
+	},
 });
 ```
 
 This will get all users who contain atleast the tags 'Andrew', as well as returning all the other tags.
-
 
 ## After Handlers
 
@@ -1124,7 +1172,6 @@ E.g. here is an example using the `after` handlers in the `users.patch` model to
 ```js
 options.models.users = {
 	async patch(options, dareInstance) {
-
 		/**
 		 * Check that the data to be modified
 		 * By using the options to construct a SELECT request first
@@ -1133,7 +1180,7 @@ options.models.users = {
 		// Clonse the options
 		const opts = {
 			...options,
-			fields: ['id', 'name']
+			fields: ['id', 'name'],
 		};
 
 		// Execute a dare.get with the cloned options
@@ -1145,14 +1192,13 @@ options.models.users = {
 				message: 'User updated',
 				type: 'users',
 				ref_id,
-				previous_name
-			})
+				previous_name,
+			});
 
 			// Returns undefined so no change
 		};
-	}
+	},
 };
-
 ```
 
 ### Handling dates and date ranges
@@ -1170,7 +1216,6 @@ E.g. here is a list of supported syntaxes and the resulting timestamp.
 
 etc...
 ```
-
 
 ### Changing the default MAX_LIMIT
 
@@ -1209,9 +1254,9 @@ await dare.get({
 
 By default `conditional_operators_in_value = '!%'`. Which is a selection of special characters within the value to be compared.
 
-- `%`: A string containing `%` within the value to be compared will indicate a wild character and the SQL `LIKE` conditional operator will be used.
-- `!`: A string starting with `!` will negate the value using a SQL `LIKE` comparison operator.
-- `..`: A string containing `..` will use a range `BETWEEN`, `<` or `>` comparison operator where a string value contains `..` or the value is an array with two values (dependending if the first or second value is empty it will use `<` or `>` respecfively). This denotes a range and is enabled using the `~` operator (because `.` within prop name has another meaning)
+-   `%`: A string containing `%` within the value to be compared will indicate a wild character and the SQL `LIKE` conditional operator will be used.
+-   `!`: A string starting with `!` will negate the value using a SQL `LIKE` comparison operator.
+-   `..`: A string containing `..` will use a range `BETWEEN`, `<` or `>` comparison operator where a string value contains `..` or the value is an array with two values (dependending if the first or second value is empty it will use `<` or `>` respecfively). This denotes a range and is enabled using the `~` operator (because `.` within prop name has another meaning)
 
 ```js
 // Enabling support for one or more of the above special characters...
@@ -1230,7 +1275,7 @@ await dare.get({
 	conditional_operators_in_value: '%!~'
 });
 
-// ... SELECT id FROM mytable WHERE name LIKE '%compare%' AND created > '2022-01-01' 
+// ... SELECT id FROM mytable WHERE name LIKE '%compare%' AND created > '2022-01-01'
 
 // The same query with the option disabled
 await dare.get({
@@ -1244,31 +1289,6 @@ await dare.get({
 // ... SELECT id FROM mytable WHERE name = '%compare%' AND created = '2022-01-01..'
 
 ```
-
-### Post format the response
-
-The `dare.response_row_handler` is a little helper to format or redirect the response data as it's being processed. Using this approach to post-processing should give better performance on large datasets.
-
-E.g.
-
-```js
-// create a new dare instance to avoid polluting the others.
-dare = dare.use(); 
-
-// Define a response_row_handler on the new instance...
-await dare.response_row_handler = (item) => {
-	// rudimentary write out as CSV.
-	res.write(Object.keys(item).join(',') + '\n');
-
-	// Do not return anything unless you want to include it in `data` (see below)
-};
-
-// Execute the query
-const data = await dare.get('users', ['name'], {limit: 10000000});
-
-console.log(data.length === 0); // empty array
-```
-
 
 ### Overriding table schema per operation
 
@@ -1309,7 +1329,6 @@ await dare.patch({
 });
 ```
 
-
 # Caveats
 
 ## Only one column name may appear in a Field Expression
@@ -1317,6 +1336,7 @@ await dare.patch({
 Dare can't have more than one model field/column names in the same field expression.
 
 e.g. Fields array....
+
 ```js
 [{
 	// Both fist_name and last_name in the same field expression 💥
@@ -1325,4 +1345,3 @@ e.g. Fields array....
 ```
 
 To work around this we'd simply use post-formatting. Either write one yourself or make a Generated Field (handler) in the Dare schema and request that by name in the field expression.
-

@@ -1,16 +1,18 @@
 import unwrap_expression from './unwrap_field.js';
 
-export default function field_format(original, label, table_prefix, label_prefix) {
-
+export default function field_format(
+	original,
+	label,
+	table_prefix,
+	label_prefix
+) {
 	const {field, prefix, suffix, value} = unwrap_expression(original);
 
 	if (value !== undefined) {
-
 		return {
 			label,
-			expression: value
+			expression: value,
 		};
-
 	}
 
 	// Split it...
@@ -18,20 +20,18 @@ export default function field_format(original, label, table_prefix, label_prefix
 	const name = a.pop();
 	const address = a.join('.');
 
-
 	// Prefix the label to show depth
 	if (label_prefix) {
-
 		// Does the expression contain a nested address?
 		if (address) {
-
 			// Deduct the nested address from the label_prefix
-			label_prefix = label_prefix.slice(0, label_prefix.lastIndexOf(address));
-
+			label_prefix = label_prefix.slice(
+				0,
+				label_prefix.lastIndexOf(address)
+			);
 		}
 
 		label = `${label_prefix}${label || name}`;
-
 	}
 
 	label = label || undefined;
@@ -42,17 +42,17 @@ export default function field_format(original, label, table_prefix, label_prefix
 	// Aggregate function flag
 	let agg = false;
 
-	if (prefix && /\b(?:SUM|COUNT|AVG|MAX|MIN|GROUP_CONCAT)\(/.test(prefix.toUpperCase())) {
-
+	if (
+		prefix &&
+		/\b(?:SUM|COUNT|AVG|MAX|MIN|GROUP_CONCAT)\(/.test(prefix.toUpperCase())
+	) {
 		agg = true;
-
 	}
 
 	return {
 		original,
 		expression,
 		label,
-		agg
+		agg,
 	};
-
 }

@@ -1,3 +1,3 @@
 {
-    "require": "./mocha-hooks/index.js"
+	"require": "./mocha-hooks/index.js"
 }

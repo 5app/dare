@@ -1,3 +1,10 @@
+# [0.73.0](https://github.com/5app/dare/compare/v0.72.0...v0.73.0) (2023-01-06)
+
+
+### Features
+
+* **stream:** support row streaming data from db ([#264](https://github.com/5app/dare/issues/264)) ([85cd1de](https://github.com/5app/dare/commit/85cd1dee7e6b53386fc8e0ff47092162fb4b7158)), closes [#263](https://github.com/5app/dare/issues/263) [#263](https://github.com/5app/dare/issues/263)
+
 # [0.72.0](https://github.com/5app/dare/compare/v0.71.2...v0.72.0) (2022-12-21)
 
 

@@ -1,12 +1,9 @@
-
 import fieldUnwrap from '../utils/unwrap_field.js';
 import fieldRelativePath from '../utils/field_relative.js';
 import mapReduce from '../utils/map_reduce.js';
 
 export default function groupbyReducer({current_path, extract}) {
-
 	return mapReduce(field => {
-
 		// Get the field address
 		const item = fieldUnwrap(field, false);
 		const address = fieldRelativePath(current_path, item.field);
@@ -15,10 +12,8 @@ export default function groupbyReducer({current_path, extract}) {
 		const address_split = address.split('.').filter(a => a);
 
 		if (address_split.length <= 1) {
-
 			// Persist the field...
 			return field;
-
 		}
 
 		// Create a groupby in the associate model
@@ -37,13 +32,9 @@ export default function groupbyReducer({current_path, extract}) {
 		 * Dont return anything
 		 * So it wont be included in the reduce list...
 		 */
-
 	});
-
 }
 
 function fieldWrap(item) {
-
 	return item.prefix + item.field + item.suffix;
-
 }
