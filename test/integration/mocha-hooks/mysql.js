@@ -111,6 +111,10 @@ const mochaHooks = {
 		this.timeout(5000);
 		await resetDbState();
 	},
+	async afterAll() {
+		await dbConn.end();
+		await global.db.end();
+	},
 };
 
 export {mochaHooks};

@@ -16,6 +16,10 @@ class DB {
 
 		return rows;
 	}
+	end() {
+		// Close this connection
+		return this.conn.end();
+	}
 
 	stream(query, streamOptions = {objectMode: true, highWaterMark: 5}) {
 		const resultStream = new PassThrough(streamOptions);

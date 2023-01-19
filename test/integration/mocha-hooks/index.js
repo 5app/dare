@@ -11,6 +11,7 @@ global.expect = chai.expect;
 const mochaHooks = {
 	beforeAll: [mysql.mochaHooks.beforeAll],
 	beforeEach: [mysql.mochaHooks.beforeEach],
+	afterAll: [mysql.mochaHooks.afterAll],
 };
 
 export {mochaHooks};
