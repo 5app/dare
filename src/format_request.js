@@ -99,12 +99,18 @@ async function format_request(options, dareInstance) {
 	 * This may modify the incoming options object, ammend after handler, etc...
 	 */
 	{
+		/*
+		 * Mutation operations only exist on the root level table
+		 * Nested tables should use the get() handler as they only filter
+		 */
+		const derivedMethod = options.parent ? 'get' : method;
+
 		// If the model does not define the method
 		const handler =
-			method in model
-				? model[method]
+			derivedMethod in model
+				? model[derivedMethod]
 				: // Or use the default model
-				  models?.default?.[method];
+				  models?.default?.[derivedMethod];
 
 		if (handler) {
 			// Trigger the handler which alters the options...
@@ -487,7 +493,7 @@ async function format_request(options, dareInstance) {
 			const sub_query = buildQuery(options, dareInstance);
 
 			sql_where_conditions = [
-				SQL`${raw(parentReferences)} 
+				SQL`${raw(parentReferences)}
 				NOT IN (
 					SELECT ${raw(options.fields)} FROM (
 						${sub_query}
