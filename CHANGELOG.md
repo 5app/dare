@@ -1,3 +1,11 @@
+## [0.73.1](https://github.com/5app/dare/compare/v0.73.0...v0.73.1) (2023-02-17)
+
+
+### Bug Fixes
+
+* **ci:** prevent husky install ([#279](https://github.com/5app/dare/issues/279)) ([1b8b27d](https://github.com/5app/dare/commit/1b8b27d9b45c90a9194f59053c8c0783264f4ac8))
+* **patch/del:** nested table handlers, fixes [#277](https://github.com/5app/dare/issues/277) ([#278](https://github.com/5app/dare/issues/278)) ([1a357e6](https://github.com/5app/dare/commit/1a357e67579faed2a95e615bbd59e7f0a4b73385))
+
 # [0.73.0](https://github.com/5app/dare/compare/v0.72.0...v0.73.0) (2023-01-06)
 
 
