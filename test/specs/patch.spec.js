@@ -334,26 +334,6 @@ describe('patch', () => {
 		expect(resp).to.eql(skip);
 	});
 
-	it('legacy: should support default patch()', async () => {
-		const skip = 'true';
-
-		const dare2 = dare.use({
-			patch: {
-				default(opts) {
-					opts.skip = skip;
-				},
-			},
-		});
-
-		const resp = await dare2.patch({
-			table: 'tbl',
-			filter: {id},
-			body: {name},
-		});
-
-		expect(resp).to.eql(skip);
-	});
-
 	it('should allow complex filters', async () => {
 		dare.execute = async ({sql, values}) => {
 			sqlEqual(

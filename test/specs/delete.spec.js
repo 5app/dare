@@ -152,23 +152,6 @@ describe('del', () => {
 		expect(resp).to.eql(true);
 	});
 
-	it('legacy: options.schema, should return options.skip if set and not trigger further operations', async () => {
-		const dare2 = dare.use({
-			del: {
-				default(options) {
-					options.skip = true;
-				},
-			},
-		});
-
-		const resp = await dare2.del({
-			table: 'tbl',
-			filter: {id: 2},
-		});
-
-		expect(resp).to.eql(true);
-	});
-
 	it('allow nested filters (integration-tested)', async () => {
 		dare.sql = async () => ({affectedRows: 1});
 

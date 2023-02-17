@@ -29,9 +29,6 @@ export {DareError};
  * @returns {object} instance of dare
  */
 function Dare(options = {}) {
-	// Backwards compatibility for {schema}
-	migrateToModels(options);
-
 	// Overwrite default properties
 	this.options = extend(clone(this.options), options);
 
@@ -121,9 +118,6 @@ Dare.prototype.after = function (resp) {
  */
 Dare.prototype.use = function (options = {}) {
 	const inst = Object.create(this);
-
-	// Backwards compatibility for {schema}
-	migrateToModels(options);
 
 	// Create a new options, merging inheritted and new
 	inst.options = extend(clone(this.options), options);
@@ -779,39 +773,6 @@ function setDefaultNotFoundHandler(opts) {
 	}
 
 	return opts;
-}
-
-/**
- * Migrate to Models
- * Backwards compatibility for {schema}
- * @param {object} options - Options object
- * @returns {void} Extends paramater
- */
-function migrateToModels(options) {
-	if (options.models) {
-		// Nothing to do
-		return;
-	}
-
-	// Legacy input...
-	for (const prop in options) {
-		if (
-			!['schema', 'patch', 'post', 'del', 'get'].includes(prop) ||
-			!options[prop]
-		) {
-			continue;
-		}
-
-		for (const table in options[prop]) {
-			extend(options, {
-				models: {
-					[table]: {
-						[prop]: options[prop][table],
-					},
-				},
-			});
-		}
-	}
 }
 
 /**

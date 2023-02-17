@@ -204,25 +204,6 @@ describe('post', () => {
 		expect(resp).to.eql(skip);
 	});
 
-	it('legacy: options.schema, not execute if the opts.skip request is marked', async () => {
-		const skip = 'true';
-
-		const dare2 = dare.use({
-			post: {
-				default(opts) {
-					opts.skip = skip;
-				},
-			},
-		});
-
-		const resp = await dare2.post({
-			table: 'tbl',
-			body: {name: 'name'},
-		});
-
-		expect(resp).to.eql(skip);
-	});
-
 	describe('validate formatting of input values', () => {
 		[
 			{
