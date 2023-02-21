@@ -1,3 +1,10 @@
+## [0.75.1](https://github.com/5app/dare/compare/v0.75.0...v0.75.1) (2023-02-21)
+
+
+### Bug Fixes
+
+* **json-array:** filtering empty nested joins ([af51df1](https://github.com/5app/dare/commit/af51df124973cce92b43351f9583ed86d6611667))
+
 # [0.75.0](https://github.com/5app/dare/compare/v0.74.0...v0.75.0) (2023-02-21)
 
 
