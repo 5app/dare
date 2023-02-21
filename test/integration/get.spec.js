@@ -105,6 +105,11 @@ const schema = {
 				team_id: team.insertId,
 			});
 
+			let wrapper = a => a;
+			if (process.env.MYSQL_VERSION === '5.6') {
+				wrapper = a => (a === null ? '' : String(a));
+			}
+
 			{
 				// Same Structure
 				const resp = await dare.get({
@@ -120,9 +125,9 @@ const schema = {
 
 				expect(resp).to.deep.nested.include({
 					'userTeams[0].teams': {
-						id: String(team.insertId),
+						id: wrapper(team.insertId),
 						name: teamName,
-						description: '',
+						description: wrapper(null),
 					},
 				});
 			}
@@ -141,9 +146,9 @@ const schema = {
 				});
 
 				expect(resp).to.deep.nested.equal({
-					id: String(team.insertId),
+					id: wrapper(team.insertId),
 					name: teamName,
-					description: '',
+					description: wrapper(null),
 				});
 			}
 

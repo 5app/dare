@@ -22,11 +22,16 @@ export default function group_concat(fields, address = '', sql_alias, rowid) {
 	}
 
 	// Convert to JSON Array
-	expression = fields.map(
-		field =>
-			`'"', REPLACE(REPLACE(${field.expression}, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"'`
-	);
-	expression = `CONCAT_WS('', '[', ${expression.join(", ',', ")}, ']')`;
+	if (process.env.MYSQL_VERSION === '5.6') {
+		expression = fields.map(
+			field =>
+				`'"', REPLACE(REPLACE(${field.expression}, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"'`
+		);
+		expression = `CONCAT_WS('', '[', ${expression.join(", ',', ")}, ']')`;
+	} else {
+		expression = fields.map(field => field.expression);
+		expression = `JSON_ARRAY(${expression.join(',')})`;
+	}
 
 	if (agg) {
 		return {

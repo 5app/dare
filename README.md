@@ -1329,6 +1329,18 @@ await dare.patch({
 });
 ```
 
+### DB Engine compatibility
+
+The latest version is designed to work with MySQL 5.7 and 8
+
+There is currently backwards compatibility with MySQL 5.6 provided by setting the environment variable `MYSQL_VERSION`
+
+e.g.
+
+```js
+process.env.MYSQL_VERSION = 5.6;
+```
+
 # Caveats
 
 ## Only one column name may appear in a Field Expression
