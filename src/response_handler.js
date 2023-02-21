@@ -56,7 +56,9 @@ function formatHandler(item) {
 
 		// Does this contain multiples
 		else if (!label.includes('[')) {
-			// Lets split the value up
+			/*
+			 * Lets split the value up
+			 */
 			value = JSONparse(value);
 
 			/*
@@ -84,7 +86,9 @@ function formatHandler(item) {
 			}
 
 			if (value) {
-				// Remove tabs then parse the value
+				/*
+				 * Lets split the value up
+				 */
 				value = JSONparse(value);
 
 				/*

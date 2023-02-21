@@ -1,3 +1,10 @@
+# [0.74.0](https://github.com/5app/dare/compare/v0.73.1...v0.74.0) (2023-02-21)
+
+
+### Features
+
+* **json-array:** use mysql5.7 function, fixes [#276](https://github.com/5app/dare/issues/276), fixes [#32](https://github.com/5app/dare/issues/32) ([bc323f8](https://github.com/5app/dare/commit/bc323f849dbf59c11b6b64321e67344cb9f85b27))
+
 ## [0.73.1](https://github.com/5app/dare/compare/v0.73.0...v0.73.1) (2023-02-17)
 
 

@@ -6,6 +6,11 @@ export default value => {
 			value = value.toString();
 		}
 
+		// TODO: @legacy versions do not use JSON_ARRAY and so we pass the version here...
+		if (typeof value !== 'string') {
+			return value;
+		}
+
 		return JSON.parse(
 			value
 				.replace(/\t/g, '\\t')
