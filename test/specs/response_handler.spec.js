@@ -346,13 +346,13 @@ describe('response_handler', () => {
 		});
 	});
 
-	it('should exclude a series of empty strings, a side-effect of inline GROUP_CONCAT', () => {
+	it('should exclude a series of NULL fields, a side-effect of inline GROUP_CONCAT', () => {
 		// Return a response field which is invalid
 		const data = dare.response_handler([
 			{
 				field: 'value',
 				'collection[id,name,assoc.id,assoc.name]':
-					'[["","","",""], ["","","",""]]',
+					'[[null, null, null, null], [null, null, null, null]]',
 			},
 		]);
 
@@ -373,6 +373,31 @@ describe('response_handler', () => {
 
 		expect(data).to.be.an('array');
 		expect(data[0]).to.deep.equal(item);
+	});
+
+	describe('mysql 5.6', () => {
+		afterEach(() => {
+			process.env.MYSQL_VERSION = undefined;
+		});
+
+		it('should exclude a series of empty strings, a side-effect of inline GROUP_CONCAT', () => {
+			process.env.MYSQL_VERSION = '5.6';
+
+			// Return a response field which is invalid
+			const data = dare.response_handler([
+				{
+					field: 'value',
+					'collection[id,name,assoc.id,assoc.name]':
+						'[["","","",""], ["","","",""]]',
+				},
+			]);
+
+			expect(data).to.be.an('array');
+			expect(data[0]).to.deep.equal({
+				collection: [],
+				field: 'value',
+			});
+		});
 	});
 });
 
