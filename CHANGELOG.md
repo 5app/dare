@@ -1,3 +1,10 @@
+# [0.75.0](https://github.com/5app/dare/compare/v0.74.0...v0.75.0) (2023-02-21)
+
+
+### Features
+
+* **legacy-drop:** remove legacy schema (pre-models), noissue ([#280](https://github.com/5app/dare/issues/280)) ([3d869f6](https://github.com/5app/dare/commit/3d869f6add08c3ffbdf3fa744532148abab0745d))
+
 # [0.74.0](https://github.com/5app/dare/compare/v0.73.1...v0.74.0) (2023-02-21)
 
 
