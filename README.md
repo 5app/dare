@@ -22,7 +22,7 @@ import sqlConn from './mySqlConn.js';
 const dare = new Dare();
 
 // Define the handler dare.execute for handing database requests
-await dare.execute = async ({sql, values}) => {
+dare.execute = async ({sql, values}) => {
 	// Execute query using prepared statements
 	return sqlConn.execute(sql, values);
 };
