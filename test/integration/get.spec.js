@@ -120,6 +120,32 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 		}
 
 		{
+			// Same Structure, team join is nulled
+			const resp = await dare.get({
+				table: 'users',
+				fields: [
+					{
+						userTeams: {
+							teams: ['id', 'name', 'description'],
+						},
+					},
+				],
+				join: {
+					userTeams: {
+						teams: {
+							name: 'not-available',
+						},
+					},
+				},
+			});
+
+			// UserTeams should be an empty array
+			expect(resp).to.deep.nested.include({
+				userTeams: [],
+			});
+		}
+
+		{
 			// Remap Structure
 			const resp = await dare.get({
 				table: 'users',

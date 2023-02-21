@@ -105,10 +105,13 @@ function formatHandler(item) {
 				if (Array.isArray(value)) {
 					value.forEach(values => {
 						/*
-						 * This is a workaround/tidy up for GROUP_CONCAT/CONCAT_WS
-						 * If we can't find a non-empty value...
+						 * This is a workaround/tidy up for GROUP_CONCAT with JSON_ARRAY/CONCAT_WS
+						 * JSON_ARRAY can include a NULL value even if there is no matching join
+						 * CONCAT_WS would in the same circumstance return an empty string
 						 */
-						if (!values.find(val => val !== '')) {
+						const emptyValues =
+							process.env.MYSQL_VERSION === '5.6' ? '' : null;
+						if (!values.some(val => val !== emptyValues)) {
 							// Continue
 							return;
 						}
