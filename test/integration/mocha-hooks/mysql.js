@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-import {execSync} from 'child_process';
+import {execSync} from 'node:child_process';
 import mysql from 'mysql2/promise';
-import fs from 'fs';
+import fs from 'node:fs';
 import db from '../helpers/db.js';
 
 /*
@@ -13,7 +13,7 @@ global.db = db;
 
 const {
 	MYSQL_HOST = 'mysql',
-	MYSQL_PORT = 13306,
+	MYSQL_PORT = 13_306,
 	MYSQL_USER = 'root',
 	MYSQL_PASSWORD = 'password',
 	TEST_DB_DATA_PATH,

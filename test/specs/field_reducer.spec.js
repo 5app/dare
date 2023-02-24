@@ -174,13 +174,14 @@ describe('Field Reducer', () => {
 				},
 			};
 			const joined = {};
-			const extract = (key, value) => {
+
+			function extract(key, value) {
 				if (!(key in joined)) {
 					joined[key] = {fields: value};
 				} else {
 					joined[key].fields.push(...value);
 				}
-			};
+			}
 
 			// Curry the field_reducer
 			const fr = field_reducer({

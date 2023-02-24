@@ -9,7 +9,7 @@ export default function validate_field(key) {
 		// Remove any alias suffix from the key
 		.replace(/\$.*$/, '');
 
-	const reg = /^[a-z_]+$/i;
+	const reg = /^[_a-z]+$/i;
 
 	// Capture errors in the key
 	if (!field.match(reg)) {

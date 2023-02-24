@@ -44,7 +44,7 @@ describe('patch', () => {
 	it('should throw an exception if affectedRows: 0', () => {
 		dare.sql = async () => ({affectedRows: 0});
 
-		const test = dare.patch('groups', {id: 20000}, {name});
+		const test = dare.patch('groups', {id: 20_000}, {name});
 
 		return expect(test)
 			.to.be.eventually.rejectedWith(DareError)
@@ -58,7 +58,7 @@ describe('patch', () => {
 
 		const test = await dare.patch(
 			'groups',
-			{id: 20000},
+			{id: 20_000},
 			{name},
 			{notfound}
 		);

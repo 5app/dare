@@ -36,7 +36,7 @@ describe('del', () => {
 	it('should throw an exception if affectedRows: 0', async () => {
 		dare.sql = async () => ({affectedRows: 0});
 
-		const test = dare.del('groups', {id: 20000});
+		const test = dare.del('groups', {id: 20_000});
 
 		return expect(test)
 			.to.be.eventually.rejectedWith(DareError)
@@ -47,7 +47,7 @@ describe('del', () => {
 		const notfound = false;
 		dare.sql = async () => ({affectedRows: 0});
 
-		const test = await dare.del('groups', {id: 20000}, {notfound});
+		const test = await dare.del('groups', {id: 20_000}, {notfound});
 		return expect(test).to.equal(notfound);
 	});
 

@@ -77,7 +77,7 @@ function stripKey(key) {
 	let rootKey = rootKeyRaw;
 
 	// Does this have a comparison operator prefix?
-	const operators = rootKeyRaw.match(/^[-%~]+/)?.[0];
+	const operators = rootKeyRaw.match(/^[%~-]+/)?.[0];
 	if (operators) {
 		// Strip the special operators from the prop
 		rootKey = rootKeyRaw.substring(operators.length);

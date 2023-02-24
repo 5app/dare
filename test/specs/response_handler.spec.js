@@ -144,7 +144,9 @@ describe('response_handler', () => {
 	});
 
 	it('should transform a deep linked nested array with generated fields', () => {
-		const handler = row => row.id + 2;
+		function handler(row) {
+			return row.id + 2;
+		}
 		const field = 'something';
 
 		const extraFields = ['id'];
@@ -235,7 +237,9 @@ describe('response_handler', () => {
 
 	it('should transform a nested arrays to single root level', () => {
 		const empty = 'empty';
-		const handler = row => (row.id ? row.id + 2 : empty);
+		function handler(row) {
+			return row.id ? row.id + 2 : empty;
+		}
 
 		const extraFields = ['id', 'name'];
 

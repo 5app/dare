@@ -9,5 +9,5 @@ export default (a, b) => {
 };
 
 function reformat(sql) {
-	return sql.replace(/[\s]+/g, '');
+	return sql.replace(/\s+/g, '');
 }
