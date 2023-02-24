@@ -73,9 +73,7 @@ function formatHandler(item) {
 		} else {
 			// This has multiple parts
 			// eslint-disable-next-line security/detect-unsafe-regex
-			const m = label.match(
-				/^(?<label>[a-z0-9.$\s_-]*)\[(?<keys>.*?)\]$/i
-			);
+			const m = label.match(/^(?<label>[\s\w$.-]*)\[(?<keys>.*?)]$/i);
 
 			if (!m) {
 				/*

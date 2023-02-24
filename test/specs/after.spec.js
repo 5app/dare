@@ -134,11 +134,14 @@ describe('after Handler', () => {
 	});
 
 	describe('should be overrideable by the pre-handler', () => {
-		const new_after_handler = () => 'overriden';
-		const preHandlers = (options, dareInstance) => {
+		function new_after_handler() {
+			return 'overriden';
+		}
+
+		function preHandlers(options, dareInstance) {
 			// This will override it...
 			dareInstance.after = new_after_handler;
-		};
+		}
 
 		beforeEach(() => {
 			dare.options.models = {

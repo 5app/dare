@@ -548,14 +548,13 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 			return `(${a.join(',')})`;
 		});
 
-	// Create unalias function
-	const unAliaser = field => unAliasFields(modelSchema, field);
-
 	// Options
 	let on_duplicate_keys_update = '';
 	if (req.duplicate_keys_update) {
 		on_duplicate_keys_update = onDuplicateKeysUpdate(
-			req.duplicate_keys_update.map(unAliaser)
+			req.duplicate_keys_update.map(field =>
+				unAliasFields(modelSchema, field)
+			)
 		);
 	} else if (
 		req.duplicate_keys &&

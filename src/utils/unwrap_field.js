@@ -10,7 +10,7 @@ export default function unwrap_field(expression, allowValue = true) {
 		let prefix = '';
 
 		// Match a function, "STRING_DENOTES_FUNCTION(.*)"
-		while ((m = str.match(/^(!?[a-z_]+\()(.*)(\))$/i))) {
+		while ((m = str.match(/^(!?[_a-z]+\()(.*)(\))$/i))) {
 			// Change the string to match the inner string...
 			str = m[2];
 
@@ -29,7 +29,7 @@ export default function unwrap_field(expression, allowValue = true) {
 			// Split out comma variables
 			while (
 				(int_m = str.match(
-					/(.*)(,\s*((?<quote>["'])?[a-z0-9%._\s-]*\k<quote>))$/i
+					/(.*)(,\s*((?<quote>["'])?[\s\w%.-]*\k<quote>))$/i
 				))
 			) {
 				/*
@@ -52,7 +52,7 @@ export default function unwrap_field(expression, allowValue = true) {
 			 * Deal with math and operators against a value
 			 */
 			const int_x = str.match(
-				/(.*)(\s((\*|\/|>|<|=|<=|>=|<>|!=)\s([0-9.]+|((?<quote>["'])[a-z0-9%._\s-]*\k<quote>))|IS NULL|IS NOT NULL))$/i
+				/(.*)(\s((\*|\/|>|<|=|<=|>=|<>|!=)\s([\d.]+|((?<quote>["'])[\s\w%.-]*\k<quote>))|is null|is not null))$/i
 			);
 
 			if (int_x) {
@@ -68,13 +68,13 @@ export default function unwrap_field(expression, allowValue = true) {
 		}
 
 		// Remove any additional prefix in a function.. i.e. "YEAR_MONTH FROM " from "EXTRACT(YEAR_MONTH FROM field)"
-		if (prefix && str && (m = str.match(/^[A-Z_\s]+\s/))) {
+		if (prefix && str && (m = str.match(/^[\sA-Z_]+\s/))) {
 			prefix += m[0];
 			str = str.slice(m[0].length);
 		}
 
 		// Finally check that the str is a match
-		if (str.match(/^[\w$.*]*$/)) {
+		if (str.match(/^[\w$*.]*$/)) {
 			const field = str;
 			const a = str.split('.');
 			const field_name = a.pop();
@@ -94,7 +94,7 @@ export default function unwrap_field(expression, allowValue = true) {
 
 		// Return value...
 		if (allowValue) {
-			if (str.length === 0 || /^(["'])[\w\s]+\1$/.test(str)) {
+			if (str.length === 0 || /^(["'])[\s\w]+\1$/.test(str)) {
 				return {
 					value: expression,
 				};

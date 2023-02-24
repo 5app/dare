@@ -92,6 +92,7 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 			team_id: team.insertId,
 		});
 
+		// eslint-disable-next-line func-style
 		let wrapper = a => a;
 		if (process.env.MYSQL_VERSION === '5.6') {
 			wrapper = a => (a === null ? '' : String(a));

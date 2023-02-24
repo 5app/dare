@@ -4,6 +4,9 @@ import {expect} from 'chai';
 // Test Generic DB functions
 import expectSQLEqual from '../lib/sql-equal.js';
 
+// Create a schema
+import options from '../data/options.js';
+
 // Walk
 function walk(obj, handler, key = null) {
 	if (typeof obj !== 'object') {
@@ -14,9 +17,6 @@ function walk(obj, handler, key = null) {
 		}
 	}
 }
-
-// Create a schema
-import options from '../data/options.js';
 
 describe('get - request object', () => {
 	let dare;

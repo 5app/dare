@@ -39,10 +39,10 @@ describe('Orderby Reducer', () => {
 
 				const table_schema = {aliasField: 'field'};
 				const current_path = '';
-				const extract = (key, value) => {
+				function extract(key, value) {
 					joined[key] = joined[key] || {orderby: []};
 					joined[key].orderby.push(...value);
-				};
+				}
 
 				// Curry the field_reducer
 				const reducer = orderby_reducer({

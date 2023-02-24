@@ -162,7 +162,7 @@ describe('format_request', () => {
 
 		describe('limit', () => {
 			describe('should accept', () => {
-				['90', 90, '99', 1, 10000001].forEach(limit => {
+				['90', 90, '99', 1, 10_000_001].forEach(limit => {
 					it(`valid: ${limit} (${typeof limit})`, async () =>
 						dare.format_request({...options, limit}));
 				});
@@ -181,7 +181,7 @@ describe('format_request', () => {
 			});
 
 			describe('has a configurable max_limit', () => {
-				const limit = 20000;
+				const limit = 20_000;
 
 				it('set dare.max_limit = 20000', async () => {
 					// Create another instance
