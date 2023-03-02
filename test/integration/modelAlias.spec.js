@@ -1,4 +1,4 @@
-import Dare, {DareError} from '../../src/index.js';
+import Dare from '../../src/index.js';
 import Debug from 'debug';
 import mysql from 'mysql2/promise';
 import {options, castToStringIfNeeded} from './helpers/api.js';
