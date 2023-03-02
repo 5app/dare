@@ -1,3 +1,10 @@
+## [0.75.2](https://github.com/5app/dare/compare/v0.75.1...v0.75.2) (2023-03-02)
+
+
+### Bug Fixes
+
+* **intermediate-table-join:** field name conflict, [#285](https://github.com/5app/dare/issues/285) ([fe1e82a](https://github.com/5app/dare/commit/fe1e82ad9a1165b45b12dcf51287a3de5b4c6ae5))
+
 ## [0.75.1](https://github.com/5app/dare/compare/v0.75.0...v0.75.1) (2023-02-21)
 
 
