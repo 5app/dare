@@ -64,6 +64,20 @@ export default function (join_object, root_object, dareInstance) {
 		}
 
 		/*
+		 * If both the root and join table are pointing to the same value in the linkTable
+		 * -> Abort
+		 * e.g.
+		 *	root_conditions: { join_conditions: { id: 'commentcountry_id' }, many: false },
+		 *	join_conditions: { join_conditions: { personcountry_id: 'id' }, many: true }
+		 */
+		if (
+			Object.keys(root_conditions.join_conditions).at(0) ===
+			Object.values(join_conditions.join_conditions).at(0)
+		) {
+			continue;
+		}
+
+		/*
 		 * Awesome, this table (tbl) is the link table and can be used to join up both these tables.
 		 * Also give this link table a unique Alias
 		 */
