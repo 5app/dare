@@ -222,6 +222,47 @@ describe('join_handler', () => {
 		expect(no_join).to.deep.equal(null);
 	});
 
+	it('should use the modelAlias to infer the connecting model', () => {
+		const dareInst = dare.use({
+			infer_intermediate_models: false,
+			models: {
+				grandparent: {},
+				parent: {
+					schema: {grand_id: ['grandparent.gid']},
+				},
+				child: {
+					schema: {
+						grandparents: {
+							modelAlias: 'parent.grandparent',
+						},
+						parent_id: ['parent.id'],
+					},
+				},
+			},
+		});
+
+		const child_object = {
+			alias: 'child',
+			table: 'child',
+		};
+
+		const grandparent_object = {
+			alias: 'grandparents',
+			table: 'grandparents',
+		};
+
+		const join = joinHandler(grandparent_object, child_object, dareInst);
+
+		expect(join).to.deep.equal({
+			table: 'parent',
+			join_conditions: {
+				id: 'parent_id',
+			},
+			many: false,
+			joins: [grandparent_object],
+		});
+	});
+
 	describe('many to many table joins', () => {
 		beforeEach(() => {
 			/*
