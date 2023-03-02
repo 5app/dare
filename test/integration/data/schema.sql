@@ -15,6 +15,7 @@ CREATE TABLE `users` (
   `first_name` varchar(255) DEFAULT NULL,
   `last_name` varchar(255) DEFAULT NULL,
   `secret` varchar(2048) DEFAULT NULL,
+  `settings` varchar(2048) DEFAULT NULL,
   `country_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_username` (`username`),

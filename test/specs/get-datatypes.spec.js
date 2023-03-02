@@ -42,12 +42,12 @@ describe('get - datatypes', () => {
 
 	describe('type=json', () => {
 		it('should JSON parse an string as object if type=json', async () => {
-			const meta = {param: 1};
-			const metaString = JSON.stringify(meta);
+			const settings = {param: 1};
+			const metaString = JSON.stringify(settings);
 
 			dare.execute = async ({sql, values}) => {
 				const expected = `
-					SELECT a.meta
+					SELECT a.settings
 					FROM users a
 					LIMIT 1
 				`;
@@ -55,24 +55,24 @@ describe('get - datatypes', () => {
 				sqlEqual(sql, expected);
 				expect(values).to.deep.equal([]);
 
-				return [{meta: metaString}];
+				return [{settings: metaString}];
 			};
 
 			const resp = await dare.get({
 				table: 'users',
-				fields: ['meta'],
+				fields: ['settings'],
 			});
 
-			expect(resp).to.have.property('meta').to.deep.equal(meta);
+			expect(resp).to.have.property('settings').to.deep.equal(settings);
 		});
 
 		it('should JSON parse a nested field with object if type=json', async () => {
-			const meta = {param: 1};
-			const metaString = JSON.stringify(meta);
+			const settings = {param: 1};
+			const metaString = JSON.stringify(settings);
 
 			dare.execute = async ({sql, values}) => {
 				const expected = `
-					SELECT b.meta AS 'users.meta'
+					SELECT b.settings AS 'users.settings'
 					FROM users_email a
 					LEFT JOIN users b ON (b.id = a.user_id)
 					LIMIT 1
@@ -81,28 +81,28 @@ describe('get - datatypes', () => {
 				sqlEqual(sql, expected);
 				expect(values).to.deep.equal([]);
 
-				return [{users: {meta: metaString}}];
+				return [{users: {settings: metaString}}];
 			};
 
 			const resp = await dare.get({
 				table: 'users_email',
 				fields: [
 					{
-						users: ['meta'],
+						users: ['settings'],
 					},
 				],
 			});
 
 			expect(resp)
 				.to.have.property('users')
-				.to.have.property('meta')
-				.to.deep.equal(meta);
+				.to.have.property('settings')
+				.to.deep.equal(settings);
 		});
 
 		it('should return an empty object if response value is falsy', async () => {
 			dare.execute = async ({sql, values}) => {
 				const expected = `
-					SELECT a.meta
+					SELECT a.settings
 					FROM users a
 					LIMIT 1
 				`;
@@ -115,10 +115,10 @@ describe('get - datatypes', () => {
 
 			const resp = await dare.get({
 				table: 'users',
-				fields: ['meta'],
+				fields: ['settings'],
 			});
 
-			expect(resp).to.have.property('meta').to.deep.equal({});
+			expect(resp).to.have.property('settings').to.deep.equal({});
 		});
 	});
 

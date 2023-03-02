@@ -22,7 +22,7 @@ export default {
 				/*
 				 * JSON data type
 				 */
-				meta: {
+				settings: {
 					type: 'json',
 				},
 
