@@ -1,3 +1,10 @@
+# [0.76.0](https://github.com/5app/dare/compare/v0.75.2...v0.76.0) (2023-03-03)
+
+
+### Features
+
+* **shortcuts:** initial shortcuts support, fixes [#285](https://github.com/5app/dare/issues/285) ([#288](https://github.com/5app/dare/issues/288)) ([4a646d3](https://github.com/5app/dare/commit/4a646d3192d264d9435ff3f6e237c0fff201ae98))
+
 ## [0.75.2](https://github.com/5app/dare/compare/v0.75.1...v0.75.2) (2023-03-02)
 
 
