@@ -222,7 +222,7 @@ describe('join_handler', () => {
 		expect(no_join).to.deep.equal(null);
 	});
 
-	it('should use the modelAlias to infer the connecting model', () => {
+	it('should use the shortcuts to infer the connecting model', () => {
 		const dareInst = dare.use({
 			infer_intermediate_models: false,
 			models: {
@@ -231,10 +231,10 @@ describe('join_handler', () => {
 					schema: {grand_id: ['grandparent.gid']},
 				},
 				child: {
+					shortcut_map: {
+						grandparents: 'parent.grandparent',
+					},
 					schema: {
-						grandparents: {
-							modelAlias: 'parent.grandparent',
-						},
 						parent_id: ['parent.id'],
 					},
 				},

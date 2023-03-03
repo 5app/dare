@@ -9,7 +9,7 @@ const {db} = global;
 
 // Connect to db
 
-describe(`schema: modelAlias`, () => {
+describe(`model.shortcut_map`, () => {
 	let dare;
 
 	beforeEach(() => {
@@ -21,13 +21,12 @@ describe(`schema: modelAlias`, () => {
 			// Disable infer intermediate model
 			infer_intermediate_models: false,
 
-			// Create a modelAlias
+			// Create a shortcut_map
 			models: {
 				users: {
-					schema: {
-						myTeams: {
-							modelAlias: 'userTeams.teams',
-						},
+					// Create a shortcut definition on the `users' model
+					shortcut_map: {
+						myTeams: 'userTeams.teams',
 					},
 				},
 			},
@@ -43,7 +42,7 @@ describe(`schema: modelAlias`, () => {
 		};
 	});
 
-	it('should be able to use a modelAlias to describe the model links', async () => {
+	it('should be able to use a shortcut_map entries to dictate the model links', async () => {
 		const teamName = 'A Team';
 
 		// Create users, team and add the two

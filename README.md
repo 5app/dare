@@ -909,20 +909,18 @@ await dare.patch('users', {id: 321}, {id: 1337});
 // throws {code: INVALID_REFERENCE}
 ```
 
-#### Field attribute: `modelAlias`
+## `model.shortcut_map`
 
-modelAlias, can be used to create a shortcut to nested tables
+`shortcut_map`, can be used to define shortcut's to nested tables
 
 ```js
 const dare = dare.use({
-	infer_intermediate_joins: false, // `modelAlias` can be used to replace infer_intermediate_joins
+	infer_intermediate_joins: false, // A 'shortcut' can be used to replace infer_intermediate_joins
 
 	models: {
 		users: {
-			schema: {
-				myTeams: {
-					modelAlias: 'userTeams.team',
-				},
+			shortcut_map: {
+				myTeams: 'userTeams.team',
 			},
 		},
 	},

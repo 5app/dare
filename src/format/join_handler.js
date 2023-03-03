@@ -31,20 +31,18 @@ export default function (join_object, root_object, dareInstance) {
 	}
 
 	/**
-	 * ModelAlias?
-	 * now check whether this alias is defined as a modelAlias
-	 * modelAlias is defined in the schema of the root table
-	 * And desrcibes the path (model joins) needed for the given data set
+	 * Shortcut?
+	 * now check whether this alias is defined as a Shortcut
+	 * Shortcut's are defined in the model of the root table
+	 * And desrcibes the path (model joins) needed for the given nested model
 	 */
 
-	const {modelAlias} = getFieldAttributes(
-		models[rootModel]?.schema?.[joinModel]
-	);
+	const shortcut = models[rootModel]?.shortcut_map?.[joinModel];
 
 	// The model alias is now present so we know we're on the right track
-	if (modelAlias) {
+	if (shortcut) {
 		// Decode the modelAlias and construct the joins
-		const [linkTable, joinModel] = modelAlias.split('.');
+		const [linkTable, joinModel] = shortcut.split('.');
 
 		// Update the underlying table
 		join_object.table = joinModel;
