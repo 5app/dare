@@ -30,6 +30,36 @@ export default function (join_object, root_object, dareInstance) {
 		return Object.assign(join_object, join_conditions);
 	}
 
+	/**
+	 * Shortcut?
+	 * now check whether this alias is defined as a Shortcut
+	 * Shortcut's are defined in the model of the root table
+	 * And desrcibes the path (model joins) needed for the given nested model
+	 */
+
+	const shortcut = models[rootModel]?.shortcut_map?.[joinModel];
+
+	// The model alias is now present so we know we're on the right track
+	if (shortcut) {
+		// Decode the modelAlias and construct the joins
+		const [linkTable, joinModel] = shortcut.split('.');
+
+		// Update the underlying table
+		join_object.table = joinModel;
+
+		// Construct intermediate join
+		const intermediateJoin = findIntermediateJoin({
+			rootModel,
+			linkTable,
+			joinModel,
+			models,
+			join_object,
+		});
+
+		// Return, errors are thrown in format_request if this is undefined
+		return intermediateJoin;
+	}
+
 	/*
 	 * Is the infer_intermediate_models option is set to false?
 	 * --> can't guess which table to use, return null
@@ -40,56 +70,89 @@ export default function (join_object, root_object, dareInstance) {
 
 	// Crawl the schema for an intermediate table which is linked to both tables. link table, ... we're only going for a single Kevin Bacon. More than that and the process will deem this operation too hard.
 	for (const linkTable in models) {
-		// Well, ignore models of the same name
-		if (linkTable === joinModel || linkTable === rootModel) {
-			continue;
+		// Construct intermediate join
+		const intermediateJoin = findIntermediateJoin({
+			rootModel,
+			linkTable,
+			joinModel,
+			models,
+			join_object,
+		});
+
+		if (intermediateJoin) {
+			return intermediateJoin;
 		}
-
-		// LinkTable <> joinTable?
-		const join_conditions =
-			links(models[joinModel]?.schema, linkTable) ||
-			invert_links(models[linkTable]?.schema, joinModel);
-
-		if (!join_conditions) {
-			continue;
-		}
-
-		// RootTable <> linkTable
-		const root_conditions =
-			links(models[linkTable]?.schema, rootModel) ||
-			invert_links(models[rootModel]?.schema, linkTable);
-
-		if (!root_conditions) {
-			continue;
-		}
-
-		/*
-		 * If both the root and join table are pointing to the same value in the linkTable
-		 * -> Abort
-		 * e.g.
-		 *	root_conditions: { join_conditions: { id: 'commentcountry_id' }, many: false },
-		 *	join_conditions: { join_conditions: { personcountry_id: 'id' }, many: true }
-		 */
-		if (
-			Object.keys(root_conditions.join_conditions).at(0) ===
-			Object.values(join_conditions.join_conditions).at(0)
-		) {
-			continue;
-		}
-
-		/*
-		 * Awesome, this table (tbl) is the link table and can be used to join up both these tables.
-		 * Also give this link table a unique Alias
-		 */
-		return {
-			table: linkTable,
-			joins: [Object.assign(join_object, join_conditions)],
-			...root_conditions,
-		};
 	}
 
 	// Return a falsy value
 	return null;
+}
+
+/**
+ * Find Intermediate joins
+ * Given root, link and target (join) names
+ * Find and constructs the join definitions (fields to connect)
+ * @param {object} object - Object
+ * @param {string} object.rootModel - Root model name
+ * @param {string} object.linkTable - Link model name
+ * @param {string} object.joinModel - Target/join model name
+ * @param {object} object.models - Model Options
+ * @param {object} object.join_object - Passthrough original join options
+ * @returns {object|undefined} Join definition to return
+ */
+function findIntermediateJoin({
+	rootModel,
+	linkTable,
+	joinModel,
+	models,
+	join_object,
+}) {
+	// Well, ignore models of the same name
+	if (linkTable === joinModel || linkTable === rootModel) {
+		return;
+	}
+
+	// LinkTable <> joinTable?
+	const join_conditions =
+		links(models[joinModel]?.schema, linkTable) ||
+		invert_links(models[linkTable]?.schema, joinModel);
+
+	if (!join_conditions) {
+		return;
+	}
+
+	// RootTable <> linkTable
+	const root_conditions =
+		links(models[linkTable]?.schema, rootModel) ||
+		invert_links(models[rootModel]?.schema, linkTable);
+
+	if (!root_conditions) {
+		return;
+	}
+
+	/*
+	 * If both the root and join table are pointing to the same value in the linkTable
+	 * -> Abort
+	 * e.g.
+	 *	root_conditions: { join_conditions: { id: 'commentcountry_id' }, many: false },
+	 *	join_conditions: { join_conditions: { personcountry_id: 'id' }, many: true }
+	 */
+	if (
+		Object.keys(root_conditions.join_conditions).at(0) ===
+		Object.values(join_conditions.join_conditions).at(0)
+	) {
+		return;
+	}
+
+	/*
+	 * Awesome, this table (tbl) is the link table and can be used to join up both these tables.
+	 * Also give this link table a unique Alias
+	 */
+	return {
+		table: linkTable,
+		joins: [Object.assign(join_object, join_conditions)],
+		...root_conditions,
+	};
 }
 
 function links(tableSchema, joinTable, flipped = false) {
