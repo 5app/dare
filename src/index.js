@@ -493,11 +493,14 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 			 * Let's catch the omitted properties
 			 * --> Loop through the modelSchema
 			 */
-			Object.entries(modelSchema).forEach(([field, fieldObject]) => {
+			Object.keys(modelSchema).forEach(field => {
 				// For each property which was not covered by the input
 				if (field !== 'default' && !(field in item)) {
 					// Get a formatted object of field attributes
-					const fieldAttributes = getFieldAttributes(fieldObject);
+					const fieldAttributes = getFieldAttributes(
+						field,
+						modelSchema
+					);
 
 					/*
 					 * Get the default Value of the post operation
@@ -685,9 +688,9 @@ function onDuplicateKeysUpdate(keys = []) {
 function formatInputValue(tableSchema = {}, field, value, validateInput) {
 	const fieldAttributes =
 		field in tableSchema
-			? getFieldAttributes(tableSchema[field])
+			? getFieldAttributes(field, tableSchema)
 			: 'default' in tableSchema
-			? getFieldAttributes(tableSchema.default)
+			? getFieldAttributes('default', tableSchema)
 			: null;
 
 	const {alias, writeable, type} = fieldAttributes || {};
@@ -753,7 +756,7 @@ function formatInputValue(tableSchema = {}, field, value, validateInput) {
  * @returns {string} Unaliased field name
  */
 function unAliasFields(tableSchema = {}, field) {
-	const {alias} = getFieldAttributes(tableSchema[field]);
+	const {alias} = getFieldAttributes(field, tableSchema);
 	return alias || field;
 }
 

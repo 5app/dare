@@ -125,8 +125,8 @@ async function format_request(options, dareInstance) {
 	 * Apply defaultValues to join
 	 */
 	{
-		Object.entries(table_schema).forEach(([key, value]) => {
-			const {defaultValue = {}} = getFieldAttributes(value);
+		Object.keys(table_schema).forEach(key => {
+			const {defaultValue = {}} = getFieldAttributes(key, table_schema);
 
 			/*
 			 * Check the defaultValue for the method has been assigned

@@ -1,6 +1,6 @@
 import Dare from '../../src/index.js';
 
-import fieldAttributes from '../../src/utils/field_attributes.js';
+import getFieldAttributes from '../../src/utils/field_attributes.js';
 
 function spy(obj, func, callback) {
 	const history = [];
@@ -31,9 +31,11 @@ describe('schema.defaultValue', () => {
 		});
 	});
 
-	describe('fieldAttributes', () => {
+	describe('getFieldAttributes', () => {
+		const field = 'field';
+
 		it('defaultValue should not occur by default', () => {
-			const attr = fieldAttributes({});
+			const attr = getFieldAttributes(field, {});
 			expect(attr).to.not.have.property('defaultValue');
 		});
 
@@ -44,13 +46,15 @@ describe('schema.defaultValue', () => {
 				patch: null,
 			};
 
-			const attr = fieldAttributes({defaultValue});
+			const attr = getFieldAttributes(field, {[field]: {defaultValue}});
 			expect(attr).to.have.property('defaultValue', defaultValue);
 		});
 
 		[undefined, 1, null, 'string'].forEach(defaultValue => {
 			it(`should expand defaultValue, ${defaultValue}`, () => {
-				const attr = fieldAttributes({defaultValue});
+				const attr = getFieldAttributes(field, {
+					[field]: {defaultValue},
+				});
 				expect(attr).to.have.property('defaultValue').to.deep.equal({
 					post: defaultValue,
 					get: defaultValue,

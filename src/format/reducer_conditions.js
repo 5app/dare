@@ -46,14 +46,12 @@ export default function reduceConditions(
 			// Format key and validate path
 			key = checkKey(key);
 
-			const key_definition = table_schema[key];
-
 			filterArr.push(
 				prepCondition({
 					field: key,
 					value,
 					sql_alias,
-					key_definition,
+					table_schema,
 					operators,
 					conditional_operators_in_value,
 				})
@@ -90,11 +88,11 @@ function prepCondition({
 	field,
 	value,
 	sql_alias,
-	key_definition,
+	table_schema,
 	operators,
 	conditional_operators_in_value,
 }) {
-	const {type, alias} = getFieldAttributes(key_definition);
+	const {type, alias} = getFieldAttributes(field, table_schema);
 
 	// Does it have a negative comparison operator?
 	const negate = operators?.includes('-');
@@ -244,7 +242,7 @@ function prepCondition({
 					field,
 					sql_alias,
 					value: item,
-					key_definition,
+					table_schema,
 					operators,
 					conditional_operators_in_value,
 				})

@@ -1,11 +1,14 @@
 /**
  * Given a field definition defined in the schema, extract it's attributes
  *
- * @param {object|Function|string|undefined} fieldDefinition - A field definition as described in the schema
+ * @param {string} field - A field reference
+ * @param {object} schema - A model schema definition
  * @returns {object} An object containing the attributes of the field
  */
 
-export default fieldDefinition => {
+export default (field, schema) => {
+	const fieldDefinition = schema[field];
+
 	if (
 		fieldDefinition &&
 		typeof fieldDefinition === 'object' &&

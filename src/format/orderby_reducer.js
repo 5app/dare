@@ -27,7 +27,7 @@ export default ({current_path, extract, table_schema}) =>
 
 		if (address_split.length <= 1) {
 			// Get the alias
-			const {alias} = getFieldAttributes(table_schema[item.field_name]);
+			const {alias} = getFieldAttributes(item.field_name, table_schema);
 
 			if (alias) {
 				// This is an alias column, override the field
