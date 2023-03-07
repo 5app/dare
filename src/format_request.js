@@ -125,20 +125,32 @@ async function format_request(options, dareInstance) {
 	 * Apply defaultValues to join
 	 */
 	{
-		Object.entries(table_schema).forEach(([key, value]) => {
-			const {defaultValue = {}} = getFieldAttributes(value);
+		Object.keys(table_schema).forEach(key => {
+			const {defaultValue = {}} = getFieldAttributes(key, table_schema);
 
 			/*
 			 * Check the defaultValue for the method has been assigned
-			 * -> That there is no definition for the value in the filter and jopin options
+			 * -> That there is no definition for the value in the filter and join options
+			 * -> That we're trying to get their original field names
 			 */
-			if (
-				method in defaultValue &&
-				!(key in (options.filter || {})) &&
-				!(key in (options.join || {}))
-			) {
-				// Extend the join object with the default value
-				extend(options, {join: {[key]: defaultValue[method]}});
+			if (method in defaultValue) {
+				// Does the fields exist?
+				const filterHasKey = Object.keys({
+					...options.filter,
+					...options.joins,
+				})
+					.map(
+						filterKey =>
+							dareInstance.getFieldKey(filterKey, table_schema) ||
+							filterKey
+					)
+					.includes(key);
+
+				// If there is no match
+				if (!filterHasKey) {
+					// Extend the join object with the default value
+					extend(options, {join: {[key]: defaultValue[method]}});
+				}
 			}
 		});
 	}
@@ -197,6 +209,7 @@ async function format_request(options, dareInstance) {
 			sql_alias,
 			table_schema,
 			conditional_operators_in_value,
+			dareInstance,
 		});
 
 		options._filter = arr.length ? arr : null;
@@ -255,6 +268,7 @@ async function format_request(options, dareInstance) {
 			sql_alias,
 			table_schema,
 			conditional_operators_in_value,
+			dareInstance,
 		});
 
 		/*
@@ -303,7 +317,12 @@ async function format_request(options, dareInstance) {
 		const extract = extractJoined.bind(null, 'orderby', true);
 
 		// Set reducer options
-		const reducer = orderbyReducer({current_path, extract, table_schema});
+		const reducer = orderbyReducer({
+			current_path,
+			extract,
+			table_schema,
+			dareInstance,
+		});
 
 		// Return array of immediate props
 		options.orderby = toArray(options.orderby).reduce(reducer, []);

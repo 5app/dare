@@ -160,7 +160,7 @@ function links(tableSchema, joinTable, flipped = false) {
 
 	// Loop through the table fields
 	for (const field in tableSchema) {
-		const {references} = getFieldAttributes(tableSchema[field]);
+		const {references} = getFieldAttributes(field, tableSchema);
 
 		let ref = references || [];
 

@@ -1106,6 +1106,45 @@ dare.post('emails', {hello: "What's this?"});
 // Someone should write field definitions for hello 👉`
 ```
 
+# `options.getFieldKey`
+
+The `options.getFieldKey` is used to obtain the correct schema field definition and SQL field name. This can be useful when allowing queries to be written in camelCase, but where the fields and the schema use snake_case.
+
+e.g.
+
+```js
+// Create a new dare instance
+dare = dare.use({
+	getFieldKey(field, schema) {
+		// Normal
+		if (field in schema) {
+			return field;
+		}
+		// Convert camelCase to snake_case
+		const snakeCase = field.replaceAll(
+			/[A-Z]+/g,
+			(m, index) => `${index > 0 ? '_' : ''}${m.toLowerCase()}`
+		);
+		if (snakeCase in schema) {
+			return snakeCase;
+		}
+
+		return field;
+	},
+});
+
+// CamelCase parameters here...
+await dare.patch('users', {lastName}, {firstName});
+
+// Get's mapped to snake_case parameters here
+//  UPDATE users a
+// 	SET
+// 		a.`first_name` = 'B'
+// 	WHERE
+// 		a.last_name = 'Name'
+// 	LIMIT 1
+```
+
 # `options.rowHandler`
 
 The `options.rowHandler` can be used to additionally preformat the response array, whilst it's already iterating on the response, or to redirect the records to another service (When this is used with [Streaming](#Streaming) it can drastically reduce the memory used by Dare).

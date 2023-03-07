@@ -1,11 +1,20 @@
 /**
  * Given a field definition defined in the schema, extract it's attributes
  *
- * @param {object|Function|string|undefined} fieldDefinition - A field definition as described in the schema
+ * @param {string} field - A field reference
+ * @param {object} schema - A model schema definition
  * @returns {object} An object containing the attributes of the field
  */
 
-export default fieldDefinition => {
+export default (field, schema, dareInstance) => {
+	const fieldKey = dareInstance?.getFieldKey?.(field, schema) || field;
+
+	const respDefinition = {
+		...(fieldKey !== field && {alias: fieldKey}),
+	};
+
+	const fieldDefinition = schema[fieldKey];
+
 	if (
 		fieldDefinition &&
 		typeof fieldDefinition === 'object' &&
@@ -31,12 +40,16 @@ export default fieldDefinition => {
 		}
 
 		// This is already a definition object
-		return fieldDefinition;
+		return {
+			...respDefinition,
+			...fieldDefinition,
+		};
 	}
 
 	if (typeof fieldDefinition === 'string') {
 		// This is an alias reference, the name is an alias of another
 		return {
+			...respDefinition,
 			alias: fieldDefinition,
 		};
 	}
@@ -44,6 +57,7 @@ export default fieldDefinition => {
 	if (Array.isArray(fieldDefinition)) {
 		// This is an reference to another table, this field can be used in a table join
 		return {
+			...respDefinition,
 			references: fieldDefinition,
 		};
 	}
@@ -51,6 +65,7 @@ export default fieldDefinition => {
 	if (typeof fieldDefinition === 'function') {
 		// This is a generated field
 		return {
+			...respDefinition,
 			handler: fieldDefinition,
 		};
 	}
@@ -58,10 +73,13 @@ export default fieldDefinition => {
 	if (fieldDefinition === false) {
 		// Mark as inaccessible
 		return {
+			...respDefinition,
 			readable: false,
 			writeable: false,
 		};
 	}
 
-	return {};
+	return {
+		...respDefinition,
+	};
 };
