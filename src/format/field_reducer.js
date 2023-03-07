@@ -174,7 +174,8 @@ function fieldMapping({
 	// Get the schema entry for the field
 	const {handler, alias, type, readable} = getFieldAttributes(
 		field_name,
-		table_schema
+		table_schema,
+		dareInstance
 	);
 
 	// Is this readable?

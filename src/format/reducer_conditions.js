@@ -14,11 +14,18 @@ import unwrap_field from '../utils/unwrap_field.js';
  * @param {string} options.sql_alias - Table SQL Alias, e.g. 'a', 'b', etc..
  * @param {object} options.table_schema - Table schema
  * @param {string|null} options.conditional_operators_in_value - Allowable conditional operators in value
+ * @param {object} options.dareInstance - Dare Instance
  * @returns {Array} Conditions object converted to SQL
  */
 export default function reduceConditions(
 	filter,
-	{extract, sql_alias, table_schema, conditional_operators_in_value}
+	{
+		extract,
+		sql_alias,
+		table_schema,
+		conditional_operators_in_value,
+		dareInstance,
+	}
 ) {
 	const filterArr = [];
 
@@ -54,6 +61,7 @@ export default function reduceConditions(
 					table_schema,
 					operators,
 					conditional_operators_in_value,
+					dareInstance,
 				})
 			);
 		}
@@ -91,8 +99,9 @@ function prepCondition({
 	table_schema,
 	operators,
 	conditional_operators_in_value,
+	dareInstance,
 }) {
-	const {type, alias} = getFieldAttributes(field, table_schema);
+	const {type, alias} = getFieldAttributes(field, table_schema, dareInstance);
 
 	// Does it have a negative comparison operator?
 	const negate = operators?.includes('-');

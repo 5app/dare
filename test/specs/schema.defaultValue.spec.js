@@ -114,6 +114,26 @@ describe('schema.defaultValue', () => {
 			expect(values).to.include('overridden');
 		});
 
+		it('should be overrideable, even with different formatting', async () => {
+			const history = spy(dare, 'execute', () => ({}));
+
+			// Lowercase field definitions
+			dare = dare.use({
+				getFieldKey: field => field.toLowerCase(),
+			});
+
+			await dare.post('mytable', {
+				title: 'hello',
+				Status: 'overridden',
+			});
+
+			const [{sql, values}] = history.at(0);
+			expect(sql).to.include('`status`');
+			expect(sql).to.not.include('Status');
+			expect(values).to.include('overridden');
+			expect(values).to.not.include('active');
+		});
+
 		it('should be removed', async () => {
 			const history = spy(dare, 'execute', () => ({}));
 
@@ -195,6 +215,36 @@ describe('schema.defaultValue', () => {
 					fields: ['id', 'name'],
 					body: {name: 'newvalue'},
 					filter: {status: 'boom'},
+					notfound: null,
+				});
+
+				const [{sql, values}] = history.at(0);
+
+				expect(sql).to.include('status = ');
+				expect(values).to.not.include(method);
+				expect(values).to.include('boom');
+			});
+
+			it(`should be overideable within a dare.${method}() call using an alias`, async () => {
+				const value = method;
+
+				// Set the default value for the method
+				dare.options.models.mytable.schema.status = {
+					defaultValue: {[method]: value},
+				};
+
+				// Lowercase field definitions
+				dare = dare.use({
+					getFieldKey: field => field.toLowerCase(),
+				});
+
+				const history = spy(dare, 'execute', () => []);
+
+				await dare[method]({
+					table: 'mytable',
+					fields: ['id', 'name'],
+					body: {name: 'newvalue'},
+					filter: {Status: 'boom'},
 					notfound: null,
 				});
 

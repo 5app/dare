@@ -88,6 +88,17 @@ Dare.prototype.format_request = format_request;
 Dare.prototype.response_handler = response_handler;
 
 /**
+ * GetFieldKey
+ * @param {string} field - Field
+ * @param {object} schema - Model Schema
+ * @returns {object | undefined} Field Key
+ */
+// eslint-disable-next-line no-unused-vars
+Dare.prototype.getFieldKey = function getFieldKey(field, schema) {
+	// Do nothing, default is to set it to same as field
+};
+
+/**
  * Dare.after
  * Defines where the instance goes looking to apply post execution handlers and potentially mutate the response
  *
@@ -125,6 +136,9 @@ Dare.prototype.use = function (options = {}) {
 	// Define the Row handler to format the results
 	if (options.rowHandler) {
 		inst.response_row_handler = options.rowHandler;
+	}
+	if (options.getFieldKey) {
+		inst.getFieldKey = options.getFieldKey;
 	}
 
 	// Set the generate_fields array
@@ -321,12 +335,13 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	const {schema: tableSchema} = models?.[req.name] || {};
 
 	// Prepare post
-	const sql_set = prepareSQLSet(
-		req.body,
-		req.sql_alias,
+	const sql_set = prepareSQLSet({
+		body: req.body,
+		sql_alias: req.sql_alias,
 		tableSchema,
-		validateInput
-	);
+		validateInput,
+		dareInstance,
+	});
 
 	// If ignore duplicate keys is stated as ignore
 	let exec = '';
@@ -375,14 +390,14 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	// Post
 	opts.method = 'post';
 
-	const _this = this.use(opts);
+	const dareInstance = this.use(opts);
 
 	// Table
-	const req = await _this.format_request(opts);
+	const req = await dareInstance.format_request(opts);
 
 	// Skip this operation?
 	if (req.skip) {
-		return _this.after(req.skip);
+		return dareInstance.after(req.skip);
 	}
 
 	// Capture fields...
@@ -454,7 +469,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	const exec = req.ignore ? 'IGNORE' : '';
 
 	// Instance options
-	const {models, validateInput} = _this.options;
+	const {models, validateInput} = dareInstance.options;
 
 	// Get the schema
 	const {schema: modelSchema = {}} = models?.[req.name] || {};
@@ -462,6 +477,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	const data = post
 		.map(item => {
 			const _data = [];
+			const currFields = [];
 
 			/*
 			 * Iterate through the properties
@@ -469,12 +485,16 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 			 */
 			for (const prop in item) {
 				// Format key and values...
-				const {field, value} = formatInputValue(
-					modelSchema,
-					prop,
-					item[prop],
-					validateInput
-				);
+				const {field, value} = formatInputValue({
+					tableSchema: modelSchema,
+					field: prop,
+					value: item[prop],
+					validateInput,
+					dareInstance,
+				});
+
+				// Store the original field names
+				currFields.push(field);
 
 				// Get the index in the field list
 				let i = fields.indexOf(field);
@@ -495,12 +515,21 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 			 */
 			Object.keys(modelSchema).forEach(field => {
 				// For each property which was not covered by the input
-				if (field !== 'default' && !(field in item)) {
+				if (field !== 'default' && !currFields.includes(field)) {
 					// Get a formatted object of field attributes
 					const fieldAttributes = getFieldAttributes(
 						field,
-						modelSchema
+						modelSchema,
+						dareInstance
 					);
+
+					/*
+					 * CurrFields stores the alias
+					 * So let's check the alias is not already defined
+					 */
+					if (currFields.includes(fieldAttributes.alias)) {
+						return;
+					}
 
 					/*
 					 * Get the default Value of the post operation
@@ -556,7 +585,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	if (req.duplicate_keys_update) {
 		on_duplicate_keys_update = onDuplicateKeysUpdate(
 			req.duplicate_keys_update.map(field =>
-				unAliasFields(modelSchema, field)
+				unAliasFields(modelSchema, field, dareInstance)
 			)
 		);
 	} else if (
@@ -575,9 +604,9 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 			${query || ''}
 			${on_duplicate_keys_update}`;
 
-	const resp = await _this.sql({sql, values});
+	const resp = await dareInstance.sql({sql, values});
 
-	return _this.after(resp);
+	return dareInstance.after(resp);
 };
 
 /**
@@ -630,13 +659,21 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 /**
  * Prepared SQL Set
  * Prepare a SET assignments used in Patch
- * @param {object} body - body to format
- * @param {string} sql_alias - SQL Alias for update table
- * @param {object} [tableSchema={}] - Schema for the current table
- * @param {Function} [validateInput] - Validate input function
+ * @param {object} obj - Object
+ * @param {object} obj.body - body to format
+ * @param {string} obj.sql_alias - SQL Alias for update table
+ * @param {object} [obj.tableSchema={}] - Schema for the current table
+ * @param {Function} [obj.validateInput] - Validate input function
+ * @param {object} obj.dareInstance - Dare Instance
  * @returns {object} {assignment, values}
  */
-function prepareSQLSet(body, sql_alias, tableSchema = {}, validateInput) {
+function prepareSQLSet({
+	body,
+	sql_alias,
+	tableSchema = {},
+	validateInput,
+	dareInstance,
+}) {
 	const assignments = [];
 
 	for (const label in body) {
@@ -644,12 +681,13 @@ function prepareSQLSet(body, sql_alias, tableSchema = {}, validateInput) {
 		 * Get the real field in the db,
 		 * And formatted value...
 		 */
-		const {field, value} = formatInputValue(
+		const {field, value} = formatInputValue({
 			tableSchema,
-			label,
-			body[label],
-			validateInput
-		);
+			field: label,
+			value: body[label],
+			validateInput,
+			dareInstance,
+		});
 
 		// Replace value with a question using any mapped fieldName
 		assignments.push(SQL`${raw(sql_alias)}.\`${raw(field)}\` = ${value}`);
@@ -677,21 +715,35 @@ function onDuplicateKeysUpdate(keys = []) {
 /**
  * Format Input Value
  * For a given field definition, return the db key (alias) and format the input it required
- *
- * @param {object} [tableSchema={}] - An object containing the table schema
- * @param {string} field - field identifier
- * @param {*} value - Given value
- * @param {Function} [validateInput] - Custom validation function
+ * @param {object} obj - Object
+ * @param {object} [obj.tableSchema={}] - An object containing the table schema
+ * @param {string} obj.field - field identifier
+ * @param {*} obj.value - Given value
+ * @param {Function} [obj.validateInput] - Custom validation function
+ * @param {object} obj.dareInstance - Dare Instance
  * @throws Will throw an error if the field is not writable
  * @returns {string} A singular value which can be inserted
  */
-function formatInputValue(tableSchema = {}, field, value, validateInput) {
-	const fieldAttributes =
-		field in tableSchema
-			? getFieldAttributes(field, tableSchema)
-			: 'default' in tableSchema
-			? getFieldAttributes('default', tableSchema)
-			: null;
+function formatInputValue({
+	tableSchema = {},
+	field,
+	value,
+	validateInput,
+	dareInstance,
+}) {
+	let fieldAttributes = getFieldAttributes(field, tableSchema, dareInstance);
+
+	if (Object.keys(fieldAttributes).length === 0 && 'default' in tableSchema) {
+		fieldAttributes = getFieldAttributes(
+			'default',
+			tableSchema,
+			dareInstance
+		);
+	}
+	if (Object.keys(fieldAttributes).length === 0) {
+		// Set this to null for validateInput
+		fieldAttributes = null;
+	}
 
 	const {alias, writeable, type} = fieldAttributes || {};
 
@@ -753,10 +805,11 @@ function formatInputValue(tableSchema = {}, field, value, validateInput) {
  *
  * @param {object} [tableSchema={}] - An object containing the table schema
  * @param {string} field - field identifier
+ * @param {object} dareInstance - Dare Instance
  * @returns {string} Unaliased field name
  */
-function unAliasFields(tableSchema = {}, field) {
-	const {alias} = getFieldAttributes(field, tableSchema);
+function unAliasFields(tableSchema = {}, field, dareInstance) {
+	const {alias} = getFieldAttributes(field, tableSchema, dareInstance);
 	return alias || field;
 }
 
