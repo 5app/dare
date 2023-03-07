@@ -1,3 +1,10 @@
+# [0.77.0](https://github.com/5app/dare/compare/v0.76.0...v0.77.0) (2023-03-07)
+
+
+### Features
+
+* **getFieldKey:** interpret field names ([#289](https://github.com/5app/dare/issues/289)) ([cf4b0c2](https://github.com/5app/dare/commit/cf4b0c214b58e5b9e747ec0f2b83ac2c272de706)), closes [#284](https://github.com/5app/dare/issues/284)
+
 # [0.76.0](https://github.com/5app/dare/compare/v0.75.2...v0.76.0) (2023-03-03)
 
 
