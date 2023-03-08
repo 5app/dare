@@ -1,3 +1,10 @@
+## [0.77.1](https://github.com/5app/dare/compare/v0.77.0...v0.77.1) (2023-03-08)
+
+
+### Bug Fixes
+
+* **getFieldKey:** implementation fix, fixes [#284](https://github.com/5app/dare/issues/284) ([43ac124](https://github.com/5app/dare/commit/43ac124f49dbf6ae090c00e176b6a0c2c6a742f4))
+
 # [0.77.0](https://github.com/5app/dare/compare/v0.76.0...v0.77.0) (2023-03-07)
 
 
