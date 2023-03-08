@@ -200,88 +200,90 @@ describe('schema.defaultValue', () => {
 				expect(values).to.include(method);
 			});
 
-			it(`should be overideable within a dare.${method}() call`, async () => {
-				const value = method;
+			['filter', 'join'].forEach(condition => {
+				it(`should be overideable within a dare.${method}() call '${condition}'`, async () => {
+					const value = method;
 
-				// Set the default value for the method
-				dare.options.models.mytable.schema.status = {
-					defaultValue: {[method]: value},
-				};
+					// Set the default value for the method
+					dare.options.models.mytable.schema.status = {
+						defaultValue: {[method]: value},
+					};
 
-				const history = spy(dare, 'execute', () => []);
+					const history = spy(dare, 'execute', () => []);
 
-				await dare[method]({
-					table: 'mytable',
-					fields: ['id', 'name'],
-					body: {name: 'newvalue'},
-					filter: {status: 'boom'},
-					notfound: null,
+					await dare[method]({
+						table: 'mytable',
+						fields: ['id', 'name'],
+						body: {name: 'newvalue'},
+						[condition]: {status: 'boom'},
+						notfound: null,
+					});
+
+					const [{sql, values}] = history.at(0);
+
+					expect(sql).to.include('status = ');
+					expect(values).to.not.include(method);
+					expect(values).to.include('boom');
 				});
 
-				const [{sql, values}] = history.at(0);
+				it(`should be overideable within a dare.${method}() call '${condition}' using an alias`, async () => {
+					const value = method;
 
-				expect(sql).to.include('status = ');
-				expect(values).to.not.include(method);
-				expect(values).to.include('boom');
-			});
+					// Set the default value for the method
+					dare.options.models.mytable.schema.status = {
+						defaultValue: {[method]: value},
+					};
 
-			it(`should be overideable within a dare.${method}() call using an alias`, async () => {
-				const value = method;
+					// Lowercase field definitions
+					dare = dare.use({
+						getFieldKey: field => field.toLowerCase(),
+					});
 
-				// Set the default value for the method
-				dare.options.models.mytable.schema.status = {
-					defaultValue: {[method]: value},
-				};
+					const history = spy(dare, 'execute', () => []);
 
-				// Lowercase field definitions
-				dare = dare.use({
-					getFieldKey: field => field.toLowerCase(),
+					await dare[method]({
+						table: 'mytable',
+						fields: ['id', 'name'],
+						body: {name: 'newvalue'},
+						[condition]: {Status: 'boom'},
+						notfound: null,
+					});
+
+					const [{sql, values}] = history.at(0);
+
+					expect(sql).to.include('status = ');
+					expect(values).to.not.include(method);
+					expect(values).to.include('boom');
 				});
 
-				const history = spy(dare, 'execute', () => []);
+				it(`should be undefinedable within a dare.${method}() call '${condition}'`, async () => {
+					const value = method;
 
-				await dare[method]({
-					table: 'mytable',
-					fields: ['id', 'name'],
-					body: {name: 'newvalue'},
-					filter: {Status: 'boom'},
-					notfound: null,
+					// Set the default value for the method
+					dare.options.models.mytable.schema.status = {
+						defaultValue: {[method]: value},
+					};
+
+					const history = spy(dare, 'execute', () => []);
+
+					await dare[method]({
+						table: 'mytable',
+						fields: ['id', 'name'],
+						body: {name: 'newvalue'},
+						[condition]: {status: undefined},
+						notfound: null,
+					});
+
+					const [{sql, values}] = history.at(0);
+
+					/*
+					 * TODO: Should not include filters where the values are undefined
+					 * This should be akin to removing the defaultValue too
+					 */
+					expect(sql).to.include('status = ');
+					expect(values).to.not.include(method);
+					expect(values).to.include(undefined);
 				});
-
-				const [{sql, values}] = history.at(0);
-
-				expect(sql).to.include('status = ');
-				expect(values).to.not.include(method);
-				expect(values).to.include('boom');
-			});
-
-			it(`should be undefinedable within a dare.${method}() call`, async () => {
-				const value = method;
-
-				// Set the default value for the method
-				dare.options.models.mytable.schema.status = {
-					defaultValue: {[method]: value},
-				};
-
-				const history = spy(dare, 'execute', () => []);
-
-				await dare[method]({
-					table: 'mytable',
-					fields: ['id', 'name'],
-					body: {name: 'newvalue'},
-					filter: {status: undefined},
-					notfound: null,
-				});
-
-				const [{sql, values}] = history.at(0);
-
-				/*
-				 * TODO: Should not include filters where the values are undefined
-				 * This should be akin to removing the defaultValue too
-				 */
-				expect(sql).to.include('status = ');
-				expect(values).to.not.include(method);
-				expect(values).to.include(undefined);
 			});
 		});
 	});

@@ -137,7 +137,7 @@ async function format_request(options, dareInstance) {
 				// Does the fields exist?
 				const filterHasKey = Object.keys({
 					...options.filter,
-					...options.joins,
+					...options.join,
 				})
 					.map(
 						filterKey =>
