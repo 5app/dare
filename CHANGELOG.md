@@ -1,3 +1,10 @@
+## [0.77.2](https://github.com/5app/dare/compare/v0.77.1...v0.77.2) (2023-04-07)
+
+
+### Bug Fixes
+
+* **deps:** update dependency tricks to v2 ([2cd605e](https://github.com/5app/dare/commit/2cd605e188267b0f5fbcc3c68deb452fa3d1c564))
+
 ## [0.77.1](https://github.com/5app/dare/compare/v0.77.0...v0.77.1) (2023-03-08)
 
 
