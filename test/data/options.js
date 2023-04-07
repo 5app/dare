@@ -2,11 +2,22 @@ const created_time = {
 	type: 'datetime',
 };
 
+const string = {
+	type: 'string',
+};
+
 export default {
 	models: {
 		// Users table
 		users: {
 			schema: {
+				first_name: {
+					...string,
+				},
+				last_name: {
+					...string,
+				},
+
 				/*
 				 * Field alias
 				 * The DB schema defines `email` however our business requires that we can alias it as emailAddress

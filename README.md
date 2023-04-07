@@ -909,6 +909,50 @@ await dare.patch('users', {id: 321}, {id: 1337});
 // throws {code: INVALID_REFERENCE}
 ```
 
+## `model.shortcut_map`
+
+`shortcut_map`, can be used to define shortcut's to nested tables
+
+```js
+const dare = dare.use({
+	infer_intermediate_joins: false, // A 'shortcut' can be used to replace infer_intermediate_joins
+
+	models: {
+		users: {
+			shortcut_map: {
+				myTeams: 'userTeams.team',
+			},
+		},
+	},
+});
+```
+
+The definition above will help simplify references to the `teams` model.
+
+```js
+const resp = await dare.get({
+	table: 'users',
+	fields: [
+		{
+			// Direct link to userTeams, automatically uses pivot table userTeams
+			myTeams: ['id', 'name'],
+		},
+	],
+	join: {
+		myTeams: {
+			'%name': '%team%',
+		},
+	},
+});
+// SELECT CONCAT('[', GROUP_CONCAT(IF(c._rowid IS NOT NULL, JSON_ARRAY(c.id,c.name), NULL)), ']') AS 'myTeams[id,name]'
+// FROM users a
+// LEFT JOIN userTeams b ON (b.user_id = a.id)
+// LEFT JOIN teams c ON (c.id = b.team_id)
+// WHERE c.name LIKE '%team%'
+// GROUP BY a._rowid
+// LIMIT 1
+```
+
 ## `model.get`
 
 Here's an example of setting a model to be invoked whenever we access `users` model, we'll go into each of the properties afterwards.
@@ -1060,6 +1104,45 @@ dare.post('member', {hello: "What's this?"});
 // Whilst the same unknown field would be allowed through where the default field is not declared
 dare.post('emails', {hello: "What's this?"});
 // Someone should write field definitions for hello 👉`
+```
+
+# `options.getFieldKey`
+
+The `options.getFieldKey` is used to obtain the correct schema field definition and SQL field name. This can be useful when allowing queries to be written in camelCase, but where the fields and the schema use snake_case.
+
+e.g.
+
+```js
+// Create a new dare instance
+dare = dare.use({
+	getFieldKey(field, schema) {
+		// Normal
+		if (field in schema) {
+			return field;
+		}
+		// Convert camelCase to snake_case
+		const snakeCase = field.replaceAll(
+			/[A-Z]+/g,
+			(m, index) => `${index > 0 ? '_' : ''}${m.toLowerCase()}`
+		);
+		if (snakeCase in schema) {
+			return snakeCase;
+		}
+
+		return field;
+	},
+});
+
+// CamelCase parameters here...
+await dare.patch('users', {lastName}, {firstName});
+
+// Get's mapped to snake_case parameters here
+//  UPDATE users a
+// 	SET
+// 		a.`first_name` = 'B'
+// 	WHERE
+// 		a.last_name = 'Name'
+// 	LIMIT 1
 ```
 
 # `options.rowHandler`
