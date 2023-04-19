@@ -30,3 +30,12 @@ export default function () {
 
 	return dare;
 }
+
+export function castToStringIfNeeded(a) {
+	// MySQL 5.6, uses CONCAT_WS, rather than type safe JSON_ARRAY
+	if (process.env.MYSQL_VERSION === '5.6') {
+		return a === null ? '' : String(a);
+	}
+
+	return a;
+}

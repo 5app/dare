@@ -1,3 +1,38 @@
+## [0.77.2](https://github.com/5app/dare/compare/v0.77.1...v0.77.2) (2023-04-07)
+
+
+### Bug Fixes
+
+* **deps:** update dependency tricks to v2 ([2cd605e](https://github.com/5app/dare/commit/2cd605e188267b0f5fbcc3c68deb452fa3d1c564))
+
+## [0.77.1](https://github.com/5app/dare/compare/v0.77.0...v0.77.1) (2023-03-08)
+
+
+### Bug Fixes
+
+* **getFieldKey:** implementation fix, fixes [#284](https://github.com/5app/dare/issues/284) ([43ac124](https://github.com/5app/dare/commit/43ac124f49dbf6ae090c00e176b6a0c2c6a742f4))
+
+# [0.77.0](https://github.com/5app/dare/compare/v0.76.0...v0.77.0) (2023-03-07)
+
+
+### Features
+
+* **getFieldKey:** interpret field names ([#289](https://github.com/5app/dare/issues/289)) ([cf4b0c2](https://github.com/5app/dare/commit/cf4b0c214b58e5b9e747ec0f2b83ac2c272de706)), closes [#284](https://github.com/5app/dare/issues/284)
+
+# [0.76.0](https://github.com/5app/dare/compare/v0.75.2...v0.76.0) (2023-03-03)
+
+
+### Features
+
+* **shortcuts:** initial shortcuts support, fixes [#285](https://github.com/5app/dare/issues/285) ([#288](https://github.com/5app/dare/issues/288)) ([4a646d3](https://github.com/5app/dare/commit/4a646d3192d264d9435ff3f6e237c0fff201ae98))
+
+## [0.75.2](https://github.com/5app/dare/compare/v0.75.1...v0.75.2) (2023-03-02)
+
+
+### Bug Fixes
+
+* **intermediate-table-join:** field name conflict, [#285](https://github.com/5app/dare/issues/285) ([fe1e82a](https://github.com/5app/dare/commit/fe1e82ad9a1165b45b12dcf51287a3de5b4c6ae5))
+
 ## [0.75.1](https://github.com/5app/dare/compare/v0.75.0...v0.75.1) (2023-02-21)
 
 

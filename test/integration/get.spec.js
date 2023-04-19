@@ -1,8 +1,7 @@
 import Dare, {DareError} from '../../src/index.js';
 import Debug from 'debug';
 import mysql from 'mysql2/promise';
-import {options} from './helpers/api.js';
-
+import {options, castToStringIfNeeded} from './helpers/api.js';
 const debug = Debug('sql');
 
 const {db} = global;
@@ -92,12 +91,6 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 			team_id: team.insertId,
 		});
 
-		// eslint-disable-next-line func-style
-		let wrapper = a => a;
-		if (process.env.MYSQL_VERSION === '5.6') {
-			wrapper = a => (a === null ? '' : String(a));
-		}
-
 		{
 			// Same Structure
 			const resp = await dare.get({
@@ -113,9 +106,9 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 
 			expect(resp).to.deep.nested.include({
 				'userTeams[0].teams': {
-					id: wrapper(team.insertId),
+					id: castToStringIfNeeded(team.insertId),
 					name: teamName,
-					description: wrapper(null),
+					description: castToStringIfNeeded(null),
 				},
 			});
 		}
@@ -160,9 +153,9 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 			});
 
 			expect(resp).to.deep.nested.equal({
-				id: wrapper(team.insertId),
+				id: castToStringIfNeeded(team.insertId),
 				name: teamName,
-				description: wrapper(null),
+				description: castToStringIfNeeded(null),
 			});
 		}
 

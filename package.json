@@ -1,6 +1,6 @@
 {
 	"name": "dare",
-	"version": "0.75.1",
+	"version": "0.77.2",
 	"description": "Database to REST, REST to Database",
 	"type": "module",
 	"main": "./src/index.js",
@@ -65,11 +65,11 @@
 		"mysql2": "^3.0.0",
 		"prettier": "^2.8.2",
 		"pretty-quick": "^3.1.3",
-		"semantic-release": "^20.0.2"
+		"semantic-release": "^21.0.0"
 	},
 	"dependencies": {
 		"sql-template-tag": "^5.0.3",
-		"tricks": "^1.13.5"
+		"tricks": "^2.0.0"
 	},
 	"commitlint": {
 		"extends": [
