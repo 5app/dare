@@ -232,6 +232,7 @@ async function format_request(options, dareInstance) {
 		const reducer = fieldReducer({
 			field_alias_path,
 			extract,
+			sql_alias,
 			table_schema,
 			dareInstance,
 		});

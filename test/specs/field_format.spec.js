@@ -25,28 +25,28 @@ describe('utils/field_format', () => {
 
 		// Prefix the label with the prefix label address
 		[
-			['field', 'label', 'nested', 'nested.'],
-			['nested.field', 'nested.label'],
+			['field', 'label', 'tbl', 'nested.'],
+			['tbl.field', 'nested.label'],
 		],
 
 		// If the expression defines a nested field, take that away from the prefix label address
 		[
-			['nested.field', 'label', 'nested', 'nested.'],
-			['nested.field', 'label'],
+			['nested.field', 'label', 'tbl', 'nested.'],
+			['tbl.field', 'label'],
 		],
 
 		// If the expression defines a nested field, take that away from the prefix label address
 		[
-			['SUM(nested.field)', 'count', 'nested', 'nested.'],
-			['SUM(nested.field)', 'count', true],
+			['SUM(nested.field)', 'count', 'tbl', 'nested.'],
+			['SUM(tbl.field)', 'count', true],
 		],
 		[
-			['COUNT(deep.nested.field)', 'count', 'nested', 'deep.nested.'],
-			['COUNT(nested.field)', 'count', true],
+			['COUNT(deep.nested.field)', 'count', 'tbl', 'deep.nested.'],
+			['COUNT(tbl.field)', 'count', true],
 		],
 		[
-			['COUNT(nested.field)', 'count', 'nested', 'deep.nested.'],
-			['COUNT(nested.field)', 'deep.count', true],
+			['COUNT(nested.field)', 'count', 'tbl', 'deep.nested.'],
+			['COUNT(tbl.field)', 'deep.count', true],
 		],
 	].forEach(test => {
 		// Test

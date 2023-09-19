@@ -11,6 +11,7 @@ import jsonParse from '../utils/JSONparse.js';
  * @param {object} opts - Options
  * @param {string} opts.field_alias_path - Current address path of the resource
  * @param {Function} opts.extract - Function for handling the extraction of content
+ * @param {string} opts.sql_alias - Table SQL alias
  * @param {object} opts.table_schema - Table schema/Data model
  * @param {object} opts.dareInstance - Instance of Dare which is calling this
  * @returns {Function} Fields Reducer function
@@ -18,6 +19,7 @@ import jsonParse from '../utils/JSONparse.js';
 export default function fieldReducer({
 	field_alias_path,
 	extract,
+	sql_alias,
 	table_schema,
 	dareInstance,
 }) {
@@ -52,6 +54,7 @@ export default function fieldReducer({
 						fieldsArray,
 						field_alias_path,
 						originalArray,
+						sql_alias,
 						dareInstance,
 						extract,
 					});
@@ -71,6 +74,7 @@ export default function fieldReducer({
 				fieldsArray,
 				field_alias_path,
 				originalArray,
+				sql_alias,
 				dareInstance,
 				extract,
 			});
@@ -97,6 +101,7 @@ export default function fieldReducer({
  * @param {Array} opts.originalArray - The original fields array as requested
  * @param {string} opts.field_alias_path - Current address path of the resource
  * @param {Function} opts.extract - Function for handling the extraction of content
+ * @param {string} opts.sql_alias - Table SQL alias
  * @param {object} opts.table_schema - Schema of the current table
  * @param {object} opts.dareInstance - An instance of the current Dare object
  * @returns {string|object} The augemented field expression
@@ -108,6 +113,7 @@ function fieldMapping({
 	originalArray,
 	field_alias_path,
 	extract,
+	sql_alias,
 	table_schema,
 	dareInstance,
 }) {
@@ -161,9 +167,6 @@ function fieldMapping({
 			return;
 		}
 	}
-
-	// Try to return an object
-	const isObj = Boolean(label);
 
 	// Set the label
 	if (!label) {
@@ -266,14 +269,10 @@ function fieldMapping({
 			originalArray,
 			field_alias_path,
 			extract,
+			sql_alias,
 			table_schema,
 			dareInstance,
 		});
-	}
-
-	// Default format datetime field as an ISO string...
-	if (type === 'datetime' && !prefix) {
-		field = `DATE_FORMAT(${field},'%Y-%m-%dT%TZ')`;
 	}
 
 	// Default format datetime field as an ISO string...
@@ -290,16 +289,20 @@ function fieldMapping({
 		// Continue...
 	}
 
-	// If this is a object-field definition
-	if (isObj || label !== field) {
-		// Add the field to the array
+	// Default format datetime field as an ISO string...
+	if (type === 'datetime' && !prefix) {
 		return {
-			[label]: field,
+			[label]: `DATE_FORMAT(${sql_alias}.${field_name},'%Y-%m-%dT%TZ')`,
 		};
-	} else {
-		// Add the field to the array
-		return field;
 	}
+
+	// Prefix the field with the table alias
+	field = rewrap_field(`${sql_alias}.${field_name}`, prefix, suffix);
+
+	// Add the field to the array
+	return {
+		[label]: field,
+	};
 }
 
 function rewrap_field(field_name, prefix, suffix) {
