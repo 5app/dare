@@ -1,3 +1,10 @@
+# [0.78.0](https://github.com/5app/dare/compare/v0.77.2...v0.78.0) (2023-10-11)
+
+
+### Features
+
+* **fieldDefition:** definition overrides by method, fixes [#302](https://github.com/5app/dare/issues/302) ([bd43368](https://github.com/5app/dare/commit/bd4336889ee33a57e188faf2d9ecde67e4a88d87))
+
 ## [0.77.2](https://github.com/5app/dare/compare/v0.77.1...v0.77.2) (2023-04-07)
 
 
