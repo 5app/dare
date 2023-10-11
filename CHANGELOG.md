@@ -1,3 +1,10 @@
+## [0.78.2](https://github.com/5app/dare/compare/v0.78.1...v0.78.2) (2023-10-11)
+
+
+### Bug Fixes
+
+* **fieldDefinitions:** fixes pr [#303](https://github.com/5app/dare/issues/303) ([dc73662](https://github.com/5app/dare/commit/dc73662d3ab389b6207dd3dcddd5537c7692e102))
+
 ## [0.78.1](https://github.com/5app/dare/compare/v0.78.0...v0.78.1) (2023-10-11)
 
 
