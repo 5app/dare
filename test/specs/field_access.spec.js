@@ -1,6 +1,7 @@
 import Dare from '../../src/index.js';
 // Test whether fields can be declared as immutable and unreadable
 import DareError from '../../src/utils/error.js';
+import sqlEqual from '../lib/sql-equal.js';
 
 describe('field access', () => {
 	let dare;
@@ -13,6 +14,13 @@ describe('field access', () => {
 						// Write is disabled, whilst id is readable
 						id: {
 							writeable: false,
+						},
+						// Name is writeable only on post
+						name: {
+							writeable: false,
+							post: {
+								writeable: true,
+							},
 						},
 						// Password is not readable or writable
 						password: false,
@@ -89,6 +97,42 @@ describe('field access', () => {
 				.to.be.eventually.rejectedWith(
 					DareError,
 					"Field 'id' is not writeable"
+				)
+				.and.have.property('code', DareError.INVALID_REFERENCE);
+		});
+		it('should allow inserts, not patch on writeable:false {post: {writeable: true}}', async () => {
+			dare.execute = async ({sql, values}) => {
+				sqlEqual(sql, 'INSERT INTO users (`name`) VALUES (?)');
+				expect(values).to.deep.equal(['me']);
+				return {insertId: 1};
+			};
+
+			{
+				const call = await dare.post({
+					table: 'users',
+					body: {
+						//  Name can be posted
+						name: 'me',
+					},
+				});
+				expect(call).to.deep.equal({insertId: 1});
+			}
+
+			const call = dare.patch({
+				table: 'users',
+				body: {
+					//  Name can be posted
+					name: 'me',
+				},
+				filter: {
+					id: 123,
+				},
+			});
+
+			return expect(call)
+				.to.be.eventually.rejectedWith(
+					DareError,
+					"Field 'name' is not writeable"
 				)
 				.and.have.property('code', DareError.INVALID_REFERENCE);
 		});

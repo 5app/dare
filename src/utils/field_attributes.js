@@ -36,13 +36,13 @@ export default function getFieldAttributes(field, schema, dareInstance) {
 			fieldDefinition.defaultValue !== null &&
 			typeof fieldDefinition.defaultValue === 'object'
 		) {
-			fieldDefinition.defaultValue = fieldDefinition.defaultValue[method];
+			respDefinition.defaultValue = fieldDefinition.defaultValue[method];
 		}
 
 		// This is already a definition object
 		return {
-			...respDefinition,
 			...fieldDefinition,
+			...respDefinition,
 		};
 	}
 
