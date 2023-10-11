@@ -531,20 +531,11 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 						return;
 					}
 
-					/*
-					 * Get the default Value of the post operation
-					 * -> Reassign it back to the fieldAttributes.defaultValue, no need for the others
-					 */
-					const defaultValue = fieldAttributes.defaultValue?.post;
-					if (fieldAttributes.defaultValue) {
-						Object.assign(fieldAttributes, {defaultValue});
-					}
-
 					// Validate with an undefined value
 					validateInput?.(fieldAttributes, field);
 
 					// Default values?
-					if (defaultValue) {
+					if (fieldAttributes.defaultValue) {
 						// Get the index in the field list
 						let i = fields.indexOf(field);
 
@@ -555,7 +546,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 						}
 
 						// Insert the defaultValue at that position
-						_data[i] = defaultValue;
+						_data[i] = fieldAttributes.defaultValue;
 					}
 				}
 			});

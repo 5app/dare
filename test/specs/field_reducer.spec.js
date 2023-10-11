@@ -12,6 +12,9 @@ describe('Field Reducer', () => {
 	beforeEach(() => {
 		dareInstance = {
 			generated_fields: [],
+			options: {
+				method: 'get',
+			},
 		};
 	});
 
@@ -183,15 +186,15 @@ describe('Field Reducer', () => {
 				}
 			}
 
-			// Curry the field_reducer
-			const fr = field_reducer({
-				field_alias_path,
-				extract,
-				table_schema,
-				dareInstance,
-			});
-
 			it(`where ${JSON.stringify(input)}`, () => {
+				// Curry the field_reducer
+				const fr = field_reducer({
+					field_alias_path,
+					extract,
+					table_schema,
+					dareInstance,
+				});
+
 				// Call the field with the
 				const f = input.reduce(fr, []);
 

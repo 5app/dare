@@ -126,14 +126,18 @@ async function format_request(options, dareInstance) {
 	 */
 	{
 		Object.keys(table_schema).forEach(key => {
-			const {defaultValue = {}} = getFieldAttributes(key, table_schema);
+			const {defaultValue} = getFieldAttributes(
+				key,
+				table_schema,
+				dareInstance
+			);
 
 			/*
 			 * Check the defaultValue for the method has been assigned
 			 * -> That there is no definition for the value in the filter and join options
 			 * -> That we're trying to get their original field names
 			 */
-			if (method in defaultValue) {
+			if (defaultValue !== undefined) {
 				// Does the fields exist?
 				const filterHasKey = Object.keys({
 					...options.filter,
@@ -149,7 +153,7 @@ async function format_request(options, dareInstance) {
 				// If there is no match
 				if (!filterHasKey) {
 					// Extend the join object with the default value
-					extend(options, {join: {[key]: defaultValue[method]}});
+					extend(options, {join: {[key]: defaultValue}});
 				}
 			}
 		});
