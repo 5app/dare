@@ -254,6 +254,7 @@ function prepCondition({
 					table_schema,
 					operators,
 					conditional_operators_in_value,
+					dareInstance,
 				})
 			)
 		);
