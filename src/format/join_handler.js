@@ -8,7 +8,7 @@ import getFieldAttributes from '../utils/field_attributes.js';
  * @param {object} dareInstance - Dare Instance
  * @returns {object} An updated join_object with new join_conditions attached
  */
-export default function (join_object, root_object, dareInstance) {
+export default function joinHandler(join_object, root_object, dareInstance) {
 	const {models, infer_intermediate_models} = dareInstance.options;
 
 	const {table: rootModel} = root_object;
@@ -22,8 +22,8 @@ export default function (join_object, root_object, dareInstance) {
 	 */
 
 	const join_conditions =
-		links(models[joinModel]?.schema, rootModel) ||
-		invert_links(models[rootModel]?.schema, joinModel);
+		links(models[joinModel]?.schema, rootModel, dareInstance) ||
+		invert_links(models[rootModel]?.schema, joinModel, dareInstance);
 
 	// Yes, no, Yeah!
 	if (join_conditions) {
@@ -54,6 +54,7 @@ export default function (join_object, root_object, dareInstance) {
 			joinModel,
 			models,
 			join_object,
+			dareInstance,
 		});
 
 		// Return, errors are thrown in format_request if this is undefined
@@ -77,6 +78,7 @@ export default function (join_object, root_object, dareInstance) {
 			joinModel,
 			models,
 			join_object,
+			dareInstance,
 		});
 
 		if (intermediateJoin) {
@@ -98,6 +100,7 @@ export default function (join_object, root_object, dareInstance) {
  * @param {string} object.joinModel - Target/join model name
  * @param {object} object.models - Model Options
  * @param {object} object.join_object - Passthrough original join options
+ * @param {object} object.dareInstance - Dare Instance
  * @returns {object|undefined} Join definition to return
  */
 function findIntermediateJoin({
@@ -106,6 +109,7 @@ function findIntermediateJoin({
 	joinModel,
 	models,
 	join_object,
+	dareInstance,
 }) {
 	// Well, ignore models of the same name
 	if (linkTable === joinModel || linkTable === rootModel) {
@@ -114,8 +118,8 @@ function findIntermediateJoin({
 
 	// LinkTable <> joinTable?
 	const join_conditions =
-		links(models[joinModel]?.schema, linkTable) ||
-		invert_links(models[linkTable]?.schema, joinModel);
+		links(models[joinModel]?.schema, linkTable, dareInstance) ||
+		invert_links(models[linkTable]?.schema, joinModel, dareInstance);
 
 	if (!join_conditions) {
 		return;
@@ -123,8 +127,8 @@ function findIntermediateJoin({
 
 	// RootTable <> linkTable
 	const root_conditions =
-		links(models[linkTable]?.schema, rootModel) ||
-		invert_links(models[rootModel]?.schema, linkTable);
+		links(models[linkTable]?.schema, rootModel, dareInstance) ||
+		invert_links(models[rootModel]?.schema, linkTable, dareInstance);
 
 	if (!root_conditions) {
 		return;
@@ -155,12 +159,16 @@ function findIntermediateJoin({
 	};
 }
 
-function links(tableSchema, joinTable, flipped = false) {
+function links(tableSchema, joinTable, dareInstance, flipped = false) {
 	const map = {};
 
 	// Loop through the table fields
 	for (const field in tableSchema) {
-		const {references} = getFieldAttributes(field, tableSchema);
+		const {references} = getFieldAttributes(
+			field,
+			tableSchema,
+			dareInstance
+		);
 
 		let ref = references || [];
 

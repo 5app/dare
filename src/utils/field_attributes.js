@@ -3,10 +3,10 @@
  *
  * @param {string} field - A field reference
  * @param {object} schema - A model schema definition
+ * @param {object} dareInstance - A dare instance
  * @returns {object} An object containing the attributes of the field
  */
-
-export default (field, schema, dareInstance) => {
+export default function getFieldAttributes(field, schema, dareInstance) {
 	const fieldKey = dareInstance?.getFieldKey?.(field, schema) || field;
 
 	const respDefinition = {
@@ -20,23 +20,23 @@ export default (field, schema, dareInstance) => {
 		typeof fieldDefinition === 'object' &&
 		!Array.isArray(fieldDefinition)
 	) {
+		const {method} = dareInstance.options;
+
+		if (method in fieldDefinition) {
+			// Override/extend the base object with the method specific attributes
+			Object.assign(respDefinition, fieldDefinition[method]);
+		}
+
 		/*
-		 * If 'defaultValue' is defined
+		 * @legacy support `defaultValue{get, post, patch, del}` definitions.
+		 * If 'defaultValue' is an object
 		 * Expand default value
 		 */
 		if (
-			Object.hasOwn(fieldDefinition, 'defaultValue') &&
-			(fieldDefinition.defaultValue === null ||
-				typeof fieldDefinition.defaultValue !== 'object')
+			fieldDefinition.defaultValue !== null &&
+			typeof fieldDefinition.defaultValue === 'object'
 		) {
-			const val = fieldDefinition.defaultValue;
-
-			fieldDefinition.defaultValue = {
-				get: val,
-				post: val,
-				patch: val,
-				del: val,
-			};
+			fieldDefinition.defaultValue = fieldDefinition.defaultValue[method];
 		}
 
 		// This is already a definition object
@@ -82,4 +82,4 @@ export default (field, schema, dareInstance) => {
 	return {
 		...respDefinition,
 	};
-};
+}
