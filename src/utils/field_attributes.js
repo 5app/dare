@@ -1,14 +1,33 @@
 /**
+ * @typedef {object} FieldDefinition
+ * @property {'json' | 'number' | 'boolean' | 'string' | 'datetime'} [type] - The type of the field
+ * @property {string} [alias] - The alias of the field
+ * @property {Array<string>} [references] - A reference to another table
+ * @property {boolean} [readable=true] - Whether this field is readable
+ * @property {boolean} [writeable=true] - Whether this field is writeable
+ * @property {boolean} [required=false] - Whether this field is required
+ * @property {Function} [handler] - Handler to generate the field value
+ * @property {string | number | boolean | object | Array<string | number | boolean>} [defaultValue=null] - The default value of this field
+ * @property {FieldDefinition} [get] - The get definition of this field
+ * @property {FieldDefinition} [post] - The post definition of this field
+ * @property {FieldDefinition} [patch] - The patch definition of this field
+ * @property {FieldDefinition} [del] - The del definition of this field
+ */
+
+/**
  * Given a field definition defined in the schema, extract it's attributes
  *
  * @param {string} field - A field reference
- * @param {object} schema - A model schema definition
+ * @param {Object<string, FieldDefinition | boolean>} schema - A model schema definition
  * @param {object} dareInstance - A dare instance
- * @returns {object} An object containing the attributes of the field
+ * @returns {FieldDefinition} An object containing the attributes of the field
  */
 export default function getFieldAttributes(field, schema, dareInstance) {
 	const fieldKey = dareInstance?.getFieldKey?.(field, schema) || field;
 
+	/**
+	 * @type {FieldDefinition} respDefinition
+	 */
 	const respDefinition = {
 		...(fieldKey !== field && {alias: fieldKey}),
 	};

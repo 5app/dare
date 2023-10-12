@@ -31,7 +31,7 @@ export default function (options) {
  *
  * @param {object} options - Current iteration
  * @param {Dare} dareInstance - Instance of Dare
- * @returns {object} formatted object with all the joins
+ * @returns {Promise<object>} formatted object with all the joins
  */
 async function format_request(options, dareInstance) {
 	if (!options) {
@@ -306,7 +306,7 @@ async function format_request(options, dareInstance) {
 		const extract = extractJoined.bind(null, 'groupby', true);
 
 		// Set reducer options
-		const reducer = groupbyReducer({current_path, extract, table_schema});
+		const reducer = groupbyReducer({current_path, extract});
 
 		// Return array of immediate props
 		options.groupby = toArray(options.groupby).reduce(reducer, []);
@@ -516,7 +516,7 @@ async function format_request(options, dareInstance) {
 			const sub_query = buildQuery(options, dareInstance);
 
 			sql_where_conditions = [
-				SQL`${raw(parentReferences)}
+				SQL`${raw(parentReferences[0])}
 				NOT IN (
 					SELECT ${raw(options.fields)} FROM (
 						${sub_query}

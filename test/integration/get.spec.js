@@ -1,10 +1,10 @@
 import Dare, {DareError} from '../../src/index.js';
 import Debug from 'debug';
+import {expect} from 'chai';
 import mysql from 'mysql2/promise';
+import db from './helpers/db.js';
 import {options, castToStringIfNeeded} from './helpers/api.js';
 const debug = Debug('sql');
-
-const {db} = global;
 
 // Connect to db
 

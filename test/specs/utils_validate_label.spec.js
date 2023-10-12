@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 import validate_label from '../../src/utils/validate_label.js';
 
 describe('validate field label', () => {

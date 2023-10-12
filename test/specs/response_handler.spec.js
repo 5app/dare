@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 import Dare from '../../src/index.js';
 import {getTargetPath} from '../../src/format/field_reducer.js';
 

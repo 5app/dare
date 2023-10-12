@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 import Dare from '../../src/index.js';
 
 import getFieldAttributes from '../../src/utils/field_attributes.js';

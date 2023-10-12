@@ -1,11 +1,10 @@
 import Dare from '../../../src/index.js';
 import Debug from 'debug';
 import mysql from 'mysql2/promise';
+import db from './db.js';
 import options from '../../data/options.js';
 
 const debug = Debug('sql');
-
-const {db} = global;
 
 export {options};
 
