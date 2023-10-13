@@ -1,3 +1,10 @@
+# [0.79.0](https://github.com/5app/dare/compare/v0.78.2...v0.79.0) (2023-10-13)
+
+
+### Features
+
+* **typescript:** ts-in-js ([#304](https://github.com/5app/dare/issues/304)) ([6ad70b5](https://github.com/5app/dare/commit/6ad70b5a8be2e2aa17b729da97ac184c8e545334))
+
 ## [0.78.2](https://github.com/5app/dare/compare/v0.78.1...v0.78.2) (2023-10-11)
 
 
