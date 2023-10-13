@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 import validate_alias from '../../src/utils/validate_field.js';
 
 describe('validate field alias', () => {

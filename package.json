@@ -18,7 +18,7 @@
 		"test:ci": "eslint ./ && c8 mocha test/specs/**/*.spec.js --reporter mocha-circleci-reporter && (c8 report --reporter=text-lcov | coveralls)",
 		"test:integration": "bash ./test/integration/run.sh",
 		"spec": "c8 mocha test/specs/**/*.spec.js",
-		"lint": "eslint ./ && npx prettier --check .",
+		"lint": "eslint ./ && npx prettier --check . && npx tsc -p ./tsconfig.json",
 		"prettier": "prettier --write --ignore-unknown .",
 		"lint-fix": "eslint --fix ./",
 		"lint-diff": "LIST=`git diff-index --cached --name-only --diff-filter=d HEAD | grep '.*\\.js$';`; if [ \"$LIST\" ]; then eslint $LIST; fi",
@@ -45,14 +45,15 @@
 	"devDependencies": {
 		"@5app/prettier-config": "^1.0.4",
 		"@5app/semantic-release-config": "^1.1.0",
-		"@commitlint/cli": "^17.7.1",
+		"@commitlint/cli": "^17.7.2",
 		"@commitlint/config-conventional": "^17.7.0",
+		"@types/mocha": "^10.0.2",
 		"c8": "^8.0.1",
-		"chai": "^4.3.8",
+		"chai": "^4.3.10",
 		"chai-as-promised": "^7.1.1",
 		"coveralls": "^3.1.1",
 		"debug": "^4.3.4",
-		"eslint": "^8.49.0",
+		"eslint": "^8.51.0",
 		"eslint-config-5app": "^0.19.1",
 		"eslint-config-prettier": "^9.0.0",
 		"eslint-plugin-node": "^11.1.0",
@@ -64,7 +65,8 @@
 		"mocha-circleci-reporter": "0.0.3",
 		"mysql2": "3.5",
 		"prettier": "^3.0.3",
-		"semantic-release": "^22.0.0"
+		"semantic-release": "^22.0.5",
+		"typescript": "^5.2.2"
 	},
 	"dependencies": {
 		"sql-template-tag": "^5.1.0",

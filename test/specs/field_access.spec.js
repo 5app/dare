@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 import Dare from '../../src/index.js';
 // Test whether fields can be declared as immutable and unreadable
 import DareError from '../../src/utils/error.js';

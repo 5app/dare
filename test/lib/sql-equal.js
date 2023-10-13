@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 /*
  * SQL Match
  * Convert a SQL string into a regular expression to compare with a generated SQL string

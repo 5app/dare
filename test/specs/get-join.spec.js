@@ -1,5 +1,5 @@
-import Dare from '../../src/index.js';
 import {expect} from 'chai';
+import Dare from '../../src/index.js';
 
 // Test Generic DB functions
 import expectSQLEqual from '../lib/sql-equal.js';
