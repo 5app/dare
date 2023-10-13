@@ -21,9 +21,6 @@ describe('after Handler', () => {
 					},
 				},
 			},
-			meta: {
-				domain_id: 10,
-			},
 		});
 	});
 

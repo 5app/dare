@@ -19,23 +19,38 @@ import response_handler, {responseRowHandler} from './response_handler.js';
 /* eslint-disable jsdoc/valid-types */
 /**
  * @typedef {import('sql-template-tag').Sql} Sql
- */
-/* eslint-enable jsdoc/valid-types */
-
-/**
+ *
  * @typedef {object} RequestObject
  * @property {string} [table] - Name of the table to query
  * @property {Array} [fields] - Fields array to return
  * @property {object} [filter] - Filter Object to query
+ * @property {object} [join] - Place filters on the joining tables
+ * @property {object} [body] - Body containing new data
  * @property {number} [limit] - Number of items to return
  * @property {number} [start] - Number of items to skip
  * @property {Array} [orderby] - Array of fields to order by
  * @property {string} [groupby] - Field to group by
- * @property {string} [method] - Method to use
  * @property {string} [duplicate_keys] - 'ignore' to prevent throwing Duplicate key errors
  * @property {Array<string>} [duplicate_keys_update] - An array of fields to update on presence of duplicate key constraints
  * @property {*} [notfound] - If not undefined will be returned in case of a single entry not found
+ * @property {object} [models] - Models with schema defintitions
+ * @property {Function} [validateInput] - Validate input
+ * @property {boolean} [infer_intermediate_models] - Infer intermediate models
+ * @property {Function} [rowHandler] - Override default Function to handle each row
+ * @property {Function} [getFieldKey] - Override default Function to interpret the field key
+ * @property {object} [scope] - Arbitary data to carry through to the model/response handlers
+ *
+ * @typedef {object} InternalProps
+ * @property {'post' | 'get' | 'patch' | 'del'} [method] - Method to use
+ * @property {string} [name] - Model Name derived
+ * @property {boolean} [single] - Return a single item
+ * @property {boolean} [skip] - Skip the request
+ * @property {string} [alias] - Alias for the table
+ * @property {boolean} [countRows] - Count all rows
+ *
+ * @typedef {RequestObject & InternalProps} QueryOptions
  */
+/* eslint-enable jsdoc/valid-types */
 
 /*
  * Export Dare Error object
@@ -46,7 +61,7 @@ export {DareError};
  * Dare
  * Sets up a new instance of Dare
  *
- * @param {object} options - Initial options defining the instance
+ * @param {QueryOptions} options - Initial options defining the instance
  * @returns {object} instance of dare
  */
 function Dare(options = {}) {
@@ -151,13 +166,16 @@ Dare.prototype.after = function (resp) {
 /**
  * Use
  * Creates a new instance of Dare and merges new options with the base options
- * @param {object} options - set of instance options
+ * @param {QueryOptions} options - set of instance options
  * @returns {object} Instance of Dare
  */
 Dare.prototype.use = function (options = {}) {
 	const inst = Object.create(this);
 
-	// Create a new options, merging inheritted and new
+	/**
+	 * Create a new options, merging inheritted and new
+	 * @type {QueryOptions} inst.options
+	 */
 	inst.options = extend(clone(this.options), options);
 
 	// Define the Row handler to format the results
@@ -222,24 +240,27 @@ Dare.prototype.sql = async function sql(sql, values) {
  * Dare.get
  * Triggers a DB SELECT request to rerieve records from the database.
  *
- * @param {string | object} table - Name of the table to query
+ * @param {string | RequestObject} table - Name of the table to query
  * @param {Array} [fields] - Fields array to return
  * @param {object} [filter] - Filter Object to query
- * @param {object} [opts] - An Options object containing all other request options
+ * @param {RequestObject} [options] - An Options object containing all other request options
  * @returns {Promise<object|Array>} Results
  */
-Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
-	// Get Request Object
-	if (typeof table === 'object') {
-		opts = {...table};
-	} else {
-		// Shuffle
-		if (typeof fields === 'object' && !Array.isArray(fields)) {
-			// Fields must be defined
-			throw new DareError(DareError.INVALID_REQUEST);
-		}
+Dare.prototype.get = async function get(table, fields, filter, options = {}) {
+	/**
+	 * @type {QueryOptions} opts
+	 */
+	const opts =
+		typeof table === 'object'
+			? // Clone
+			  {...table}
+			: // Clone and extend
+			  {...options, table, filter, fields};
 
-		opts = {...opts, table, fields, filter};
+	// Ensure fields is provided
+	if (typeof fields === 'object' && !Array.isArray(fields)) {
+		// Fields must be defined
+		throw new DareError(DareError.INVALID_REQUEST);
 	}
 
 	// Define method
@@ -282,20 +303,21 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
  * Dare.getCount
  * Returns the total number of results which match the conditions
  *
- * @param {string | object} table - Name of the table to query
+ * @param {string | RequestObject} table - Name of the table to query
  * @param {object} filter - Filter Object to query
- * @param {object} opts - An Options object containing all other request options
+ * @param {RequestObject} options - An Options object containing all other request options
  * @returns {Promise<number>} Number of matched items
  */
-Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
-	// Get Request Object
-	if (typeof table === 'object') {
-		// Clone
-		opts = {...table};
-	} else {
-		// Clone and extend
-		opts = {...opts, table, filter};
-	}
+Dare.prototype.getCount = async function getCount(table, filter, options = {}) {
+	/**
+	 * @type {QueryOptions} opts
+	 */
+	const opts =
+		typeof table === 'object'
+			? // Clone
+			  {...table}
+			: // Clone and extend
+			  {...options, table, filter};
 
 	// Define method
 	opts.method = 'get';
@@ -333,17 +355,19 @@ Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
  * @param {string | RequestObject} table - Name of the table to query
  * @param {object} filter - Filter Object to query
  * @param {object} body - Body containing new data
- * @param {RequestObject} [opts] - An Options object containing all other request options
+ * @param {RequestObject} [options] - An Options object containing all other request options
  * @returns {Promise<object>} Affected Rows statement
  */
-Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
-	// Get Request Object
-
-	/** @type {RequestObject} opts */
-	opts =
+Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
+	/**
+	 * @type {QueryOptions} opts
+	 */
+	const opts =
 		typeof table === 'object'
-			? table
-			: Object.assign(opts, {table, filter, body});
+			? // Clone
+			  {...table}
+			: // Clone and extend
+			  {...options, table, filter, body};
 
 	// Define method
 	opts.method = 'patch';
@@ -411,14 +435,19 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
  *
  * @param {string | RequestObject} table - Name of the table to query
  * @param {object | Array<object>} body - Body containing new data
- * @param {RequestObject} [opts] - An Options object containing all other request options
+ * @param {RequestObject} [options] - An Options object containing all other request options
  * @returns {Promise<object>} Affected Rows statement
  */
-
-Dare.prototype.post = async function post(table, body, opts = {}) {
-	// Get Request Object
-	opts =
-		typeof table === 'object' ? table : Object.assign(opts, {table, body});
+Dare.prototype.post = async function post(table, body, options = {}) {
+	/**
+	 * @type {QueryOptions} opts
+	 */
+	const opts =
+		typeof table === 'object'
+			? // Clone
+			  {...table}
+			: // Clone and extend
+			  {...options, table, body};
 
 	// Post
 	opts.method = 'post';
@@ -637,17 +666,21 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
  * Dare.del
  * Delete a record matching condition
  *
- * @param {string} table - Name of the table to query
+ * @param {string | RequestObject} table - Name of the table to query
  * @param {object} filter - Filter Object to query
- * @param {object} opts - An Options object containing all other request options
+ * @param {RequestObject} options - An Options object containing all other request options
  * @returns {Promise<object>} Affected Rows statement
  */
-Dare.prototype.del = async function del(table, filter, opts = {}) {
-	// Get Request Object
-	opts =
+Dare.prototype.del = async function del(table, filter, options = {}) {
+	/**
+	 * @type {QueryOptions} opts
+	 */
+	const opts =
 		typeof table === 'object'
-			? table
-			: Object.assign(opts, {table, filter});
+			? // Clone
+			  {...table}
+			: // Clone and extend
+			  {...options, table, filter};
 
 	// Delete
 	opts.method = 'del';
@@ -840,8 +873,8 @@ function unAliasFields(tableSchema, field, dareInstance) {
 /**
  * SetDefaultNotFoundHandler
  * As the name suggests
- * @param {object} opts - request options
- * @returns {void}
+ * @param {QueryOptions} opts - query options
+ * @returns {QueryOptions} query options
  */
 function setDefaultNotFoundHandler(opts) {
 	if (!('notfound' in opts)) {
