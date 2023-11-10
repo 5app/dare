@@ -1,3 +1,10 @@
+## [0.79.1](https://github.com/5app/dare/compare/v0.79.0...v0.79.1) (2023-11-10)
+
+
+### Bug Fixes
+
+* **fields:** allow forward slash within quotes, fixes 5app/hub[#14234](https://github.com/5app/dare/issues/14234) ([#308](https://github.com/5app/dare/issues/308)) ([487732d](https://github.com/5app/dare/commit/487732dcbfa7e24ffeef8156e8ab3108e465f2e0))
+
 # [0.79.0](https://github.com/5app/dare/compare/v0.78.2...v0.79.0) (2023-10-13)
 
 
