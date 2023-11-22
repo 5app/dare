@@ -1,3 +1,10 @@
+# [0.80.0](https://github.com/5app/dare/compare/v0.79.1...v0.80.0) (2023-11-22)
+
+
+### Features
+
+* **binary:** support CRUD actions on Binary field types, noissue ([7851d6c](https://github.com/5app/dare/commit/7851d6c7dc5d21a257682b87c1efe1c5d4b3ca83))
+
 ## [0.79.1](https://github.com/5app/dare/compare/v0.79.0...v0.79.1) (2023-11-10)
 
 
