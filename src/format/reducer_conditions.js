@@ -43,7 +43,12 @@ export default function reduceConditions(
 			value = {[subKey]: value};
 		}
 
-		if (value && typeof value === 'object' && !Array.isArray(value)) {
+		if (
+			value &&
+			typeof value === 'object' &&
+			!Array.isArray(value) &&
+			!Buffer.isBuffer(value)
+		) {
 			// Check this is a path
 			checkTableAlias(key);
 

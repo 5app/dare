@@ -834,7 +834,7 @@ function formatInputValue({
 	}
 
 	// Check this is not an object
-	if (value && typeof value === 'object') {
+	if (value && typeof value === 'object' && !Buffer.isBuffer(value)) {
 		throw new DareError(
 			DareError.INVALID_VALUE,
 			`Field '${field}' does not accept objects as values: '${JSON.stringify(
