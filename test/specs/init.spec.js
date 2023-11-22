@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 import Dare, {DareError} from '../../src/index.js';
 import clone from 'tricks/object/clone.js';
 
@@ -22,7 +23,7 @@ describe('Dare', () => {
 	it('should throw errors if dare.execute is not defined', () => {
 		const dare = new Dare();
 
-		const test = dare.sql({sql: 'SELECT 1=1'});
+		const test = dare.sql('SELECT 1=1');
 
 		return expect(test).to.be.eventually.rejectedWith(
 			DareError,

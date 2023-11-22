@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 /*
  * Field Reducer
  * Extract the fields from the current dataset
@@ -49,6 +50,7 @@ describe('Orderby Reducer', () => {
 					current_path,
 					extract,
 					table_schema,
+					dareInstance: {},
 				});
 
 				// Call the field with the

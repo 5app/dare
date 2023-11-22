@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 /*
  * Field Reducer
  * Extract the fields from the current dataset
@@ -12,6 +13,9 @@ describe('Field Reducer', () => {
 	beforeEach(() => {
 		dareInstance = {
 			generated_fields: [],
+			options: {
+				method: 'get',
+			},
 		};
 	});
 
@@ -183,16 +187,18 @@ describe('Field Reducer', () => {
 				}
 			}
 
-			// Curry the field_reducer
-			const fr = field_reducer({
-				field_alias_path,
-				extract,
-				table_schema,
-				dareInstance,
-			});
-
 			it(`where ${JSON.stringify(input)}`, () => {
-				// Call the field with the
+				// Curry the field_reducer
+				const fr = field_reducer({
+					field_alias_path,
+					extract,
+					table_schema,
+					dareInstance,
+				});
+
+				// Call the field with the field reducer
+
+				// @ts-ignore
 				const f = input.reduce(fr, []);
 
 				// Expect the formatted list of fields to be identical to the inputted value
@@ -222,6 +228,9 @@ describe('Field Reducer', () => {
 			field_alias_path,
 			table_schema,
 			dareInstance,
+			extract: () => {
+				// Continue
+			},
 		});
 
 		// Call the field with the
@@ -245,6 +254,9 @@ describe('Field Reducer', () => {
 			field_alias_path,
 			table_schema,
 			dareInstance,
+			extract: () => {
+				// Continue
+			},
 		});
 
 		// Call the field with the
@@ -271,6 +283,9 @@ describe('Field Reducer', () => {
 			field_alias_path,
 			table_schema,
 			dareInstance,
+			extract: () => {
+				// Continue
+			},
 		});
 
 		// Call the field with the
@@ -303,6 +318,9 @@ describe('Field Reducer', () => {
 			field_alias_path,
 			table_schema,
 			dareInstance,
+			extract: () => {
+				// Continue
+			},
 		});
 
 		// Call the field with the

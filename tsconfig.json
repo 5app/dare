@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"allowSyntheticDefaultImports": true,
+		"noEmit": true,
+		"esModuleInterop": true,
+		"moduleResolution": "nodenext",
+		"target": "ES2022",
+		"typeRoots": ["node_modules/@types"],
+		"module": "NodeNext",
+		"checkJs": true,
+		"allowJs": true,
+		"strict": false // true for making types mandatory
+	},
+	"include": ["./**/*.js"]
+}

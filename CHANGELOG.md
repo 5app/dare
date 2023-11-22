@@ -1,3 +1,38 @@
+## [0.79.1](https://github.com/5app/dare/compare/v0.79.0...v0.79.1) (2023-11-10)
+
+
+### Bug Fixes
+
+* **fields:** allow forward slash within quotes, fixes 5app/hub[#14234](https://github.com/5app/dare/issues/14234) ([#308](https://github.com/5app/dare/issues/308)) ([487732d](https://github.com/5app/dare/commit/487732dcbfa7e24ffeef8156e8ab3108e465f2e0))
+
+# [0.79.0](https://github.com/5app/dare/compare/v0.78.2...v0.79.0) (2023-10-13)
+
+
+### Features
+
+* **typescript:** ts-in-js ([#304](https://github.com/5app/dare/issues/304)) ([6ad70b5](https://github.com/5app/dare/commit/6ad70b5a8be2e2aa17b729da97ac184c8e545334))
+
+## [0.78.2](https://github.com/5app/dare/compare/v0.78.1...v0.78.2) (2023-10-11)
+
+
+### Bug Fixes
+
+* **fieldDefinitions:** fixes pr [#303](https://github.com/5app/dare/issues/303) ([dc73662](https://github.com/5app/dare/commit/dc73662d3ab389b6207dd3dcddd5537c7692e102))
+
+## [0.78.1](https://github.com/5app/dare/compare/v0.78.0...v0.78.1) (2023-10-11)
+
+
+### Bug Fixes
+
+* **fieldDefinitions:** fixes pr [#303](https://github.com/5app/dare/issues/303) ([b919940](https://github.com/5app/dare/commit/b919940aa7be86a4304e90696249bfe9fdc65dbf))
+
+# [0.78.0](https://github.com/5app/dare/compare/v0.77.2...v0.78.0) (2023-10-11)
+
+
+### Features
+
+* **fieldDefition:** definition overrides by method, fixes [#302](https://github.com/5app/dare/issues/302) ([bd43368](https://github.com/5app/dare/commit/bd4336889ee33a57e188faf2d9ecde67e4a88d87))
+
 ## [0.77.2](https://github.com/5app/dare/compare/v0.77.1...v0.77.2) (2023-04-07)
 
 

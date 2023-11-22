@@ -641,16 +641,17 @@ Can define how a field corresponds to a DB table field, whether it's readable/wr
 
 Defining a field attribute, can be verbose using an object with special keys, or can be shorthanded with specific datatypes
 
-| Property       | Attr Example                               | Shorthand DataType | ShortHand Example           | Description                                                        |
-| -------------- | ------------------------------------------ | ------------------ | --------------------------- | ------------------------------------------------------------------ |
-| `references`   | e.g. `{references: ['country.id']}`        | `Array`            | `county_id: ['country.id']` | Relationship with other models                                     |
-| `alias`        | e.g. `{alias: 'email'}`                    | `String`           | `emailAddress: 'email'`     | Alias a field with a DB Table field                                |
-| `handler`      | e.g. `{handler: Function}`                 | `Function`         | `url: urlFunction`          | Generated Field                                                    |
-| `type`         | e.g. `{type: 'json'}`                      | na                 | na                          | Type of data in field, this has various uses.                      |
-| `defaultValue` | e.g. `{defaultValue: 'active'}`            | na                 | na                          | Default Value to insert during post, and filter with get/patch/del |
-| `readable`     | e.g. `{readable: false}`                   | na                 | na                          | Disables/Enables request access to a field                         |
-| `writeable`    | e.g. `{writeable: false}`                  | na                 | na                          | Disables/Enables write access to a field                           |
-| na             | e.g. `{writeable: false: readable: false}` | `Boolean`          | `{password: false}`         | Disables/Enables both write and read access to a field             |
+| Property                      | Attr Example                                                      | Shorthand DataType | ShortHand Example           | Description                                                        |
+| ----------------------------- | ----------------------------------------------------------------- | ------------------ | --------------------------- | ------------------------------------------------------------------ |
+| `references`                  | e.g. `{references: ['country.id']}`                               | `Array`            | `county_id: ['country.id']` | Relationship with other models                                     |
+| `alias`                       | e.g. `{alias: 'email'}`                                           | `String`           | `emailAddress: 'email'`     | Alias a field with a DB Table field                                |
+| `handler`                     | e.g. `{handler: Function}`                                        | `Function`         | `url: urlFunction`          | Generated Field                                                    |
+| `type`                        | e.g. `{type: 'json'}`                                             | na                 | na                          | Type of data in field, this has various uses.                      |
+| `defaultValue`                | e.g. `{defaultValue: 'active'}`                                   | na                 | na                          | Default Value to insert during post, and filter with get/patch/del |
+| `readable`                    | e.g. `{readable: false}`                                          | na                 | na                          | Disables/Enables request access to a field                         |
+| `writeable`                   | e.g. `{writeable: false}`                                         | na                 | na                          | Disables/Enables write access to a field                           |
+| na                            | e.g. `{writeable: false: readable: false}`                        | `Boolean`          | `{password: false}`         | Disables/Enables both write and read access to a field             |
+| `get`, `post`, `patch`, `del` | e.g. `{get: {defaultValue: 'active'}, patch: {writeable: false}}` | na                 |                             | Extends the existing fieldDefinition based upon the method used    |
 
 Fields dont need to be explicitly defined in the `options.models.*tbl*.schema` where they map one to one with a DB table fields the request will just go through verbatim.
 
@@ -836,17 +837,19 @@ However an error will throw if attempting to set a value to such an alias.
 
 Defining the `defaultValue` introduces default conditions or values when querying or inserting records respectively.
 
-`defaultValue` can be any value supported by the context it is used. If `defaultValue` is not an object, it will be applied to all operations, "methods" (`get`, `post`, `patch` and `del`). However when `defaultValue` is defined as an object, then the properties of the object matching the method will be used.
+`defaultValue` can be any value supported by the context it is used. And it might be useful to use fieldDefinition extensions based
 
 e.g we can define what `defaultValue` is used in various scenarios:
 
 ```js
-defaultValue: {
-	get: 'active', // Includes `= 'active'` to `.get` filter conditions.
-	post: 'active', // Inserts `active` into new records
-	del: 'inactive', // Includes `= 'inactive'` to `.del` filter conditions.
-	// patch: is undefined and wont apply any default values
-}
+// GET (defaultValue = active), adds condition
+filter[prop] = defaultValue;
+
+// POST (defaultValue = active)
+body[prop] = defaultValue;
+
+// Del (defaultValue = active)
+filter[prop] = defaultValue;
 ```
 
 **`defaultValue`**
@@ -907,6 +910,41 @@ Or when trying to modify a field through `post` or `patch` methods, e.g.
 ```js
 await dare.patch('users', {id: 321}, {id: 1337});
 // throws {code: INVALID_REFERENCE}
+```
+
+#### Field attribute `[method]: Object`
+
+A key with name like (`post`, `patch`, `get` and `del`) with a value containing Field Definitions. Can override requests with methods of the same key name.
+
+For example:
+
+```js
+const dare = new Dare({
+	models: {
+		users: {
+			schema: {
+				/**
+				 * Should you want a field to be writeable only on `post`, but not writeable on any other operation you could write...
+				 */
+				name: {
+					writeable: false,
+					post: {
+						writeable: true,
+					},
+				},
+
+				/**
+				 * defaultValue: apply only on `get` requests
+				 */
+				status: {
+					get: {
+						defaultValue: 'active',
+					},
+				},
+			},
+		},
+	},
+});
 ```
 
 ## `model.shortcut_map`

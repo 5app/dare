@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 /*
  * Field Reducer
  * Extract the fields from the current dataset
@@ -45,6 +46,7 @@ describe('utils/unwrap_field', () => {
 		"FORMAT(ROUND(field * 5, 2), 'en_GB')",
 		"FORMAT(ROUND(field * 5.5, 2), 'en_GB')",
 		"FORMAT(ROUND(field / 5, 2), 'en_GB')",
+		'DATE(CONVERT_TZ(field, "UTC", "Europe/London"))',
 	].forEach(test => {
 		it(`where ${JSON.stringify(test)}`, () => {
 			// Call the field with the

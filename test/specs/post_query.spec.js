@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 import Dare from '../../src/index.js';
 import DareError from '../../src/utils/error.js';
 // Create a schema
