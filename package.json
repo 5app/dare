@@ -5,15 +5,24 @@
 	"type": "module",
 	"main": "./src/index.js",
 	"exports": {
-		".": "./src/index.js",
-		"./utils/*": "./src/utils/*.js"
+		".": {
+			"import": "./src/index.js",
+			"types": "./types/src/index.d.ts"
+		},
+		"./utils/*": {
+			"import": "./src/utils/*.js",
+			"types": "./types/src/utils/*.d.ts"
+		}
 	},
+	"types": "./types/src/index.d.ts",
 	"engines": {
 		"node": ">=16.9"
 	},
 	"scripts": {
 		"prepare": "is-ci || husky install",
 		"pretest": "npm run lint",
+		"types": "tsc -p ./tsconfig.json",
+		"prepublish": "npm run types",
 		"test": "npm run spec && ((c8 report --reporter=text-lcov | coveralls) || exit 0)",
 		"test:ci": "eslint ./ && c8 mocha test/specs/**/*.spec.js --reporter mocha-circleci-reporter && (c8 report --reporter=text-lcov | coveralls)",
 		"test:integration": "bash ./test/integration/run.sh",
@@ -40,7 +49,8 @@
 	},
 	"homepage": "https://github.com/5app/dare#readme",
 	"files": [
-		"src/"
+		"src/",
+		"types/"
 	],
 	"devDependencies": {
 		"@5app/prettier-config": "^1.0.4",
