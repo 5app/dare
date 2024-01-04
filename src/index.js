@@ -39,7 +39,7 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {number} [limit] - Number of items to return
  * @property {number} [start] - Number of items to skip
  * @property {string | string[]} [orderby] - Array of fields to order by
- * @property {string} [groupby] - Field to group by
+ * @property {string | string[]} [groupby] - Field to group by
  * @property {string} [duplicate_keys] - 'ignore' to prevent throwing Duplicate key errors
  * @property {string[]} [duplicate_keys_update] - An array of fields to update on presence of duplicate key constraints
  * @property {*} [notfound] - If not undefined will be returned in case of a single entry not found
