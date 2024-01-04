@@ -1,3 +1,10 @@
+## [0.81.1](https://github.com/5app/dare/compare/v0.81.0...v0.81.1) (2024-01-04)
+
+
+### Bug Fixes
+
+* **types:** groupby: string | string [], noissue ([bf00bf0](https://github.com/5app/dare/commit/bf00bf0c49207ccf2b90d25b757d2968390ae4aa))
+
 # [0.81.0](https://github.com/5app/dare/compare/v0.80.0...v0.81.0) (2023-12-05)
 
 
