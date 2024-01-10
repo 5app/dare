@@ -55,8 +55,8 @@
 	"devDependencies": {
 		"@5app/prettier-config": "^1.0.4",
 		"@5app/semantic-release-config": "^1.1.0",
-		"@commitlint/cli": "^17.7.2",
-		"@commitlint/config-conventional": "^17.7.0",
+		"@commitlint/cli": "^18.0.0",
+		"@commitlint/config-conventional": "^18.0.0",
 		"@types/mocha": "^10.0.2",
 		"c8": "^8.0.1",
 		"chai": "^4.3.10",
