@@ -8,7 +8,7 @@ const debug = Debug('sql');
 
 export {options};
 
-export default function () {
+export default function dareInstance() {
 	// Initiate
 	const dare = new Dare(options);
 
@@ -38,3 +38,13 @@ export function castToStringIfNeeded(a) {
 
 	return a;
 }
+
+/**
+ * Export a changeable instance of Dare
+ * Using ESM export to allow this to be swapped out via beforeEach in each test
+ */
+export let dare;
+
+beforeEach(() => {
+	dare = dareInstance();
+});

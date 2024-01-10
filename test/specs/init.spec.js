@@ -9,7 +9,9 @@ describe('Dare', () => {
 	});
 
 	it('should define default options', () => {
-		const models = {};
+		const models = {
+			mytable: {},
+		};
 		const dare = new Dare({
 			models,
 		});

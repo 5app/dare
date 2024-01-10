@@ -1,3 +1,24 @@
+## [0.81.1](https://github.com/5app/dare/compare/v0.81.0...v0.81.1) (2024-01-04)
+
+
+### Bug Fixes
+
+* **types:** groupby: string | string [], noissue ([bf00bf0](https://github.com/5app/dare/commit/bf00bf0c49207ccf2b90d25b757d2968390ae4aa))
+
+# [0.81.0](https://github.com/5app/dare/compare/v0.80.0...v0.81.0) (2023-12-05)
+
+
+### Features
+
+* **types:** declare types, noissue ([200b45d](https://github.com/5app/dare/commit/200b45dbc53e5655fffd6e9be126b3113c31eefa))
+
+# [0.80.0](https://github.com/5app/dare/compare/v0.79.1...v0.80.0) (2023-11-22)
+
+
+### Features
+
+* **binary:** support CRUD actions on Binary field types, noissue ([7851d6c](https://github.com/5app/dare/commit/7851d6c7dc5d21a257682b87c1efe1c5d4b3ca83))
+
 ## [0.79.1](https://github.com/5app/dare/compare/v0.79.0...v0.79.1) (2023-11-10)
 
 
