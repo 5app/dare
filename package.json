@@ -73,7 +73,7 @@
 		"is-ci": "^3.0.1",
 		"mocha": "^10.2.0",
 		"mocha-circleci-reporter": "0.0.3",
-		"mysql2": "3.5",
+		"mysql2": "3.7",
 		"prettier": "^3.0.3",
 		"semantic-release": "^22.0.5",
 		"typescript": "^5.2.2"
