@@ -149,13 +149,29 @@ function prepCondition({
 	// Set a handly NOT value
 	const NOT = negate ? raw('NOT ') : empty;
 
-	/*
-	 * Is the field an array of field names?
-	 * Then we're going to perform an A=value OR B=value OR C=value... type query
-	 */
-	if (!isFullText && field.includes(',')) {
-		// Split the fields
-		const fields = field.split(',');
+	const sql_fields = getSqlFields({
+		field,
+		sql_alias,
+		table_schema,
+		dareInstance,
+	});
+
+	if (isFullText) {
+		// Join the fields
+		const sql_field = join(
+			sql_fields.map(({sql}) => sql),
+			', '
+		);
+
+		// Full Text
+		return SQL`${NOT}MATCH(${sql_field}) AGAINST(${value} IN BOOLEAN MODE)`;
+	} else if (sql_fields.length > 1) {
+		/*
+		 * Is the field an array of field names?
+		 * Then we're going to perform an A=value OR B=value OR C=value... type query
+		 */
+
+		const fields = sql_fields.map(({field}) => field);
 
 		return SQL`${NOT}(${join(
 			fields.map(field =>
@@ -173,25 +189,9 @@ function prepCondition({
 		)})`;
 	}
 
-	const sql_fields = getSqlFields({
-		field,
-		sql_alias,
-		table_schema,
-		dareInstance,
-	});
+	// Everything else is a single field...
 
-	// Join the fields
-	const sql_field = join(
-		sql_fields.map(({sql}) => sql),
-		', '
-	);
-
-	if (isFullText) {
-		// Full Text
-		return SQL`${NOT}MATCH(${sql_field}) AGAINST(${value} IN BOOLEAN MODE)`;
-	}
-
-	const {type} = sql_fields.at(0);
+	const {type, sql: sql_field} = sql_fields.at(0);
 
 	// Update field
 	field = sql_fields.at(0).field;
