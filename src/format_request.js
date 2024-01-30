@@ -10,6 +10,12 @@ import getFieldAttributes from './utils/field_attributes.js';
 import extend from './utils/extend.js';
 import buildQuery from './get.js';
 
+/* eslint-disable jsdoc/valid-types */
+/**
+ * @typedef {import('./index.js').default} Dare
+ */
+/* eslint-enable jsdoc/valid-types */
+
 /**
  * Format Request initiation
  *
@@ -19,12 +25,6 @@ import buildQuery from './get.js';
 export default function (options) {
 	return format_request(options, this);
 }
-
-/**
- * @typedef {object} Dare
- * @param {object} options - instance options
- * @param {Function} table_alias_handler - The db table this references
- */
 
 /**
  * Format Request
@@ -110,7 +110,7 @@ async function format_request(options, dareInstance) {
 			derivedMethod in model
 				? model[derivedMethod]
 				: // Or use the default model
-				  models?.default?.[derivedMethod];
+					models?.default?.[derivedMethod];
 
 		if (handler) {
 			// Trigger the handler which alters the options...

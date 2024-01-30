@@ -283,9 +283,9 @@ Dare.prototype.get = async function get(table, fields, filter, options = {}) {
 	const opts =
 		typeof table === 'object'
 			? // Clone
-			  {...table}
+				{...table}
 			: // Clone and extend
-			  {...options, table, filter, fields};
+				{...options, table, filter, fields};
 
 	// Ensure fields is provided
 	if (typeof fields === 'object' && !Array.isArray(fields)) {
@@ -345,9 +345,9 @@ Dare.prototype.getCount = async function getCount(table, filter, options = {}) {
 	const opts =
 		typeof table === 'object'
 			? // Clone
-			  {...table}
+				{...table}
 			: // Clone and extend
-			  {...options, table, filter};
+				{...options, table, filter};
 
 	// Define method
 	opts.method = 'get';
@@ -395,9 +395,9 @@ Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
 	const opts =
 		typeof table === 'object'
 			? // Clone
-			  {...table}
+				{...table}
 			: // Clone and extend
-			  {...options, table, filter, body};
+				{...options, table, filter, body};
 
 	// Define method
 	opts.method = 'patch';
@@ -475,9 +475,9 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 	const opts =
 		typeof table === 'object'
 			? // Clone
-			  {...table}
+				{...table}
 			: // Clone and extend
-			  {...options, table, body};
+				{...options, table, body};
 
 	// Post
 	opts.method = 'post';
@@ -708,9 +708,9 @@ Dare.prototype.del = async function del(table, filter, options = {}) {
 	const opts =
 		typeof table === 'object'
 			? // Clone
-			  {...table}
+				{...table}
 			: // Clone and extend
-			  {...options, table, filter};
+				{...options, table, filter};
 
 	// Delete
 	opts.method = 'del';

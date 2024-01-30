@@ -188,7 +188,7 @@ function links(tableSchema, joinTable, dareInstance, flipped = false) {
 		? {
 				join_conditions: flipped ? invert(map) : map,
 				many: !flipped,
-		  }
+			}
 		: null;
 }
 
