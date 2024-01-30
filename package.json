@@ -16,7 +16,7 @@
 	},
 	"types": "./types/src/index.d.ts",
 	"engines": {
-		"node": ">=16.9"
+		"node": ">=17"
 	},
 	"scripts": {
 		"prepare": "is-ci || husky install",
