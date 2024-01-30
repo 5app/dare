@@ -179,4 +179,32 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 			expect(resp).to.deep.nested.equal({});
 		}
 	});
+
+	it('Can search via fulltext', async () => {
+		const username = 'A Name';
+		await dare.post('users', {
+			username,
+			first_name: 'First',
+			last_name: 'Last',
+		});
+
+		// Search across multiple fields
+		{
+			const resp = await dare.get('users', ['username'], {
+				'*username,first_name,last_name': 'Name Fir* Las*',
+			});
+			expect(resp).to.have.property('username', username);
+		}
+
+		// And use an alias of the fulltext field
+		{
+			dare.options.models.users.schema.textsearch =
+				'username,first_name,last_name';
+
+			const resp = await dare.get('users', ['username'], {
+				'*textsearch': 'Name Fir* Las*',
+			});
+			expect(resp).to.have.property('username', username);
+		}
+	});
 });

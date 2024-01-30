@@ -151,7 +151,7 @@ export default function buildQuery(opts, dareInstance) {
 			opts.limit
 				? SQL`LIMIT ${opts.start ? raw(`${opts.start},`) : empty}${raw(
 						opts.limit
-				  )}`
+					)}`
 				: empty
 		}
 	`;

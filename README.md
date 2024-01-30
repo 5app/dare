@@ -236,21 +236,23 @@ Prefixing the prop with:
 -   `-`: hyhen negates the value
 -   `~`: creates a range
 
-| Key     | Value                    | Type          | = SQL Condition                                                                                                                             |
-| ------- | ------------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| id      | 1                        | number        | `id = 1`                                                                                                                                    |
-| name    | 'Andrew'                 | string        | `name = 'Andrew'`                                                                                                                           |
-| %name   | 'And%'                   | Pattern       | `name LIKE 'And%'`                                                                                                                          |
-| -%name  | 'And%'                   | Pattern       | `name NOT LIKE 'And%'`                                                                                                                      |
-| name$1  | any                      | any           | e.g. `name LIKE '%And%` $suffixing gives `name` alternative unique object key values, useful when writing `name LIKE %X% AND name LIKE %Y%` |
-| tag     | [1, 'a']                 | Array values  | `tag IN (1, 'a')`                                                                                                                           |
-| -tag    | [1, 'a']                 | Array values  | `tag NOT IN (1, 'a')`                                                                                                                       |
-| -status | ['deleted', null]        | Array values  | `(status NOT IN ('deleted') AND status IS NOT NULL)` Mixed type including `null`                                                            |
-| ~date   | '2016-03-04T16:08:32Z..' | Greater than  | `date > '2016-03-04T16:08:32Z'`                                                                                                             |
-| ~date   | '2016-03-04..2016-03-05' | Between       | `date BETWEEN '2016-03-04' AND '2016-03-05'`                                                                                                |
-| -~date  | '2016-03-04..'           | !Greater than | `(NOT date > '2016-03-04T00:00:00' OR date IS NULL)`                                                                                        |
-| flag    | null                     | null          | `flag IS NULL`                                                                                                                              |
-| -flag   | null                     | null          | `flag IS NOT NULL`                                                                                                                          |
+| Key        | Value                    | Type          | = SQL Condition                                                                                                                             |
+| ---------- | ------------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| id         | 1                        | number        | `id = 1`                                                                                                                                    |
+| name       | 'Andrew'                 | string        | `name = 'Andrew'`                                                                                                                           |
+| %name      | 'And%'                   | Pattern       | `name LIKE 'And%'`                                                                                                                          |
+| -%name     | 'And%'                   | Pattern       | `name NOT LIKE 'And%'`                                                                                                                      |
+| name$1     | any                      | any           | e.g. `name LIKE '%And%` $suffixing gives `name` alternative unique object key values, useful when writing `name LIKE %X% AND name LIKE %Y%` |
+| tag        | [1, 'a']                 | Array values  | `tag IN (1, 'a')`                                                                                                                           |
+| -tag       | [1, 'a']                 | Array values  | `tag NOT IN (1, 'a')`                                                                                                                       |
+| -status    | ['deleted', null]        | Array values  | `(status NOT IN ('deleted') AND status IS NOT NULL)` Mixed type including `null`                                                            |
+| ~date      | '2016-03-04T16:08:32Z..' | Greater than  | `date > '2016-03-04T16:08:32Z'`                                                                                                             |
+| ~date      | '2016-03-04..2016-03-05' | Between       | `date BETWEEN '2016-03-04' AND '2016-03-05'`                                                                                                |
+| -~date     | '2016-03-04..'           | !Greater than | `(NOT date > '2016-03-04T00:00:00' OR date IS NULL)`                                                                                        |
+| flag       | null                     | null          | `flag IS NULL`                                                                                                                              |
+| -flag      | null                     | null          | `flag IS NOT NULL`                                                                                                                          |
+| \*text     | '+And\*'                 | Pattern       | `MATCH(text) AGAINST('+And*' IN BOOLEAN MODE)`                                                                                              |
+| name,email | 'hello'                  | any           | `(name = 'hello' OR email = 'hello')`                                                                                                       |
 
 #### Negate entire joins (i.e. NOT EXISTS)
 
@@ -1263,6 +1265,52 @@ await dare.get({
 ```
 
 # Additional Options
+
+## Fulltext Search
+
+Dare support MySQL's FullText search syntax. The `*` symbol preceeding the key in a condition denote _compare using a fulltext search syntax_.
+
+A prerequirement for FullText Search is that the corresponding FullText Index has been created for the fields being accessed.
+
+i.e.
+
+```js
+await dare.get({
+	table: 'users',
+	fields: ['name'],
+	filter: {
+		'*name': 'Andrew',
+	},
+});
+// SELECT name FROM users WHERE MATCH(name) AGAINST ('Andrew' IN BOOLEAN MODE)
+```
+
+The approach also supports multiple field definitions in the key, i.e.
+
+```js
+  filter: {
+	'*name,email': 'Andrew',
+  }
+// SELECT name FROM users WHERE MATCH(name, email) AGAINST ('Andrew' IN BOOLEAN MODE)
+```
+
+> [!NOTE]
+> It might be handy to create a new field in the Model Schema which aliases all the Indexed fields, i.e...
+>
+> ```js
+> schema: {
+> 	textsearch: 'name,email';
+> }
+> ```
+>
+> Now the filter would just call the alias name, and there's only one place to change it.
+>
+> ```js
+>  filter: {
+> 	'*textsearch': 'Andrew',
+>  }
+> // SELECT name FROM users WHERE MATCH(name, email) AGAINST ('Andrew' IN BOOLEAN MODE)
+> ```
 
 ## Multiple joins/filters on the same table
 
