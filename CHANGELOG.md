@@ -1,3 +1,10 @@
+# [0.82.0](https://github.com/5app/dare/compare/v0.81.1...v0.82.0) (2024-01-30)
+
+
+### Features
+
+* **fulltext:** fulltext and cross-field search ([#325](https://github.com/5app/dare/issues/325)) ([941614c](https://github.com/5app/dare/commit/941614cfbbe4a67a289721a019061a0a889e2105)), closes [#324](https://github.com/5app/dare/issues/324)
+
 ## [0.81.1](https://github.com/5app/dare/compare/v0.81.0...v0.81.1) (2024-01-04)
 
 
