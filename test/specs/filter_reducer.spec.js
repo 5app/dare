@@ -1,4 +1,6 @@
 import {expect} from 'chai';
+import Dare from '../../src/index.js';
+
 /*
  * Filter Reducer
  * Extract the filter conditions from the given conditions
@@ -17,7 +19,7 @@ describe('Filter Reducer', () => {
 
 	// Mock instance of Dare
 	beforeEach(() => {
-		dareInstance = {};
+		dareInstance = new Dare();
 		table_schema = {
 			textsearch: 'givenname,lastname,email',
 		};

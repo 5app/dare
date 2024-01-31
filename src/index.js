@@ -165,6 +165,60 @@ Dare.prototype.getFieldKey = function getFieldKey(field, schema) {
 	// Do nothing, default is to set it to same as field
 };
 
+/**
+ * Fulltext Parser
+ * This will format a string to make it compliant with MySQL Fulltext search
+ * Such as wrapping special characters in quotes where they appear in the middle of words
+ * Removing any trailing '*' characters which succeed a quoted string
+ * @param {string} input - Input string
+ * @returns {string} Formatted string
+ */
+Dare.prototype.fulltextParser = function fulltextParser(input) {
+	function safequote(text) {
+		let suffix = '';
+
+		if (text.endsWith('*')) {
+			suffix = '*';
+			text = text.slice(0, -1);
+		}
+
+		if (text.match(/['@-]/)) {
+			return `"${text}"`;
+		}
+		return text + suffix;
+	}
+
+	if (typeof input !== 'string' || input === '') {
+		throw new DareError(
+			DareError.INVALID_REQUEST,
+			'Fulltext input must be a string'
+		);
+	}
+
+	// Replace any special characters with quotes
+	const resp = input.matchAll(
+		// eslint-disable-next-line prefer-named-capture-group, unicorn/better-regex
+		/\s*(?<sign>[<>~+-]?)((\((?<subexpression>.*?)\))|(?<quoted>(").*?\6)|(?<unquoted>[^\s]+))(?<suffix>\*?)/g
+	);
+	const output = [...resp]
+		.filter(({groups: {subexpression, quoted, unquoted}}) =>
+			quoted
+				? quoted.length > 2
+				: subexpression || unquoted.replace(/^[*+-]+/, '')
+		)
+		.map(({groups: {sign, subexpression, quoted, unquoted, suffix}}) => {
+			if (subexpression) {
+				return `${sign}(${this.fulltextParser(subexpression)})`;
+			} else if (quoted) {
+				return `${sign}${quoted}`;
+			} else {
+				return `${sign}${safequote(unquoted + suffix)}`;
+			}
+		});
+
+	return output.join(' ');
+};
+
 /* eslint-disable jsdoc/valid-types */
 /* eslint-disable jsdoc/check-tag-names */
 /**
