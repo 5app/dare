@@ -164,7 +164,7 @@ function prepCondition({
 		);
 
 		// Full Text
-		return SQL`${NOT}MATCH(${sql_field}) AGAINST(${value} IN BOOLEAN MODE)`;
+		return SQL`${NOT}MATCH(${sql_field}) AGAINST(${dareInstance.fulltextParser(value)} IN BOOLEAN MODE)`;
 	} else if (sql_fields.length > 1) {
 		/*
 		 * Is the field an array of field names?
