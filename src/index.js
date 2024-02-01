@@ -170,6 +170,7 @@ Dare.prototype.getFieldKey = function getFieldKey(field, schema) {
  * This will format a string to make it compliant with MySQL Fulltext search
  * Such as wrapping special characters in quotes where they appear in the middle of words
  * Removing any trailing '*' characters which succeed a quoted string
+ * e.g. `+test@example.com*` becomes `+"test@example.com"`
  * @param {string} input - Input string
  * @returns {string} Formatted string
  */
@@ -197,8 +198,7 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 
 	// Replace any special characters with quotes
 	const resp = input.matchAll(
-		// eslint-disable-next-line prefer-named-capture-group, unicorn/better-regex
-		/\s*(?<sign>[<>~+-]?)((\((?<subexpression>.*?)\))|(?<quoted>(").*?\6)|(?<unquoted>[^\s]+))(?<suffix>\*?)/g
+		/\s*(?<sign>[+<>~-]?)(?:\((?<subexpression>.*?)\)|(?<quoted>".*?")|(?<unquoted>\S+))(?<suffix>\*?)/g
 	);
 	const output = [...resp]
 		.filter(({groups: {subexpression, quoted, unquoted}}) =>
