@@ -1,3 +1,10 @@
+## [0.82.1](https://github.com/5app/dare/compare/v0.82.0...v0.82.1) (2024-01-31)
+
+
+### Bug Fixes
+
+* **fulltext:** parser quote inpcomatible strings, [#324](https://github.com/5app/dare/issues/324) ([#327](https://github.com/5app/dare/issues/327)) ([5ef5479](https://github.com/5app/dare/commit/5ef547961069fd88d181a514f11b3b0a2e566a21))
+
 # [0.82.0](https://github.com/5app/dare/compare/v0.81.1...v0.82.0) (2024-01-30)
 
 
