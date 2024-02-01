@@ -1,3 +1,10 @@
+## [0.82.2](https://github.com/5app/dare/compare/v0.82.1...v0.82.2) (2024-02-01)
+
+
+### Bug Fixes
+
+* **fulltext:** regex improvements ([feaf9ea](https://github.com/5app/dare/commit/feaf9ead95c29e61b72d8b035ec47ff2564c31bb))
+
 ## [0.82.1](https://github.com/5app/dare/compare/v0.82.0...v0.82.1) (2024-01-31)
 
 
