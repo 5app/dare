@@ -198,7 +198,7 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 
 	// Replace any special characters with quotes
 	const resp = input.matchAll(
-		/\s*(?<sign>[+<>~-]?)(?:\((?<subexpression>.*?)\)|(?<quoted>".*?")|(?<unquoted>\S+))(?<suffix>\*?)/g
+		/\s*(?<sign>[+<>~-]?)(?:\((?<subexpression>[^()]*)\)|(?<quoted>".*?")|(?<unquoted>[^\s()]+))(?<suffix>\*)?/g
 	);
 	const output = [...resp]
 		.filter(({groups: {subexpression, quoted, unquoted}}) =>
@@ -206,15 +206,19 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 				? quoted.length > 2
 				: subexpression || unquoted.replace(/^[*+-]+/, '')
 		)
-		.map(({groups: {sign, subexpression, quoted, unquoted, suffix}}) => {
-			if (subexpression) {
-				return `${sign}(${this.fulltextParser(subexpression)})`;
-			} else if (quoted) {
-				return `${sign}${quoted}`;
-			} else {
-				return `${sign}${safequote(unquoted + suffix)}`;
+		.map(
+			({
+				groups: {sign, subexpression, quoted, unquoted, suffix = ''},
+			}) => {
+				if (subexpression) {
+					return `${sign}(${this.fulltextParser(subexpression)})`;
+				} else if (quoted) {
+					return `${sign}${quoted}`;
+				} else {
+					return `${sign}${safequote(unquoted + suffix)}`;
+				}
 			}
-		});
+		);
 
 	return output.join(' ');
 };
