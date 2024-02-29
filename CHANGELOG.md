@@ -1,3 +1,10 @@
+## [0.82.3](https://github.com/5app/dare/compare/v0.82.2...v0.82.3) (2024-02-29)
+
+
+### Bug Fixes
+
+* **regExp:** address code scannning warning ([def5dbe](https://github.com/5app/dare/commit/def5dbeb9d61ef5a1c55a9654b07ff2c6a1d5e3a))
+
 ## [0.82.2](https://github.com/5app/dare/compare/v0.82.1...v0.82.2) (2024-02-01)
 
 
