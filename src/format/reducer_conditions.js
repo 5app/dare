@@ -5,6 +5,13 @@ import formatDateTime from '../utils/format_datetime.js';
 import getFieldAttributes from '../utils/field_attributes.js';
 import unwrap_field from '../utils/unwrap_field.js';
 
+/* eslint-disable jsdoc/valid-types */
+/**
+ * @typedef {import('sql-template-tag').Sql} Sql
+ * @typedef {import('../index.js').default} Dare
+ */
+/* eslint-enable jsdoc/valid-types */
+
 /**
  * Reduce conditions, call extract
  *
@@ -14,8 +21,8 @@ import unwrap_field from '../utils/unwrap_field.js';
  * @param {string} options.sql_alias - Table SQL Alias, e.g. 'a', 'b', etc..
  * @param {object} options.table_schema - Table schema
  * @param {string|null} options.conditional_operators_in_value - Allowable conditional operators in value
- * @param {object} options.dareInstance - Dare Instance
- * @returns {Array} Conditions object converted to SQL
+ * @param {Dare} options.dareInstance - Dare Instance
+ * @returns {Array<Sql>} Conditions object converted to an array of SQL conditions
  */
 export default function reduceConditions(
 	filter,
@@ -55,9 +62,6 @@ export default function reduceConditions(
 			// Add it to the join table
 			extract(rootKeyRaw, value);
 		} else {
-			// Format key and validate path
-			key = checkKey(key);
-
 			filterArr.push(
 				prepCondition({
 					field: key,
@@ -88,7 +92,7 @@ function stripKey(key) {
 	let rootKey = rootKeyRaw;
 
 	// Does this have a comparison operator prefix?
-	const operators = rootKeyRaw.match(/^[%~-]+/)?.[0];
+	const operators = rootKeyRaw.match(/^[%*~-]+/)?.[0];
 	if (operators) {
 		// Strip the special operators from the prop
 		rootKey = rootKeyRaw.substring(operators.length);
@@ -97,6 +101,18 @@ function stripKey(key) {
 	return {rootKey, rootKeyRaw, subKey, operators};
 }
 
+/**
+ * Prep condition
+ * @param {object} params - Params
+ * @param {string} params.field - Field name
+ * @param {string} params.value - Field value
+ * @param {string} params.sql_alias - SQL Alias
+ * @param {object} params.table_schema - Table schema
+ * @param {string|null} params.operators - Allowable operators
+ * @param {string|null} params.conditional_operators_in_value - Allowable conditional operators in value
+ * @param {Dare} params.dareInstance - Dare Instance
+ * @returns {Sql} SQL condition
+ */
 function prepCondition({
 	field,
 	value,
@@ -106,8 +122,6 @@ function prepCondition({
 	conditional_operators_in_value,
 	dareInstance,
 }) {
-	const {type, alias} = getFieldAttributes(field, table_schema, dareInstance);
-
 	// Does it have a negative comparison operator?
 	const negate = operators?.includes('-');
 
@@ -116,6 +130,9 @@ function prepCondition({
 
 	// Does it have a Range comparison operator
 	const isRange = operators?.includes('~');
+
+	// Does it have a FullText comparison operator
+	const isFullText = operators?.includes('*');
 
 	// Allow conditional likey operator in value
 	const allow_conditional_likey_operator_in_value =
@@ -129,32 +146,60 @@ function prepCondition({
 	const allow_conditional_range_operator_in_value =
 		conditional_operators_in_value?.includes('~');
 
-	if (alias) {
-		// The key definition says the key is an alias
-		field = alias;
+	// Set a handly NOT value
+	const NOT = negate ? raw('NOT ') : empty;
+
+	const sql_fields = getSqlFields({
+		field,
+		sql_alias,
+		table_schema,
+		dareInstance,
+	});
+
+	if (isFullText) {
+		// Join the fields
+		const sql_field = join(
+			sql_fields.map(({sql}) => sql),
+			', '
+		);
+
+		// Full Text
+		return SQL`${NOT}MATCH(${sql_field}) AGAINST(${dareInstance.fulltextParser(value)} IN BOOLEAN MODE)`;
+	} else if (sql_fields.length > 1) {
+		/*
+		 * Is the field an array of field names?
+		 * Then we're going to perform an A=value OR B=value OR C=value... type query
+		 */
+
+		const fields = sql_fields.map(({field}) => field);
+
+		return SQL`${NOT}(${join(
+			fields.map(field =>
+				prepCondition({
+					field,
+					value,
+					sql_alias,
+					table_schema,
+					operators: operators?.replace('-', ''),
+					conditional_operators_in_value,
+					dareInstance,
+				})
+			),
+			' OR '
+		)})`;
 	}
 
-	// Define the field definition
-	let sql_field = raw(`${sql_alias}.${field}`);
+	// Everything else is a single field...
 
-	/*
-	 * Should the field contain a SQL Function itself
-	 * -> Let's extract it...
-	 */
-	if (/[^\w$.]/.test(field)) {
-		const {prefix, suffix, field: rawField} = unwrap_field(field);
+	const {type, sql: sql_field} = sql_fields.at(0);
 
-		// Ammend the sql_field
-		sql_field = raw(`${prefix}${sql_alias}.${rawField}${suffix}`);
-	}
+	// Update field
+	field = sql_fields.at(0).field;
 
 	// Format date time values
 	if (type === 'datetime') {
 		value = formatDateTime(value);
 	}
-
-	// Set a handly NOT value
-	const NOT = negate ? raw('NOT ') : empty;
 
 	/*
 	 * Range
@@ -224,8 +269,11 @@ function prepCondition({
 		const sub_values = [];
 		const conds = [];
 
-		// Filter the results of the array...
-		value = value.filter(item => {
+		/*
+		 * Filter the results of the array...
+		 * Remove things which can't be used within `IN`, i.e. where `NULL` comparison via `LIKE` etc...
+		 */
+		const filteredValue = value.filter(item => {
 			// Remove the items which can't in group statement...
 			if (
 				item !== null &&
@@ -245,8 +293,8 @@ function prepCondition({
 		});
 
 		// Use the `IN(...)` for items which can be grouped...
-		if (value.length) {
-			conds.push(SQL`${sql_field} ${NOT}IN (${value})`);
+		if (filteredValue.length) {
+			conds.push(SQL`${sql_field} ${NOT}IN (${filteredValue})`);
 		}
 
 		// Other Values which can't be grouped ...
@@ -271,4 +319,67 @@ function prepCondition({
 	} else {
 		return SQL`${sql_field} ${raw(negate ? '!' : '')}= ${value}`;
 	}
+}
+
+/**
+ * Get SQL fields
+ * @param {object} params - Params
+ * @param {string} params.field - Fields
+ * @param {string} params.sql_alias - SQL Alias
+ * @param {object} params.table_schema - Table schema
+ * @param {Dare} params.dareInstance - Dare Instance
+ * @returns {Array<{field: string, type: string, sql: Sql}>} SQL fields
+ */
+function getSqlFields({field, sql_alias, table_schema, dareInstance}) {
+	// Split the fields
+	const fields = field.split(',');
+
+	// Extract the field attributes, and in particular the alias, does it need further transformation?
+	return fields.flatMap(field => {
+		// Format key and validate path
+		field = checkKey(field);
+
+		const {alias, type} = getFieldAttributes(
+			field,
+			table_schema,
+			dareInstance
+		);
+
+		if (alias) {
+			// The key definition says the key is an alias
+			field = alias;
+
+			// Field contains a comma and no brackets, so it has an array of values, but is not a function
+			if (field.includes(',') && !field.includes('(')) {
+				// The alias has multiple fields
+				return getSqlFields({
+					field,
+					sql_alias,
+					table_schema,
+					dareInstance,
+				});
+			}
+		}
+
+		// Define the field definition
+		let sql = raw(`${sql_alias}.${field}`);
+
+		/*
+		 * Should the field contain a SQL Function itself
+		 * -> Let's extract it...
+		 */
+		if (/[^\w$.]/.test(field)) {
+			const {prefix, suffix, field: rawField} = unwrap_field(field);
+
+			// Ammend the sql_field
+			sql = raw(`${prefix}${sql_alias}.${rawField}${suffix}`);
+		}
+
+		// Derive the SQL field name
+		return {
+			field,
+			type,
+			sql,
+		};
+	});
 }

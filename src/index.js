@@ -165,6 +165,60 @@ Dare.prototype.getFieldKey = function getFieldKey(field, schema) {
 	// Do nothing, default is to set it to same as field
 };
 
+/**
+ * Fulltext Parser
+ * This will format a string to make it compliant with MySQL Fulltext search
+ * Such as wrapping special characters in quotes where they appear in the middle of words
+ * Removing any trailing '*' characters which succeed a quoted string
+ * e.g. `+test@example.com*` becomes `+"test@example.com"`
+ * @param {string} input - Input string
+ * @returns {string} Formatted string
+ */
+Dare.prototype.fulltextParser = function fulltextParser(input) {
+	function safequote(text) {
+		let suffix = '';
+
+		if (text.endsWith('*')) {
+			suffix = '*';
+			text = text.slice(0, -1);
+		}
+
+		if (text.match(/['@-]/)) {
+			return `"${text}"`;
+		}
+		return text + suffix;
+	}
+
+	if (typeof input !== 'string' || input === '') {
+		throw new DareError(
+			DareError.INVALID_REQUEST,
+			'Fulltext input must be a string'
+		);
+	}
+
+	// Replace any special characters with quotes
+	const resp = input.matchAll(
+		/\s*(?<sign>[+<>~-]?)(?:\((?<subexpression>.*?)\)|(?<quoted>".*?")|(?<unquoted>\S+))(?<suffix>\*?)/g
+	);
+	const output = [...resp]
+		.filter(({groups: {subexpression, quoted, unquoted}}) =>
+			quoted
+				? quoted.length > 2
+				: subexpression || unquoted.replace(/^[*+-]+/, '')
+		)
+		.map(({groups: {sign, subexpression, quoted, unquoted, suffix}}) => {
+			if (subexpression) {
+				return `${sign}(${this.fulltextParser(subexpression)})`;
+			} else if (quoted) {
+				return `${sign}${quoted}`;
+			} else {
+				return `${sign}${safequote(unquoted + suffix)}`;
+			}
+		});
+
+	return output.join(' ');
+};
+
 /* eslint-disable jsdoc/valid-types */
 /* eslint-disable jsdoc/check-tag-names */
 /**
@@ -283,9 +337,9 @@ Dare.prototype.get = async function get(table, fields, filter, options = {}) {
 	const opts =
 		typeof table === 'object'
 			? // Clone
-			  {...table}
+				{...table}
 			: // Clone and extend
-			  {...options, table, filter, fields};
+				{...options, table, filter, fields};
 
 	// Ensure fields is provided
 	if (typeof fields === 'object' && !Array.isArray(fields)) {
@@ -345,9 +399,9 @@ Dare.prototype.getCount = async function getCount(table, filter, options = {}) {
 	const opts =
 		typeof table === 'object'
 			? // Clone
-			  {...table}
+				{...table}
 			: // Clone and extend
-			  {...options, table, filter};
+				{...options, table, filter};
 
 	// Define method
 	opts.method = 'get';
@@ -395,9 +449,9 @@ Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
 	const opts =
 		typeof table === 'object'
 			? // Clone
-			  {...table}
+				{...table}
 			: // Clone and extend
-			  {...options, table, filter, body};
+				{...options, table, filter, body};
 
 	// Define method
 	opts.method = 'patch';
@@ -475,9 +529,9 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 	const opts =
 		typeof table === 'object'
 			? // Clone
-			  {...table}
+				{...table}
 			: // Clone and extend
-			  {...options, table, body};
+				{...options, table, body};
 
 	// Post
 	opts.method = 'post';
@@ -708,9 +762,9 @@ Dare.prototype.del = async function del(table, filter, options = {}) {
 	const opts =
 		typeof table === 'object'
 			? // Clone
-			  {...table}
+				{...table}
 			: // Clone and extend
-			  {...options, table, filter};
+				{...options, table, filter};
 
 	// Delete
 	opts.method = 'del';

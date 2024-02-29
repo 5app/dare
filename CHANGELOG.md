@@ -1,3 +1,24 @@
+## [0.82.2](https://github.com/5app/dare/compare/v0.82.1...v0.82.2) (2024-02-01)
+
+
+### Bug Fixes
+
+* **fulltext:** regex improvements ([feaf9ea](https://github.com/5app/dare/commit/feaf9ead95c29e61b72d8b035ec47ff2564c31bb))
+
+## [0.82.1](https://github.com/5app/dare/compare/v0.82.0...v0.82.1) (2024-01-31)
+
+
+### Bug Fixes
+
+* **fulltext:** parser quote inpcomatible strings, [#324](https://github.com/5app/dare/issues/324) ([#327](https://github.com/5app/dare/issues/327)) ([5ef5479](https://github.com/5app/dare/commit/5ef547961069fd88d181a514f11b3b0a2e566a21))
+
+# [0.82.0](https://github.com/5app/dare/compare/v0.81.1...v0.82.0) (2024-01-30)
+
+
+### Features
+
+* **fulltext:** fulltext and cross-field search ([#325](https://github.com/5app/dare/issues/325)) ([941614c](https://github.com/5app/dare/commit/941614cfbbe4a67a289721a019061a0a889e2105)), closes [#324](https://github.com/5app/dare/issues/324)
+
 ## [0.81.1](https://github.com/5app/dare/compare/v0.81.0...v0.81.1) (2024-01-04)
 
 

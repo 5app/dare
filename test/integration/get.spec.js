@@ -179,4 +179,60 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 			expect(resp).to.deep.nested.equal({});
 		}
 	});
+
+	it('Can search via fulltext', async () => {
+		const username = 'name@example.com';
+		await dare.post('users', [
+			{
+				username,
+				first_name: "First Old'n'Name",
+				last_name: 'Last-Name',
+			},
+		]);
+
+		// Search across multiple fields
+		{
+			const resp = await dare.get('users', ['username'], {
+				'*username,first_name,last_name': '+Fir* +Las*',
+			});
+			expect(resp).to.have.property('username', username);
+		}
+
+		// And use an alias of the fulltext field
+		{
+			dare.options.models.users.schema.textsearch =
+				'username,first_name,last_name';
+
+			const resp = await dare.get('users', ['username'], {
+				'*textsearch': 'Fir* Las*',
+			});
+			expect(resp).to.have.property('username', username);
+		}
+
+		// And format the search to be compatible with MySQL Fulltext syntax
+
+		// Emails
+		{
+			const resp = await dare.get('users', ['username'], {
+				'*textsearch': username,
+			});
+			expect(resp).to.have.property('username', username);
+		}
+
+		// Hyphens
+		{
+			const resp = await dare.get('users', ['username'], {
+				'*textsearch': '+last-name',
+			});
+			expect(resp).to.have.property('username', username);
+		}
+
+		// Apostrophe's
+		{
+			const resp = await dare.get('users', ['username'], {
+				'*textsearch': "+Old'n'Name",
+			});
+			expect(resp).to.have.property('username', username);
+		}
+	});
 });
