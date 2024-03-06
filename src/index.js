@@ -138,14 +138,26 @@ Dare.prototype.table_alias_handler = function (name) {
 
 Dare.prototype.unique_alias_index = 0;
 
-Dare.prototype.get_unique_alias = function (iterate = 1) {
-	this.unique_alias_index += iterate;
+Dare.prototype.get_unique_alias = function () {
 	const i = this.unique_alias_index;
-	const str = String.fromCharCode(96 + i);
-	if (i <= 26) {
+	const num_characters_in_alphabet = 26;
+	const str = String.fromCharCode(97 + (i % num_characters_in_alphabet));
+	this.unique_alias_index += 1;
+	if (i < num_characters_in_alphabet) {
 		return str;
 	}
-	return `\`${str}\``;
+
+	if (i > num_characters_in_alphabet * num_characters_in_alphabet) {
+		throw new DareError(
+			DareError.INVALID_REQUEST,
+			'Unique Alias Index has exceeded maximum'
+		);
+	}
+
+	const prefix = String.fromCharCode(
+		96 + Math.floor(i / num_characters_in_alphabet)
+	);
+	return `\`${prefix}${str}\``;
 };
 
 // eslint-disable-next-line jsdoc/valid-types
