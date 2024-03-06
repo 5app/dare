@@ -1,3 +1,10 @@
+# [0.83.0](https://github.com/5app/dare/compare/v0.82.3...v0.83.0) (2024-03-06)
+
+
+### Features
+
+* **tableAliases:** use only alphabetical characters, noissue ([99c62ba](https://github.com/5app/dare/commit/99c62ba32575f251a84086d6a3a95c1cc6c67c02))
+
 ## [0.82.3](https://github.com/5app/dare/compare/v0.82.2...v0.82.3) (2024-02-29)
 
 
