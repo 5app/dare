@@ -1,7 +1,19 @@
-/*
+/* eslint-disable jsdoc/valid-types */
+/**
+ * @typedef {import('./field_format.js').FieldFormat} FieldFormat
+ */
+/* eslint-enable jsdoc/valid-types */
+
+/**
  * Generate GROUP_CONCAT statement given an array of fields definitions
  * Label the GROUP CONCAT(..) AS 'address[fields,...]'
  * Wrap all the fields in a GROUP_CONCAT statement
+ *
+ * @param {Array<FieldFormat>} fields - The fields to group
+ * @param {string} address - The address of the fields
+ * @param {string} sql_alias - The SQL alias of the table
+ * @param {string} rowid - The rowid field _rowid
+ * @returns {{expression: string, label: string}} - The field definition and the label
  */
 export default function group_concat(fields, address = '', sql_alias, rowid) {
 	// Is this an aggregate list?

@@ -1,5 +1,22 @@
 import unwrap_expression from './unwrap_field.js';
 
+/**
+ * Field Format
+ * @typedef {object} FieldFormat
+ * @property {string} [original] - The original field expression
+ * @property {string} expression - The field expression
+ * @property {string} label - The label
+ * @property {boolean} [agg] - Is this an aggregate function
+ */
+
+/**
+ * Format a field expression
+ * @param {string} original - The original field expression
+ * @param {string} label - The label
+ * @param {string} table_prefix - The table prefix
+ * @param {string} label_prefix - The label prefix
+ * @returns {FieldFormat} - The field format
+ */
 export default function field_format(
 	original,
 	label,

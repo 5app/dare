@@ -1,7 +1,11 @@
-// Validate POST body
-
 import DareError from './error.js';
 
+/**
+ * Validate the body of a POST request
+ * @param {object} body - The body of the request
+ * @returns {void}
+ * @throws {DareError} - If the body is invalid
+ */
 export default function validate_body(body) {
 	if (
 		!body ||
