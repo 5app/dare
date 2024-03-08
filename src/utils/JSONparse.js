@@ -1,5 +1,11 @@
 // Prevent a bad format from killing the service, instead return undefined
-export default value => {
+
+/**
+ * Parse JSON
+ * @param {string} value - The value to parse
+ * @returns {any} - The parsed value
+ */
+export default function JSONParse(value) {
 	try {
 		// Ensure Buffers are converted..
 		if (Buffer.isBuffer(value)) {
@@ -21,4 +27,4 @@ export default value => {
 	} catch {
 		// Continue
 	}
-};
+}

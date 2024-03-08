@@ -1,3 +1,8 @@
+/**
+ * Format date and time values
+ * @param {string} values - The date and time values
+ * @returns {string} - The formatted date and time values
+ */
 export default function formatDateTime(values) {
 	if (typeof values === 'string') {
 		if (values.indexOf('..') === -1) {

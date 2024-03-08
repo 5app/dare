@@ -2,6 +2,25 @@
 /* eslint-disable prefer-named-capture-group */
 import DareError from './error.js';
 
+/**
+ * Unwrap a field expression to its components
+ * @typedef {object} UnwrappedField
+ * @property {string} [field] - The field expression
+ * @property {string} [field_name] - The field name
+ * @property {string} [field_path] - The field path
+ * @property {string} [prefix] - The prefix
+ * @property {string} [suffix] - The suffix
+ * @property {string} [suffix] - The suffix
+ * @property {string} [value] - The value
+ * @property {string} [direction] - The orderby field direction
+ */
+
+/**
+ * Unwrap a field expression to its components
+ * @param {string} expression - The field expression
+ * @param {boolean} allowValue - Allow a value to be returned
+ * @returns {UnwrappedField} - The unwrapped field or value
+ */
 export default function unwrap_field(expression, allowValue = true) {
 	if (typeof expression === 'string') {
 		let m;

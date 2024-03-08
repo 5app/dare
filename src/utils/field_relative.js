@@ -1,12 +1,13 @@
-// Relative Address
-
-/*
- * Overlap strings
+/**
+ * Join paths
  * Given two strings, e.g. 'this.is.not' and 'is.not.over'
  * Find the over laping section in this case 'is.not'
  * Return the various parts as an array ['this', '.is.not', '.over']
+ * @param {string} a - The first path
+ * @param {string} b - The second path
+ * @returns {string} - The relative path
  */
-export default (a, b) => {
+export default function pathJoin(a, b) {
 	let path = b;
 
 	/*
@@ -27,4 +28,4 @@ export default (a, b) => {
 	}
 
 	return b.slice(path.length);
-};
+}

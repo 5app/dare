@@ -2,6 +2,20 @@ import fieldUnwrap from '../utils/unwrap_field.js';
 import fieldRelativePath from '../utils/field_relative.js';
 import mapReduce from '../utils/map_reduce.js';
 
+/* eslint-disable jsdoc/valid-types */
+/**
+ * @typedef {import('../utils/unwrap_field.js').UnwrappedField} UnwrappedField
+ */
+/* eslint-enable jsdoc/valid-types */
+
+/**
+ * Groupby Reducer
+ * Create a groupby in the associate model
+ * @param {object} options - The options
+ * @param {string} options.current_path - The current path
+ * @param {Function} options.extract - The extract function
+ * @returns {Function} - The reducer
+ */
 export default function groupbyReducer({current_path, extract}) {
 	return mapReduce(field => {
 		// Get the field address
@@ -35,6 +49,12 @@ export default function groupbyReducer({current_path, extract}) {
 	});
 }
 
+/**
+ * Field Wrap
+ * Wrap the field
+ * @param {UnwrappedField} item - The field format
+ * @returns {string} - The wrapped field
+ */
 function fieldWrap(item) {
 	return item.prefix + item.field + item.suffix;
 }

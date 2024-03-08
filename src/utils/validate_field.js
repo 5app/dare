@@ -1,6 +1,12 @@
 import DareError from './error.js';
 import validate_alias from './validate_alias.js';
 
+/**
+ * Validate a field
+ * @param {string} key - The field
+ * @returns {string} - The validated field
+ * @throws {DareError} - If the field is invalid
+ */
 export default function validate_field(key) {
 	const a = key.split('.');
 
