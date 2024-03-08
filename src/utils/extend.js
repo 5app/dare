@@ -5,12 +5,14 @@
  * @param {...object} args - a series of objects to extend
  * @returns {object} extended object
  */
-function extend(base, ...args) {
+export default function extend(base, ...args) {
 	args.forEach(current => {
 		if (
 			!Array.isArray(current) &&
 			base instanceof Object &&
 			current instanceof Object &&
+			!(base instanceof Function) &&
+			!(current instanceof Function) &&
 			base !== current
 		) {
 			for (const x in current) {
@@ -22,5 +24,3 @@ function extend(base, ...args) {
 	});
 	return base;
 }
-
-export default extend;
