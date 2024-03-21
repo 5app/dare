@@ -54,26 +54,37 @@ describe('Working with JSON DataType', () => {
 	/**
 	 * This would allow querying on and exporting values of a JSON object
 	 */
-	it.skip('JSON fields should be explorable and queryable', async () => {
+	it('JSON fields should be queryable', async () => {
 		const username = 'mightyduck';
 
 		await dare.post('users', {username, settings: {a: 1, b: 2}});
 
 		const {settings} = await dare.get({
 			table: 'users',
-			fields: [
-				{
-					settings: ['b'],
-				},
-			],
+			fields: ['settings'],
 			filter: {
 				username,
 				settings: {
+					b: 2,
 					a: 1,
 				},
 			},
 		});
 
 		expect(settings).to.have.property('b', 2);
+
+		const resp = await dare.get({
+			table: 'users',
+			fields: ['settings'],
+			filter: {
+				username,
+				settings: {
+					a: 2,
+				},
+			},
+			notfound: null,
+		});
+
+		expect(resp).to.equal(null);
 	});
 });

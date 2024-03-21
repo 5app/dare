@@ -36,21 +36,26 @@ export default function reduceConditions(
 			value = {[subKey]: value};
 		}
 
-		if (value && typeof value === 'object' && !Array.isArray(value)) {
+		// Format key and validate path
+		const field = checkKey(key);
+
+		const key_definition = table_schema[field];
+
+		if (
+			value &&
+			typeof value === 'object' &&
+			!Array.isArray(value) &&
+			key_definition?.type !== 'json'
+		) {
 			// Check this is a path
 			checkTableAlias(key);
 
 			// Add it to the join table
 			extract(rootKeyRaw, value);
 		} else {
-			// Format key and validate path
-			key = checkKey(key);
-
-			const key_definition = table_schema[key];
-
 			filterArr.push(
 				prepCondition({
-					field: key,
+					field,
 					value,
 					sql_alias,
 					key_definition,
@@ -143,6 +148,15 @@ function prepCondition({
 
 	// Set a handly NOT value
 	const NOT = negate ? raw('NOT ') : empty;
+
+	// JSON
+	if (type === 'json' && typeof value === 'object') {
+		// Loop through the object and create the sql_field
+		const conds = json_contains(sql_field, value);
+
+		// Return a single or a wrapped group
+		return SQL`${NOT}(${join(conds, ' AND ')})`;
+	}
 
 	/*
 	 * Range
@@ -258,4 +272,18 @@ function prepCondition({
 	} else {
 		return SQL`${sql_field} ${raw(negate ? '!' : '')}= ${value}`;
 	}
+}
+
+function json_contains(sql_field, value, path = '$') {
+	const conds = [];
+
+	if (typeof value !== 'object') {
+		return [SQL`${sql_field}->${path} = ${value}`];
+	}
+
+	for (const key in value) {
+		conds.push(...json_contains(sql_field, value[key], `${path}.${key}`));
+	}
+
+	return conds;
 }
