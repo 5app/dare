@@ -1,4 +1,5 @@
 /* eslint quotes: ["error", "single", { "avoidEscape": true, "allowTemplateLiterals": true }]*/
+import {expect} from 'chai';
 
 // Test Generic DB functions
 import group_concat from '../../src/utils/group_concat.js';

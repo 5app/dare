@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 import Dare from '../../src/index.js';
 
 describe('after Handler', () => {
@@ -19,9 +20,6 @@ describe('after Handler', () => {
 						user_id: ['users.id'],
 					},
 				},
-			},
-			meta: {
-				domain_id: 10,
 			},
 		});
 	});

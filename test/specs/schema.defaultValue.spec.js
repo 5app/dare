@@ -1,6 +1,7 @@
+import {expect} from 'chai';
 import Dare from '../../src/index.js';
 
-import fieldAttributes from '../../src/utils/field_attributes.js';
+import getFieldAttributes from '../../src/utils/field_attributes.js';
 
 function spy(obj, func, callback) {
 	const history = [];
@@ -13,6 +14,12 @@ function spy(obj, func, callback) {
 
 describe('schema.defaultValue', () => {
 	let dare;
+
+	const dareInstance = {
+		options: {
+			method: 'get',
+		},
+	};
 
 	beforeEach(() => {
 		// Create a new instance
@@ -31,39 +38,55 @@ describe('schema.defaultValue', () => {
 		});
 	});
 
-	describe('fieldAttributes', () => {
+	describe('getFieldAttributes', () => {
+		const field = 'field';
+
 		it('defaultValue should not occur by default', () => {
-			const attr = fieldAttributes({});
+			const attr = getFieldAttributes(field, {}, dareInstance);
 			expect(attr).to.not.have.property('defaultValue');
 		});
 
-		it('defaultValue object should be passed-through verbatim', () => {
+		// @deprecated defaultValue[method]
+		it('@legacy: defaultValue object should return as a single property', () => {
 			const defaultValue = {
 				post: 'postValue',
 				get: 123,
 				patch: null,
 			};
 
-			const attr = fieldAttributes({defaultValue});
-			expect(attr).to.have.property('defaultValue', defaultValue);
+			const value = defaultValue[dareInstance.options.method];
+
+			const attr = getFieldAttributes(
+				field,
+				{[field]: {defaultValue}},
+				dareInstance
+			);
+			expect(attr).to.have.property('defaultValue', value);
 		});
 
 		[undefined, 1, null, 'string'].forEach(defaultValue => {
 			it(`should expand defaultValue, ${defaultValue}`, () => {
-				const attr = fieldAttributes({defaultValue});
-				expect(attr).to.have.property('defaultValue').to.deep.equal({
-					post: defaultValue,
-					get: defaultValue,
-					patch: defaultValue,
-					del: defaultValue,
-				});
+				const attr = getFieldAttributes(
+					field,
+					{
+						[field]: {
+							post: {defaultValue},
+							get: {defaultValue},
+							patch: {defaultValue},
+							del: {defaultValue},
+						},
+					},
+					dareInstance
+				);
+				expect(attr).to.have.property('defaultValue', defaultValue);
 			});
 		});
 	});
 
 	describe('formatRequest', () => {
 		['get', 'post', 'patch', 'del'].forEach(method => {
-			it(`should add as a join filter in formatRequest for ${method}`, async () => {
+			// @deprecated defaultValue[method]
+			it(`@legacy: should add as a join filter in formatRequest for ${method}`, async () => {
 				const value = method;
 
 				// Update dare instance
@@ -80,6 +103,24 @@ describe('schema.defaultValue', () => {
 				});
 
 				expect(resp.join).to.have.property('status', value);
+			});
+			it(`should add as a join filter in formatRequest for ${method}`, async () => {
+				const defaultValue = method;
+
+				// Update dare instance
+				dare.options.method = method;
+
+				// Set the default value for the method
+				dare.options.models.mytable.schema.status = {
+					[method]: {defaultValue},
+				};
+
+				const resp = await dare.format_request({
+					table: 'mytable',
+					fields: ['id', 'name'],
+				});
+
+				expect(resp.join).to.have.property('status', defaultValue);
 			});
 		});
 	});
@@ -108,6 +149,26 @@ describe('schema.defaultValue', () => {
 			const [{sql, values}] = history.at(0);
 			expect(sql).to.include('`status`');
 			expect(values).to.include('overridden');
+		});
+
+		it('should be overrideable, even with different formatting', async () => {
+			const history = spy(dare, 'execute', () => ({}));
+
+			// Lowercase field definitions
+			dare = dare.use({
+				getFieldKey: field => field.toLowerCase(),
+			});
+
+			await dare.post('mytable', {
+				title: 'hello',
+				Status: 'overridden',
+			});
+
+			const [{sql, values}] = history.at(0);
+			expect(sql).to.include('`status`');
+			expect(sql).to.not.include('Status');
+			expect(values).to.include('overridden');
+			expect(values).to.not.include('active');
 		});
 
 		it('should be removed', async () => {
@@ -153,7 +214,8 @@ describe('schema.defaultValue', () => {
 
 	describe('DEL/GET/PATCH', () => {
 		['get', 'patch', 'del'].forEach(method => {
-			it(`should add WHERE condition for the dare.${method}() call`, async () => {
+			// @deprecated defaultValue[method]
+			it(`@legacy: should add WHERE condition for the dare.${method}() call`, async () => {
 				const value = method;
 
 				// Set the default value for the method
@@ -176,12 +238,12 @@ describe('schema.defaultValue', () => {
 				expect(values).to.include(method);
 			});
 
-			it(`should be overideable within a dare.${method}() call`, async () => {
-				const value = method;
+			it(`should add WHERE condition for the dare.${method}() call`, async () => {
+				const defaultValue = method;
 
 				// Set the default value for the method
 				dare.options.models.mytable.schema.status = {
-					defaultValue: {[method]: value},
+					[method]: {defaultValue},
 				};
 
 				const history = spy(dare, 'execute', () => []);
@@ -190,44 +252,99 @@ describe('schema.defaultValue', () => {
 					table: 'mytable',
 					fields: ['id', 'name'],
 					body: {name: 'newvalue'},
-					filter: {status: 'boom'},
 					notfound: null,
 				});
 
 				const [{sql, values}] = history.at(0);
 
 				expect(sql).to.include('status = ');
-				expect(values).to.not.include(method);
-				expect(values).to.include('boom');
+				expect(values).to.include(defaultValue);
 			});
 
-			it(`should be undefinedable within a dare.${method}() call`, async () => {
-				const value = method;
+			['filter', 'join'].forEach(condition => {
+				it(`should be overideable within a dare.${method}() call '${condition}'`, async () => {
+					const defaultValue = method;
 
-				// Set the default value for the method
-				dare.options.models.mytable.schema.status = {
-					defaultValue: {[method]: value},
-				};
+					// Set the default value for the method
+					dare.options.models.mytable.schema.status = {
+						[method]: {defaultValue},
+					};
 
-				const history = spy(dare, 'execute', () => []);
+					const history = spy(dare, 'execute', () => []);
 
-				await dare[method]({
-					table: 'mytable',
-					fields: ['id', 'name'],
-					body: {name: 'newvalue'},
-					filter: {status: undefined},
-					notfound: null,
+					await dare[method]({
+						table: 'mytable',
+						fields: ['id', 'name'],
+						body: {name: 'newvalue'},
+						[condition]: {status: 'boom'},
+						notfound: null,
+					});
+
+					const [{sql, values}] = history.at(0);
+
+					expect(sql).to.include('status = ');
+					expect(values).to.not.include(defaultValue);
+					expect(values).to.include('boom');
 				});
 
-				const [{sql, values}] = history.at(0);
+				it(`should be overideable within a dare.${method}() call '${condition}' using an alias`, async () => {
+					const defaultValue = method;
 
-				/*
-				 * TODO: Should not include filters where the values are undefined
-				 * This should be akin to removing the defaultValue too
-				 */
-				expect(sql).to.include('status = ');
-				expect(values).to.not.include(method);
-				expect(values).to.include(undefined);
+					// Set the default value for the method
+					dare.options.models.mytable.schema.status = {
+						[method]: {defaultValue},
+					};
+
+					// Lowercase field definitions
+					dare = dare.use({
+						getFieldKey: field => field.toLowerCase(),
+					});
+
+					const history = spy(dare, 'execute', () => []);
+
+					await dare[method]({
+						table: 'mytable',
+						fields: ['id', 'name'],
+						body: {name: 'newvalue'},
+						[condition]: {Status: 'boom'},
+						notfound: null,
+					});
+
+					const [{sql, values}] = history.at(0);
+
+					expect(sql).to.include('status = ');
+					expect(values).to.not.include(defaultValue);
+					expect(values).to.include('boom');
+				});
+
+				it(`should be undefinedable within a dare.${method}() call '${condition}'`, async () => {
+					const defaultValue = method;
+
+					// Set the default value for the method
+					dare.options.models.mytable.schema.status = {
+						[method]: {defaultValue},
+					};
+
+					const history = spy(dare, 'execute', () => []);
+
+					await dare[method]({
+						table: 'mytable',
+						fields: ['id', 'name'],
+						body: {name: 'newvalue'},
+						[condition]: {status: undefined},
+						notfound: null,
+					});
+
+					const [{sql, values}] = history.at(0);
+
+					/*
+					 * TODO: Should not include filters where the values are undefined
+					 * This should be akin to removing the defaultValue too
+					 */
+					expect(sql).to.include('status = ');
+					expect(values).to.not.include(defaultValue);
+					expect(values).to.include(undefined);
+				});
 			});
 		});
 	});

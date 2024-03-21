@@ -9,7 +9,6 @@ import db from '../helpers/db.js';
  * And so would create a new instance of helpers/db on each run of the tests
  * In order to reference the same instance of helpers/db it is defined as a global here.
  */
-global.db = db;
 
 const {
 	MYSQL_HOST = 'mysql',
@@ -25,7 +24,7 @@ const {
 const mysqlSettings = {
 	host: MYSQL_HOST,
 	user: MYSQL_USER,
-	port: MYSQL_PORT,
+	port: +MYSQL_PORT,
 	password: MYSQL_PASSWORD,
 };
 
@@ -40,13 +39,14 @@ let TABLE_NAME = 'table_name';
 /**
  * Environment specific changes...
  */
+// @ts-ignore
 if (MYSQL_VERSION.match(/\d+/)?.[0] >= 8) {
 	TABLE_NAME = TABLE_NAME.toUpperCase();
 }
 
 /**
  * Reset Database - Truncate Tables
- * @returns {void}
+ * @returns {Promise<void>}
  */
 async function resetDbState() {
 	const truncateTablesSql = `${dbTables
@@ -63,7 +63,7 @@ SET FOREIGN_KEY_CHECKS=1;
 
 /**
  * Create new DB
- * @returns {void}
+ * @returns {Promise<void>}
  */
 async function createNewDb() {
 	if (dbConn) {
@@ -90,6 +90,7 @@ async function createNewDb() {
 		WHERE table_schema = "${dbName}"
 	`);
 
+	// @ts-ignore
 	dbTables = tables;
 }
 
@@ -102,7 +103,7 @@ const mochaHooks = {
 		await createNewDb();
 
 		// Initiate the global database connection
-		await global.db.init({
+		await db.init({
 			...mysqlSettings,
 			database: dbName,
 		});
@@ -113,7 +114,7 @@ const mochaHooks = {
 	},
 	async afterAll() {
 		await dbConn.end();
-		await global.db.end();
+		await db.end();
 	},
 };
 

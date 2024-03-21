@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 import Dare from '../../src/index.js';
 
 describe('get_unique_alias', () => {

@@ -1,11 +1,10 @@
 import Dare, {DareError} from '../../src/index.js';
 import Debug from 'debug';
+import {expect} from 'chai';
 import mysql from 'mysql2/promise';
-import {options} from './helpers/api.js';
-
+import db from './helpers/db.js';
+import {options, castToStringIfNeeded} from './helpers/api.js';
 const debug = Debug('sql');
-
-const {db} = global;
 
 // Connect to db
 
@@ -92,12 +91,6 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 			team_id: team.insertId,
 		});
 
-		// eslint-disable-next-line func-style
-		let wrapper = a => a;
-		if (process.env.MYSQL_VERSION === '5.6') {
-			wrapper = a => (a === null ? '' : String(a));
-		}
-
 		{
 			// Same Structure
 			const resp = await dare.get({
@@ -113,9 +106,9 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 
 			expect(resp).to.deep.nested.include({
 				'userTeams[0].teams': {
-					id: wrapper(team.insertId),
+					id: castToStringIfNeeded(team.insertId),
 					name: teamName,
-					description: wrapper(null),
+					description: castToStringIfNeeded(null),
 				},
 			});
 		}
@@ -160,9 +153,9 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 			});
 
 			expect(resp).to.deep.nested.equal({
-				id: wrapper(team.insertId),
+				id: castToStringIfNeeded(team.insertId),
 				name: teamName,
-				description: wrapper(null),
+				description: castToStringIfNeeded(null),
 			});
 		}
 
@@ -184,6 +177,62 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 			});
 
 			expect(resp).to.deep.nested.equal({});
+		}
+	});
+
+	it('Can search via fulltext', async () => {
+		const username = 'name@example.com';
+		await dare.post('users', [
+			{
+				username,
+				first_name: "First Old'n'Name",
+				last_name: 'Last-Name',
+			},
+		]);
+
+		// Search across multiple fields
+		{
+			const resp = await dare.get('users', ['username'], {
+				'*username,first_name,last_name': '+Fir* +Las*',
+			});
+			expect(resp).to.have.property('username', username);
+		}
+
+		// And use an alias of the fulltext field
+		{
+			dare.options.models.users.schema.textsearch =
+				'username,first_name,last_name';
+
+			const resp = await dare.get('users', ['username'], {
+				'*textsearch': 'Fir* Las*',
+			});
+			expect(resp).to.have.property('username', username);
+		}
+
+		// And format the search to be compatible with MySQL Fulltext syntax
+
+		// Emails
+		{
+			const resp = await dare.get('users', ['username'], {
+				'*textsearch': username,
+			});
+			expect(resp).to.have.property('username', username);
+		}
+
+		// Hyphens
+		{
+			const resp = await dare.get('users', ['username'], {
+				'*textsearch': '+last-name',
+			});
+			expect(resp).to.have.property('username', username);
+		}
+
+		// Apostrophe's
+		{
+			const resp = await dare.get('users', ['username'], {
+				'*textsearch': "+Old'n'Name",
+			});
+			expect(resp).to.have.property('username', username);
 		}
 	});
 });

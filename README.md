@@ -236,21 +236,23 @@ Prefixing the prop with:
 -   `-`: hyhen negates the value
 -   `~`: creates a range
 
-| Key     | Value                    | Type          | = SQL Condition                                                                                                                             |
-| ------- | ------------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| id      | 1                        | number        | `id = 1`                                                                                                                                    |
-| name    | 'Andrew'                 | string        | `name = 'Andrew'`                                                                                                                           |
-| %name   | 'And%'                   | Pattern       | `name LIKE 'And%'`                                                                                                                          |
-| -%name  | 'And%'                   | Pattern       | `name NOT LIKE 'And%'`                                                                                                                      |
-| name$1  | any                      | any           | e.g. `name LIKE '%And%` $suffixing gives `name` alternative unique object key values, useful when writing `name LIKE %X% AND name LIKE %Y%` |
-| tag     | [1, 'a']                 | Array values  | `tag IN (1, 'a')`                                                                                                                           |
-| -tag    | [1, 'a']                 | Array values  | `tag NOT IN (1, 'a')`                                                                                                                       |
-| -status | ['deleted', null]        | Array values  | `(status NOT IN ('deleted') AND status IS NOT NULL)` Mixed type including `null`                                                            |
-| ~date   | '2016-03-04T16:08:32Z..' | Greater than  | `date > '2016-03-04T16:08:32Z'`                                                                                                             |
-| ~date   | '2016-03-04..2016-03-05' | Between       | `date BETWEEN '2016-03-04' AND '2016-03-05'`                                                                                                |
-| -~date  | '2016-03-04..'           | !Greater than | `(NOT date > '2016-03-04T00:00:00' OR date IS NULL)`                                                                                        |
-| flag    | null                     | null          | `flag IS NULL`                                                                                                                              |
-| -flag   | null                     | null          | `flag IS NOT NULL`                                                                                                                          |
+| Key        | Value                    | Type          | = SQL Condition                                                                                                                             |
+| ---------- | ------------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| id         | 1                        | number        | `id = 1`                                                                                                                                    |
+| name       | 'Andrew'                 | string        | `name = 'Andrew'`                                                                                                                           |
+| %name      | 'And%'                   | Pattern       | `name LIKE 'And%'`                                                                                                                          |
+| -%name     | 'And%'                   | Pattern       | `name NOT LIKE 'And%'`                                                                                                                      |
+| name$1     | any                      | any           | e.g. `name LIKE '%And%` $suffixing gives `name` alternative unique object key values, useful when writing `name LIKE %X% AND name LIKE %Y%` |
+| tag        | [1, 'a']                 | Array values  | `tag IN (1, 'a')`                                                                                                                           |
+| -tag       | [1, 'a']                 | Array values  | `tag NOT IN (1, 'a')`                                                                                                                       |
+| -status    | ['deleted', null]        | Array values  | `(status NOT IN ('deleted') AND status IS NOT NULL)` Mixed type including `null`                                                            |
+| ~date      | '2016-03-04T16:08:32Z..' | Greater than  | `date > '2016-03-04T16:08:32Z'`                                                                                                             |
+| ~date      | '2016-03-04..2016-03-05' | Between       | `date BETWEEN '2016-03-04' AND '2016-03-05'`                                                                                                |
+| -~date     | '2016-03-04..'           | !Greater than | `(NOT date > '2016-03-04T00:00:00' OR date IS NULL)`                                                                                        |
+| flag       | null                     | null          | `flag IS NULL`                                                                                                                              |
+| -flag      | null                     | null          | `flag IS NOT NULL`                                                                                                                          |
+| \*text     | '+And\*'                 | Pattern       | `MATCH(text) AGAINST('+And*' IN BOOLEAN MODE)`                                                                                              |
+| name,email | 'hello'                  | any           | `(name = 'hello' OR email = 'hello')`                                                                                                       |
 
 #### Negate entire joins (i.e. NOT EXISTS)
 
@@ -641,16 +643,17 @@ Can define how a field corresponds to a DB table field, whether it's readable/wr
 
 Defining a field attribute, can be verbose using an object with special keys, or can be shorthanded with specific datatypes
 
-| Property       | Attr Example                               | Shorthand DataType | ShortHand Example           | Description                                                        |
-| -------------- | ------------------------------------------ | ------------------ | --------------------------- | ------------------------------------------------------------------ |
-| `references`   | e.g. `{references: ['country.id']}`        | `Array`            | `county_id: ['country.id']` | Relationship with other models                                     |
-| `alias`        | e.g. `{alias: 'email'}`                    | `String`           | `emailAddress: 'email'`     | Alias a field with a DB Table field                                |
-| `handler`      | e.g. `{handler: Function}`                 | `Function`         | `url: urlFunction`          | Generated Field                                                    |
-| `type`         | e.g. `{type: 'json'}`                      | na                 | na                          | Type of data in field, this has various uses.                      |
-| `defaultValue` | e.g. `{defaultValue: 'active'}`            | na                 | na                          | Default Value to insert during post, and filter with get/patch/del |
-| `readable`     | e.g. `{readable: false}`                   | na                 | na                          | Disables/Enables request access to a field                         |
-| `writeable`    | e.g. `{writeable: false}`                  | na                 | na                          | Disables/Enables write access to a field                           |
-| na             | e.g. `{writeable: false: readable: false}` | `Boolean`          | `{password: false}`         | Disables/Enables both write and read access to a field             |
+| Property                      | Attr Example                                                      | Shorthand DataType | ShortHand Example           | Description                                                        |
+| ----------------------------- | ----------------------------------------------------------------- | ------------------ | --------------------------- | ------------------------------------------------------------------ |
+| `references`                  | e.g. `{references: ['country.id']}`                               | `Array`            | `county_id: ['country.id']` | Relationship with other models                                     |
+| `alias`                       | e.g. `{alias: 'email'}`                                           | `String`           | `emailAddress: 'email'`     | Alias a field with a DB Table field                                |
+| `handler`                     | e.g. `{handler: Function}`                                        | `Function`         | `url: urlFunction`          | Generated Field                                                    |
+| `type`                        | e.g. `{type: 'json'}`                                             | na                 | na                          | Type of data in field, this has various uses.                      |
+| `defaultValue`                | e.g. `{defaultValue: 'active'}`                                   | na                 | na                          | Default Value to insert during post, and filter with get/patch/del |
+| `readable`                    | e.g. `{readable: false}`                                          | na                 | na                          | Disables/Enables request access to a field                         |
+| `writeable`                   | e.g. `{writeable: false}`                                         | na                 | na                          | Disables/Enables write access to a field                           |
+| na                            | e.g. `{writeable: false: readable: false}`                        | `Boolean`          | `{password: false}`         | Disables/Enables both write and read access to a field             |
+| `get`, `post`, `patch`, `del` | e.g. `{get: {defaultValue: 'active'}, patch: {writeable: false}}` | na                 |                             | Extends the existing fieldDefinition based upon the method used    |
 
 Fields dont need to be explicitly defined in the `options.models.*tbl*.schema` where they map one to one with a DB table fields the request will just go through verbatim.
 
@@ -836,17 +839,19 @@ However an error will throw if attempting to set a value to such an alias.
 
 Defining the `defaultValue` introduces default conditions or values when querying or inserting records respectively.
 
-`defaultValue` can be any value supported by the context it is used. If `defaultValue` is not an object, it will be applied to all operations, "methods" (`get`, `post`, `patch` and `del`). However when `defaultValue` is defined as an object, then the properties of the object matching the method will be used.
+`defaultValue` can be any value supported by the context it is used. And it might be useful to use fieldDefinition extensions based
 
 e.g we can define what `defaultValue` is used in various scenarios:
 
 ```js
-defaultValue: {
-	get: 'active', // Includes `= 'active'` to `.get` filter conditions.
-	post: 'active', // Inserts `active` into new records
-	del: 'inactive', // Includes `= 'inactive'` to `.del` filter conditions.
-	// patch: is undefined and wont apply any default values
-}
+// GET (defaultValue = active), adds condition
+filter[prop] = defaultValue;
+
+// POST (defaultValue = active)
+body[prop] = defaultValue;
+
+// Del (defaultValue = active)
+filter[prop] = defaultValue;
 ```
 
 **`defaultValue`**
@@ -907,6 +912,85 @@ Or when trying to modify a field through `post` or `patch` methods, e.g.
 ```js
 await dare.patch('users', {id: 321}, {id: 1337});
 // throws {code: INVALID_REFERENCE}
+```
+
+#### Field attribute `[method]: Object`
+
+A key with name like (`post`, `patch`, `get` and `del`) with a value containing Field Definitions. Can override requests with methods of the same key name.
+
+For example:
+
+```js
+const dare = new Dare({
+	models: {
+		users: {
+			schema: {
+				/**
+				 * Should you want a field to be writeable only on `post`, but not writeable on any other operation you could write...
+				 */
+				name: {
+					writeable: false,
+					post: {
+						writeable: true,
+					},
+				},
+
+				/**
+				 * defaultValue: apply only on `get` requests
+				 */
+				status: {
+					get: {
+						defaultValue: 'active',
+					},
+				},
+			},
+		},
+	},
+});
+```
+
+## `model.shortcut_map`
+
+`shortcut_map`, can be used to define shortcut's to nested tables
+
+```js
+const dare = dare.use({
+	infer_intermediate_joins: false, // A 'shortcut' can be used to replace infer_intermediate_joins
+
+	models: {
+		users: {
+			shortcut_map: {
+				myTeams: 'userTeams.team',
+			},
+		},
+	},
+});
+```
+
+The definition above will help simplify references to the `teams` model.
+
+```js
+const resp = await dare.get({
+	table: 'users',
+	fields: [
+		{
+			// Direct link to userTeams, automatically uses pivot table userTeams
+			myTeams: ['id', 'name'],
+		},
+	],
+	join: {
+		myTeams: {
+			'%name': '%team%',
+		},
+	},
+});
+// SELECT CONCAT('[', GROUP_CONCAT(IF(c._rowid IS NOT NULL, JSON_ARRAY(c.id,c.name), NULL)), ']') AS 'myTeams[id,name]'
+// FROM users a
+// LEFT JOIN userTeams b ON (b.user_id = a.id)
+// LEFT JOIN teams c ON (c.id = b.team_id)
+// WHERE c.name LIKE '%team%'
+// GROUP BY a._rowid
+// LIMIT 1
 ```
 
 ## `model.get`
@@ -1062,6 +1146,45 @@ dare.post('emails', {hello: "What's this?"});
 // Someone should write field definitions for hello 👉`
 ```
 
+# `options.getFieldKey`
+
+The `options.getFieldKey` is used to obtain the correct schema field definition and SQL field name. This can be useful when allowing queries to be written in camelCase, but where the fields and the schema use snake_case.
+
+e.g.
+
+```js
+// Create a new dare instance
+dare = dare.use({
+	getFieldKey(field, schema) {
+		// Normal
+		if (field in schema) {
+			return field;
+		}
+		// Convert camelCase to snake_case
+		const snakeCase = field.replaceAll(
+			/[A-Z]+/g,
+			(m, index) => `${index > 0 ? '_' : ''}${m.toLowerCase()}`
+		);
+		if (snakeCase in schema) {
+			return snakeCase;
+		}
+
+		return field;
+	},
+});
+
+// CamelCase parameters here...
+await dare.patch('users', {lastName}, {firstName});
+
+// Get's mapped to snake_case parameters here
+//  UPDATE users a
+// 	SET
+// 		a.`first_name` = 'B'
+// 	WHERE
+// 		a.last_name = 'Name'
+// 	LIMIT 1
+```
+
 # `options.rowHandler`
 
 The `options.rowHandler` can be used to additionally preformat the response array, whilst it's already iterating on the response, or to redirect the records to another service (When this is used with [Streaming](#Streaming) it can drastically reduce the memory used by Dare).
@@ -1142,6 +1265,52 @@ await dare.get({
 ```
 
 # Additional Options
+
+## Fulltext Search
+
+Dare support MySQL's FullText search syntax. The `*` symbol preceeding the key in a condition denote _compare using a fulltext search syntax_.
+
+A prerequirement for FullText Search is that the corresponding FullText Index has been created for the fields being accessed.
+
+i.e.
+
+```js
+await dare.get({
+	table: 'users',
+	fields: ['name'],
+	filter: {
+		'*name': 'Andrew',
+	},
+});
+// SELECT name FROM users WHERE MATCH(name) AGAINST ('Andrew' IN BOOLEAN MODE)
+```
+
+The approach also supports multiple field definitions in the key, i.e.
+
+```js
+  filter: {
+	'*name,email': 'Andrew',
+  }
+// SELECT name FROM users WHERE MATCH(name, email) AGAINST ('Andrew' IN BOOLEAN MODE)
+```
+
+> [!NOTE]
+> It might be handy to create a new field in the Model Schema which aliases all the Indexed fields, i.e...
+>
+> ```js
+> schema: {
+> 	textsearch: 'name,email';
+> }
+> ```
+>
+> Now the filter would just call the alias name, and there's only one place to change it.
+>
+> ```js
+>  filter: {
+> 	'*textsearch': 'Andrew',
+>  }
+> // SELECT name FROM users WHERE MATCH(name, email) AGAINST ('Andrew' IN BOOLEAN MODE)
+> ```
 
 ## Multiple joins/filters on the same table
 

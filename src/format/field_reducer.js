@@ -6,6 +6,7 @@ import fieldRelativePath from '../utils/field_relative.js';
 import getFieldAttributes from '../utils/field_attributes.js';
 import jsonParse from '../utils/JSONparse.js';
 
+/* eslint-disable jsdoc/valid-types */
 /**
  * Return a reducer function deriving local props and nested props
  * @param {object} opts - Options
@@ -13,8 +14,9 @@ import jsonParse from '../utils/JSONparse.js';
  * @param {Function} opts.extract - Function for handling the extraction of content
  * @param {object} opts.table_schema - Table schema/Data model
  * @param {object} opts.dareInstance - Instance of Dare which is calling this
- * @returns {Function} Fields Reducer function
+ * @returns {(fieldsArray: array, field: string | object, index: number, originalArray: array) => array} Fields Reducer function
  */
+/* eslint-enable jsdoc/valid-types */
 export default function fieldReducer({
 	field_alias_path,
 	extract,
@@ -114,7 +116,7 @@ export default function fieldReducer({
  *
  * @param {object} opts - Object
  * @param {string} opts.field - Field expression
- * @param {string|null} opts.label - Optional label, or null
+ * @param {string} [opts.label] - Optional label, or null
  * @param {Array} opts.fieldsArray - The current constructed array of fields
  * @param {Array} opts.originalArray - The original fields array as requested
  * @param {string} opts.field_alias_path - Current address path of the resource
@@ -195,7 +197,9 @@ function fieldMapping({
 
 	// Get the schema entry for the field
 	const {handler, alias, type, readable} = getFieldAttributes(
-		table_schema[field_name]
+		field_name,
+		table_schema,
+		dareInstance
 	);
 
 	// Is this readable?
@@ -351,7 +355,7 @@ function arrayDiff(a, b) {
  * If model path is `picture` and the request path is `url`, then the target path is just `picture`
  * @param {string} modelPath - Model Path
  * @param {string} requestPath - Request Path (incl. field)
- * @returns {string} Target path
+ * @returns {Array<string>} Target path
  */
 export function getTargetPath(modelPath, requestPath) {
 	// Remove the field from the request Path

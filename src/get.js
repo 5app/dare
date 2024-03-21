@@ -4,11 +4,11 @@ import field_format from './utils/field_format.js';
 import orderbyUnwrap from './utils/orderby_unwrap.js';
 import SQL, {Sql, raw, join, empty} from 'sql-template-tag';
 
-function optionalJoin(...params) {
-	if (!params.at(0).length) {
+function optionalJoin(arr, joiner, prefix) {
+	if (!arr.length) {
 		return empty;
 	} else {
-		return join(...params);
+		return join(arr, joiner, prefix);
 	}
 }
 
@@ -75,7 +75,7 @@ export default function buildQuery(opts, dareInstance) {
 	let alias;
 
 	if (opts.negate && fields.length === 0) {
-		sql_fields = [raw(1)];
+		sql_fields = [raw('1')];
 	} else if (is_subquery) {
 		// Generate a Group Concat statement of the result
 		const address =
@@ -151,7 +151,7 @@ export default function buildQuery(opts, dareInstance) {
 			opts.limit
 				? SQL`LIMIT ${opts.start ? raw(`${opts.start},`) : empty}${raw(
 						opts.limit
-				  )}`
+					)}`
 				: empty
 		}
 	`;

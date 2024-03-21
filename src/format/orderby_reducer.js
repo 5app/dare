@@ -4,7 +4,7 @@ import mapReduce from '../utils/map_reduce.js';
 import orderbyUnwrap from '../utils/orderby_unwrap.js';
 import getFieldAttributes from '../utils/field_attributes.js';
 
-export default ({current_path, extract, table_schema}) =>
+export default ({current_path, extract, table_schema, dareInstance}) =>
 	mapReduce(entry => {
 		let field = entry;
 		let direction = '';
@@ -27,7 +27,11 @@ export default ({current_path, extract, table_schema}) =>
 
 		if (address_split.length <= 1) {
 			// Get the alias
-			const {alias} = getFieldAttributes(table_schema[item.field_name]);
+			const {alias} = getFieldAttributes(
+				item.field_name,
+				table_schema,
+				dareInstance
+			);
 
 			if (alias) {
 				// This is an alias column, override the field

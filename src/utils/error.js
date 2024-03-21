@@ -33,8 +33,15 @@ class DareError extends Error {
 	}
 }
 
-export default DareError;
+DareError.ER_DUP_ENTRY = 'ER_DUP_ENTRY';
+DareError.ER_NO_DEFAULT_FOR_FIELD = 'ER_NO_DEFAULT_FOR_FIELD';
+DareError.INVALID_IMPLEMENTATION = 'INVALID_IMPLEMENTATION';
+DareError.INVALID_LIMIT = 'INVALID_LIMIT';
+DareError.INVALID_REFERENCE = 'INVALID_REFERENCE';
+DareError.INVALID_REQUEST = 'INVALID_REQUEST';
+DareError.INVALID_SETUP = 'INVALID_SETUP';
+DareError.INVALID_START = 'INVALID_START';
+DareError.INVALID_VALUE = 'INVALID_VALUE';
+DareError.NOT_FOUND = 'NOT_FOUND';
 
-for (const x in SQL_ERROR_STATUSCODES) {
-	DareError[x] = x;
-}
+export default DareError;

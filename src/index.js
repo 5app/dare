@@ -16,6 +16,58 @@ import format_request from './format_request.js';
 
 import response_handler, {responseRowHandler} from './response_handler.js';
 
+/* eslint-disable jsdoc/valid-types */
+/**
+ * @typedef {import('sql-template-tag').Sql} Sql
+ *
+ * @typedef {object} Model
+ * @property {Object<string, object | Function | Array<string> | string | null | boolean>} [schema] - Model Schema
+ * @property {string} [table] - Alias for the table
+ * @property {Object<string, string>} [shortcut_map] - Shortcut map
+ * @property {Function} [get] - Get handler
+ * @property {Function} [post] - Post handler
+ * @property {Function} [patch] - Patch handler
+ * @property {Function} [del] - Delete handler
+ *
+ * @typedef {object} RequestObject
+ * @property {string} [table] - Name of the table to query
+ * @property {Array} [fields] - Fields array to return
+ * @property {object} [filter] - Filter Object to query
+ * @property {object} [join] - Place filters on the joining tables
+ * @property {object} [body] - Body containing new data
+ * @property {RequestObject} [query] - Query attached to a post request to create INSERT...SELECT operations
+ * @property {number} [limit] - Number of items to return
+ * @property {number} [start] - Number of items to skip
+ * @property {string | string[]} [orderby] - Array of fields to order by
+ * @property {string | string[]} [groupby] - Field to group by
+ * @property {string} [duplicate_keys] - 'ignore' to prevent throwing Duplicate key errors
+ * @property {string[]} [duplicate_keys_update] - An array of fields to update on presence of duplicate key constraints
+ * @property {*} [notfound] - If not undefined will be returned in case of a single entry not found
+ * @property {Object<string, Model>} [models] - Models with schema defintitions
+ * @property {Function} [validateInput] - Validate input
+ * @property {boolean} [infer_intermediate_models] - Infer intermediate models
+ * @property {Function} [rowHandler] - Override default Function to handle each row
+ * @property {Function} [getFieldKey] - Override default Function to interpret the field key
+ * @property {string} [conditional_operators_in_value] - Allowable conditional operators in value
+ * @property {any} [state] - Arbitary data to carry through to the model/response handlers
+ *
+ * @typedef {object} InternalProps
+ * @property {'post' | 'get' | 'patch' | 'del'} [method] - Method to use
+ * @property {string} [name] - Model Name derived
+ * @property {boolean} [single] - Return a single item
+ * @property {boolean} [skip] - Skip the request
+ * @property {string} [alias] - Alias for the table
+ * @property {boolean} [countRows] - Count all rows
+ * @property {string} [sql_table] - SQL Table
+ * @property {string} [sql_alias] - SQL Alias
+ * @property {Array} [sql_joins] - SQL Join
+ * @property {string} [ignore] - SQL Fields
+ * @property {Array} [sql_where_conditions] - SQL Where conditions
+ *
+ * @typedef {RequestObject & InternalProps} QueryOptions
+ */
+/* eslint-enable jsdoc/valid-types */
+
 /*
  * Export Dare Error object
  */
@@ -25,8 +77,8 @@ export {DareError};
  * Dare
  * Sets up a new instance of Dare
  *
- * @param {object} options - Initial options defining the instance
- * @returns {object} instance of dare
+ * @param {QueryOptions} options - Initial options defining the instance
+ * @returns {Dare} instance of dare
  */
 function Dare(options = {}) {
 	// Overwrite default properties
@@ -41,7 +93,13 @@ export default Dare;
 Dare.DareError = DareError;
 
 // Set default function
-Dare.prototype.execute = async () => {
+/**
+ * Set default execution handler
+ * @param {object} requestQuery - Request object
+ * @returns {Promise<object>} Response
+ */
+// eslint-disable-next-line no-unused-vars
+Dare.prototype.execute = async requestQuery => {
 	throw new DareError(
 		DareError.INVALID_SETUP,
 		'Define dare.execute to continue'
@@ -49,15 +107,22 @@ Dare.prototype.execute = async () => {
 };
 
 // Group concat
+/** @type {string} */
 Dare.prototype.group_concat = '$$';
 
 // Rowid, name of primary key field used in grouping operations
+/** @type {string} */
 Dare.prototype.rowid = '_rowid';
 
 // Set the Max Limit for SELECT statements
+/** @type {number} */
 Dare.prototype.MAX_LIMIT = null;
 
+// Capture the generated field functions to run after the request
+Dare.prototype.generated_fields = [];
+
 // Default options
+/** @type {Partial<QueryOptions>} */
 Dare.prototype.options = {
 	// Infer intermediate tables when two models are not directly linked
 	infer_intermediate_models: true,
@@ -83,17 +148,88 @@ Dare.prototype.get_unique_alias = function (iterate = 1) {
 	return `\`${str}\``;
 };
 
+// eslint-disable-next-line jsdoc/valid-types
+/** @type {(options: QueryOptions) => Promise<QueryOptions>} */
 Dare.prototype.format_request = format_request;
 
 Dare.prototype.response_handler = response_handler;
 
 /**
+ * GetFieldKey
+ * @param {string} field - Field
+ * @param {object} schema - Model Schema
+ * @returns {string | void} Field Key
+ */
+// eslint-disable-next-line no-unused-vars
+Dare.prototype.getFieldKey = function getFieldKey(field, schema) {
+	// Do nothing, default is to set it to same as field
+};
+
+/**
+ * Fulltext Parser
+ * This will format a string to make it compliant with MySQL Fulltext search
+ * Such as wrapping special characters in quotes where they appear in the middle of words
+ * Removing any trailing '*' characters which succeed a quoted string
+ * e.g. `+test@example.com*` becomes `+"test@example.com"`
+ * @param {string} input - Input string
+ * @returns {string} Formatted string
+ */
+Dare.prototype.fulltextParser = function fulltextParser(input) {
+	function safequote(text) {
+		let suffix = '';
+
+		if (text.endsWith('*')) {
+			suffix = '*';
+			text = text.slice(0, -1);
+		}
+
+		if (text.match(/['@-]/)) {
+			return `"${text}"`;
+		}
+		return text + suffix;
+	}
+
+	if (typeof input !== 'string' || input === '') {
+		throw new DareError(
+			DareError.INVALID_REQUEST,
+			'Fulltext input must be a string'
+		);
+	}
+
+	// Replace any special characters with quotes
+	const resp = input.matchAll(
+		/\s*(?<sign>[+<>~-]?)(?:\((?<subexpression>.*?)\)|(?<quoted>".*?")|(?<unquoted>\S+))(?<suffix>\*?)/g
+	);
+	const output = [...resp]
+		.filter(({groups: {subexpression, quoted, unquoted}}) =>
+			quoted
+				? quoted.length > 2
+				: subexpression || unquoted.replace(/^[*+-]+/, '')
+		)
+		.map(({groups: {sign, subexpression, quoted, unquoted, suffix}}) => {
+			if (subexpression) {
+				return `${sign}(${this.fulltextParser(subexpression)})`;
+			} else if (quoted) {
+				return `${sign}${quoted}`;
+			} else {
+				return `${sign}${safequote(unquoted + suffix)}`;
+			}
+		});
+
+	return output.join(' ');
+};
+
+/* eslint-disable jsdoc/valid-types */
+/* eslint-disable jsdoc/check-tag-names */
+/**
  * Dare.after
  * Defines where the instance goes looking to apply post execution handlers and potentially mutate the response
- *
- * @param {object|Array} resp - Response object
- * @returns {object} response data formatted or not
+ * @template {object|Array} T
+ * @param {T} resp - Response object
+ * @returns {T} response data formatted or not
  */
+/* eslint-enable jsdoc/valid-types */
+/* eslint-enable jsdoc/check-tag-names */
 Dare.prototype.after = function (resp) {
 	// Define the after handler
 	const handler = `after${this.options.method.replace(/^[a-z]/, m =>
@@ -113,18 +249,24 @@ Dare.prototype.after = function (resp) {
 /**
  * Use
  * Creates a new instance of Dare and merges new options with the base options
- * @param {object} options - set of instance options
- * @returns {object} Instance of Dare
+ * @param {QueryOptions} options - set of instance options
+ * @returns {Dare} Instance of Dare
  */
 Dare.prototype.use = function (options = {}) {
 	const inst = Object.create(this);
 
-	// Create a new options, merging inheritted and new
+	/**
+	 * Create a new options, merging inheritted and new
+	 * @type {QueryOptions} inst.options
+	 */
 	inst.options = extend(clone(this.options), options);
 
 	// Define the Row handler to format the results
 	if (options.rowHandler) {
 		inst.response_row_handler = options.rowHandler;
+	}
+	if (options.getFieldKey) {
+		inst.getFieldKey = options.getFieldKey;
 	}
 
 	// Set the generate_fields array
@@ -136,8 +278,15 @@ Dare.prototype.use = function (options = {}) {
 };
 
 /**
+ * Define a resultset
+ * @type {Array<object>} resultset
+ */
+Dare.prototype.resultset = undefined;
+
+/**
  * Add a row to the resultset
  * @param {object} row - Row record to add to the rows resultset
+ * @returns {void}
  */
 Dare.prototype.addRow = function (row) {
 	// Format the SQL Row
@@ -154,15 +303,17 @@ Dare.prototype.addRow = function (row) {
  * Dare.sql
  * Prepares and processes SQL statements
  *
- * @param {string} sql - SQL string containing the query
- * @param {Array<Array, string, number, boolean>} values - List of prepared statement values
- * @returns {Promise<object|Array>} Returns response object or array of values
+ * @param {string | Sql | {sql: string, values: Array}} sql - SQL string containing the query
+ * @param {Array} [values] - List of prepared statement values
+ * @returns {Promise} Returns response object or array of values
  */
 Dare.prototype.sql = async function sql(sql, values) {
-	let req = {sql, values};
+	let req;
 
 	if (typeof sql === 'object') {
 		req = sql;
+	} else {
+		req = {sql, values};
 	}
 
 	const resp = await this.execute(req);
@@ -173,24 +324,27 @@ Dare.prototype.sql = async function sql(sql, values) {
  * Dare.get
  * Triggers a DB SELECT request to rerieve records from the database.
  *
- * @param {string} table - Name of the table to query
- * @param {Array} fields - Fields array to return
- * @param {object} filter - Filter Object to query
- * @param {object} opts - An Options object containing all other request options
- * @returns {Promise<object|Array>} Results
+ * @param {string | RequestObject} table - Name of the table to query
+ * @param {Array} [fields] - Fields array to return
+ * @param {object} [filter] - Filter Object to query
+ * @param {RequestObject} [options] - An Options object containing all other request options
+ * @returns {Promise<any>} Results
  */
-Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
-	// Get Request Object
-	if (typeof table === 'object') {
-		opts = {...table};
-	} else {
-		// Shuffle
-		if (typeof fields === 'object' && !Array.isArray(fields)) {
-			// Fields must be defined
-			throw new DareError(DareError.INVALID_REQUEST);
-		}
+Dare.prototype.get = async function get(table, fields, filter, options = {}) {
+	/**
+	 * @type {QueryOptions} opts
+	 */
+	const opts =
+		typeof table === 'object'
+			? // Clone
+				{...table}
+			: // Clone and extend
+				{...options, table, filter, fields};
 
-		opts = {...opts, table, fields, filter};
+	// Ensure fields is provided
+	if (typeof fields === 'object' && !Array.isArray(fields)) {
+		// Fields must be defined
+		throw new DareError(DareError.INVALID_REQUEST);
 	}
 
 	// Define method
@@ -233,20 +387,21 @@ Dare.prototype.get = async function get(table, fields, filter, opts = {}) {
  * Dare.getCount
  * Returns the total number of results which match the conditions
  *
- * @param {string} table - Name of the table to query
- * @param {object} filter - Filter Object to query
- * @param {object} opts - An Options object containing all other request options
- * @returns {Promise<integer>} Number of matched items
+ * @param {string | RequestObject} table - Name of the table to query
+ * @param {object} [filter] - Filter Object to query
+ * @param {RequestObject} [options] - An Options object containing all other request options
+ * @returns {Promise<number>} Number of matched items
  */
-Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
-	// Get Request Object
-	if (typeof table === 'object') {
-		// Clone
-		opts = {...table};
-	} else {
-		// Clone and extend
-		opts = {...opts, table, filter};
-	}
+Dare.prototype.getCount = async function getCount(table, filter, options = {}) {
+	/**
+	 * @type {QueryOptions} opts
+	 */
+	const opts =
+		typeof table === 'object'
+			? // Clone
+				{...table}
+			: // Clone and extend
+				{...options, table, filter};
 
 	// Define method
 	opts.method = 'get';
@@ -281,20 +436,22 @@ Dare.prototype.getCount = async function getCount(table, filter, opts = {}) {
  * Dare.patch
  * Updates records matching the conditions
  *
- * @param {string} table - Name of the table to query
- * @param {object} filter - Filter Object to query
- * @param {object} body - Body containing new data
- * @param {object} [opts] - An Options object containing all other request options
- * @param {string} [opts.duplicate_keys] - 'ignore' to prevent throwing Duplicate key errors
- * @param {number} [opts.limit=1] - Number of items to change
- * @returns {Promise<object>} Affected Rows statement
+ * @param {string | RequestObject} table - Name of the table to query
+ * @param {object} [filter] - Filter Object to query
+ * @param {object} [body] - Body containing new data
+ * @param {RequestObject} [options] - An Options object containing all other request options
+ * @returns {Promise<any>} Affected Rows statement
  */
-Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
-	// Get Request Object
-	opts =
+Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
+	/**
+	 * @type {QueryOptions} opts
+	 */
+	const opts =
 		typeof table === 'object'
-			? table
-			: Object.assign(opts, {table, filter, body});
+			? // Clone
+				{...table}
+			: // Clone and extend
+				{...options, table, filter, body};
 
 	// Define method
 	opts.method = 'patch';
@@ -321,12 +478,13 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
 	const {schema: tableSchema} = models?.[req.name] || {};
 
 	// Prepare post
-	const sql_set = prepareSQLSet(
-		req.body,
-		req.sql_alias,
+	const sql_set = prepareSQLSet({
+		body: req.body,
+		sql_alias: req.sql_alias,
 		tableSchema,
-		validateInput
-	);
+		validateInput,
+		dareInstance,
+	});
 
 	// If ignore duplicate keys is stated as ignore
 	let exec = '';
@@ -359,30 +517,33 @@ Dare.prototype.patch = async function patch(table, filter, body, opts = {}) {
  * Dare.post
  * Insert new data into database
  *
- * @param {string} table - Name of the table to query
- * @param {object|Array<objects>} body - Body containing new data
- * @param {object} [opts] - An Options object containing all other request options
- * @param {Array} [opts.duplicate_keys_update] - An array of fields to update on presence of duplicate key constraints
- * @param {string} [opts.duplicate_keys] - 'ignore' to prevent throwing Duplicate key errors
- * @returns {Promise<object>} Affected Rows statement
+ * @param {string | RequestObject} table - Name of the table to query
+ * @param {object | Array<object>} [body] - Body containing new data
+ * @param {RequestObject} [options] - An Options object containing all other request options
+ * @returns {Promise<any>} Affected Rows statement
  */
-
-Dare.prototype.post = async function post(table, body, opts = {}) {
-	// Get Request Object
-	opts =
-		typeof table === 'object' ? table : Object.assign(opts, {table, body});
+Dare.prototype.post = async function post(table, body, options = {}) {
+	/**
+	 * @type {QueryOptions} opts
+	 */
+	const opts =
+		typeof table === 'object'
+			? // Clone
+				{...table}
+			: // Clone and extend
+				{...options, table, body};
 
 	// Post
 	opts.method = 'post';
 
-	const _this = this.use(opts);
+	const dareInstance = this.use(opts);
 
 	// Table
-	const req = await _this.format_request(opts);
+	const req = await dareInstance.format_request(opts);
 
 	// Skip this operation?
 	if (req.skip) {
-		return _this.after(req.skip);
+		return dareInstance.after(req.skip);
 	}
 
 	// Capture fields...
@@ -454,7 +615,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	const exec = req.ignore ? 'IGNORE' : '';
 
 	// Instance options
-	const {models, validateInput} = _this.options;
+	const {models, validateInput} = dareInstance.options;
 
 	// Get the schema
 	const {schema: modelSchema = {}} = models?.[req.name] || {};
@@ -462,6 +623,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	const data = post
 		.map(item => {
 			const _data = [];
+			const currFields = [];
 
 			/*
 			 * Iterate through the properties
@@ -469,12 +631,16 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 			 */
 			for (const prop in item) {
 				// Format key and values...
-				const {field, value} = formatInputValue(
-					modelSchema,
-					prop,
-					item[prop],
-					validateInput
-				);
+				const {field, value} = formatInputValue({
+					tableSchema: modelSchema,
+					field: prop,
+					value: item[prop],
+					validateInput,
+					dareInstance,
+				});
+
+				// Store the original field names
+				currFields.push(field);
 
 				// Get the index in the field list
 				let i = fields.indexOf(field);
@@ -493,26 +659,29 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 			 * Let's catch the omitted properties
 			 * --> Loop through the modelSchema
 			 */
-			Object.entries(modelSchema).forEach(([field, fieldObject]) => {
+			Object.keys(modelSchema).forEach(field => {
 				// For each property which was not covered by the input
-				if (field !== 'default' && !(field in item)) {
+				if (field !== 'default' && !currFields.includes(field)) {
 					// Get a formatted object of field attributes
-					const fieldAttributes = getFieldAttributes(fieldObject);
+					const fieldAttributes = getFieldAttributes(
+						field,
+						modelSchema,
+						dareInstance
+					);
 
 					/*
-					 * Get the default Value of the post operation
-					 * -> Reassign it back to the fieldAttributes.defaultValue, no need for the others
+					 * CurrFields stores the alias
+					 * So let's check the alias is not already defined
 					 */
-					const defaultValue = fieldAttributes.defaultValue?.post;
-					if (fieldAttributes.defaultValue) {
-						Object.assign(fieldAttributes, {defaultValue});
+					if (currFields.includes(fieldAttributes.alias)) {
+						return;
 					}
 
 					// Validate with an undefined value
 					validateInput?.(fieldAttributes, field);
 
 					// Default values?
-					if (defaultValue) {
+					if (fieldAttributes.defaultValue) {
 						// Get the index in the field list
 						let i = fields.indexOf(field);
 
@@ -523,7 +692,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 						}
 
 						// Insert the defaultValue at that position
-						_data[i] = defaultValue;
+						_data[i] = fieldAttributes.defaultValue;
 					}
 				}
 			});
@@ -553,7 +722,7 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 	if (req.duplicate_keys_update) {
 		on_duplicate_keys_update = onDuplicateKeysUpdate(
 			req.duplicate_keys_update.map(field =>
-				unAliasFields(modelSchema, field)
+				unAliasFields(modelSchema, field, dareInstance)
 			)
 		);
 	} else if (
@@ -572,26 +741,30 @@ Dare.prototype.post = async function post(table, body, opts = {}) {
 			${query || ''}
 			${on_duplicate_keys_update}`;
 
-	const resp = await _this.sql({sql, values});
+	const resp = await dareInstance.sql({sql, values});
 
-	return _this.after(resp);
+	return dareInstance.after(resp);
 };
 
 /**
  * Dare.del
  * Delete a record matching condition
  *
- * @param {string} table - Name of the table to query
- * @param {object} filter - Filter Object to query
- * @param {object} opts - An Options object containing all other request options
- * @returns {Promise<object>} Affected Rows statement
+ * @param {string | RequestObject} table - Name of the table to query
+ * @param {object} [filter] - Filter Object to query
+ * @param {RequestObject} [options] - An Options object containing all other request options
+ * @returns {Promise<any>} Affected Rows statement
  */
-Dare.prototype.del = async function del(table, filter, opts = {}) {
-	// Get Request Object
-	opts =
+Dare.prototype.del = async function del(table, filter, options = {}) {
+	/**
+	 * @type {QueryOptions} opts
+	 */
+	const opts =
 		typeof table === 'object'
-			? table
-			: Object.assign(opts, {table, filter});
+			? // Clone
+				{...table}
+			: // Clone and extend
+				{...options, table, filter};
 
 	// Delete
 	opts.method = 'del';
@@ -627,13 +800,21 @@ Dare.prototype.del = async function del(table, filter, opts = {}) {
 /**
  * Prepared SQL Set
  * Prepare a SET assignments used in Patch
- * @param {object} body - body to format
- * @param {string} sql_alias - SQL Alias for update table
- * @param {object} [tableSchema={}] - Schema for the current table
- * @param {Function} [validateInput] - Validate input function
+ * @param {object} obj - Object
+ * @param {object} obj.body - body to format
+ * @param {string} obj.sql_alias - SQL Alias for update table
+ * @param {object} [obj.tableSchema={}] - Schema for the current table
+ * @param {Function} [obj.validateInput] - Validate input function
+ * @param {object} obj.dareInstance - Dare Instance
  * @returns {object} {assignment, values}
  */
-function prepareSQLSet(body, sql_alias, tableSchema = {}, validateInput) {
+function prepareSQLSet({
+	body,
+	sql_alias,
+	tableSchema = {},
+	validateInput,
+	dareInstance,
+}) {
 	const assignments = [];
 
 	for (const label in body) {
@@ -641,12 +822,13 @@ function prepareSQLSet(body, sql_alias, tableSchema = {}, validateInput) {
 		 * Get the real field in the db,
 		 * And formatted value...
 		 */
-		const {field, value} = formatInputValue(
+		const {field, value} = formatInputValue({
 			tableSchema,
-			label,
-			body[label],
-			validateInput
-		);
+			field: label,
+			value: body[label],
+			validateInput,
+			dareInstance,
+		});
 
 		// Replace value with a question using any mapped fieldName
 		assignments.push(SQL`${raw(sql_alias)}.\`${raw(field)}\` = ${value}`);
@@ -674,21 +856,35 @@ function onDuplicateKeysUpdate(keys = []) {
 /**
  * Format Input Value
  * For a given field definition, return the db key (alias) and format the input it required
- *
- * @param {object} [tableSchema={}] - An object containing the table schema
- * @param {string} field - field identifier
- * @param {*} value - Given value
- * @param {Function} [validateInput] - Custom validation function
+ * @param {object} obj - Object
+ * @param {object} [obj.tableSchema={}] - An object containing the table schema
+ * @param {string} obj.field - field identifier
+ * @param {*} obj.value - Given value
+ * @param {Function} [obj.validateInput] - Custom validation function
+ * @param {object} obj.dareInstance - Dare Instance
  * @throws Will throw an error if the field is not writable
- * @returns {string} A singular value which can be inserted
+ * @returns {{field: string, value: *}} A singular value which can be inserted
  */
-function formatInputValue(tableSchema = {}, field, value, validateInput) {
-	const fieldAttributes =
-		field in tableSchema
-			? getFieldAttributes(tableSchema[field])
-			: 'default' in tableSchema
-			? getFieldAttributes(tableSchema.default)
-			: null;
+function formatInputValue({
+	tableSchema = {},
+	field,
+	value,
+	validateInput,
+	dareInstance,
+}) {
+	let fieldAttributes = getFieldAttributes(field, tableSchema, dareInstance);
+
+	if (Object.keys(fieldAttributes).length === 0 && 'default' in tableSchema) {
+		fieldAttributes = getFieldAttributes(
+			'default',
+			tableSchema,
+			dareInstance
+		);
+	}
+	if (Object.keys(fieldAttributes).length === 0) {
+		// Set this to null for validateInput
+		fieldAttributes = null;
+	}
 
 	const {alias, writeable, type} = fieldAttributes || {};
 
@@ -722,7 +918,7 @@ function formatInputValue(tableSchema = {}, field, value, validateInput) {
 	}
 
 	// Check this is not an object
-	if (value && typeof value === 'object') {
+	if (value && typeof value === 'object' && !Buffer.isBuffer(value)) {
 		throw new DareError(
 			DareError.INVALID_VALUE,
 			`Field '${field}' does not accept objects as values: '${JSON.stringify(
@@ -748,20 +944,21 @@ function formatInputValue(tableSchema = {}, field, value, validateInput) {
 /**
  * Return un-aliased field names
  *
- * @param {object} [tableSchema={}] - An object containing the table schema
+ * @param {object} tableSchema - An object containing the table schema
  * @param {string} field - field identifier
+ * @param {object} dareInstance - Dare Instance
  * @returns {string} Unaliased field name
  */
-function unAliasFields(tableSchema = {}, field) {
-	const {alias} = getFieldAttributes(tableSchema[field]);
+function unAliasFields(tableSchema, field, dareInstance) {
+	const {alias} = getFieldAttributes(field, tableSchema, dareInstance);
 	return alias || field;
 }
 
 /**
  * SetDefaultNotFoundHandler
  * As the name suggests
- * @param {object} opts - request options
- * @returns {void}
+ * @param {QueryOptions} opts - query options
+ * @returns {QueryOptions} query options
  */
 function setDefaultNotFoundHandler(opts) {
 	if (!('notfound' in opts)) {

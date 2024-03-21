@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 import Dare from '../../src/index.js';
 import joinHandler from '../../src/format/join_handler.js';
 
@@ -86,13 +87,15 @@ describe('join_handler', () => {
 		});
 	});
 
-	it('should deduce any extra join to complete the relationship', () => {
+	it('should deduce any extra join to complete the relationship `infer_intermediate_models=true`', () => {
 		// Given a relationship between
 		dare.options = {
 			models: {
 				greatgrandparent: {},
 				grandparent: {
-					ggrand_id: 'greatgrandparent.id',
+					schema: {
+						ggrand_id: 'greatgrandparent.id',
+					},
 				},
 				parent: {
 					schema: {grand_id: ['grandparent.gid']},
@@ -154,6 +157,111 @@ describe('join_handler', () => {
 		);
 
 		expect(no_join).to.deep.equal(null);
+	});
+
+	it('should not infer_intermediate_join using a common key (defined on named models)', () => {
+		// Given a relationship between
+		dare.options = {
+			models: {
+				person: {
+					schema: {
+						personcountry_id: ['country.id'],
+					},
+				},
+				comment: {
+					schema: {
+						commentcountry_id: ['country.id'],
+					},
+				},
+				country: {
+					// Id
+				},
+			},
+		};
+
+		const person = {
+			table: 'person',
+			alias: 'person',
+		};
+
+		const comment = {
+			table: 'comment',
+			alias: 'comment',
+		};
+
+		const no_join = joinHandler(person, comment, dare);
+
+		expect(no_join).to.deep.equal(null);
+	});
+
+	it('should not infer_intermediate_join using a common key (defined on link models)', () => {
+		// Given a relationship between
+		dare.options = {
+			models: {
+				person: {},
+				comment: {},
+				country: {
+					schema: {
+						bad_key_id: ['person.id', 'comment.id'],
+					},
+				},
+			},
+		};
+
+		const person = {
+			table: 'person',
+			alias: 'person',
+		};
+
+		const comment = {
+			table: 'comment',
+			alias: 'comment',
+		};
+
+		const no_join = joinHandler(person, comment, dare);
+
+		expect(no_join).to.deep.equal(null);
+	});
+
+	it('should use the shortcuts to infer the connecting model', () => {
+		const dareInst = dare.use({
+			infer_intermediate_models: false,
+			models: {
+				grandparent: {},
+				parent: {
+					schema: {grand_id: ['grandparent.gid']},
+				},
+				child: {
+					shortcut_map: {
+						grandparents: 'parent.grandparent',
+					},
+					schema: {
+						parent_id: ['parent.id'],
+					},
+				},
+			},
+		});
+
+		const child_object = {
+			alias: 'child',
+			table: 'child',
+		};
+
+		const grandparent_object = {
+			alias: 'grandparents',
+			table: 'grandparents',
+		};
+
+		const join = joinHandler(grandparent_object, child_object, dareInst);
+
+		expect(join).to.deep.equal({
+			table: 'parent',
+			join_conditions: {
+				id: 'parent_id',
+			},
+			many: false,
+			joins: [grandparent_object],
+		});
 	});
 
 	describe('many to many table joins', () => {
@@ -222,46 +330,6 @@ describe('join_handler', () => {
 		});
 
 		it('author.message.recipient: using referenced aliases', () => {
-			/*
-			 * In this example we have a many to many relationship
-			 * Where author and recipient are both aliases of person
-			 */
-			const message = {
-				table: 'message',
-			};
-
-			const author = {
-				table: 'author',
-			};
-
-			const recipient = {
-				table: 'recipient',
-			};
-
-			// Join the recipient table based upon the
-			const author_join = joinHandler(message, author, dare);
-
-			expect(author_join).to.deep.equal({
-				table: 'message',
-				join_conditions: {
-					from_id: 'id',
-				},
-				many: true,
-			});
-
-			// Join the recipient table based upon the
-			const recipient_join = joinHandler(message, recipient, dare);
-
-			expect(recipient_join).to.deep.equal({
-				table: 'message',
-				join_conditions: {
-					to_id: 'id',
-				},
-				many: true,
-			});
-		});
-
-		it('author.inbox.recipient: using all referenced aliases', () => {
 			/*
 			 * In this example we have a many to many relationship
 			 * Where author and recipient are both aliases of person

@@ -25,6 +25,8 @@ class DB {
 		const resultStream = new PassThrough(streamOptions);
 
 		// Stream query results from the DB
+
+		// @ts-ignore
 		this.conn.connection.query(query).stream().pipe(resultStream);
 
 		return resultStream;
