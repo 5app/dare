@@ -45,9 +45,19 @@ describe('Working with JSON DataType', function () {
 	 */
 	it('JSON fields should be queryable', async () => {
 		const username = 'mightyduck';
-		const settings = {a: 1, b: 2};
+		const settings = {
+			digit: 1,
+			str: 'string',
+			bool: true,
+			notnull: 1,
+			option: 'two',
+		};
 
-		await dare.post('users', {username, settings});
+		// Create a test user settings and a control, without settings
+		await dare.post('users', [
+			{username, settings},
+			{username: 'another', settings: null},
+		]);
 
 		const resp = await dare.get({
 			table: 'users',
@@ -55,13 +65,33 @@ describe('Working with JSON DataType', function () {
 			filter: {
 				username,
 				settings: {
-					b: 2,
-					a: 1,
+					digit: 1,
+					str: 'string',
+					bool: true,
+					missing: null, // Is ignored, because absent keys are null
+
+					// Negation
+					'-digit': 2,
+					'-str': 'something else',
+					'-bool': false,
+					'-notnull': null,
+
+					// Range
+					'~digit': '0..2',
+					'-~digit': '2..3',
+
+					/*
+					 * // Not supported yet
+					 * '-missing': 1,
+					 * option: ['one', 'two'],
+					 * '%stringy': 'chee%', // Like operator
+					 */
 				},
 			},
+			limit: 2,
 		});
 
-		assert.deepStrictEqual(resp.settings, settings);
+		assert.deepStrictEqual(resp, [{settings}]);
 
 		const noMatch = await dare.get({
 			table: 'users',

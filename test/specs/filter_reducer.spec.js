@@ -22,53 +22,102 @@ describe('Filter Reducer', () => {
 		dareInstance = new Dare();
 		table_schema = {
 			textsearch: 'givenname,lastname,email',
+			jsonSettings: {
+				type: 'json',
+			},
+			// Join with an arbitrary table
+			a_id: 'a.id',
 		};
 	});
 
 	describe('should prep conditions', () => {
+		const testStr = 'string';
+
 		const a = [
-			[{prop: 'string'}, 'a.prop = ?', ['string']],
+			[{prop: testStr}, 'a.prop = ?', [testStr]],
+
+			// Across multiple fields: field1,field2,field3
 			[
 				{
-					'givenname,lastname,email': 'test string',
+					'givenname,lastname,email': testStr,
 				},
 				`(a.givenname = ? OR a.lastname = ? OR a.email = ?)`,
-				['test string', 'test string', 'test string'],
+				[testStr, testStr, testStr],
 			],
 			[
 				{
-					'%givenname,lastname,email': 'test string',
+					'%givenname,lastname,email': testStr,
 				},
 				`(a.givenname LIKE ? OR a.lastname LIKE ? OR a.email LIKE ?)`,
-				['test string', 'test string', 'test string'],
+				[testStr, testStr, testStr],
 			],
 			[
 				{
-					'-givenname,lastname,email': 'test string',
+					'-givenname,lastname,email': testStr,
 				},
 				`NOT (a.givenname = ? OR a.lastname = ? OR a.email = ?)`,
-				['test string', 'test string', 'test string'],
+				[testStr, testStr, testStr],
 			],
+
+			// *: Full text
 			[
 				{
-					'*givenname,lastname,email': 'test string',
+					'*givenname,lastname,email': testStr,
 				},
 				`MATCH(a.givenname, a.lastname, a.email) AGAINST(? IN BOOLEAN MODE)`,
-				['test string'],
+				[testStr],
 			],
 			[
 				{
-					'-*givenname,lastname,email': 'test string',
+					'-*givenname,lastname,email': testStr,
 				},
 				`NOT MATCH(a.givenname, a.lastname, a.email) AGAINST(? IN BOOLEAN MODE)`,
-				['test string'],
+				[testStr],
 			],
 			[
 				{
-					'*textsearch': 'test string',
+					'*textsearch': testStr,
 				},
 				`MATCH(a.givenname, a.lastname, a.email) AGAINST(? IN BOOLEAN MODE)`,
-				['test string'],
+				[testStr],
+			],
+
+			// JSON
+			[
+				{
+					jsonSettings: {
+						key: testStr,
+					},
+				},
+				`(a.jsonSettings->? = ?)`,
+				['$.key', testStr],
+			],
+			[
+				{
+					'-jsonSettings': {
+						key: testStr,
+					},
+				},
+				`NOT (a.jsonSettings->? = ?)`,
+				['$.key', testStr],
+			],
+			[
+				{
+					jsonSettings: {
+						'-key': testStr,
+					},
+				},
+				`(a.jsonSettings->? != ?)`,
+				['$.key', testStr],
+			],
+			[
+				{
+					jsonSettings: {
+						'-key': null,
+					},
+				},
+				`(a.jsonSettings->? IS NOT NULL)`,
+				['$.key'],
 			],
 		];
 

@@ -51,9 +51,7 @@ export default function reduceConditions(
 		}
 
 		// Format key and validate path
-		const field = checkKey(key);
-
-		const key_definition = table_schema[field];
+		const key_definition = table_schema[key];
 
 		if (
 			value &&
@@ -70,7 +68,7 @@ export default function reduceConditions(
 		} else {
 			filterArr.push(
 				prepCondition({
-					field,
+					field: key,
 					value,
 					sql_alias,
 					table_schema,
@@ -131,26 +129,8 @@ function prepCondition({
 	// Does it have a negative comparison operator?
 	const negate = operators?.includes('-');
 
-	// Does it have a Likey comparison operator
-	const isLikey = operators?.includes('%');
-
-	// Does it have a Range comparison operator
-	const isRange = operators?.includes('~');
-
 	// Does it have a FullText comparison operator
 	const isFullText = operators?.includes('*');
-
-	// Allow conditional likey operator in value
-	const allow_conditional_likey_operator_in_value =
-		conditional_operators_in_value?.includes('%');
-
-	// Allow conditional negation operator in value
-	const allow_conditional_negate_operator_in_value =
-		conditional_operators_in_value?.includes('!');
-
-	// Allow conditional negation operator in value
-	const allow_conditional_range_operator_in_value =
-		conditional_operators_in_value?.includes('~');
 
 	// Set a handly NOT value
 	const NOT = negate ? raw('NOT ') : empty;
@@ -210,11 +190,68 @@ function prepCondition({
 	// JSON
 	if (type === 'json' && typeof value === 'object') {
 		// Loop through the object and create the sql_field
-		const conds = json_contains(sql_field, value);
+		const sql_fields = json_contains(sql_field, value);
 
 		// Return a single or a wrapped group
-		return SQL`${NOT}(${join(conds, ' AND ')})`;
+		return SQL`${NOT}(${join(
+			sql_fields.map(({sql, value, operators}) =>
+				sqlCondition({
+					sql_field: sql,
+					value,
+					conditional_operators_in_value,
+					operators,
+				})
+			),
+			' AND '
+		)})`;
 	}
+
+	return sqlCondition({
+		sql_field,
+		value,
+		conditional_operators_in_value,
+		operators,
+	});
+}
+
+/**
+ * SQL Condition
+ * @param {object} params - Params
+ * @param {Sql} params.sql_field - SQL Field
+ * @param {string} params.value - Value
+ * @param {string|null} params.conditional_operators_in_value - Allowable conditional operators in value
+ * @param {string|null} params.operators - Operators
+ * @returns {Sql} SQL condition
+ */
+function sqlCondition({
+	sql_field,
+	value,
+	conditional_operators_in_value,
+	operators,
+}) {
+	// Does it have a negative comparison operator?
+	const negate = operators?.includes('-');
+
+	// Set a handly NOT value
+	const NOT = negate ? raw('NOT ') : empty;
+
+	// Does it have a Likey comparison operator
+	const isLikey = operators?.includes('%');
+
+	// Does it have a Range comparison operator
+	const isRange = operators?.includes('~');
+
+	// Allow conditional likey operator in value
+	const allow_conditional_likey_operator_in_value =
+		conditional_operators_in_value?.includes('%');
+
+	// Allow conditional negation operator in value
+	const allow_conditional_negate_operator_in_value =
+		conditional_operators_in_value?.includes('!');
+
+	// Allow conditional negation operator in value
+	const allow_conditional_range_operator_in_value =
+		conditional_operators_in_value?.includes('~');
 
 	/*
 	 * Range
@@ -315,14 +352,11 @@ function prepCondition({
 		// Other Values which can't be grouped ...
 		conds.push(
 			...sub_values.map(item =>
-				prepCondition({
-					field,
-					sql_alias,
+				sqlCondition({
+					sql_field,
 					value: item,
-					table_schema,
 					operators,
 					conditional_operators_in_value,
-					dareInstance,
 				})
 			)
 		);
@@ -336,15 +370,37 @@ function prepCondition({
 	}
 }
 
-function json_contains(sql_field, value, path = '$') {
+/**
+ * JSON Contains
+ * @param {Sql} sql_field - SQL Field
+ * @param {any} value - Value
+ * @param {string} [path] - Path
+ * @param {string} [operators] - Operators
+ * @returns {Array<{sql: Sql, value: any, operators: string}>} SQL conditions
+ */
+function json_contains(sql_field, value, path = '$', operators = '') {
 	const conds = [];
 
-	if (typeof value !== 'object') {
-		return [SQL`${sql_field}->${path} = ${value}`];
+	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+		return [
+			{
+				sql: SQL`${sql_field}->${path}`,
+				value,
+				operators,
+			},
+		];
 	}
 
 	for (const key in value) {
-		conds.push(...json_contains(sql_field, value[key], `${path}.${key}`));
+		const {operators: newOperators, rootKey} = stripKey(key);
+		conds.push(
+			...json_contains(
+				sql_field,
+				value[key],
+				`${path}.${rootKey}`,
+				operators + newOperators
+			)
+		);
 	}
 
 	return conds;
