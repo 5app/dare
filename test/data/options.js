@@ -60,6 +60,9 @@ export default {
 				 * Date Type
 				 */
 				created_time,
+
+				// UUID
+				uuid: {},
 			},
 		},
 

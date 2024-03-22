@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 /*
  * Field Reducer
  * Extract the fields from the current dataset

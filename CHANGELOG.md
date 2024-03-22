@@ -1,3 +1,80 @@
+## [0.82.2](https://github.com/5app/dare/compare/v0.82.1...v0.82.2) (2024-02-01)
+
+
+### Bug Fixes
+
+* **fulltext:** regex improvements ([feaf9ea](https://github.com/5app/dare/commit/feaf9ead95c29e61b72d8b035ec47ff2564c31bb))
+
+## [0.82.1](https://github.com/5app/dare/compare/v0.82.0...v0.82.1) (2024-01-31)
+
+
+### Bug Fixes
+
+* **fulltext:** parser quote inpcomatible strings, [#324](https://github.com/5app/dare/issues/324) ([#327](https://github.com/5app/dare/issues/327)) ([5ef5479](https://github.com/5app/dare/commit/5ef547961069fd88d181a514f11b3b0a2e566a21))
+
+# [0.82.0](https://github.com/5app/dare/compare/v0.81.1...v0.82.0) (2024-01-30)
+
+
+### Features
+
+* **fulltext:** fulltext and cross-field search ([#325](https://github.com/5app/dare/issues/325)) ([941614c](https://github.com/5app/dare/commit/941614cfbbe4a67a289721a019061a0a889e2105)), closes [#324](https://github.com/5app/dare/issues/324)
+
+## [0.81.1](https://github.com/5app/dare/compare/v0.81.0...v0.81.1) (2024-01-04)
+
+
+### Bug Fixes
+
+* **types:** groupby: string | string [], noissue ([bf00bf0](https://github.com/5app/dare/commit/bf00bf0c49207ccf2b90d25b757d2968390ae4aa))
+
+# [0.81.0](https://github.com/5app/dare/compare/v0.80.0...v0.81.0) (2023-12-05)
+
+
+### Features
+
+* **types:** declare types, noissue ([200b45d](https://github.com/5app/dare/commit/200b45dbc53e5655fffd6e9be126b3113c31eefa))
+
+# [0.80.0](https://github.com/5app/dare/compare/v0.79.1...v0.80.0) (2023-11-22)
+
+
+### Features
+
+* **binary:** support CRUD actions on Binary field types, noissue ([7851d6c](https://github.com/5app/dare/commit/7851d6c7dc5d21a257682b87c1efe1c5d4b3ca83))
+
+## [0.79.1](https://github.com/5app/dare/compare/v0.79.0...v0.79.1) (2023-11-10)
+
+
+### Bug Fixes
+
+* **fields:** allow forward slash within quotes, fixes 5app/hub[#14234](https://github.com/5app/dare/issues/14234) ([#308](https://github.com/5app/dare/issues/308)) ([487732d](https://github.com/5app/dare/commit/487732dcbfa7e24ffeef8156e8ab3108e465f2e0))
+
+# [0.79.0](https://github.com/5app/dare/compare/v0.78.2...v0.79.0) (2023-10-13)
+
+
+### Features
+
+* **typescript:** ts-in-js ([#304](https://github.com/5app/dare/issues/304)) ([6ad70b5](https://github.com/5app/dare/commit/6ad70b5a8be2e2aa17b729da97ac184c8e545334))
+
+## [0.78.2](https://github.com/5app/dare/compare/v0.78.1...v0.78.2) (2023-10-11)
+
+
+### Bug Fixes
+
+* **fieldDefinitions:** fixes pr [#303](https://github.com/5app/dare/issues/303) ([dc73662](https://github.com/5app/dare/commit/dc73662d3ab389b6207dd3dcddd5537c7692e102))
+
+## [0.78.1](https://github.com/5app/dare/compare/v0.78.0...v0.78.1) (2023-10-11)
+
+
+### Bug Fixes
+
+* **fieldDefinitions:** fixes pr [#303](https://github.com/5app/dare/issues/303) ([b919940](https://github.com/5app/dare/commit/b919940aa7be86a4304e90696249bfe9fdc65dbf))
+
+# [0.78.0](https://github.com/5app/dare/compare/v0.77.2...v0.78.0) (2023-10-11)
+
+
+### Features
+
+* **fieldDefition:** definition overrides by method, fixes [#302](https://github.com/5app/dare/issues/302) ([bd43368](https://github.com/5app/dare/commit/bd4336889ee33a57e188faf2d9ecde67e4a88d87))
+
 ## [0.77.2](https://github.com/5app/dare/compare/v0.77.1...v0.77.2) (2023-04-07)
 
 

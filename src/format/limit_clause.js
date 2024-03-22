@@ -1,13 +1,20 @@
 import DareError from '../utils/error.js';
 
 /**
+ * @typedef {object} LimitClause
+ * @property {number} limit - Limit defintion
+ * @property {number} [start] - Start defintion
+ * @property {boolean} [single] - Whether this is a single limit
+ */
+
+/**
  * Limit Clause
  * Set/Check limit and start positions
  * @param {object} opts - Options object
  * @param {number} opts.limit - Limit defintion
  * @param {number} opts.start - Start defintion
  * @param {number} MAX_LIMIT - Max limit on instance
- * @returns {void}
+ * @returns {LimitClause} - Limit Clause
  */
 export default function limitClause({limit, start}, MAX_LIMIT) {
 	let single;

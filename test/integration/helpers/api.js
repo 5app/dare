@@ -1,15 +1,14 @@
 import Dare from '../../../src/index.js';
 import Debug from 'debug';
 import mysql from 'mysql2/promise';
+import db from './db.js';
 import options from '../../data/options.js';
 
 const debug = Debug('sql');
 
-const {db} = global;
-
 export {options};
 
-export default function () {
+export default function dareInstance() {
 	// Initiate
 	const dare = new Dare(options);
 
@@ -39,3 +38,13 @@ export function castToStringIfNeeded(a) {
 
 	return a;
 }
+
+/**
+ * Export a changeable instance of Dare
+ * Using ESM export to allow this to be swapped out via beforeEach in each test
+ */
+export let dare;
+
+beforeEach(() => {
+	dare = dareInstance();
+});

@@ -11,6 +11,7 @@
 
 CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` BINARY(16) DEFAULT NULL,
   `username` varchar(255) NOT NULL,
   `first_name` varchar(255) DEFAULT NULL,
   `last_name` varchar(255) DEFAULT NULL,
@@ -19,6 +20,7 @@ CREATE TABLE `users` (
   `country_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_username` (`username`),
+  FULLTEXT KEY `fulltext_users_fields` (`username`, `first_name`, `last_name`),
   -- country
 	KEY `fk_users_country_id` (`country_id`),
   CONSTRAINT `fk_users_country_id` FOREIGN KEY (`country_id`) REFERENCES `country` (`id`)

@@ -1,10 +1,10 @@
+import {expect} from 'chai';
 import Dare from '../../src/index.js';
 
 // Test Generic DB functions
 import sqlEqual from '../lib/sql-equal.js';
 
 import DareError from '../../src/utils/error.js';
-import {expect} from 'chai';
 
 const id = 1;
 const name = 'name';

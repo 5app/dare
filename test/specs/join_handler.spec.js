@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 import Dare from '../../src/index.js';
 import joinHandler from '../../src/format/join_handler.js';
 

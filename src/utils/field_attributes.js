@@ -1,14 +1,33 @@
 /**
+ * @typedef {object} FieldDefinition
+ * @property {'json' | 'number' | 'boolean' | 'string' | 'datetime'} [type] - The type of the field
+ * @property {string} [alias] - The alias of the field
+ * @property {Array<string>} [references] - A reference to another table
+ * @property {boolean} [readable=true] - Whether this field is readable
+ * @property {boolean} [writeable=true] - Whether this field is writeable
+ * @property {boolean} [required=false] - Whether this field is required
+ * @property {Function} [handler] - Handler to generate the field value
+ * @property {string | number | boolean | object | Array<string | number | boolean>} [defaultValue=null] - The default value of this field
+ * @property {FieldDefinition} [get] - The get definition of this field
+ * @property {FieldDefinition} [post] - The post definition of this field
+ * @property {FieldDefinition} [patch] - The patch definition of this field
+ * @property {FieldDefinition} [del] - The del definition of this field
+ */
+
+/**
  * Given a field definition defined in the schema, extract it's attributes
  *
  * @param {string} field - A field reference
- * @param {object} schema - A model schema definition
- * @returns {object} An object containing the attributes of the field
+ * @param {Object<string, FieldDefinition | boolean>} schema - A model schema definition
+ * @param {object} dareInstance - A dare instance
+ * @returns {FieldDefinition} An object containing the attributes of the field
  */
-
-export default (field, schema, dareInstance) => {
+export default function getFieldAttributes(field, schema, dareInstance) {
 	const fieldKey = dareInstance?.getFieldKey?.(field, schema) || field;
 
+	/**
+	 * @type {FieldDefinition} respDefinition
+	 */
 	const respDefinition = {
 		...(fieldKey !== field && {alias: fieldKey}),
 	};
@@ -20,29 +39,29 @@ export default (field, schema, dareInstance) => {
 		typeof fieldDefinition === 'object' &&
 		!Array.isArray(fieldDefinition)
 	) {
+		const {method} = dareInstance.options;
+
+		if (method in fieldDefinition) {
+			// Override/extend the base object with the method specific attributes
+			Object.assign(respDefinition, fieldDefinition[method]);
+		}
+
 		/*
-		 * If 'defaultValue' is defined
+		 * @legacy support `defaultValue{get, post, patch, del}` definitions.
+		 * If 'defaultValue' is an object
 		 * Expand default value
 		 */
 		if (
-			Object.hasOwn(fieldDefinition, 'defaultValue') &&
-			(fieldDefinition.defaultValue === null ||
-				typeof fieldDefinition.defaultValue !== 'object')
+			fieldDefinition.defaultValue !== null &&
+			typeof fieldDefinition.defaultValue === 'object'
 		) {
-			const val = fieldDefinition.defaultValue;
-
-			fieldDefinition.defaultValue = {
-				get: val,
-				post: val,
-				patch: val,
-				del: val,
-			};
+			respDefinition.defaultValue = fieldDefinition.defaultValue[method];
 		}
 
 		// This is already a definition object
 		return {
-			...respDefinition,
 			...fieldDefinition,
+			...respDefinition,
 		};
 	}
 
@@ -82,4 +101,4 @@ export default (field, schema, dareInstance) => {
 	return {
 		...respDefinition,
 	};
-};
+}

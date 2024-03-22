@@ -1,34 +1,21 @@
-import Dare from '../../src/index.js';
-import Debug from 'debug';
-import mysql from 'mysql2/promise';
-import {options} from './helpers/api.js';
+import assert from 'node:assert/strict';
 import SQL from 'sql-template-tag';
-const debug = Debug('sql');
-
-const {db} = global;
+import defaultAPI from './helpers/api.js';
 
 // Connect to db
 
-describe('Working with JSON DataType', () => {
+describe('Working with JSON DataType', function () {
 	let dare;
 
 	// JSON DataType not supported in MySQL 5.6
 	if (process.env.MYSQL_VERSION === '5.6') {
+		// @ts-ignore
 		this.skip();
 	}
 
 	beforeEach(() => {
 		// Initiate
-		dare = new Dare(options);
-
-		// Set a test instance
-		// eslint-disable-next-line arrow-body-style
-		dare.execute = query => {
-			// DEBUG
-			debug(mysql.format(query.sql, query.values));
-
-			return db.query(query);
-		};
+		dare = defaultAPI();
 
 		dare.sql(SQL`
             ALTER TABLE users MODIFY COLUMN settings JSON DEFAULT NULL
@@ -38,9 +25,11 @@ describe('Working with JSON DataType', () => {
 	it('JSON fields should be setable and retrievable', async () => {
 		const username = 'mightyduck';
 
-		await dare.post('users', {username, settings: {a: 1, b: 2}});
+		const settings = {a: 1, b: 2};
 
-		const {settings} = await dare.get({
+		await dare.post('users', {username, settings});
+
+		const resp = await dare.get({
 			table: 'users',
 			fields: ['settings'],
 			filter: {
@@ -48,32 +37,44 @@ describe('Working with JSON DataType', () => {
 			},
 		});
 
-		expect(settings).to.have.property('a', 1);
+		assert.deepStrictEqual(resp.settings, settings);
 	});
 
 	/**
 	 * This would allow querying on and exporting values of a JSON object
 	 */
-	it.skip('JSON fields should be explorable and queryable', async () => {
+	it('JSON fields should be queryable', async () => {
 		const username = 'mightyduck';
+		const settings = {a: 1, b: 2};
 
-		await dare.post('users', {username, settings: {a: 1, b: 2}});
+		await dare.post('users', {username, settings});
 
-		const {settings} = await dare.get({
+		const resp = await dare.get({
 			table: 'users',
-			fields: [
-				{
-					settings: ['b'],
-				},
-			],
+			fields: ['settings'],
 			filter: {
 				username,
 				settings: {
+					b: 2,
 					a: 1,
 				},
 			},
 		});
 
-		expect(settings).to.have.property('b', 2);
+		assert.deepStrictEqual(resp.settings, settings);
+
+		const noMatch = await dare.get({
+			table: 'users',
+			fields: ['settings'],
+			filter: {
+				username,
+				settings: {
+					a: 2,
+				},
+			},
+			notfound: null,
+		});
+
+		assert.strictEqual(noMatch, null);
 	});
 });

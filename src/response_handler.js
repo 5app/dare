@@ -162,9 +162,9 @@ function explodeKeyValue(obj, a, value) {
  * @param {string} obj.field - Name of the property to be created
  * @param {Function} obj.handler - Function to process the request
  * @param {Array} obj.targetAddress - Paths of the target item
- * @param {obj} obj.target - Obj where the new prop will be appended
- * @param {obj} obj.extraFields - List of fields which can be removed from the response
- * @param {obj} dareInstance - Dare Instance
+ * @param {object} obj.target - Obj where the new prop will be appended
+ * @param {object} obj.extraFields - List of fields which can be removed from the response
+ * @param {object} dareInstance - Dare Instance
  * @returns {void} Modifies the incoming request with new props
  */
 function generatedFieldsHandler(
