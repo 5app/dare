@@ -4,16 +4,16 @@ import defaultAPI from './helpers/api.js';
 
 // Connect to db
 
-describe('Working with JSON DataType', function () {
+describe('Working with JSON DataType', () => {
 	let dare;
 
 	// JSON DataType not supported in MySQL 5.6
-	if (process.env.MYSQL_VERSION === '5.6') {
-		// @ts-ignore
-		this.skip();
-	}
+	beforeEach(function () {
+		if (process.env.MYSQL_VERSION === '5.6') {
+			this.skip();
+			return;
+		}
 
-	beforeEach(() => {
 		// Initiate
 		dare = defaultAPI();
 
