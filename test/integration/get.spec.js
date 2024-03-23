@@ -1,6 +1,7 @@
 import Dare, {DareError} from '../../src/index.js';
 import Debug from 'debug';
 import {expect} from 'chai';
+import assert from 'node:assert/strict';
 import mysql from 'mysql2/promise';
 import db from './helpers/db.js';
 import {options, castToStringIfNeeded} from './helpers/api.js';
@@ -234,5 +235,15 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 			});
 			expect(resp).to.have.property('username', username);
 		}
+	});
+
+	it('Return a truthy value for existance if no fields are provided', async () => {
+		const username = 'A Name';
+		await dare.post('users', {username});
+
+		// Get request with no parameters
+		const resp = await dare.get('users');
+
+		assert.ok(resp);
 	});
 });
