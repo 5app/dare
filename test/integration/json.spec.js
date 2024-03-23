@@ -51,6 +51,7 @@ describe('Working with JSON DataType', () => {
 			bool: true,
 			notnull: 1,
 			option: 'two',
+			stringy: 'cheese',
 		};
 
 		// Create a test user settings and a control, without settings
@@ -78,13 +79,15 @@ describe('Working with JSON DataType', () => {
 
 					// Range
 					'~digit': '0..2',
-					'-~digit': '2..3',
+					'-~digit': '10..100',
+
+					// Like operator
+					'%stringy': '"chee%', // In MySQL the LIKE operator looks at the "quoted" string, so need to add a quote if comparing against the start or end of a value respectively
 
 					/*
 					 * // Not supported yet
-					 * '-missing': 1,
-					 * option: ['one', 'two'],
-					 * '%stringy': 'chee%', // Like operator
+					 * '-missing': 1, // this yields `settings->'$.missing' != 1` which returns false if `missing` is not present
+					 * option: ['one', 'two'], // `settings->'$.missing' IN ('one', 'two')` is not supported yet in MySQL
 					 */
 				},
 			},
