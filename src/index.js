@@ -362,7 +362,7 @@ Dare.prototype.get = async function get(table, fields, filter, options = {}) {
 	// Ensure fields is provided
 	if (existanceCheck) {
 		opts.fields = [{recordExists: true}];
-	} else if (typeof opts.fields !== 'object' && !Array.isArray(opts.fields)) {
+	} else if (typeof opts.fields !== 'object' || opts.fields === null) {
 		// Fields must be defined
 		throw new DareError(DareError.INVALID_REQUEST);
 	}
