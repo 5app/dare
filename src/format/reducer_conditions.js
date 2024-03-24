@@ -200,6 +200,7 @@ function prepCondition({
 					value,
 					conditional_operators_in_value,
 					operators,
+					type,
 				})
 			),
 			' AND '
@@ -211,6 +212,7 @@ function prepCondition({
 		value,
 		conditional_operators_in_value,
 		operators,
+		type,
 	});
 }
 
@@ -221,6 +223,7 @@ function prepCondition({
  * @param {string} params.value - Value
  * @param {string|null} params.conditional_operators_in_value - Allowable conditional operators in value
  * @param {string|null} params.operators - Operators
+ * @param {string|null} params.type - Type
  * @returns {Sql} SQL condition
  */
 function sqlCondition({
@@ -228,6 +231,7 @@ function sqlCondition({
 	value,
 	conditional_operators_in_value,
 	operators,
+	type,
 }) {
 	// Does it have a negative comparison operator?
 	const negate = operators?.includes('-');
@@ -252,6 +256,10 @@ function sqlCondition({
 	// Allow conditional negation operator in value
 	const allow_conditional_range_operator_in_value =
 		conditional_operators_in_value?.includes('~');
+
+	// Conditional JSON Quote
+	const quote =
+		type === 'json' ? a => (typeof a === 'string' ? `"${a}"` : a) : a => a;
 
 	/*
 	 * Range
@@ -299,7 +307,7 @@ function sqlCondition({
 		(isLikey ||
 			(allow_conditional_likey_operator_in_value && value.match('%')))
 	) {
-		return SQL`${sql_field} ${NOT}LIKE ${value}`;
+		return SQL`${sql_field} ${NOT}LIKE ${quote(value)}`;
 	}
 
 	// Null
@@ -346,7 +354,9 @@ function sqlCondition({
 
 		// Use the `IN(...)` for items which can be grouped...
 		if (filteredValue.length) {
-			conds.push(SQL`${sql_field} ${NOT}IN (${filteredValue})`);
+			conds.push(
+				SQL`${sql_field} ${NOT}IN (${filteredValue.map(quote)})`
+			);
 		}
 
 		// Other Values which can't be grouped ...
@@ -357,6 +367,7 @@ function sqlCondition({
 					value: item,
 					operators,
 					conditional_operators_in_value,
+					type,
 				})
 			)
 		);

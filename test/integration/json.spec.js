@@ -82,12 +82,14 @@ describe('Working with JSON DataType', () => {
 					'-~digit': '10..100',
 
 					// Like operator
-					'%stringy': '"chee%', // In MySQL the LIKE operator looks at the "quoted" string, so need to add a quote if comparing against the start or end of a value respectively
+					'%stringy': 'chee%', // In MySQL the LIKE operator looks at the "quoted" string, so need to add a quote if comparing against the start or end of a value respectively
+
+					// In operator
+					option: ['one', 'two'], // String items, must be quoted?
 
 					/*
 					 * // Not supported yet
 					 * '-missing': 1, // this yields `settings->'$.missing' != 1` which returns false if `missing` is not present
-					 * option: ['one', 'two'], // `settings->'$.missing' IN ('one', 'two')` is not supported yet in MySQL
 					 */
 				},
 			},
