@@ -5,6 +5,8 @@ import formatDateTime from '../utils/format_datetime.js';
 import getFieldAttributes from '../utils/field_attributes.js';
 import unwrap_field from '../utils/unwrap_field.js';
 
+const {MYSQL_VERSION} = process.env;
+
 /* eslint-disable jsdoc/valid-types */
 /**
  * @typedef {import('sql-template-tag').Sql} Sql
@@ -354,9 +356,10 @@ function sqlCondition({
 
 		// Use the `IN(...)` for items which can be grouped...
 		if (filteredValue.length) {
-			conds.push(
-				SQL`${sql_field} ${NOT}IN (${filteredValue.map(quote)})`
-			);
+			const items = MYSQL_VERSION?.startsWith('5.7')
+				? filteredValue.map(quote)
+				: filteredValue;
+			conds.push(SQL`${sql_field} ${NOT}IN (${items})`);
 		}
 
 		// Other Values which can't be grouped ...
