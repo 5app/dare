@@ -119,6 +119,15 @@ describe('Filter Reducer', () => {
 				`(a.jsonSettings->? IS NOT NULL)`,
 				['$.key'],
 			],
+			[
+				{
+					jsonSettings: {
+						key: ['a', 'b', 1],
+					},
+				},
+				`(a.jsonSettings->? IN (?))`,
+				['$.key', ['a', 'b', 1]],
+			],
 		];
 
 		a.forEach(async test => {
@@ -147,6 +156,36 @@ describe('Filter Reducer', () => {
 				// Should not mutate the filters...
 				expect(filter).to.deep.eql(filter_cloned);
 			});
+		});
+	});
+
+	describe('mysql 5.7', () => {
+		afterEach(() => {
+			process.env.MYSQL_VERSION = undefined;
+		});
+
+		it('should quote json list (IN) sting values', () => {
+			process.env.MYSQL_VERSION = '5.7';
+
+			const filter = {
+				jsonSettings: {
+					key: ['a', 'b', 1],
+				},
+			};
+
+			const sql = `(a.jsonSettings->? IN (?))`;
+			const values = ['$.key', ['"a"', '"b"', 1]];
+
+			const [query] = reduceConditions(filter, {
+				extract,
+				sql_alias: 'a',
+				table_schema,
+				conditional_operators_in_value,
+				dareInstance,
+			});
+
+			expect(query.sql).to.equal(sql);
+			expect(query.values).to.deep.equal(values);
 		});
 	});
 });
