@@ -55,9 +55,14 @@ describe('Working with JSON DataType', () => {
 		};
 
 		// Create a test user settings and a control, without settings
-		await dare.post('users', [
+		const {insertId} = await dare.post('users', [
 			{username, settings},
 			{username: 'another', settings: null},
+		]);
+
+		await dare.post('users_email', [
+			{user_id: insertId, email: 'a@example.com'},
+			{user_id: insertId + 1, email: 'b@example.com'},
 		]);
 
 		const resp = await dare.get({
@@ -98,6 +103,20 @@ describe('Working with JSON DataType', () => {
 
 		assert.deepStrictEqual(resp, [{settings}]);
 
+		// Test the shorthand filter
+		{
+			const resp = await dare.get({
+				table: 'users_email',
+				fields: [{users: ['settings']}],
+				filter: {
+					'users.settings.str': 'string',
+				},
+				limit: 2,
+			});
+			assert.deepStrictEqual(resp, [{users: {settings}}]);
+		}
+
+		// Test the failure to match
 		const noMatch = await dare.get({
 			table: 'users',
 			fields: ['settings'],

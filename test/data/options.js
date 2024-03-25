@@ -69,17 +69,16 @@ export default {
 		// Users have multiple emails
 		users_email: {
 			schema: {
+				email: {
+					type: 'string',
+				},
+
 				/*
-				 * User_id defines a field which references the users table
+				 * Defines a field which references the users.id field
 				 */
 				user_id: {
 					references: ['users.id'],
 				},
-
-				/*
-				 * Date Type
-				 */
-				created_time,
 			},
 		},
 
