@@ -1507,7 +1507,7 @@ There is currently backwards compatibility with MySQL 5.6 provided by setting th
 e.g.
 
 ```js
-process.env.MYSQL_VERSION = 5.6;
+process.env.MYSQL_VERSION = '5.6';
 ```
 
 # Caveats

@@ -79,6 +79,7 @@
 		"typescript": "^5.3.3"
 	},
 	"dependencies": {
+		"semver-compare": "^1.0.0",
 		"sql-template-tag": "^5.2.0",
 		"tricks": "^2.0.0"
 	},
