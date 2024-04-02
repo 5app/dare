@@ -1,2 +1,2 @@
-INSERT INTO `country` (`code`) VALUES ('UK'), ('AU');
+INSERT INTO country (code) VALUES ('UK'), ('AU');
 

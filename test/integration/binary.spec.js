@@ -2,6 +2,11 @@ import assert from 'node:assert/strict';
 import {dare} from './helpers/api.js';
 
 describe(`Binary handling`, () => {
+
+	beforeEach(async () => {
+		await dare.sql(`ALTER TABLE users ADD COLUMN uuid BINARY(16) DEFAULT NULL`);
+	});
+
 	it('Can insert, query and patch binary fields', async () => {
 		const uuid = Buffer.from('12345678901234567890123456789012', 'hex');
 
