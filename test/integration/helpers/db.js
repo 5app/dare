@@ -21,13 +21,10 @@ const dbSettings = {
 	database: dbName,
 };
 
-
-
 let dbInstance;
 if (DB_ENGINE === 'mysql') {
 	dbInstance = new MySQL(dbSettings);
-}
-else if (DB_ENGINE === 'postgres') {
+} else if (DB_ENGINE === 'postgres') {
 	dbInstance = new Postgres(dbSettings);
 }
 

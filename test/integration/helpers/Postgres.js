@@ -2,10 +2,7 @@ import {execSync} from 'node:child_process';
 import pg from 'pg';
 import fs from 'node:fs';
 
-const {
-	TEST_DB_DATA_PATH,
-	TEST_DB_SCHEMA_PATH,
-} = process.env;
+const {TEST_DB_DATA_PATH, TEST_DB_SCHEMA_PATH} = process.env;
 
 const schemaSql = fs.readFileSync(TEST_DB_SCHEMA_PATH);
 const insertDataSql = fs.readFileSync(TEST_DB_DATA_PATH);
@@ -18,12 +15,14 @@ export default class Postgres {
 		// We have to connect to the docker instance to run in the mysql dump via a query
 		execSync(
 			`docker exec -i --env PGPASSWORD=${this.credentials.password} dare_db psql -U postgres -h ${this.credentials.host} postgres`,
-			{input: `CREATE DATABASE ${this.credentials.database}; \\c ${this.credentials.database}; ${schemaSql}`}
+			{
+				input: `CREATE DATABASE ${this.credentials.database}; \\c ${this.credentials.database}; ${schemaSql}`,
+			}
 		);
 
 		const client = new pg.Client({
 			...this.credentials,
-			user: 'postgres'
+			user: 'postgres',
 		});
 
 		await client.connect();
@@ -44,7 +43,6 @@ export default class Postgres {
 	}
 
 	async query(request) {
-
 		let index = 0;
 
 		// Format the query
@@ -54,7 +52,10 @@ export default class Postgres {
 
 		// Debug console.log(request, query, request?.values);
 
-		const {command, rowCount, rows, oid} = await this.conn.query(query, request?.values);
+		const {command, rowCount, rows, oid} = await this.conn.query(
+			query,
+			request?.values
+		);
 
 		// Return SELECT rows
 		if (command === 'SELECT') {
@@ -64,7 +65,7 @@ export default class Postgres {
 		// Else, return a node-mysql'ish response
 		return {
 			insertId: oid,
-			affectedRows: rowCount
+			affectedRows: rowCount,
 		};
 	}
 

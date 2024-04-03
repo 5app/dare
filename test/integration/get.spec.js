@@ -181,8 +181,9 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 	});
 
 	it('Can search via fulltext', async () => {
-
-		await dare.sql(`ALTER TABLE users ADD FULLTEXT KEY fulltext_users_fields (username, first_name, last_name)`);
+		await dare.sql(
+			`ALTER TABLE users ADD FULLTEXT KEY fulltext_users_fields (username, first_name, last_name)`
+		);
 
 		const username = 'name@example.com';
 		await dare.post('users', [
