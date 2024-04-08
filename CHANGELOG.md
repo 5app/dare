@@ -1,3 +1,10 @@
+# [0.85.0](https://github.com/5app/dare/compare/v0.84.0...v0.85.0) (2024-04-08)
+
+
+### Features
+
+* **json_arrayagg:** replaces group_concat in mysql>=5.7.22 ([cf0e212](https://github.com/5app/dare/commit/cf0e212b1e8797251c419089a0d54cd4f4958a52))
+
 # [0.84.0](https://github.com/5app/dare/compare/v0.83.0...v0.84.0) (2024-04-08)
 
 
