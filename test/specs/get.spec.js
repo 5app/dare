@@ -196,7 +196,7 @@ describe('get', () => {
 			dare.execute = async ({sql, values}) => {
 				sqlEqual(
 					sql,
-					'SELECT a.id, a.name FROM test a WHERE a.id = ? LIMIT 4, 5'
+					'SELECT a.id, a.name FROM test a WHERE a.id = ? LIMIT 5 OFFSET 4'
 				);
 				expect(values).to.deep.equal([id]);
 				return [basic_record];

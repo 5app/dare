@@ -1,6 +1,7 @@
 import Dare, {DareError} from '../../src/index.js';
 import Debug from 'debug';
 import {expect} from 'chai';
+import assert from 'node:assert/strict';
 import mysql from 'mysql2/promise';
 import db from './helpers/db.js';
 import {options, castToStringIfNeeded} from './helpers/api.js';
@@ -32,6 +33,30 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 		const resp = await dare.get('users', ['username']);
 
 		expect(resp).to.have.property('username', username);
+	});
+
+	it('can use pagination to get more results', async () => {
+		const username = 'A Name';
+		const body = Array(10)
+			.fill(0)
+			.map((_, index) => ({username: `${username}-${index}`}));
+		await dare.post('users', body);
+
+		const limit = 3;
+		for (let page = 0; page < 5; page++) {
+			const start = page * limit;
+			// eslint-disable-next-line no-await-in-loop
+			const pageResponse = await dare.get(
+				'users',
+				['username'],
+				{},
+				{limit, start}
+			);
+			assert.deepStrictEqual(
+				pageResponse,
+				body.slice(start, start + limit)
+			);
+		}
 	});
 
 	it('Can update results', async () => {
