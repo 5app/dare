@@ -161,7 +161,7 @@ describe('Filter Reducer', () => {
 
 	describe('mysql 5.7', () => {
 		afterEach(() => {
-			process.env.MYSQL_VERSION = undefined;
+			delete process.env.MYSQL_VERSION;
 		});
 
 		it('should quote json list (IN) sting values', () => {
