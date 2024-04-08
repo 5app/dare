@@ -1,3 +1,10 @@
+# [0.86.0](https://github.com/5app/dare/compare/v0.85.0...v0.86.0) (2024-04-08)
+
+
+### Features
+
+* **json:** querying json props ([#286](https://github.com/5app/dare/issues/286)) ([fc148cc](https://github.com/5app/dare/commit/fc148cc6d8ccaea417a9860b9e7dfa6ced353439)), closes [#283](https://github.com/5app/dare/issues/283) [#283](https://github.com/5app/dare/issues/283) [#283](https://github.com/5app/dare/issues/283) [#283](https://github.com/5app/dare/issues/283)
+
 # [0.85.0](https://github.com/5app/dare/compare/v0.84.0...v0.85.0) (2024-04-08)
 
 
