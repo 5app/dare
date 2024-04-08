@@ -1,3 +1,11 @@
+# [0.84.0](https://github.com/5app/dare/compare/v0.83.0...v0.84.0) (2024-04-08)
+
+
+### Features
+
+* **exists:** easy way to determine whether a record exists ([#336](https://github.com/5app/dare/issues/336)) ([3304f68](https://github.com/5app/dare/commit/3304f68bcbd1b4f39b29cfed74ac80e3f1f3cd28))
+* **offset:** use explicit offset syntax, [#339](https://github.com/5app/dare/issues/339) ([d5d252b](https://github.com/5app/dare/commit/d5d252b1ba0236752b8c689703795836b76147f0))
+
 # [0.83.0](https://github.com/5app/dare/compare/v0.82.3...v0.83.0) (2024-03-06)
 
 
