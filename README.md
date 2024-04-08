@@ -1264,6 +1264,24 @@ await dare.get({
 }); // returns: undefined
 ```
 
+# Exists
+
+Determining whether a record exists can be achieved by simply making a query using the `notfound` to return a falsy value, and an arbitary fields reference, or for a shorthand, omit the `fields` entirely - see this shorthand approach below - which as an example will instead return a truthy value `{recordExists: true}` for a hit, or a `null` for a miss.
+
+> [!NOTE]
+> Dont rely on the object properties of a hit, only that it has returned a truthy value.
+
+```js
+const exists = await dare.get({
+	table,
+	filter,
+	notfound: null,
+});
+
+// Hit: {recordExists: true}
+// Miss: null (whatever provided by notfound)
+```
+
 # Additional Options
 
 ## Fulltext Search

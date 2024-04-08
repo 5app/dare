@@ -260,4 +260,14 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 			expect(resp).to.have.property('username', username);
 		}
 	});
+
+	it('Return a truthy value for existance if no fields are provided', async () => {
+		const username = 'A Name';
+		await dare.post('users', {username});
+
+		// Get request with no parameters
+		const resp = await dare.get('users');
+
+		assert.ok(resp);
+	});
 });

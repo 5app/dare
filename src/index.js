@@ -359,8 +359,12 @@ Dare.prototype.get = async function get(table, fields, filter, options = {}) {
 			: // Clone and extend
 				{...options, table, filter, fields};
 
+	const existanceCheck = opts.fields === undefined;
+
 	// Ensure fields is provided
-	if (typeof fields === 'object' && !Array.isArray(fields)) {
+	if (existanceCheck) {
+		opts.fields = [{recordExists: true}];
+	} else if (typeof opts.fields !== 'object' || opts.fields === null) {
 		// Fields must be defined
 		throw new DareError(DareError.INVALID_REQUEST);
 	}
