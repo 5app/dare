@@ -36,6 +36,28 @@ export default function fieldReducer({
 						continue;
 					}
 
+					// /*
+					//  * Is this a JSON field to drill into?
+					//  * -> Extract Type
+					//  */
+					// Const {type} = getFieldAttributes(
+					// 	Table_schema[key]
+					// );
+					// // -> If type === json;
+					// If (type === 'json') {
+
+					// 	/*
+					// 	 * Deconstruct the object into an array of values
+					// 	 * Format these to have lables and pipe into `fieldsArray`
+					// 	 */
+
+					/*
+					 * }
+					 * else {
+					 * 	// Extract nested field
+					 * }
+					 */
+
 					// Extract nested field
 					extract(key, Array.isArray(value) ? value : [value]);
 				} else {
