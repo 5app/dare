@@ -72,7 +72,7 @@ function formatHandler(item) {
 			}
 		} else {
 			// This has multiple parts
-			// eslint-disable-next-line security/detect-unsafe-regex
+
 			const m = label.match(/^(?<label>[\s\w$.-]*)\[(?<keys>.*?)]$/i);
 
 			if (!m) {
@@ -211,7 +211,6 @@ function generatedFieldsHandler(
 
 /**
  * GetHandlerPropsByAddress
- *
  * @param {string} requestPath - String denoting the path of the props
  * @param {object} item - Item with the nested props
  * @param {Array} extraFields - extrafields which can be removed afterwards
