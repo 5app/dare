@@ -29,13 +29,13 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {Function} [patch] - Patch handler
  * @property {Function} [del] - Delete handler
  *
- * @typedef {object} RequestObject
+ * @typedef {object} RequestOptions
  * @property {string} [table] - Name of the table to query
  * @property {Array} [fields] - Fields array to return
  * @property {object} [filter] - Filter Object to query
  * @property {object} [join] - Place filters on the joining tables
  * @property {object} [body] - Body containing new data
- * @property {RequestObject} [query] - Query attached to a post request to create INSERT...SELECT operations
+ * @property {RequestOptions} [query] - Query attached to a post request to create INSERT...SELECT operations
  * @property {number} [limit] - Number of items to return
  * @property {number} [start] - Number of items to skip
  * @property {string | string[]} [orderby] - Array of fields to order by
@@ -64,7 +64,7 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {string} [ignore] - SQL Fields
  * @property {Array} [sql_where_conditions] - SQL Where conditions
  *
- * @typedef {RequestObject & InternalProps} QueryOptions
+ * @typedef {RequestOptions & InternalProps} QueryOptions
  */
 /* eslint-enable jsdoc/valid-types */
 
@@ -340,10 +340,12 @@ Dare.prototype.sql = async function sql(sql, values) {
  * Dare.get
  * Triggers a DB SELECT request to rerieve records from the database.
  *
- * @param {string | RequestObject} table - Name of the table to query
+ * @typedef {Omit<RequestOptions, 'body' | 'query' | 'duplicate_keys' | 'duplicate_keys_update'>} GetRequestOptions
+ *
+ * @param {string | GetRequestOptions} table - Name of the table to query
  * @param {Array} [fields] - Fields array to return
  * @param {object} [filter] - Filter Object to query
- * @param {RequestObject} [options] - An Options object containing all other request options
+ * @param {Omit<GetRequestOptions, 'table' | 'fields' | 'filter'>} [options] - An Options object containing all other request options
  * @returns {Promise<any>} Results
  */
 Dare.prototype.get = async function get(table, fields, filter, options = {}) {
@@ -403,9 +405,9 @@ Dare.prototype.get = async function get(table, fields, filter, options = {}) {
  * Dare.getCount
  * Returns the total number of results which match the conditions
  *
- * @param {string | RequestObject} table - Name of the table to query
+ * @param {string | GetRequestOptions} table - Name of the table to query
  * @param {object} [filter] - Filter Object to query
- * @param {RequestObject} [options] - An Options object containing all other request options
+ * @param {Omit<GetRequestOptions, 'table' | 'filter'>} [options] - An Options object containing all other request options
  * @returns {Promise<number>} Number of matched items
  */
 Dare.prototype.getCount = async function getCount(table, filter, options = {}) {
@@ -452,10 +454,12 @@ Dare.prototype.getCount = async function getCount(table, filter, options = {}) {
  * Dare.patch
  * Updates records matching the conditions
  *
- * @param {string | RequestObject} table - Name of the table to query
+ * @typedef {Omit<RequestOptions, 'fields' | 'groupby' | 'query'>} PatchRequestOptions
+ *
+ * @param {string | PatchRequestOptions} table - Name of the table to query
  * @param {object} [filter] - Filter Object to query
  * @param {object} [body] - Body containing new data
- * @param {RequestObject} [options] - An Options object containing all other request options
+ * @param {Omit<PatchRequestOptions, 'table' | 'body' | 'filter'>} [options] - An Options object containing all other request options
  * @returns {Promise<any>} Affected Rows statement
  */
 Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
@@ -533,9 +537,11 @@ Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
  * Dare.post
  * Insert new data into database
  *
- * @param {string | RequestObject} table - Name of the table to query
+ * @typedef {Omit<RequestOptions, 'filter' | 'start' | 'limit' | 'groupby' | 'orderby'>} PostRequestOptions
+ *
+ * @param {string | RequestOptions} table - Name of the table to query
  * @param {object | Array<object>} [body] - Body containing new data
- * @param {RequestObject} [options] - An Options object containing all other request options
+ * @param {Omit<RequestOptions, 'table' | 'body'>} [options] - An Options object containing all other request options
  * @returns {Promise<any>} Affected Rows statement
  */
 Dare.prototype.post = async function post(table, body, options = {}) {
@@ -766,9 +772,11 @@ Dare.prototype.post = async function post(table, body, options = {}) {
  * Dare.del
  * Delete a record matching condition
  *
- * @param {string | RequestObject} table - Name of the table to query
+ * @typedef {Omit<RequestOptions, 'body' | 'query'>} DeleteRequestOptions
+ *
+ * @param {string | DeleteRequestOptions} table - Name of the table to query
  * @param {object} [filter] - Filter Object to query
- * @param {RequestObject} [options] - An Options object containing all other request options
+ * @param {Omit<DeleteRequestOptions, 'table' | 'filter'>} [options] - An Options object containing all other request options
  * @returns {Promise<any>} Affected Rows statement
  */
 Dare.prototype.del = async function del(table, filter, options = {}) {
@@ -821,7 +829,7 @@ Dare.prototype.del = async function del(table, filter, options = {}) {
  * @param {string} obj.sql_alias - SQL Alias for update table
  * @param {object} [obj.tableSchema={}] - Schema for the current table
  * @param {Function} [obj.validateInput] - Validate input function
- * @param {object} obj.dareInstance - Dare Instance
+ * @param {Dare} obj.dareInstance - Dare Instance
  * @returns {object} {assignment, values}
  */
 function prepareSQLSet({
@@ -877,7 +885,7 @@ function onDuplicateKeysUpdate(keys = []) {
  * @param {string} obj.field - field identifier
  * @param {*} obj.value - Given value
  * @param {Function} [obj.validateInput] - Custom validation function
- * @param {object} obj.dareInstance - Dare Instance
+ * @param {Dare} obj.dareInstance - Dare Instance
  * @throws Will throw an error if the field is not writable
  * @returns {{field: string, value: *}} A singular value which can be inserted
  */
@@ -962,7 +970,7 @@ function formatInputValue({
  *
  * @param {object} tableSchema - An object containing the table schema
  * @param {string} field - field identifier
- * @param {object} dareInstance - Dare Instance
+ * @param {Dare} dareInstance - Dare Instance
  * @returns {string} Unaliased field name
  */
 function unAliasFields(tableSchema, field, dareInstance) {
