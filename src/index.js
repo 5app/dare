@@ -138,14 +138,26 @@ Dare.prototype.table_alias_handler = function (name) {
 
 Dare.prototype.unique_alias_index = 0;
 
-Dare.prototype.get_unique_alias = function (iterate = 1) {
-	this.unique_alias_index += iterate;
+Dare.prototype.get_unique_alias = function () {
 	const i = this.unique_alias_index;
-	const str = String.fromCharCode(96 + i);
-	if (i <= 26) {
+	const num_characters_in_alphabet = 26;
+	const str = String.fromCharCode(97 + (i % num_characters_in_alphabet));
+	this.unique_alias_index += 1;
+	if (i < num_characters_in_alphabet) {
 		return str;
 	}
-	return `\`${str}\``;
+
+	if (i > num_characters_in_alphabet * num_characters_in_alphabet) {
+		throw new DareError(
+			DareError.INVALID_REQUEST,
+			'Unique Alias Index has exceeded maximum'
+		);
+	}
+
+	const prefix = String.fromCharCode(
+		96 + Math.floor(i / num_characters_in_alphabet)
+	);
+	return `\`${prefix}${str}\``;
 };
 
 // eslint-disable-next-line jsdoc/valid-types
@@ -198,7 +210,7 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 
 	// Replace any special characters with quotes
 	const resp = input.matchAll(
-		/\s*(?<sign>[+<>~-]?)(?:\((?<subexpression>.*?)\)|(?<quoted>".*?")|(?<unquoted>\S+))(?<suffix>\*?)/g
+		/\s*(?<sign>[+<>~-]?)(?:\((?<subexpression>[^()]*)\)|(?<quoted>".*?")|(?<unquoted>[^\s()]+))(?<suffix>\*)?/g
 	);
 	const output = [...resp]
 		.filter(({groups: {subexpression, quoted, unquoted}}) =>
@@ -206,15 +218,19 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 				? quoted.length > 2
 				: subexpression || unquoted.replace(/^[*+-]+/, '')
 		)
-		.map(({groups: {sign, subexpression, quoted, unquoted, suffix}}) => {
-			if (subexpression) {
-				return `${sign}(${this.fulltextParser(subexpression)})`;
-			} else if (quoted) {
-				return `${sign}${quoted}`;
-			} else {
-				return `${sign}${safequote(unquoted + suffix)}`;
+		.map(
+			({
+				groups: {sign, subexpression, quoted, unquoted, suffix = ''},
+			}) => {
+				if (subexpression) {
+					return `${sign}(${this.fulltextParser(subexpression)})`;
+				} else if (quoted) {
+					return `${sign}${quoted}`;
+				} else {
+					return `${sign}${safequote(unquoted + suffix)}`;
+				}
 			}
-		});
+		);
 
 	return output.join(' ');
 };
