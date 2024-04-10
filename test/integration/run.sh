@@ -25,7 +25,7 @@ cd "$INTEGRATION_TEST_DIR" || exit 1
 
 MYSQL_ROOT_USER="root"
 MYSQL_ROOT_PASSWORD="test_pass"
-export MYSQL_VERSION=${MYSQL_VERSION:-5.6}
+MYSQL_VERSION=${MYSQL_VERSION:-5.7.40}
 
 export TEST_DB_SCHEMA_PATH="${INTEGRATION_TEST_DIR}data/schema.sql"
 export TEST_DB_DATA_PATH="${INTEGRATION_TEST_DIR}data/data.sql"
@@ -74,7 +74,7 @@ for dep in mysql; do
     i=$((i + 1))
 	echo "pending $i";
     sleep 2
-    if [[ "$i" -gt '20' ]]; then
+    if [[ "$i" -gt '40' ]]; then
       echo "${dep} failed to start. Final status: $(docker inspect --format='{{.State.Health.Status}}' "dare_${dep}")"
       docker rm -v -f "dare_${dep}"
       exit 1

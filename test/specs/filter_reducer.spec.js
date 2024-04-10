@@ -134,7 +134,7 @@ describe('Filter Reducer', () => {
 					},
 				},
 				`(a.jsonSettings->? IN (?))`,
-				['$.key', ['a', 'b', 1]],
+				['$.key', ['"a"', '"b"', 1]],
 			],
 		];
 
@@ -167,33 +167,41 @@ describe('Filter Reducer', () => {
 		});
 	});
 
-	describe('mysql 5.7', () => {
+	describe('mysql engine version handling', () => {
 		afterEach(() => {
 			delete process.env.MYSQL_VERSION;
 		});
 
-		it('should quote json list (IN) sting values', () => {
-			process.env.MYSQL_VERSION = '5.7';
+		['5.7', '8.0'].forEach(version => {
+			const quote = version === '5.7';
 
-			const filter = {
-				jsonSettings: {
-					key: ['a', 'b', 1],
-				},
-			};
+			it('should quote json list (IN) sting values', () => {
+				process.env.MYSQL_VERSION = version;
 
-			const sql = `(a.jsonSettings->? IN (?))`;
-			const values = ['$.key', ['"a"', '"b"', 1]];
+				const filter = {
+					jsonSettings: {
+						key: ['a', 'b', 1],
+					},
+				};
 
-			const [query] = reduceConditions(filter, {
-				extract,
-				sql_alias: 'a',
-				table_schema,
-				conditional_operators_in_value,
-				dareInstance,
+				const expectedValues = quote
+					? ['"a"', '"b"', 1]
+					: ['a', 'b', 1];
+
+				const sql = `(a.jsonSettings->? IN (?))`;
+				const values = ['$.key', expectedValues];
+
+				const [query] = reduceConditions(filter, {
+					extract,
+					sql_alias: 'a',
+					table_schema,
+					conditional_operators_in_value,
+					dareInstance,
+				});
+
+				expect(query.sql).to.equal(sql);
+				expect(query.values).to.deep.equal(values);
 			});
-
-			expect(query.sql).to.equal(sql);
-			expect(query.values).to.deep.equal(values);
 		});
 	});
 });
