@@ -80,6 +80,7 @@ for dep in mysql; do
       exit 1
     fi
   done
+  sleep 2
   echo "${dep} up"
 done
 
