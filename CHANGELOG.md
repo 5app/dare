@@ -1,3 +1,10 @@
+## [0.86.2](https://github.com/5app/dare/compare/v0.86.1...v0.86.2) (2024-04-10)
+
+
+### Bug Fixes
+
+* **json-querying:** default handling set to MySQL 5.7 ([#348](https://github.com/5app/dare/issues/348)) ([90ad9d0](https://github.com/5app/dare/commit/90ad9d0657710ec2abd852274a73e40ea78593a0))
+
 ## [0.86.1](https://github.com/5app/dare/compare/v0.86.0...v0.86.1) (2024-04-10)
 
 
