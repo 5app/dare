@@ -6,6 +6,7 @@ import defaultAPI from './helpers/api.js';
 
 describe('Working with JSON DataType', () => {
 	let dare;
+	const username = 'mightyduck';
 
 	// JSON DataType not supported in MySQL 5.6
 	beforeEach(function () {
@@ -22,9 +23,7 @@ describe('Working with JSON DataType', () => {
         `);
 	});
 
-	it('JSON fields should be setable and retrievable', async () => {
-		const username = 'mightyduck';
-
+	it('JSON fields should be retrievable', async () => {
 		const settings = {a: 1, b: 2};
 
 		await dare.post('users', {username, settings});
@@ -40,11 +39,29 @@ describe('Working with JSON DataType', () => {
 		assert.deepStrictEqual(resp.settings, settings);
 	});
 
-	/**
-	 * This would allow querying on and exporting values of a JSON object
-	 */
-	it('JSON fields should be queryable', async () => {
-		const username = 'mightyduck';
+	it('JSON fields should be queryable as a string', async () => {
+		const testString = 'testString';
+		const settings = {
+			testString,
+		};
+
+		// Create a test user settings and a control, without settings
+		const {insertId} = await dare.post('users', [{username, settings}]);
+
+		const resp = await dare.get({
+			table: 'users',
+			fields: ['id'],
+			filter: {
+				username,
+				// Likey operator
+				'%settings': [`%${testString}%`],
+			},
+		});
+
+		assert.deepStrictEqual(resp.id, insertId);
+	});
+
+	it('JSON fields should be queryable using nested values', async () => {
 		const settings = {
 			digit: 1,
 			str: 'string',
