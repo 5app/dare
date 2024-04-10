@@ -188,7 +188,12 @@ function prepCondition({
 	}
 
 	// JSON
-	if (type === 'json' && typeof value === 'object') {
+	if (
+		type === 'json' &&
+		typeof value === 'object' &&
+		value !== null &&
+		!Array.isArray(value)
+	) {
 		// Loop through the object and create the sql_field
 		const sql_fields = json_contains(sql_field, value);
 
@@ -212,7 +217,8 @@ function prepCondition({
 		value,
 		conditional_operators_in_value,
 		operators,
-		type,
+		// Treat json as text
+		type: type === 'json' ? 'text' : type,
 	});
 }
 
