@@ -217,7 +217,7 @@ function prepCondition({
 		value,
 		conditional_operators_in_value,
 		operators,
-		// treat json as text
+		// Treat json as text
 		type: type === 'json' ? 'text' : type,
 	});
 }

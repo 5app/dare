@@ -84,6 +84,14 @@ describe('Filter Reducer', () => {
 
 			// JSON
 			[
+				// Entire JSON field should be queryable as a string
+				{
+					'%jsonSettings': testStr,
+				},
+				`a.jsonSettings LIKE ?`,
+				[testStr],
+			],
+			[
 				{
 					jsonSettings: {
 						key: testStr,

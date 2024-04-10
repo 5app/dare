@@ -39,7 +39,7 @@ describe('Working with JSON DataType', () => {
 		assert.deepStrictEqual(resp.settings, settings);
 	});
 
-	it('JSON fields should be queryable as a string', async () => {
+	it('entire JSON field should be queryable as a string', async () => {
 		const testString = 'testString';
 		const settings = {
 			testString,
