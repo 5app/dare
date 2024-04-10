@@ -1,3 +1,13 @@
+## [0.86.1](https://github.com/5app/dare/compare/v0.86.0...v0.86.1) (2024-04-10)
+
+
+### Bug Fixes
+
+* **ci:** local CI default mysql_version, noissue ([d6810c0](https://github.com/5app/dare/commit/d6810c05ed962b810d8201dd53bf5ec7d2d4b4ee))
+* **json_arrayagg:** returns null row in shortcut_map, noissue ([d2abb77](https://github.com/5app/dare/commit/d2abb7710551b548353740baf534d307aea1614a))
+* **json:** should compare entire json object as text, noissue ([c26f8aa](https://github.com/5app/dare/commit/c26f8aa1e1e0c00654fa2011f6274b9f7c813fee))
+* **json:** should compare entire json object as text, noissue ([bd74741](https://github.com/5app/dare/commit/bd747414d3fc8f5fbe036ea1ea3914b3a1071121))
+
 # [0.86.0](https://github.com/5app/dare/compare/v0.85.0...v0.86.0) (2024-04-08)
 
 
