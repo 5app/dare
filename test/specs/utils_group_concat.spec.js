@@ -8,11 +8,15 @@ const rowid = '_rowid';
 
 const MYSQL_56 = '5.6';
 
-['*', MYSQL_56].forEach(MYSQL_VERSION => {
+['', MYSQL_56].forEach(MYSQL_VERSION => {
 	describe(`utils/group_concat: (mysql ${MYSQL_VERSION})`, () => {
-		beforeEach(() => {
+		before(() => {
 			// Set the mysql version...
 			process.env.MYSQL_VERSION = MYSQL_VERSION;
+		});
+
+		after(() => {
+			delete process.env.MYSQL_VERSION;
 		});
 
 		it('should return a function', () => {
@@ -39,7 +43,7 @@ const MYSQL_56 = '5.6';
 			const expectSQLEqual =
 				MYSQL_VERSION === MYSQL_56
 					? `CONCAT('[', GROUP_CONCAT(IF(a._rowid IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(table.b, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), NULL)), ']')`
-					: `CONCAT('[', GROUP_CONCAT(IF(a._rowid IS NOT NULL, JSON_ARRAY(table.a,table.b), NULL)), ']')`;
+					: `JSON_ARRAYAGG(IF(a._rowid IS NOT NULL, JSON_ARRAY(table.a,table.b), NULL))`;
 
 			expect(gc.expression).to.eql(expectSQLEqual);
 			expect(gc.label).to.eql('collection[a,b]');
@@ -96,7 +100,7 @@ const MYSQL_56 = '5.6';
 			const expectSQLEqual =
 				MYSQL_VERSION === MYSQL_56
 					? `CONCAT('[', GROUP_CONCAT(IF(a._rowid IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), NULL)), ']')`
-					: `CONCAT('[', GROUP_CONCAT(IF(a._rowid IS NOT NULL, JSON_ARRAY(table.a), NULL)), ']')`;
+					: `JSON_ARRAYAGG(IF(a._rowid IS NOT NULL, JSON_ARRAY(table.a), NULL))`;
 
 			expect(gc.expression).to.eql(expectSQLEqual);
 

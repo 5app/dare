@@ -32,13 +32,13 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  */
 
 /**
- * @typedef {object} RequestObject
+ * @typedef {object} RequestOptions
  * @property {string} [table] - Name of the table to query
  * @property {Array} [fields] - Fields array to return
  * @property {object} [filter] - Filter Object to query
  * @property {object} [join] - Place filters on the joining tables
  * @property {object} [body] - Body containing new data
- * @property {RequestObject} [query] - Query attached to a post request to create INSERT...SELECT operations
+ * @property {RequestOptions} [query] - Query attached to a post request to create INSERT...SELECT operations
  * @property {number} [limit] - Number of items to return
  * @property {number} [start] - Number of items to skip
  * @property {string | string[]} [orderby] - Array of fields to order by
@@ -71,7 +71,7 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  */
 
 /**
- * @typedef {RequestObject & InternalProps} QueryOptions
+ * @typedef {RequestOptions & InternalProps} QueryOptions
  */
 
 /*
@@ -143,14 +143,26 @@ Dare.prototype.table_alias_handler = function (name) {
 
 Dare.prototype.unique_alias_index = 0;
 
-Dare.prototype.get_unique_alias = function (iterate = 1) {
-	this.unique_alias_index += iterate;
+Dare.prototype.get_unique_alias = function () {
 	const i = this.unique_alias_index;
-	const str = String.fromCharCode(96 + i);
-	if (i <= 26) {
+	const num_characters_in_alphabet = 26;
+	const str = String.fromCharCode(97 + (i % num_characters_in_alphabet));
+	this.unique_alias_index += 1;
+	if (i < num_characters_in_alphabet) {
 		return str;
 	}
-	return `\`${str}\``;
+
+	if (i > num_characters_in_alphabet * num_characters_in_alphabet) {
+		throw new DareError(
+			DareError.INVALID_REQUEST,
+			'Unique Alias Index has exceeded maximum'
+		);
+	}
+
+	const prefix = String.fromCharCode(
+		96 + Math.floor(i / num_characters_in_alphabet)
+	);
+	return `\`${prefix}${str}\``;
 };
 
 /** @type {(options: QueryOptions) => Promise<QueryOptions>} */
@@ -202,7 +214,7 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 
 	// Replace any special characters with quotes
 	const resp = input.matchAll(
-		/\s*(?<sign>[+<>~-]?)(?:\((?<subexpression>.*?)\)|(?<quoted>".*?")|(?<unquoted>\S+))(?<suffix>\*?)/g
+		/\s*(?<sign>[+<>~-]?)(?:\((?<subexpression>[^()]*)\)|(?<quoted>".*?")|(?<unquoted>[^\s()]+))(?<suffix>\*)?/g
 	);
 	const output = [...resp]
 		.filter(({groups: {subexpression, quoted, unquoted}}) =>
@@ -210,15 +222,19 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 				? quoted.length > 2
 				: subexpression || unquoted.replace(/^[*+-]+/, '')
 		)
-		.map(({groups: {sign, subexpression, quoted, unquoted, suffix}}) => {
-			if (subexpression) {
-				return `${sign}(${this.fulltextParser(subexpression)})`;
-			} else if (quoted) {
-				return `${sign}${quoted}`;
-			} else {
-				return `${sign}${safequote(unquoted + suffix)}`;
+		.map(
+			({
+				groups: {sign, subexpression, quoted, unquoted, suffix = ''},
+			}) => {
+				if (subexpression) {
+					return `${sign}(${this.fulltextParser(subexpression)})`;
+				} else if (quoted) {
+					return `${sign}${quoted}`;
+				} else {
+					return `${sign}${safequote(unquoted + suffix)}`;
+				}
 			}
-		});
+		);
 
 	return output.join(' ');
 };
@@ -323,10 +339,10 @@ Dare.prototype.sql = async function sql(sql, values) {
 /**
  * Dare.get
  * Triggers a DB SELECT request to rerieve records from the database.
- * @param {string | RequestObject} table - Name of the table to query
+ * @param {string | RequestOptions} table - Name of the table to query
  * @param {Array} [fields] - Fields array to return
  * @param {object} [filter] - Filter Object to query
- * @param {RequestObject} [options] - An Options object containing all other request options
+ * @param {Omit<RequestOptions, 'table' | 'fields' | 'filter'>} [options] - An Options object containing all other request options
  * @returns {Promise<any>} Results
  */
 Dare.prototype.get = async function get(table, fields, filter, options = {}) {
@@ -340,8 +356,12 @@ Dare.prototype.get = async function get(table, fields, filter, options = {}) {
 			: // Clone and extend
 				{...options, table, filter, fields};
 
+	const existanceCheck = opts.fields === undefined;
+
 	// Ensure fields is provided
-	if (typeof fields === 'object' && !Array.isArray(fields)) {
+	if (existanceCheck) {
+		opts.fields = [{recordExists: true}];
+	} else if (typeof opts.fields !== 'object' || opts.fields === null) {
 		// Fields must be defined
 		throw new DareError(DareError.INVALID_REQUEST);
 	}
@@ -385,9 +405,9 @@ Dare.prototype.get = async function get(table, fields, filter, options = {}) {
 /**
  * Dare.getCount
  * Returns the total number of results which match the conditions
- * @param {string | RequestObject} table - Name of the table to query
+ * @param {string | RequestOptions} table - Name of the table to query
  * @param {object} [filter] - Filter Object to query
- * @param {RequestObject} [options] - An Options object containing all other request options
+ * @param {Omit<RequestOptions, 'table' | 'filter'>} [options] - An Options object containing all other request options
  * @returns {Promise<number>} Number of matched items
  */
 Dare.prototype.getCount = async function getCount(table, filter, options = {}) {
@@ -431,12 +451,16 @@ Dare.prototype.getCount = async function getCount(table, filter, options = {}) {
 };
 
 /**
+ * @typedef {Omit<RequestOptions, 'fields' | 'groupby' | 'query'>} PatchRequestOptions
+ */
+
+/**
  * Dare.patch
  * Updates records matching the conditions
- * @param {string | RequestObject} table - Name of the table to query
+ * @param {string | PatchRequestOptions} table - Name of the table to query
  * @param {object} [filter] - Filter Object to query
  * @param {object} [body] - Body containing new data
- * @param {RequestObject} [options] - An Options object containing all other request options
+ * @param {Omit<PatchRequestOptions, 'table' | 'body' | 'filter'>} [options] - An Options object containing all other request options
  * @returns {Promise<any>} Affected Rows statement
  */
 Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
@@ -511,11 +535,15 @@ Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
 };
 
 /**
+ * @typedef {Omit<RequestOptions, 'filter' | 'start' | 'limit' | 'groupby' | 'orderby'>} PostRequestOptions
+ */
+
+/**
  * Dare.post
  * Insert new data into database
- * @param {string | RequestObject} table - Name of the table to query
+ * @param {string | RequestOptions} table - Name of the table to query
  * @param {object | Array<object>} [body] - Body containing new data
- * @param {RequestObject} [options] - An Options object containing all other request options
+ * @param {Omit<RequestOptions, 'table' | 'body'>} [options] - An Options object containing all other request options
  * @returns {Promise<any>} Affected Rows statement
  */
 Dare.prototype.post = async function post(table, body, options = {}) {
@@ -743,11 +771,15 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 };
 
 /**
+ * @typedef {Omit<RequestOptions, 'body' | 'query'>} DeleteRequestOptions
+ */
+
+/**
  * Dare.del
  * Delete a record matching condition
- * @param {string | RequestObject} table - Name of the table to query
+ * @param {string | DeleteRequestOptions} table - Name of the table to query
  * @param {object} [filter] - Filter Object to query
- * @param {RequestObject} [options] - An Options object containing all other request options
+ * @param {Omit<DeleteRequestOptions, 'table' | 'filter'>} [options] - An Options object containing all other request options
  * @returns {Promise<any>} Affected Rows statement
  */
 Dare.prototype.del = async function del(table, filter, options = {}) {
@@ -800,7 +832,7 @@ Dare.prototype.del = async function del(table, filter, options = {}) {
  * @param {string} obj.sql_alias - SQL Alias for update table
  * @param {object} [obj.tableSchema] - Schema for the current table
  * @param {Function} [obj.validateInput] - Validate input function
- * @param {object} obj.dareInstance - Dare Instance
+ * @param {Dare} obj.dareInstance - Dare Instance
  * @returns {object} {assignment, values}
  */
 function prepareSQLSet({
@@ -856,7 +888,7 @@ function onDuplicateKeysUpdate(keys = []) {
  * @param {string} obj.field - field identifier
  * @param {*} obj.value - Given value
  * @param {Function} [obj.validateInput] - Custom validation function
- * @param {object} obj.dareInstance - Dare Instance
+ * @param {Dare} obj.dareInstance - Dare Instance
  * @throws Will throw an error if the field is not writable
  * @returns {{field: string, value: *}} A singular value which can be inserted
  */
@@ -940,7 +972,7 @@ function formatInputValue({
  * Return un-aliased field names
  * @param {object} tableSchema - An object containing the table schema
  * @param {string} field - field identifier
- * @param {object} dareInstance - Dare Instance
+ * @param {Dare} dareInstance - Dare Instance
  * @returns {string} Unaliased field name
  */
 function unAliasFields(tableSchema, field, dareInstance) {

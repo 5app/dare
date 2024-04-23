@@ -1,3 +1,4 @@
+import semverCompare from 'semver-compare';
 /*
  * Generate GROUP_CONCAT statement given an array of fields definitions
  * Label the GROUP CONCAT(..) AS 'address[fields,...]'
@@ -22,7 +23,10 @@ export default function group_concat(fields, address = '', sql_alias, rowid) {
 	}
 
 	// Convert to JSON Array
-	if (process.env.MYSQL_VERSION === '5.6') {
+	if (
+		process.env.MYSQL_VERSION &&
+		semverCompare(process.env.MYSQL_VERSION, '5.7') < 0
+	) {
 		expression = fields.map(
 			field =>
 				`'"', REPLACE(REPLACE(${field.expression}, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"'`
@@ -41,7 +45,14 @@ export default function group_concat(fields, address = '', sql_alias, rowid) {
 	}
 
 	// Multiple
-	expression = `CONCAT('[', GROUP_CONCAT(IF(${sql_alias}.${rowid} IS NOT NULL, ${expression}, NULL)), ']')`;
+	if (
+		process.env.MYSQL_VERSION &&
+		semverCompare(process.env.MYSQL_VERSION, '5.7.21') <= 0
+	) {
+		expression = `CONCAT('[', GROUP_CONCAT(IF(${sql_alias}.${rowid} IS NOT NULL, ${expression}, NULL)), ']')`;
+	} else {
+		expression = `JSON_ARRAYAGG(IF(${sql_alias}.${rowid} IS NOT NULL, ${expression}, NULL))`;
+	}
 
 	label = fields
 		.map(field => {

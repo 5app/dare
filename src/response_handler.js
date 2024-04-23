@@ -101,7 +101,7 @@ function formatHandler(item) {
 				const keys = m.groups.keys.split(',');
 
 				if (Array.isArray(value)) {
-					value.forEach(values => {
+					value.filter(Boolean).forEach(values => {
 						/*
 						 * This is a workaround/tidy up for GROUP_CONCAT with JSON_ARRAY/CONCAT_WS
 						 * JSON_ARRAY can include a NULL value even if there is no matching join

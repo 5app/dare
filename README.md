@@ -704,9 +704,9 @@ const dare = new Dare({
 
 **`json`**
 
-Serializes Objects and Deserializes JSON strings in `get`, `post` and `patch` operations.
+Serializes Objects and Deserializes JSON strings in `get`, `post` and `patch` operations. Setting this value also enables the ability to filter results by querying within the JSON values
 
-e.g.
+i.e.
 
 Schema: field definition...
 
@@ -728,31 +728,25 @@ const dare = new Dare({
 Example set and get
 
 ```js
-	// Arbitary object...
-	const meta = {
-		prop1: 1,
-		prop2: 2
-	};
+// Arbitary object...
+const meta = {
+	prop1: 1,
+	prop2: 2,
+};
 
-	// For a field named `meta`
-	const {insertId: id} = await dare.post('users', {meta});
-	// The value is run through JSON.stringify before insertion
-	// INSERT INOT users (meta) VALUES('{"prop1": 1, "prop2": 2}')
+// For a field named `meta`
+const {insertId: id} = await dare.post('users', {meta});
+// The value is run through JSON.stringify before insertion
+// INSERT INOT users (meta) VALUES('{"prop1": 1, "prop2": 2}')
 
-
-	...
-
-	// The value is desiralized, when accessed via get...
-	const {meta} = await dare.get('users', ['meta'], {id});
-
-	// e.g...
-	console.log(meta);
-	// Object({
-	// 	prop1: 1,
-	// 	prop2: 2
-	// });
-
+// The filter will find records where the JSON meta field has a `prop1 = 1` (For MySQL 5.7+)
+// If stored as TEXT type field the field is deserialised
+const {meta} = await dare.get('users', ['meta'], {meta: {prop1: 1}});
+// i.e. meta === {prop1: 1, prop2: 2);
 ```
+
+Many of the same search operators as used in filtering regular fields will work in comparing against properties within JSON objects.
+i.e. (=), `-` (!=), `%` (LIKE), '~' (BETWEEN) etc... will work if your database engine support it.
 
 #### Field attribute: `handler`
 
@@ -1264,6 +1258,24 @@ await dare.get({
 }); // returns: undefined
 ```
 
+# Exists
+
+Determining whether a record exists can be achieved by simply making a query using the `notfound` to return a falsy value, and an arbitary fields reference, or for a shorthand, omit the `fields` entirely - see this shorthand approach below - which as an example will instead return a truthy value `{recordExists: true}` for a hit, or a `null` for a miss.
+
+> [!NOTE]
+> Dont rely on the object properties of a hit, only that it has returned a truthy value.
+
+```js
+const exists = await dare.get({
+	table,
+	filter,
+	notfound: null,
+});
+
+// Hit: {recordExists: true}
+// Miss: null (whatever provided by notfound)
+```
+
 # Additional Options
 
 ## Fulltext Search
@@ -1507,7 +1519,7 @@ There is currently backwards compatibility with MySQL 5.6 provided by setting th
 e.g.
 
 ```js
-process.env.MYSQL_VERSION = 5.6;
+process.env.MYSQL_VERSION = '5.6';
 ```
 
 # Caveats

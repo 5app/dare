@@ -1,3 +1,56 @@
+## [0.86.2](https://github.com/5app/dare/compare/v0.86.1...v0.86.2) (2024-04-10)
+
+
+### Bug Fixes
+
+* **json-querying:** default handling set to MySQL 5.7 ([#348](https://github.com/5app/dare/issues/348)) ([90ad9d0](https://github.com/5app/dare/commit/90ad9d0657710ec2abd852274a73e40ea78593a0))
+
+## [0.86.1](https://github.com/5app/dare/compare/v0.86.0...v0.86.1) (2024-04-10)
+
+
+### Bug Fixes
+
+* **ci:** local CI default mysql_version, noissue ([d6810c0](https://github.com/5app/dare/commit/d6810c05ed962b810d8201dd53bf5ec7d2d4b4ee))
+* **json_arrayagg:** returns null row in shortcut_map, noissue ([d2abb77](https://github.com/5app/dare/commit/d2abb7710551b548353740baf534d307aea1614a))
+* **json:** should compare entire json object as text, noissue ([c26f8aa](https://github.com/5app/dare/commit/c26f8aa1e1e0c00654fa2011f6274b9f7c813fee))
+* **json:** should compare entire json object as text, noissue ([bd74741](https://github.com/5app/dare/commit/bd747414d3fc8f5fbe036ea1ea3914b3a1071121))
+
+# [0.86.0](https://github.com/5app/dare/compare/v0.85.0...v0.86.0) (2024-04-08)
+
+
+### Features
+
+* **json:** querying json props ([#286](https://github.com/5app/dare/issues/286)) ([fc148cc](https://github.com/5app/dare/commit/fc148cc6d8ccaea417a9860b9e7dfa6ced353439)), closes [#283](https://github.com/5app/dare/issues/283) [#283](https://github.com/5app/dare/issues/283) [#283](https://github.com/5app/dare/issues/283) [#283](https://github.com/5app/dare/issues/283)
+
+# [0.85.0](https://github.com/5app/dare/compare/v0.84.0...v0.85.0) (2024-04-08)
+
+
+### Features
+
+* **json_arrayagg:** replaces group_concat in mysql>=5.7.22 ([cf0e212](https://github.com/5app/dare/commit/cf0e212b1e8797251c419089a0d54cd4f4958a52))
+
+# [0.84.0](https://github.com/5app/dare/compare/v0.83.0...v0.84.0) (2024-04-08)
+
+
+### Features
+
+* **exists:** easy way to determine whether a record exists ([#336](https://github.com/5app/dare/issues/336)) ([3304f68](https://github.com/5app/dare/commit/3304f68bcbd1b4f39b29cfed74ac80e3f1f3cd28))
+* **offset:** use explicit offset syntax, [#339](https://github.com/5app/dare/issues/339) ([d5d252b](https://github.com/5app/dare/commit/d5d252b1ba0236752b8c689703795836b76147f0))
+
+# [0.83.0](https://github.com/5app/dare/compare/v0.82.3...v0.83.0) (2024-03-06)
+
+
+### Features
+
+* **tableAliases:** use only alphabetical characters, noissue ([99c62ba](https://github.com/5app/dare/commit/99c62ba32575f251a84086d6a3a95c1cc6c67c02))
+
+## [0.82.3](https://github.com/5app/dare/compare/v0.82.2...v0.82.3) (2024-02-29)
+
+
+### Bug Fixes
+
+* **regExp:** address code scannning warning ([def5dbe](https://github.com/5app/dare/commit/def5dbeb9d61ef5a1c55a9654b07ff2c6a1d5e3a))
+
 ## [0.82.2](https://github.com/5app/dare/compare/v0.82.1...v0.82.2) (2024-02-01)
 
 

@@ -47,10 +47,14 @@ export default function reduceConditions(
 			value = {[subKey]: value};
 		}
 
+		// Format key and validate path
+		const key_definition = table_schema[key];
+
 		if (
 			value &&
 			typeof value === 'object' &&
 			!Array.isArray(value) &&
+			key_definition?.type !== 'json' &&
 			!Buffer.isBuffer(value)
 		) {
 			// Check this is a path
@@ -122,26 +126,8 @@ function prepCondition({
 	// Does it have a negative comparison operator?
 	const negate = operators?.includes('-');
 
-	// Does it have a Likey comparison operator
-	const isLikey = operators?.includes('%');
-
-	// Does it have a Range comparison operator
-	const isRange = operators?.includes('~');
-
 	// Does it have a FullText comparison operator
 	const isFullText = operators?.includes('*');
-
-	// Allow conditional likey operator in value
-	const allow_conditional_likey_operator_in_value =
-		conditional_operators_in_value?.includes('%');
-
-	// Allow conditional negation operator in value
-	const allow_conditional_negate_operator_in_value =
-		conditional_operators_in_value?.includes('!');
-
-	// Allow conditional negation operator in value
-	const allow_conditional_range_operator_in_value =
-		conditional_operators_in_value?.includes('~');
 
 	// Set a handly NOT value
 	const NOT = negate ? raw('NOT ') : empty;
@@ -198,6 +184,86 @@ function prepCondition({
 		value = formatDateTime(value);
 	}
 
+	// JSON
+	if (
+		type === 'json' &&
+		typeof value === 'object' &&
+		value !== null &&
+		!Array.isArray(value)
+	) {
+		// Loop through the object and create the sql_field
+		const sql_fields = json_contains(sql_field, value);
+
+		// Return a single or a wrapped group
+		return SQL`${NOT}(${join(
+			sql_fields.map(({sql, value, operators}) =>
+				sqlCondition({
+					sql_field: sql,
+					value,
+					conditional_operators_in_value,
+					operators,
+					type,
+				})
+			),
+			' AND '
+		)})`;
+	}
+
+	return sqlCondition({
+		sql_field,
+		value,
+		conditional_operators_in_value,
+		operators,
+		// Treat json as text
+		type: type === 'json' ? 'text' : type,
+	});
+}
+
+/**
+ * SQL Condition
+ * @param {object} params - Params
+ * @param {Sql} params.sql_field - SQL Field
+ * @param {string} params.value - Value
+ * @param {string|null} params.conditional_operators_in_value - Allowable conditional operators in value
+ * @param {string|null} params.operators - Operators
+ * @param {string|null} params.type - Type
+ * @returns {Sql} SQL condition
+ */
+function sqlCondition({
+	sql_field,
+	value,
+	conditional_operators_in_value,
+	operators,
+	type,
+}) {
+	// Does it have a negative comparison operator?
+	const negate = operators?.includes('-');
+
+	// Set a handly NOT value
+	const NOT = negate ? raw('NOT ') : empty;
+
+	// Does it have a Likey comparison operator
+	const isLikey = operators?.includes('%');
+
+	// Does it have a Range comparison operator
+	const isRange = operators?.includes('~');
+
+	// Allow conditional likey operator in value
+	const allow_conditional_likey_operator_in_value =
+		conditional_operators_in_value?.includes('%');
+
+	// Allow conditional negation operator in value
+	const allow_conditional_negate_operator_in_value =
+		conditional_operators_in_value?.includes('!');
+
+	// Allow conditional negation operator in value
+	const allow_conditional_range_operator_in_value =
+		conditional_operators_in_value?.includes('~');
+
+	// Conditional JSON Quote
+	const quote =
+		type === 'json' ? a => (typeof a === 'string' ? `"${a}"` : a) : a => a;
+
 	/*
 	 * Range
 	 * A range is denoted by two dots, e.g 1..10
@@ -244,7 +310,7 @@ function prepCondition({
 		(isLikey ||
 			(allow_conditional_likey_operator_in_value && value.match('%')))
 	) {
-		return SQL`${sql_field} ${NOT}LIKE ${value}`;
+		return SQL`${sql_field} ${NOT}LIKE ${quote(value)}`;
 	}
 
 	// Null
@@ -291,20 +357,23 @@ function prepCondition({
 
 		// Use the `IN(...)` for items which can be grouped...
 		if (filteredValue.length) {
-			conds.push(SQL`${sql_field} ${NOT}IN (${filteredValue})`);
+			const items =
+				process.env.MYSQL_VERSION?.startsWith('8') ||
+				process.env.MYSQL_VERSION?.startsWith('5.6')
+					? filteredValue
+					: filteredValue.map(quote);
+			conds.push(SQL`${sql_field} ${NOT}IN (${items})`);
 		}
 
 		// Other Values which can't be grouped ...
 		conds.push(
 			...sub_values.map(item =>
-				prepCondition({
-					field,
-					sql_alias,
+				sqlCondition({
+					sql_field,
 					value: item,
-					table_schema,
 					operators,
 					conditional_operators_in_value,
-					dareInstance,
+					type,
 				})
 			)
 		);
@@ -316,6 +385,42 @@ function prepCondition({
 	} else {
 		return SQL`${sql_field} ${raw(negate ? '!' : '')}= ${value}`;
 	}
+}
+
+/**
+ * JSON Contains
+ * @param {Sql} sql_field - SQL Field
+ * @param {any} value - Value
+ * @param {string} [path] - Path
+ * @param {string} [operators] - Operators
+ * @returns {Array<{sql: Sql, value: any, operators: string}>} SQL conditions
+ */
+function json_contains(sql_field, value, path = '$', operators = '') {
+	const conds = [];
+
+	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+		return [
+			{
+				sql: SQL`${sql_field}->${path}`,
+				value,
+				operators,
+			},
+		];
+	}
+
+	for (const key in value) {
+		const {operators: newOperators, rootKey} = stripKey(key);
+		conds.push(
+			...json_contains(
+				sql_field,
+				value[key],
+				`${path}.${rootKey}`,
+				operators + newOperators
+			)
+		);
+	}
+
+	return conds;
 }
 
 /**

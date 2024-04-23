@@ -1,6 +1,6 @@
 import Dare from '../../src/index.js';
 import Debug from 'debug';
-import {expect} from 'chai';
+import assert from 'node:assert/strict';
 import mysql from 'mysql2/promise';
 import db from './helpers/db.js';
 import {options, castToStringIfNeeded} from './helpers/api.js';
@@ -48,17 +48,24 @@ describe(`model.shortcut_map`, () => {
 		// Create users, team and add the two
 		const [user, team] = await Promise.all([
 			// Create user
-			dare.post('users', {username: 'user123'}),
+			dare.post('users', [{username: 'user123'}, {username: 'b'}]),
 
 			// Create team
-			dare.post('teams', {name: teamName}),
+			dare.post('teams', [{name: teamName}, {name: 'not'}]),
 		]);
 
 		// Add to the pivot table
-		await dare.post('userTeams', {
-			user_id: user.insertId,
-			team_id: team.insertId,
-		});
+		await dare.post('userTeams', [
+			{
+				user_id: user.insertId,
+				team_id: team.insertId,
+			},
+			{
+				// Create another entry which matches the user but not the team condition
+				user_id: user.insertId,
+				team_id: team.insertId + 1,
+			},
+		]);
 
 		// Test
 		const resp = await dare.get({
@@ -76,11 +83,13 @@ describe(`model.shortcut_map`, () => {
 			},
 		});
 
-		expect(resp).to.deep.nested.include({
-			'myTeams[0]': {
-				id: castToStringIfNeeded(team.insertId),
-				name: teamName,
-			},
+		assert.deepStrictEqual(resp, {
+			myTeams: [
+				{
+					id: castToStringIfNeeded(team.insertId),
+					name: teamName,
+				},
+			],
 		});
 	});
 });
