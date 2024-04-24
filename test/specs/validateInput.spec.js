@@ -171,7 +171,7 @@ describe('validateInput', () => {
 					validateInput(fieldAttributes, field, value) {
 						if (!fieldAttributes) {
 							// Do nothing
-
+							// eslint-disable-next-line no-console
 							console.log(
 								`the field definition ${field} is incomplete`
 							);

@@ -7,8 +7,8 @@ import n from 'eslint-plugin-n';
 import globals from 'globals';
 
 import {FlatCompat} from '@eslint/eslintrc';
-import path from 'path';
-import {fileURLToPath} from 'url';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 
 // Mimic CommonJS variables -- not needed if using CommonJS
 const __filename = fileURLToPath(import.meta.url);
@@ -21,10 +21,10 @@ const compat = new FlatCompat({
 export default [
 	n.configs['flat/recommended'],
 	jsdoc.configs['flat/recommended'],
+	...fiveapp,
 	...compat.extends('eslint-config-prettier'),
 
 	/*
-	 * ...compat.extends('eslint-config-5app'),
 	 * ...,
 	 */
 	{
@@ -63,6 +63,19 @@ export default [
 			// "promise/prefer-await-to-then": 2,
 			'security/detect-unsafe-regex': 2,
 			'jsdoc/require-jsdoc': 0,
+		},
+	},
+
+	{
+		files: ['test/**/*.js'],
+		languageOptions: {
+			globals: {
+				...globals.mocha,
+				Dare: 'readonly',
+			},
+		},
+		rules: {
+			'quote-props': 0,
 		},
 	},
 ];

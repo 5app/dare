@@ -45,7 +45,7 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 		const limit = 3;
 		for (let page = 0; page < 5; page++) {
 			const start = page * limit;
-
+			// eslint-disable-next-line no-await-in-loop
 			const pageResponse = await dare.get(
 				'users',
 				['username'],

@@ -103,7 +103,7 @@ Dare.DareError = DareError;
  * @param {object} requestQuery - Request object
  * @returns {Promise<object>} Response
  */
-
+// eslint-disable-next-line no-unused-vars
 Dare.prototype.execute = async requestQuery => {
 	throw new DareError(
 		DareError.INVALID_SETUP,
@@ -176,7 +176,7 @@ Dare.prototype.response_handler = response_handler;
  * @param {object} schema - Model Schema
  * @returns {string | void} Field Key
  */
-
+// eslint-disable-next-line no-unused-vars
 Dare.prototype.getFieldKey = function getFieldKey(field, schema) {
 	// Do nothing, default is to set it to same as field
 };
