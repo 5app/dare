@@ -1,4 +1,5 @@
 import {expect} from 'chai';
+import assert from 'node:assert/strict';
 import Dare from '../../src/index.js';
 
 // Test Generic DB functions
@@ -196,7 +197,7 @@ describe('get', () => {
 			dare.execute = async ({sql, values}) => {
 				sqlEqual(
 					sql,
-					'SELECT a.id, a.name FROM test a WHERE a.id = ? LIMIT 4, 5'
+					'SELECT a.id, a.name FROM test a WHERE a.id = ? LIMIT 5 OFFSET 4'
 				);
 				expect(values).to.deep.equal([id]);
 				return [basic_record];
@@ -352,8 +353,8 @@ describe('get', () => {
 				.and.have.property('code', DareError.INVALID_REQUEST);
 		});
 
-		it('should throw an error if missing fields on an unknown schema', () => {
-			const test = dare.get('test', {id}, {groupby: 'id'});
+		it('should throw an error if fields are a scalar value', () => {
+			const test = dare.get('test', true, {id}, {groupby: 'id'});
 
 			return expect(test)
 				.to.be.eventually.rejectedWith(DareError)
@@ -528,5 +529,34 @@ describe('get', () => {
 			expect(data[0]).to.have.property('name', 'Jupiter');
 			expect(data[0]).to.have.property('age', 4);
 		});
+	});
+
+	it('should return boolean true if no fields are present', async () => {
+		// Returns a value
+		dare.execute = async () => [{name: 'Jupiter'}];
+
+		// Should return a truthy object response
+		{
+			const resp = await dare.get({
+				table: 'test',
+				filter: {name: 'Jupiter'},
+			});
+
+			assert.ok(resp);
+		}
+
+		// Returns an empty resultset
+		dare.execute = async () => [];
+
+		// Check returns null
+		{
+			const resp = await dare.get({
+				table: 'test',
+				filter: {name: 'Jupiter'},
+				notfound: null,
+			});
+
+			assert.strictEqual(resp, null);
+		}
 	});
 });

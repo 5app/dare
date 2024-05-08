@@ -119,13 +119,13 @@ describe('get - subquery', () => {
 		expect(resp.collections).to.have.property('count', 42);
 	});
 
-	it('should concatinate many expressions into an array using GROUP_CONCAT', async () => {
+	it('should concatinate many expressions into an array using JSON_ARRAYAGG', async () => {
 		dare.sql = ({sql}) => {
 			const expected = `
 
 				SELECT a.name AS 'name',
 				(
-					SELECT CONCAT('[', GROUP_CONCAT(IF(c._rowid IS NOT NULL, JSON_ARRAY(c.id, c.name), NULL)), ']')
+					SELECT JSON_ARRAYAGG(IF(c._rowid IS NOT NULL, JSON_ARRAY(c.id, c.name), NULL))
 					FROM assetCollections b
 					LEFT JOIN collections c ON (c.id = b.collection_id)
 					WHERE b.asset_id = a.id
@@ -159,13 +159,13 @@ describe('get - subquery', () => {
 		expect(resp.collections[0]).to.have.property('name', 'a');
 	});
 
-	it('should concatinate many expressions into an array using GROUP_CONCAT', async () => {
+	it('should concatinate many expressions into an array using JSON_ARRAYAGG', async () => {
 		dare.sql = ({sql}) => {
 			const expected = `
 
 				SELECT a.name AS 'name',
 				(
-					SELECT CONCAT('[', GROUP_CONCAT(IF(b._rowid IS NOT NULL, JSON_ARRAY(b.id, b.color), NULL)), ']')
+					SELECT JSON_ARRAYAGG(IF(b._rowid IS NOT NULL, JSON_ARRAY(b.id, b.color), NULL))
 					FROM assetCollections b
 					WHERE b.color = ? AND b.asset_id = a.id
 					LIMIT 1
@@ -240,7 +240,7 @@ describe('get - subquery', () => {
 		dare.sql = ({sql}) => {
 			const expected = `
 				SELECT a.name AS 'name',
-					CONCAT('[', GROUP_CONCAT(IF(c._rowid IS NOT NULL, JSON_ARRAY(c.id, c.name), NULL)), ']') AS 'collections[id,name]'
+					JSON_ARRAYAGG(IF(c._rowid IS NOT NULL, JSON_ARRAY(c.id, c.name), NULL)) AS 'collections[id,name]'
 				FROM assets a
 				LEFT JOIN assetCollections b ON(b.asset_id = a.id)
 				LEFT JOIN collections c ON (c.id = b.collection_id)
@@ -271,7 +271,7 @@ describe('get - subquery', () => {
 	it('should *not* subquery a table off a join with a possible set of values', async () => {
 		dare.sql = ({sql}) => {
 			const expected = `
-				SELECT a.name AS 'name', CONCAT('[',GROUP_CONCAT(IF(b._rowid IS NOT NULL, JSON_ARRAY(COUNT(d.id)), NULL)),']') AS 'assetCollections[collections.descendents]'
+				SELECT a.name AS 'name', JSON_ARRAYAGG(IF(b._rowid IS NOT NULL, JSON_ARRAY(COUNT(d.id)), NULL)) AS 'assetCollections[collections.descendents]'
 				FROM assets a
 				LEFT JOIN assetCollections b ON(b.asset_id = a.id)
 				LEFT JOIN collections c ON(c.id = b.collection_id)

@@ -1,6 +1,6 @@
 {
 	"name": "dare",
-	"version": "0.83.0",
+	"version": "0.86.2",
 	"description": "Database to REST, REST to Database",
 	"type": "module",
 	"main": "./src/index.js",
@@ -79,6 +79,7 @@
 		"typescript": "^5.3.3"
 	},
 	"dependencies": {
+		"semver-compare": "^1.0.0",
 		"sql-template-tag": "^5.2.0",
 		"tricks": "^2.0.0"
 	},
