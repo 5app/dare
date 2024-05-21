@@ -1,3 +1,10 @@
+## [0.86.3](https://github.com/5app/dare/compare/v0.86.2...v0.86.3) (2024-05-21)
+
+
+### Bug Fixes
+
+* **extend:** allow functions to be replaced, i.e inputValidation ([#358](https://github.com/5app/dare/issues/358)) ([d16d9ee](https://github.com/5app/dare/commit/d16d9eed346ee7c1d43ca9194b67bcfd0bb213c1))
+
 ## [0.86.2](https://github.com/5app/dare/compare/v0.86.1...v0.86.2) (2024-04-10)
 
 
