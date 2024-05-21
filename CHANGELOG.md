@@ -1,3 +1,15 @@
+# [0.87.0](https://github.com/5app/dare/compare/v0.86.2...v0.87.0) (2024-05-21)
+
+
+### Bug Fixes
+
+* **extend:** allow functions to be replaced, i.e inputValidation ([#358](https://github.com/5app/dare/issues/358)) ([d16d9ee](https://github.com/5app/dare/commit/d16d9eed346ee7c1d43ca9194b67bcfd0bb213c1))
+
+
+### Features
+
+* **unknown-field-attr:** define default attributes for unknown fields, fixes [#357](https://github.com/5app/dare/issues/357) ([#360](https://github.com/5app/dare/issues/360)) ([f66ba90](https://github.com/5app/dare/commit/f66ba9012b47ae35362fe0556f573868e4839dff))
+
 ## [0.86.3](https://github.com/5app/dare/compare/v0.86.2...v0.86.3) (2024-05-21)
 
 
