@@ -123,6 +123,7 @@ export default function fieldReducer({
  * @param {Function} opts.extract - Function for handling the extraction of content
  * @param {object} opts.table_schema - Schema of the current table
  * @param {object} opts.dareInstance - An instance of the current Dare object
+ * @param {boolean} [opts.initialCall=true] - Is this the initial call to fieldMapping?
  * @returns {string|object} The augemented field expression
  */
 function fieldMapping({
@@ -134,6 +135,7 @@ function fieldMapping({
 	extract,
 	table_schema,
 	dareInstance,
+	initialCall = true,
 }) {
 	// Extract the underlying field
 	const {
@@ -200,7 +202,7 @@ function fieldMapping({
 		field_name,
 		table_schema,
 		dareInstance,
-		true // Use default schema definition when the field is not found
+		initialCall // Is this the initialCall? Then use the default schema definition when the field is not found
 	);
 
 	// Is this readable?
@@ -293,6 +295,7 @@ function fieldMapping({
 			extract,
 			table_schema,
 			dareInstance,
+			initialCall: false,
 		});
 	}
 

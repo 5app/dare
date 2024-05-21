@@ -1,4 +1,5 @@
 import {expect} from 'chai';
+import assert from 'node:assert/strict';
 import Dare from '../../src/index.js';
 // Test whether fields can be declared as immutable and unreadable
 import DareError from '../../src/utils/error.js';
@@ -31,6 +32,9 @@ describe('field access', () => {
 						},
 						// Password is not readable or writable
 						password: false,
+
+						// Email, map to an unaliased field
+						email: 'email_address',
 					},
 				},
 			},
@@ -69,6 +73,28 @@ describe('field access', () => {
 					)
 					.and.have.property('code', DareError.INVALID_REFERENCE);
 			});
+		});
+
+		it(`should allow access to aliased fields`, async () => {
+			dare.execute = async ({sql, values}) => {
+				sqlEqual(
+					sql,
+					`SELECT a.email_address AS 'email' FROM users a LIMIT 1`
+				);
+				expect(values).to.deep.equal([]);
+				return [];
+			};
+
+			const call = await dare.get({
+				table: 'users',
+				fields: [
+					// Password is non-readable
+					'email',
+				],
+				notfound: null,
+			});
+
+			assert.deepEqual(call, null);
 		});
 	});
 
