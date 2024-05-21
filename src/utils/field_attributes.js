@@ -16,9 +16,8 @@
 
 /**
  * Given a field definition defined in the schema, extract it's attributes
- *
  * @param {string} field - A field reference
- * @param {Object<string, FieldDefinition | boolean>} schema - A model schema definition
+ * @param {Record<string, FieldDefinition | boolean>} schema - A model schema definition
  * @param {object} dareInstance - A dare instance
  * @returns {FieldDefinition} An object containing the attributes of the field
  */

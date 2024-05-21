@@ -1,6 +1,5 @@
 /**
  * Extend Object works like Object.assign(...) but recurses into the nested properties
- *
  * @param {object} base - an object to extend
  * @param {...object} args - a series of objects to extend
  * @returns {object} extended object

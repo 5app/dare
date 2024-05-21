@@ -12,6 +12,7 @@ describe('Filter Reducer', () => {
 	let dareInstance;
 	const conditional_operators_in_value = null;
 	let table_schema = null;
+
 	// eslint-disable-next-line func-style
 	const extract = () => {
 		// Do nothing

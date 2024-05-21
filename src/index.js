@@ -16,19 +16,22 @@ import format_request from './format_request.js';
 
 import response_handler, {responseRowHandler} from './response_handler.js';
 
-/* eslint-disable jsdoc/valid-types */
 /**
  * @typedef {import('sql-template-tag').Sql} Sql
- *
+ */
+
+/**
  * @typedef {object} Model
- * @property {Object<string, object | Function | Array<string> | string | null | boolean>} [schema] - Model Schema
+ * @property {Record<string, object | Function | Array<string> | string | null | boolean>} [schema] - Model Schema
  * @property {string} [table] - Alias for the table
- * @property {Object<string, string>} [shortcut_map] - Shortcut map
+ * @property {Record<string, string>} [shortcut_map] - Shortcut map
  * @property {Function} [get] - Get handler
  * @property {Function} [post] - Post handler
  * @property {Function} [patch] - Patch handler
  * @property {Function} [del] - Delete handler
- *
+ */
+
+/**
  * @typedef {object} RequestOptions
  * @property {string} [table] - Name of the table to query
  * @property {Array} [fields] - Fields array to return
@@ -43,14 +46,16 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {string} [duplicate_keys] - 'ignore' to prevent throwing Duplicate key errors
  * @property {string[]} [duplicate_keys_update] - An array of fields to update on presence of duplicate key constraints
  * @property {*} [notfound] - If not undefined will be returned in case of a single entry not found
- * @property {Object<string, Model>} [models] - Models with schema defintitions
+ * @property {Record<string, Model>} [models] - Models with schema defintitions
  * @property {Function} [validateInput] - Validate input
  * @property {boolean} [infer_intermediate_models] - Infer intermediate models
  * @property {Function} [rowHandler] - Override default Function to handle each row
  * @property {Function} [getFieldKey] - Override default Function to interpret the field key
  * @property {string} [conditional_operators_in_value] - Allowable conditional operators in value
  * @property {any} [state] - Arbitary data to carry through to the model/response handlers
- *
+ */
+
+/**
  * @typedef {object} InternalProps
  * @property {'post' | 'get' | 'patch' | 'del'} [method] - Method to use
  * @property {string} [name] - Model Name derived
@@ -63,10 +68,11 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {Array} [sql_joins] - SQL Join
  * @property {string} [ignore] - SQL Fields
  * @property {Array} [sql_where_conditions] - SQL Where conditions
- *
+ */
+
+/**
  * @typedef {RequestOptions & InternalProps} QueryOptions
  */
-/* eslint-enable jsdoc/valid-types */
 
 /*
  * Export Dare Error object
@@ -76,7 +82,6 @@ export {DareError};
 /**
  * Dare
  * Sets up a new instance of Dare
- *
  * @param {QueryOptions} options - Initial options defining the instance
  * @returns {Dare} instance of dare
  */
@@ -160,7 +165,6 @@ Dare.prototype.get_unique_alias = function () {
 	return `\`${prefix}${str}\``;
 };
 
-// eslint-disable-next-line jsdoc/valid-types
 /** @type {(options: QueryOptions) => Promise<QueryOptions>} */
 Dare.prototype.format_request = format_request;
 
@@ -235,8 +239,6 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 	return output.join(' ');
 };
 
-/* eslint-disable jsdoc/valid-types */
-/* eslint-disable jsdoc/check-tag-names */
 /**
  * Dare.after
  * Defines where the instance goes looking to apply post execution handlers and potentially mutate the response
@@ -244,8 +246,7 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
  * @param {T} resp - Response object
  * @returns {T} response data formatted or not
  */
-/* eslint-enable jsdoc/valid-types */
-/* eslint-enable jsdoc/check-tag-names */
+
 Dare.prototype.after = function (resp) {
 	// Define the after handler
 	const handler = `after${this.options.method.replace(/^[a-z]/, m =>
@@ -318,7 +319,6 @@ Dare.prototype.addRow = function (row) {
 /**
  * Dare.sql
  * Prepares and processes SQL statements
- *
  * @param {string | Sql | {sql: string, values: Array}} sql - SQL string containing the query
  * @param {Array} [values] - List of prepared statement values
  * @returns {Promise} Returns response object or array of values
@@ -339,13 +339,10 @@ Dare.prototype.sql = async function sql(sql, values) {
 /**
  * Dare.get
  * Triggers a DB SELECT request to rerieve records from the database.
- *
- * @typedef {Omit<RequestOptions, 'body' | 'query' | 'duplicate_keys' | 'duplicate_keys_update'>} GetRequestOptions
- *
- * @param {string | GetRequestOptions} table - Name of the table to query
+ * @param {string | RequestOptions} table - Name of the table to query
  * @param {Array} [fields] - Fields array to return
  * @param {object} [filter] - Filter Object to query
- * @param {Omit<GetRequestOptions, 'table' | 'fields' | 'filter'>} [options] - An Options object containing all other request options
+ * @param {Omit<RequestOptions, 'table' | 'fields' | 'filter'>} [options] - An Options object containing all other request options
  * @returns {Promise<any>} Results
  */
 Dare.prototype.get = async function get(table, fields, filter, options = {}) {
@@ -408,10 +405,9 @@ Dare.prototype.get = async function get(table, fields, filter, options = {}) {
 /**
  * Dare.getCount
  * Returns the total number of results which match the conditions
- *
- * @param {string | GetRequestOptions} table - Name of the table to query
+ * @param {string | RequestOptions} table - Name of the table to query
  * @param {object} [filter] - Filter Object to query
- * @param {Omit<GetRequestOptions, 'table' | 'filter'>} [options] - An Options object containing all other request options
+ * @param {Omit<RequestOptions, 'table' | 'filter'>} [options] - An Options object containing all other request options
  * @returns {Promise<number>} Number of matched items
  */
 Dare.prototype.getCount = async function getCount(table, filter, options = {}) {
@@ -455,11 +451,12 @@ Dare.prototype.getCount = async function getCount(table, filter, options = {}) {
 };
 
 /**
+ * @typedef {Omit<RequestOptions, 'fields' | 'groupby' | 'query'>} PatchRequestOptions
+ */
+
+/**
  * Dare.patch
  * Updates records matching the conditions
- *
- * @typedef {Omit<RequestOptions, 'fields' | 'groupby' | 'query'>} PatchRequestOptions
- *
  * @param {string | PatchRequestOptions} table - Name of the table to query
  * @param {object} [filter] - Filter Object to query
  * @param {object} [body] - Body containing new data
@@ -538,11 +535,12 @@ Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
 };
 
 /**
+ * @typedef {Omit<RequestOptions, 'filter' | 'start' | 'limit' | 'groupby' | 'orderby'>} PostRequestOptions
+ */
+
+/**
  * Dare.post
  * Insert new data into database
- *
- * @typedef {Omit<RequestOptions, 'filter' | 'start' | 'limit' | 'groupby' | 'orderby'>} PostRequestOptions
- *
  * @param {string | RequestOptions} table - Name of the table to query
  * @param {object | Array<object>} [body] - Body containing new data
  * @param {Omit<RequestOptions, 'table' | 'body'>} [options] - An Options object containing all other request options
@@ -773,11 +771,12 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 };
 
 /**
+ * @typedef {Omit<RequestOptions, 'body' | 'query'>} DeleteRequestOptions
+ */
+
+/**
  * Dare.del
  * Delete a record matching condition
- *
- * @typedef {Omit<RequestOptions, 'body' | 'query'>} DeleteRequestOptions
- *
  * @param {string | DeleteRequestOptions} table - Name of the table to query
  * @param {object} [filter] - Filter Object to query
  * @param {Omit<DeleteRequestOptions, 'table' | 'filter'>} [options] - An Options object containing all other request options
@@ -831,7 +830,7 @@ Dare.prototype.del = async function del(table, filter, options = {}) {
  * @param {object} obj - Object
  * @param {object} obj.body - body to format
  * @param {string} obj.sql_alias - SQL Alias for update table
- * @param {object} [obj.tableSchema={}] - Schema for the current table
+ * @param {object} [obj.tableSchema] - Schema for the current table
  * @param {Function} [obj.validateInput] - Validate input function
  * @param {Dare} obj.dareInstance - Dare Instance
  * @returns {object} {assignment, values}
@@ -885,7 +884,7 @@ function onDuplicateKeysUpdate(keys = []) {
  * Format Input Value
  * For a given field definition, return the db key (alias) and format the input it required
  * @param {object} obj - Object
- * @param {object} [obj.tableSchema={}] - An object containing the table schema
+ * @param {object} [obj.tableSchema] - An object containing the table schema
  * @param {string} obj.field - field identifier
  * @param {*} obj.value - Given value
  * @param {Function} [obj.validateInput] - Custom validation function
@@ -971,7 +970,6 @@ function formatInputValue({
 
 /**
  * Return un-aliased field names
- *
  * @param {object} tableSchema - An object containing the table schema
  * @param {string} field - field identifier
  * @param {Dare} dareInstance - Dare Instance

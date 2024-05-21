@@ -10,15 +10,12 @@ import getFieldAttributes from './utils/field_attributes.js';
 import extend from './utils/extend.js';
 import buildQuery from './get.js';
 
-/* eslint-disable jsdoc/valid-types */
 /**
  * @typedef {import('./index.js').default} Dare
  */
-/* eslint-enable jsdoc/valid-types */
 
 /**
  * Format Request initiation
- *
  * @param {object} options - Options object
  * @returns {object} Formatted options
  */
@@ -28,7 +25,6 @@ export default function (options) {
 
 /**
  * Format Request
- *
  * @param {object} options - Current iteration
  * @param {Dare} dareInstance - Instance of Dare
  * @returns {Promise<object>} formatted object with all the joins

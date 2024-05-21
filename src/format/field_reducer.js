@@ -6,7 +6,6 @@ import fieldRelativePath from '../utils/field_relative.js';
 import getFieldAttributes from '../utils/field_attributes.js';
 import jsonParse from '../utils/JSONparse.js';
 
-/* eslint-disable jsdoc/valid-types */
 /**
  * Return a reducer function deriving local props and nested props
  * @param {object} opts - Options
@@ -14,9 +13,9 @@ import jsonParse from '../utils/JSONparse.js';
  * @param {Function} opts.extract - Function for handling the extraction of content
  * @param {object} opts.table_schema - Table schema/Data model
  * @param {object} opts.dareInstance - Instance of Dare which is calling this
- * @returns {(fieldsArray: array, field: string | object, index: number, originalArray: array) => array} Fields Reducer function
+ * @returns {(fieldsArray: Array, field: string | object, index: number, originalArray: Array) => Array} Fields Reducer function
  */
-/* eslint-enable jsdoc/valid-types */
+
 export default function fieldReducer({
 	field_alias_path,
 	extract,
@@ -113,7 +112,6 @@ export default function fieldReducer({
  * Given a label, value and schema
  * Maps the field expression to an entry in the schema and formats the entry
  * Invokes generated functions with access to modify the fieldsArray
- *
  * @param {object} opts - Object
  * @param {string} opts.field - Field expression
  * @param {string} [opts.label] - Optional label, or null

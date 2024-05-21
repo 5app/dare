@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import {execSync} from 'node:child_process';
 import mysql from 'mysql2/promise';
 import fs from 'node:fs';
