@@ -1,3 +1,10 @@
+## [0.88.1](https://github.com/5app/dare/compare/v0.88.0...v0.88.1) (2024-05-21)
+
+
+### Bug Fixes
+
+* **unknown-field-attr:** dont apply field default to alias, fixes [#357](https://github.com/5app/dare/issues/357) ([#362](https://github.com/5app/dare/issues/362)) ([9ccb98c](https://github.com/5app/dare/commit/9ccb98ca2abe8f6d8210e362cce84c4d88207a25))
+
 # [0.88.0](https://github.com/5app/dare/compare/v0.87.0...v0.88.0) (2024-05-21)
 
 
