@@ -12,6 +12,12 @@ describe('field access', () => {
 			models: {
 				users: {
 					schema: {
+						/*
+						 * Default field, to handle when a field is omitted
+						 * not readable or writeable
+						 */
+						default: false,
+
 						// Write is disabled, whilst id is readable
 						id: {
 							writeable: false,
@@ -40,10 +46,14 @@ describe('field access', () => {
 			{
 				name: 'CHAR(password)',
 			},
+			'unknown_field',
 		].forEach(field => {
 			it(`should prevent access to non-readable field: ${JSON.stringify(
 				field
 			)}`, () => {
+				const fieldName =
+					field === 'unknown_field' ? field : 'password';
+
 				const call = dare.get({
 					table: 'users',
 					fields: [
@@ -55,7 +65,7 @@ describe('field access', () => {
 				return expect(call)
 					.to.be.eventually.rejectedWith(
 						DareError,
-						"Field 'password' is not readable"
+						`Field '${fieldName}' is not readable`
 					)
 					.and.have.property('code', DareError.INVALID_REFERENCE);
 			});

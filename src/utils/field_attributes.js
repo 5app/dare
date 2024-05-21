@@ -20,9 +20,15 @@
  * @param {string} field - A field reference
  * @param {Object<string, FieldDefinition | boolean>} schema - A model schema definition
  * @param {object} dareInstance - A dare instance
+ * @param {boolean} [useDefault=false] - Fallback to `default` schema field definition
  * @returns {FieldDefinition} An object containing the attributes of the field
  */
-export default function getFieldAttributes(field, schema, dareInstance) {
+export default function getFieldAttributes(
+	field,
+	schema,
+	dareInstance,
+	useDefault = false
+) {
 	const fieldKey = dareInstance?.getFieldKey?.(field, schema) || field;
 
 	/**
@@ -32,7 +38,14 @@ export default function getFieldAttributes(field, schema, dareInstance) {
 		...(fieldKey !== field && {alias: fieldKey}),
 	};
 
-	const fieldDefinition = schema[fieldKey];
+	/*
+	 * Field definition is the schema attributes
+	 * If useDefault is true, use the default schema definition when the field is not found
+	 */
+	const fieldDefinition =
+		Object.hasOwn(schema, fieldKey) || !useDefault
+			? schema[fieldKey]
+			: schema.default;
 
 	if (
 		fieldDefinition &&

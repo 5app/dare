@@ -943,6 +943,34 @@ const dare = new Dare({
 });
 ```
 
+### `default` Field definition
+
+When a request is made for a field which doesn't exist in the model schema, Dare will fallback to a `default` field key - if that has been defined, otherwise it will continue with no explicit properties.
+
+The `default` field can be used to prevent access to fields which should not be accessed, or to prevent unnessary SQL requests for fields which dont exist in the DB Table.
+
+```js
+const dareInst = dare.use({
+	models: {
+		// Example member model
+		member: {
+			schema: {
+				// Assign a default field key
+				default: {
+					readable: false,
+				},
+				name: {
+					type: 'string',
+				},
+			},
+		},
+	},
+});
+
+await dareInst.get('member', ['name', 'password']);
+// Throw `Field 'password' is not readable`
+```
+
 ## `model.shortcut_map`
 
 `shortcut_map`, can be used to define shortcut's to nested tables
