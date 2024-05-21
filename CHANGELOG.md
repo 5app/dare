@@ -1,3 +1,15 @@
+# [0.88.0](https://github.com/5app/dare/compare/v0.87.0...v0.88.0) (2024-05-21)
+
+
+### Bug Fixes
+
+* **regexp:** address Polynomial regular expression vulnerability, noissue ([4e90481](https://github.com/5app/dare/commit/4e904812010d3a780354961009b07aa553778f6c))
+
+
+### Features
+
+* **func-str-prefix:** allow strings at beginning of function, fixes [#355](https://github.com/5app/dare/issues/355) ([6441f1a](https://github.com/5app/dare/commit/6441f1a1317c5eca909563e6b765674180b7f294))
+
 # [0.87.0](https://github.com/5app/dare/compare/v0.86.2...v0.87.0) (2024-05-21)
 
 
