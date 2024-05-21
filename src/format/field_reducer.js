@@ -199,7 +199,8 @@ function fieldMapping({
 	const {handler, alias, type, readable} = getFieldAttributes(
 		field_name,
 		table_schema,
-		dareInstance
+		dareInstance,
+		true // Use default schema definition when the field is not found
 	);
 
 	// Is this readable?
