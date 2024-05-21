@@ -43,6 +43,7 @@ describe('utils/unwrap_field', () => {
 		'RIGHT(field, 4)',
 		"FORMAT(field,'en_GB')",
 		"CONCAT(ROUND(field * 100, 2), '%')",
+		"CONCAT('$', field)",
 		"FORMAT(ROUND(field * 5, 2), 'en_GB')",
 		"FORMAT(ROUND(field * 5.5, 2), 'en_GB')",
 		"FORMAT(ROUND(field / 5, 2), 'en_GB')",
@@ -69,6 +70,12 @@ describe('utils/unwrap_field', () => {
 		'IF(field = \'string", "yes", "no")',
 		'DATE_FORMAT(field, ',
 		'IF(field <<< 123, "yes", "no")',
+
+		// Escaping quotes
+		'IF(field = "string\\", "yes", "no")',
+
+		// SQL Injection
+		'FORMAT(SELECT 1 FROM abc)',
 
 		/*
 		 * VALID SYNTAX, BUT UNSUPPORTED
