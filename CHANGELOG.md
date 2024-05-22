@@ -1,3 +1,10 @@
+## [0.88.2](https://github.com/5app/dare/compare/v0.88.1...v0.88.2) (2024-05-22)
+
+
+### Bug Fixes
+
+* **regexp:** address Polynomial regular expression vulnerability length 200, noissue ([#363](https://github.com/5app/dare/issues/363)) ([f8d4770](https://github.com/5app/dare/commit/f8d477084e93dbb0d752208ca6a9726823bb8b1c))
+
 ## [0.88.1](https://github.com/5app/dare/compare/v0.88.0...v0.88.1) (2024-05-21)
 
 
