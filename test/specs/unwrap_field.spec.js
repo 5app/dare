@@ -48,7 +48,7 @@ describe('utils/unwrap_field', () => {
 		"FORMAT(ROUND(field * 5.5, 2), 'en_GB')",
 		"FORMAT(ROUND(field / 5, 2), 'en_GB')",
 		'DATE(CONVERT_TZ(field, "UTC", "Europe/London"))',
-		`CONCAT('$',${Array(70).fill(' ').join('')}field)`,
+		`CONCAT('$',${Array(150).fill(' ').join('')}field)`,
 	].forEach(test => {
 		it(`where ${JSON.stringify(test)}`, () => {
 			// Call the field with the
@@ -79,7 +79,7 @@ describe('utils/unwrap_field', () => {
 		 * DOS Attack
 		 * Over 100 characters
 		 */
-		`CONCAT('$',${Array(90).fill(' ').join('')} field)`,
+		`CONCAT('$',${Array(200).fill(' ').join('')} field)`,
 
 		// SQL Injection
 		'FORMAT(SELECT 1 FROM abc)',

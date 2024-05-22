@@ -9,7 +9,7 @@ export default function unwrap_field(expression, allowValue = true) {
 		let suffix = '';
 		let prefix = '';
 
-		if (str.length > 100) {
+		if (str.length > 200) {
 			throw new DareError(
 				DareError.INVALID_REFERENCE,
 				`The field definition '${expression}' is too long.`
