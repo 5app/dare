@@ -1,3 +1,10 @@
+## [0.88.3](https://github.com/5app/dare/compare/v0.88.2...v0.88.3) (2024-05-22)
+
+
+### Bug Fixes
+
+* **anonymous-field-default:** dont apply to _group and _count keywords, [#357](https://github.com/5app/dare/issues/357) ([#364](https://github.com/5app/dare/issues/364)) ([a45c27a](https://github.com/5app/dare/commit/a45c27a632093997ca503dfc0cf765959b7e2bd1))
+
 ## [0.88.2](https://github.com/5app/dare/compare/v0.88.1...v0.88.2) (2024-05-22)
 
 
