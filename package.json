@@ -69,7 +69,7 @@
 		"eslint-plugin-n": "^17.0.0",
 		"eslint-plugin-promise": "^6.1.1",
 		"eslint-plugin-security": "^2.1.0",
-		"husky": "^8.0.3",
+		"husky": "^9.0.0",
 		"is-ci": "^3.0.1",
 		"mocha": "^10.2.0",
 		"mocha-circleci-reporter": "0.0.3",
