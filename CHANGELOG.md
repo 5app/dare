@@ -1,3 +1,55 @@
+## [0.88.3](https://github.com/5app/dare/compare/v0.88.2...v0.88.3) (2024-05-22)
+
+
+### Bug Fixes
+
+* **anonymous-field-default:** dont apply to _group and _count keywords, [#357](https://github.com/5app/dare/issues/357) ([#364](https://github.com/5app/dare/issues/364)) ([a45c27a](https://github.com/5app/dare/commit/a45c27a632093997ca503dfc0cf765959b7e2bd1))
+
+## [0.88.2](https://github.com/5app/dare/compare/v0.88.1...v0.88.2) (2024-05-22)
+
+
+### Bug Fixes
+
+* **regexp:** address Polynomial regular expression vulnerability length 200, noissue ([#363](https://github.com/5app/dare/issues/363)) ([f8d4770](https://github.com/5app/dare/commit/f8d477084e93dbb0d752208ca6a9726823bb8b1c))
+
+## [0.88.1](https://github.com/5app/dare/compare/v0.88.0...v0.88.1) (2024-05-21)
+
+
+### Bug Fixes
+
+* **unknown-field-attr:** dont apply field default to alias, fixes [#357](https://github.com/5app/dare/issues/357) ([#362](https://github.com/5app/dare/issues/362)) ([9ccb98c](https://github.com/5app/dare/commit/9ccb98ca2abe8f6d8210e362cce84c4d88207a25))
+
+# [0.88.0](https://github.com/5app/dare/compare/v0.87.0...v0.88.0) (2024-05-21)
+
+
+### Bug Fixes
+
+* **regexp:** address Polynomial regular expression vulnerability, noissue ([4e90481](https://github.com/5app/dare/commit/4e904812010d3a780354961009b07aa553778f6c))
+
+
+### Features
+
+* **func-str-prefix:** allow strings at beginning of function, fixes [#355](https://github.com/5app/dare/issues/355) ([6441f1a](https://github.com/5app/dare/commit/6441f1a1317c5eca909563e6b765674180b7f294))
+
+# [0.87.0](https://github.com/5app/dare/compare/v0.86.2...v0.87.0) (2024-05-21)
+
+
+### Bug Fixes
+
+* **extend:** allow functions to be replaced, i.e inputValidation ([#358](https://github.com/5app/dare/issues/358)) ([d16d9ee](https://github.com/5app/dare/commit/d16d9eed346ee7c1d43ca9194b67bcfd0bb213c1))
+
+
+### Features
+
+* **unknown-field-attr:** define default attributes for unknown fields, fixes [#357](https://github.com/5app/dare/issues/357) ([#360](https://github.com/5app/dare/issues/360)) ([f66ba90](https://github.com/5app/dare/commit/f66ba9012b47ae35362fe0556f573868e4839dff))
+
+## [0.86.3](https://github.com/5app/dare/compare/v0.86.2...v0.86.3) (2024-05-21)
+
+
+### Bug Fixes
+
+* **extend:** allow functions to be replaced, i.e inputValidation ([#358](https://github.com/5app/dare/issues/358)) ([d16d9ee](https://github.com/5app/dare/commit/d16d9eed346ee7c1d43ca9194b67bcfd0bb213c1))
+
 ## [0.86.2](https://github.com/5app/dare/compare/v0.86.1...v0.86.2) (2024-04-10)
 
 

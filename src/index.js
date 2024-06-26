@@ -900,15 +900,17 @@ function formatInputValue({
 	validateInput,
 	dareInstance,
 }) {
-	let fieldAttributes = getFieldAttributes(field, tableSchema, dareInstance);
+	/*
+	 * Get the field attributes
+	 * If the field is not found, use `default` field otherwise return an empty object
+	 */
+	let fieldAttributes = getFieldAttributes(
+		field,
+		tableSchema,
+		dareInstance,
+		true
+	);
 
-	if (Object.keys(fieldAttributes).length === 0 && 'default' in tableSchema) {
-		fieldAttributes = getFieldAttributes(
-			'default',
-			tableSchema,
-			dareInstance
-		);
-	}
 	if (Object.keys(fieldAttributes).length === 0) {
 		// Set this to null for validateInput
 		fieldAttributes = null;
