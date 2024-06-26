@@ -1,4 +1,5 @@
 import {expect} from 'chai';
+import assert from 'node:assert/strict';
 import Dare from '../../src/index.js';
 // Test whether fields can be declared as immutable and unreadable
 import DareError from '../../src/utils/error.js';
@@ -12,6 +13,12 @@ describe('field access', () => {
 			models: {
 				users: {
 					schema: {
+						/*
+						 * Default field, to handle when a field is omitted
+						 * not readable or writeable
+						 */
+						default: false,
+
 						// Write is disabled, whilst id is readable
 						id: {
 							writeable: false,
@@ -25,6 +32,9 @@ describe('field access', () => {
 						},
 						// Password is not readable or writable
 						password: false,
+
+						// Email, map to an unaliased field
+						email: 'email_address',
 					},
 				},
 			},
@@ -40,10 +50,14 @@ describe('field access', () => {
 			{
 				name: 'CHAR(password)',
 			},
+			'unknown_field',
 		].forEach(field => {
 			it(`should prevent access to non-readable field: ${JSON.stringify(
 				field
 			)}`, () => {
+				const fieldName =
+					field === 'unknown_field' ? field : 'password';
+
 				const call = dare.get({
 					table: 'users',
 					fields: [
@@ -55,10 +69,32 @@ describe('field access', () => {
 				return expect(call)
 					.to.be.eventually.rejectedWith(
 						DareError,
-						"Field 'password' is not readable"
+						`Field '${fieldName}' is not readable`
 					)
 					.and.have.property('code', DareError.INVALID_REFERENCE);
 			});
+		});
+
+		it(`should allow access to aliased fields`, async () => {
+			dare.execute = async ({sql, values}) => {
+				sqlEqual(
+					sql,
+					`SELECT a.email_address AS 'email' FROM users a LIMIT 1`
+				);
+				expect(values).to.deep.equal([]);
+				return [];
+			};
+
+			const call = await dare.get({
+				table: 'users',
+				fields: [
+					// Password is non-readable
+					'email',
+				],
+				notfound: null,
+			});
+
+			assert.deepEqual(call, null);
 		});
 	});
 

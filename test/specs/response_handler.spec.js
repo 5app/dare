@@ -382,7 +382,7 @@ describe('response_handler', () => {
 
 	describe('mysql 5.6', () => {
 		afterEach(() => {
-			process.env.MYSQL_VERSION = undefined;
+			delete process.env.MYSQL_VERSION;
 		});
 
 		it('should exclude a series of empty strings, a side-effect of inline GROUP_CONCAT', () => {

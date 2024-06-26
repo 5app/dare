@@ -25,11 +25,12 @@ cd "$INTEGRATION_TEST_DIR" || exit 1
 
 DB_ROOT_USER="root"
 DB_ROOT_PASSWORD="test_pass"
-DB_ENGINE=${DB_ENGINE:-mysql}
-DB_VERSION=${DB_VERSION:-5.7}
+DB_ENGINE=${DB_ENGINE:-mysql:5.7.40}
+
+DB_ENGINE_NAME=$(echo $DB_ENGINE | cut -d: -f1)
 
 
-export TEST_DB_SCHEMA_PATH="${INTEGRATION_TEST_DIR}data/schema.sql"
+export TEST_DB_SCHEMA_PATH="${INTEGRATION_TEST_DIR}data/schema.${DB_ENGINE_NAME}.sql"
 export TEST_DB_DATA_PATH="${INTEGRATION_TEST_DIR}data/data.sql"
 export TEST_STATE_CLEANUP_MODE=${TEST_STATE_CLEANUP_MODE:-remove}
 export DB_USER="user"
@@ -41,9 +42,9 @@ export TZ="UTC"
 
 docker rm -vf "dare_db"
 
-echo "Starting $DB_ENGINE:$DB_VERSION"
+echo "Starting $DB_ENGINE"
 
-if [ "$DB_ENGINE" = "postgres" ]
+if [ "$DB_ENGINE_NAME" = "postgres" ]
 then
 
 	docker run \
@@ -58,7 +59,7 @@ then
 		--health-interval="4s" \
 		--health-timeout="3s" \
 		--health-retries=20 \
-		postgres:$DB_VERSION || {
+		$DB_ENGINE || {
 		echo 'docker run failed'
 		exit 1
 	}
@@ -102,7 +103,7 @@ else
 		--health-interval="4s" \
 		--health-timeout="3s" \
 		--health-retries=20 \
-		mysql:$DB_VERSION --group-concat-max-len=1000000 --sql-mode="" || {
+		$DB_ENGINE --group-concat-max-len=1000000 --sql-mode="" || {
 		echo 'docker run failed'
 		exit 1
 	}

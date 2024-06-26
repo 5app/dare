@@ -46,16 +46,20 @@ export default class Postgres {
 		let index = 0;
 
 		// Format the query
-		const query = (typeof request === 'string' ? request : request.sql)
+		let query = (typeof request === 'string' ? request : request.sql)
 			.replaceAll('`', '') // Postgres doesn't like backticks
 			.replace(/\?/g, () => `$${++index}`); // Prepared statement, we need to replace ?, ?...? with $1, $2...$n
 
 		// Debug console.log(request, query, request?.values);
 
-		const {command, rowCount, rows, oid} = await this.conn.query(
-			query,
-			request?.values
-		);
+		// Return insertId (via rows?.[0]?.id)
+		if (query.startsWith('INSERT')) {
+			query += ' RETURNING id;';
+		}
+
+		const resp = await this.conn.query(query, request?.values);
+
+		const {command, rowCount, rows} = resp;
 
 		// Return SELECT rows
 		if (command === 'SELECT') {
@@ -64,7 +68,7 @@ export default class Postgres {
 
 		// Else, return a node-mysql'ish response
 		return {
-			insertId: oid,
+			insertId: rows?.[0]?.id,
 			affectedRows: rowCount,
 		};
 	}

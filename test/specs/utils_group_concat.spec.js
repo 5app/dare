@@ -10,9 +10,13 @@ const MYSQL_56 = '5.6';
 
 ['', MYSQL_56].forEach(MYSQL_VERSION => {
 	describe(`utils/group_concat: (mysql ${MYSQL_VERSION})`, () => {
-		beforeEach(() => {
+		before(() => {
 			// Set the mysql version...
 			process.env.MYSQL_VERSION = MYSQL_VERSION;
+		});
+
+		after(() => {
+			delete process.env.MYSQL_VERSION;
 		});
 
 		it('should return a function', () => {

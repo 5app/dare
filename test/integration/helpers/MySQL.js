@@ -6,7 +6,7 @@ import fs from 'node:fs';
 const {
 	TEST_DB_DATA_PATH,
 	TEST_DB_SCHEMA_PATH,
-	DB_VERSION = '5.6',
+	DB_ENGINE = 'mysql:5.6',
 } = process.env;
 
 const schemaSql = fs.readFileSync(TEST_DB_SCHEMA_PATH);
@@ -35,7 +35,7 @@ export default class MySQL {
 
 		let TABLE_NAME = 'table_name';
 		// @ts-ignore
-		if (DB_VERSION.match(/\d+/)?.[0] >= 8) {
+		if (DB_ENGINE.match(/\d+/)?.[0] >= 8) {
 			TABLE_NAME = TABLE_NAME.toUpperCase();
 		}
 

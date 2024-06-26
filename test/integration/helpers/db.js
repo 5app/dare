@@ -2,7 +2,7 @@ import MySQL from './MySQL.js';
 import Postgres from './Postgres.js';
 
 const {
-	DB_ENGINE = 'mysql',
+	DB_ENGINE = 'mysql:5.6',
 	DB_HOST = 'mysql',
 	DB_PORT = 13_306,
 	DB_USER = 'db_user',
@@ -22,9 +22,9 @@ const dbSettings = {
 };
 
 let dbInstance;
-if (DB_ENGINE === 'mysql') {
+if (DB_ENGINE.startsWith('mysql')) {
 	dbInstance = new MySQL(dbSettings);
-} else if (DB_ENGINE === 'postgres') {
+} else if (DB_ENGINE.startsWith('postgres')) {
 	dbInstance = new Postgres(dbSettings);
 }
 

@@ -1,5 +1,4 @@
 
-
 CREATE TABLE country (
   id SERIAL,
   code CHAR(2) NOT NULL,
@@ -11,6 +10,7 @@ CREATE TABLE users (
   username varchar(255) NOT NULL,
   first_name varchar(255) DEFAULT NULL,
   last_name varchar(255) DEFAULT NULL,
+  uuid BYTEA DEFAULT NULL,
   secret varchar(2048) DEFAULT NULL,
   country_id INTEGER DEFAULT NULL,
   PRIMARY KEY (id),
@@ -38,6 +38,4 @@ CREATE TABLE userTeams (
   -- CONSTRAINT fk_userTeams_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
   -- CONSTRAINT fk_userTeams_team_id FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE
 );
-
-
 
