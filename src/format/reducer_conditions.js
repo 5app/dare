@@ -361,8 +361,8 @@ function sqlCondition({
 		// Use the `IN(...)` for items which can be grouped...
 		if (filteredValue.length) {
 			const items =
-				process.env.MYSQL_VERSION?.startsWith('8') ||
-				process.env.MYSQL_VERSION?.startsWith('5.6')
+				process.env.DB_ENGINE?.startsWith('mysql:8') ||
+				process.env.DB_ENGINE?.startsWith('mysql:5.6')
 					? filteredValue
 					: filteredValue.map(quote);
 			conds.push(SQL`${sql_field} ${NOT}IN (${items})`);

@@ -169,14 +169,14 @@ describe('Filter Reducer', () => {
 
 	describe('mysql engine version handling', () => {
 		afterEach(() => {
-			delete process.env.MYSQL_VERSION;
+			delete process.env.DB_ENGINE;
 		});
 
 		['5.7', '8.0'].forEach(version => {
 			const quote = version === '5.7';
 
 			it('should quote json list (IN) sting values', () => {
-				process.env.MYSQL_VERSION = version;
+				process.env.DB_ENGINE = `mysql:${version}`;
 
 				const filter = {
 					jsonSettings: {

@@ -24,8 +24,8 @@ export default function group_concat(fields, address = '', sql_alias, rowid) {
 
 	// Convert to JSON Array
 	if (
-		process.env.MYSQL_VERSION &&
-		semverCompare(process.env.MYSQL_VERSION, '5.7') < 0
+		process.env.DB_ENGINE &&
+		semverCompare(process.env.DB_ENGINE.split(':').at(1), '5.7') < 0
 	) {
 		expression = fields.map(
 			field =>
@@ -46,8 +46,8 @@ export default function group_concat(fields, address = '', sql_alias, rowid) {
 
 	// Multiple
 	if (
-		process.env.MYSQL_VERSION &&
-		semverCompare(process.env.MYSQL_VERSION, '5.7.21') <= 0
+		process.env.DB_ENGINE &&
+		semverCompare(process.env.DB_ENGINE.split(':').at(1), '5.7.21') <= 0
 	) {
 		expression = `CONCAT('[', GROUP_CONCAT(IF(${sql_alias}.${rowid} IS NOT NULL, ${expression}, NULL)), ']')`;
 	} else {

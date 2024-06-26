@@ -382,11 +382,11 @@ describe('response_handler', () => {
 
 	describe('mysql 5.6', () => {
 		afterEach(() => {
-			delete process.env.MYSQL_VERSION;
+			delete process.env.DB_ENGINE;
 		});
 
 		it('should exclude a series of empty strings, a side-effect of inline GROUP_CONCAT', () => {
-			process.env.MYSQL_VERSION = '5.6';
+			process.env.DB_ENGINE = 'mysql:5.6';
 
 			// Return a response field which is invalid
 			const data = dare.response_handler([

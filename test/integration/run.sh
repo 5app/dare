@@ -131,9 +131,13 @@ else
 		echo "${dep} up"
 	done
 
-	docker exec -e MYSQL_PWD=${DB_ROOT_PASSWORD} dare_db mysql -u${DB_ROOT_USER} -e "GRANT ALL PRIVILEGES ON *.* TO '${DB_USER}'@'%' WITH GRANT OPTION;"
+	dbclient="docker exec -e MYSQL_PWD=${DB_ROOT_PASSWORD} dare_db mysql -u${DB_ROOT_USER}"
+	$dbclient -e "GRANT ALL PRIVILEGES ON *.* TO '${DB_USER}'@'%' WITH GRANT OPTION;"
 
+	DB_VERSION=`$dbclient -e "SELECT VERSION()"`;
 fi
+
+echo "Connected to $DB_ENGINE_NAME:$DB_VERSION";
 
 echo 'building template db...'
 export TEST_DB_PREFIX="test_"
@@ -155,11 +159,11 @@ echo 'tests complete'
 if [[ -n "$KEEP_DOCKER" ]]; then
   echo "leaving docker running (detached)"
   if [ "$TEST_STATE_CLEANUP_MODE" == "remove" ]; then
-    DBS="$($mysql -e 'SHOW DATABASES')"
+    DBS="$($dbclient -e 'SHOW DATABASES')"
     for db in $DBS; do
       if [[ "$db" =~ ^${TEST_DB_PREFIX} ]]; then
         echo "removing test DB: $db"
-        $mysql -e "DROP DATABASE $db"
+        $dbclient -e "DROP DATABASE $db"
       fi
 
     done

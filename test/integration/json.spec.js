@@ -10,7 +10,7 @@ describe('Working with JSON DataType', () => {
 
 	// JSON DataType not supported in MySQL 5.6
 	beforeEach(function () {
-		if (process.env.MYSQL_VERSION === '5.6') {
+		if (process.env.DB_ENGINE?.startsWith('mysql:5.6')) {
 			this.skip();
 			return;
 		}
