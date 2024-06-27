@@ -753,7 +753,8 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 		on_duplicate_keys_update = onDuplicateKeysUpdate(
 			req.duplicate_keys_update.map(field =>
 				unAliasFields(modelSchema, field, dareInstance)
-			)
+			),
+			fields
 		);
 	} else if (
 		req.duplicate_keys &&
@@ -883,7 +884,12 @@ function mustAffectRows(result, notfound) {
 	return result;
 }
 
-function onDuplicateKeysUpdate(keys = []) {
+function onDuplicateKeysUpdate(keys = [], existing = []) {
+
+	if ((process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres')) {
+		return `ON CONFLICT (${existing.filter(item => !keys.includes(item)).join(',')}) DO UPDATE SET ${keys.map(name => `${wrapFieldName(name)}=EXCLUDED.${wrapFieldName(name)}`).join(',')}`;
+	}
+
 	const s = keys.map(name => `${wrapFieldName(name)}=VALUES(${wrapFieldName(name)})`).join(',');
 
 	return `ON DUPLICATE KEY UPDATE ${s}`;
