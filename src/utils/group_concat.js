@@ -33,8 +33,12 @@ export default function group_concat(fields, address = '', sql_alias, rowid) {
 		);
 		expression = `CONCAT_WS('', '[', ${expression.join(", ',', ")}, ']')`;
 	} else {
+
+		// JSON_ARRAY in postgres default to ABSENT ON NULL, so we need to add NULL ON NULL
+		const json_array_settings = process.env.DB_ENGINE?.startsWith('postgres') ? ' NULL ON NULL' : '';
+
 		expression = fields.map(field => field.expression);
-		expression = `JSON_ARRAY(${expression.join(',')})`;
+		expression = `JSON_ARRAY(${expression.join(',')}${json_array_settings})`;
 	}
 
 	if (agg) {
@@ -51,7 +55,7 @@ export default function group_concat(fields, address = '', sql_alias, rowid) {
 	) {
 		expression = `CONCAT('[', GROUP_CONCAT(IF(${sql_alias}.${rowid} IS NOT NULL, ${expression}, NULL)), ']')`;
 	} else {
-		expression = `JSON_ARRAYAGG(IF(${sql_alias}.${rowid} IS NOT NULL, ${expression}, NULL))`;
+		expression = `JSON_ARRAYAGG(CASE WHEN (${sql_alias}.${rowid} IS NOT NULL) THEN (${expression}) ELSE NULL END)`;
 	}
 
 	label = fields

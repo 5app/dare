@@ -125,7 +125,7 @@ describe('get - subquery', () => {
 
 				SELECT a.name AS "name",
 				(
-					SELECT JSON_ARRAYAGG(IF(c._rowid IS NOT NULL, JSON_ARRAY(c.id, c.name), NULL))
+					SELECT JSON_ARRAYAGG(CASE WHEN (c._rowid IS NOT NULL) THEN (JSON_ARRAY(c.id, c.name)) ELSE NULL END)
 					FROM assetCollections b
 					LEFT JOIN collections c ON (c.id = b.collection_id)
 					WHERE b.asset_id = a.id
@@ -165,7 +165,7 @@ describe('get - subquery', () => {
 
 				SELECT a.name AS "name",
 				(
-					SELECT JSON_ARRAYAGG(IF(b._rowid IS NOT NULL, JSON_ARRAY(b.id, b.color), NULL))
+					SELECT JSON_ARRAYAGG(CASE WHEN (b._rowid IS NOT NULL) THEN (JSON_ARRAY(b.id, b.color)) ELSE NULL END)
 					FROM assetCollections b
 					WHERE b.color = ? AND b.asset_id = a.id
 					LIMIT 1
@@ -240,7 +240,7 @@ describe('get - subquery', () => {
 		dare.sql = ({sql}) => {
 			const expected = `
 				SELECT a.name AS "name",
-					JSON_ARRAYAGG(IF(c._rowid IS NOT NULL, JSON_ARRAY(c.id, c.name), NULL)) AS "collections[id,name]"
+					JSON_ARRAYAGG(CASE WHEN (c._rowid IS NOT NULL) THEN (JSON_ARRAY(c.id, c.name)) ELSE NULL END) AS "collections[id,name]"
 				FROM assets a
 				LEFT JOIN assetCollections b ON(b.asset_id = a.id)
 				LEFT JOIN collections c ON (c.id = b.collection_id)
@@ -271,8 +271,8 @@ describe('get - subquery', () => {
 	it('should *not* subquery a table off a join with a possible set of values', async () => {
 		dare.sql = ({sql}) => {
 			const expected = `
-				SELECT a.name AS "name", JSON_ARRAYAGG(IF(b._rowid IS NOT NULL, JSON_ARRAY(COUNT(d.id)), NULL)) AS "assetCollections[collections.descendents]"
-				FROM assets a
+			SELECT a.name AS "name", JSON_ARRAYAGG(CASE WHEN (b._rowid IS NOT NULL) THEN (JSON_ARRAY(COUNT(d.id))) ELSE NULL END) AS "assetCollections[collections.descendents]"
+			FROM assets a
 				LEFT JOIN assetCollections b ON(b.asset_id = a.id)
 				LEFT JOIN collections c ON(c.id = b.collection_id)
 				LEFT JOIN collectionChildren d ON(d.collection_id = c.id)
