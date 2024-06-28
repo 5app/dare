@@ -23,7 +23,7 @@ CREATE TABLE users (
 CREATE TABLE teams (
   id SERIAL,
   name varchar(255) NOT NULL,
-  description TEXT NULL,
+  description TEXT NULL DEFAULT NULL,
   PRIMARY KEY (id),
   CONSTRAINT unique_name UNIQUE (name)
 );
