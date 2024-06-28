@@ -31,7 +31,6 @@ CREATE TABLE users_email (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
   `email` varchar(255) NOT NULL,
-  `is_primary` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_email` (`email`),
   -- users
