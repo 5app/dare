@@ -40,14 +40,14 @@ describe('get - subquery', () => {
 		dare.sql = ({sql}) => {
 			const expected = `
 
-				SELECT a.name AS 'asset_name',
+				SELECT a.name AS "asset_name",
 				(
 					SELECT COUNT(c.id)
 					FROM assetCollections b
 					LEFT JOIN collections c ON (c.id = b.collection_id)
 					WHERE b.asset_id = a.id
 					LIMIT 1
-				) AS 'collection_count'
+				) AS "collection_count"
 				FROM assets a
 				GROUP BY a._rowid
 				LIMIT 1
@@ -80,14 +80,14 @@ describe('get - subquery', () => {
 		dare.sql = ({sql}) => {
 			const expected = `
 
-				SELECT a.name AS 'asset_name',
+				SELECT a.name AS "asset_name",
 				(
 					SELECT COUNT(c.id)
 					FROM assetCollections b
 					LEFT JOIN collections c ON (c.id = b.collection_id)
 					WHERE b.asset_id = a.id
 					LIMIT 1
-				) AS 'collections.count'
+				) AS "collections.count"
 				FROM assets a
 				GROUP BY a._rowid
 				LIMIT 1
@@ -123,14 +123,14 @@ describe('get - subquery', () => {
 		dare.sql = ({sql}) => {
 			const expected = `
 
-				SELECT a.name AS 'name',
+				SELECT a.name AS "name",
 				(
 					SELECT JSON_ARRAYAGG(IF(c._rowid IS NOT NULL, JSON_ARRAY(c.id, c.name), NULL))
 					FROM assetCollections b
 					LEFT JOIN collections c ON (c.id = b.collection_id)
 					WHERE b.asset_id = a.id
 					LIMIT 1
-				) AS 'collections[id,name]'
+				) AS "collections[id,name]"
 				FROM assets a
 				GROUP BY a._rowid
 				LIMIT 1
@@ -163,13 +163,13 @@ describe('get - subquery', () => {
 		dare.sql = ({sql}) => {
 			const expected = `
 
-				SELECT a.name AS 'name',
+				SELECT a.name AS "name",
 				(
 					SELECT JSON_ARRAYAGG(IF(b._rowid IS NOT NULL, JSON_ARRAY(b.id, b.color), NULL))
 					FROM assetCollections b
 					WHERE b.color = ? AND b.asset_id = a.id
 					LIMIT 1
-				) AS 'assetCollections[id,color]'
+				) AS "assetCollections[id,color]"
 				FROM assets a
 				GROUP BY a._rowid
 				LIMIT 1
@@ -207,7 +207,7 @@ describe('get - subquery', () => {
 		dare.sql = ({sql}) => {
 			const expected = `
 
-				SELECT a.name AS 'name'
+				SELECT a.name AS "name"
 				FROM assets a
 				LIMIT 1
 
@@ -239,8 +239,8 @@ describe('get - subquery', () => {
 	it('should *not* use a subquery when the many table is used in the filter', async () => {
 		dare.sql = ({sql}) => {
 			const expected = `
-				SELECT a.name AS 'name',
-					JSON_ARRAYAGG(IF(c._rowid IS NOT NULL, JSON_ARRAY(c.id, c.name), NULL)) AS 'collections[id,name]'
+				SELECT a.name AS "name",
+					JSON_ARRAYAGG(IF(c._rowid IS NOT NULL, JSON_ARRAY(c.id, c.name), NULL)) AS "collections[id,name]"
 				FROM assets a
 				LEFT JOIN assetCollections b ON(b.asset_id = a.id)
 				LEFT JOIN collections c ON (c.id = b.collection_id)
@@ -271,7 +271,7 @@ describe('get - subquery', () => {
 	it('should *not* subquery a table off a join with a possible set of values', async () => {
 		dare.sql = ({sql}) => {
 			const expected = `
-				SELECT a.name AS 'name', JSON_ARRAYAGG(IF(b._rowid IS NOT NULL, JSON_ARRAY(COUNT(d.id)), NULL)) AS 'assetCollections[collections.descendents]'
+				SELECT a.name AS "name", JSON_ARRAYAGG(IF(b._rowid IS NOT NULL, JSON_ARRAY(COUNT(d.id)), NULL)) AS "assetCollections[collections.descendents]"
 				FROM assets a
 				LEFT JOIN assetCollections b ON(b.asset_id = a.id)
 				LEFT JOIN collections c ON(c.id = b.collection_id)
@@ -314,7 +314,7 @@ describe('get - subquery', () => {
 					WHERE
 						b.user_id = a.id
 					LIMIT 1
-				) AS 'email_id,email'
+				) AS "email_id,email"
 				FROM users a
 				GROUP BY a.id
 				ORDER BY a.name

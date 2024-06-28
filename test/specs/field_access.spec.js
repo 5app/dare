@@ -79,7 +79,7 @@ describe('field access', () => {
 			dare.execute = async ({sql, values}) => {
 				sqlEqual(
 					sql,
-					`SELECT a.email_address AS 'email' FROM users a LIMIT 1`
+					`SELECT a.email_address AS "email" FROM users a LIMIT 1`
 				);
 				expect(values).to.deep.equal([]);
 				return [];
