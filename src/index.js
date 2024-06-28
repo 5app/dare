@@ -114,9 +114,9 @@ Dare.prototype.execute = async requestQuery => {
 /** @type {string} */
 Dare.prototype.group_concat = '$$';
 
-// Rowid, name of primary key field used in grouping operations
+// Rowid, name of primary key field used in grouping operation: MySQL uses _rowid
 /** @type {string} */
-Dare.prototype.rowid = '_rowid';
+Dare.prototype.rowid = DB_ENGINE.startsWith('mysql') ? '_rowid' : 'id';
 
 // Set the Max Limit for SELECT statements
 /** @type {number} */
