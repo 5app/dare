@@ -1,4 +1,9 @@
 import semverCompare from 'semver-compare';
+
+const {
+	DB_ENGINE = 'mysql:5.7.40',
+} = process.env;
+
 /*
  * Generate GROUP_CONCAT statement given an array of fields definitions
  * Label the GROUP CONCAT(..) AS 'address[fields,...]'
@@ -55,7 +60,15 @@ export default function group_concat(fields, address = '', sql_alias, rowid) {
 	) {
 		expression = `CONCAT('[', GROUP_CONCAT(IF(${sql_alias}.${rowid} IS NOT NULL, ${expression}, NULL)), ']')`;
 	} else {
-		expression = `JSON_ARRAYAGG(CASE WHEN (${sql_alias}.${rowid} IS NOT NULL) THEN (${expression}) ELSE NULL END)`;
+
+		let condition = `CASE WHEN (${sql_alias}.${rowid} IS NOT NULL) THEN (${expression}) ELSE NULL END`;
+
+		if ((process.env.DB_ENGINE || DB_ENGINE)?.startsWith('mysql:5.7')) {
+			// Overwrite condition for MySQL 5.7
+			condition = `IF(${sql_alias}.${rowid} IS NOT NULL, ${expression}, NULL)`;
+		}
+
+		expression = `JSON_ARRAYAGG(${condition})`;
 	}
 
 	label = fields
