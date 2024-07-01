@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 echo "Running pre-commit checks... (skip using --no-verify)";
-LIST=`git diff-index --name-only --cached HEAD`; if [ "$LIST" ]; then npx prettier --write $LIST; git add $LIST; fi
+# LIST=`git diff-index --name-only --cached --diff-filter=CARM HEAD`; if [ "$LIST" ]; then npx prettier --write $LIST; git add $LIST; fi
 npm run lint-diff;
 npm run spec;

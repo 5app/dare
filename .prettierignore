@@ -3,3 +3,6 @@ coverage
 
 package-lock.json
 CHANGELOG.md
+
+.sh
+.sql

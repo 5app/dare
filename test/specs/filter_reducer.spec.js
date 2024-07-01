@@ -169,14 +169,14 @@ describe('Filter Reducer', () => {
 
 	describe('mysql engine version handling', () => {
 		afterEach(() => {
-			delete process.env.MYSQL_VERSION;
+			delete process.env.DB_ENGINE;
 		});
 
 		['5.7', '8.0'].forEach(version => {
 			const quote = version === '5.7';
 
 			it('should quote json list (IN) sting values', () => {
-				process.env.MYSQL_VERSION = version;
+				process.env.DB_ENGINE = `mysql:${version}`;
 
 				const filter = {
 					jsonSettings: {
@@ -203,5 +203,56 @@ describe('Filter Reducer', () => {
 				expect(query.values).to.deep.equal(values);
 			});
 		});
+	});
+
+	describe('postgres engine version handling', () => {
+
+		beforeEach(() => {
+			process.env.DB_ENGINE = 'postgres:16.3';
+		});
+		afterEach(() => {
+			delete process.env.DB_ENGINE;
+		});
+
+		it('should search fulltext - with an index', () => {
+			const filter = {
+				'*vector_index': 'string',
+			};
+
+			const sql = `a.vector_index @@ to_tsquery('english', ?)`;
+			const values = ['string'];
+
+			const [query] = reduceConditions(filter, {
+				extract,
+				sql_alias: 'a',
+				table_schema,
+				conditional_operators_in_value,
+				dareInstance,
+			});
+
+			expect(query.sql).to.equal(sql);
+			expect(query.values).to.deep.equal(values);
+		});
+
+		it('should search fulltext - and build an index', () => {
+			const filter = {
+				'*givenname,lastname,email': 'string',
+			};
+
+			const sql = `TO_TSVECTOR(a.givenname || ' ' || a.lastname || ' ' || a.email) @@ to_tsquery('english', ?)`;
+			const values = ['string'];
+
+			const [query] = reduceConditions(filter, {
+				extract,
+				sql_alias: 'a',
+				table_schema,
+				conditional_operators_in_value,
+				dareInstance,
+			});
+
+			expect(query.sql).to.equal(sql);
+			expect(query.values).to.deep.equal(values);
+		});
+
 	});
 });

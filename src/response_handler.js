@@ -108,7 +108,7 @@ function formatHandler(item) {
 						 * CONCAT_WS would in the same circumstance return an empty string
 						 */
 						const emptyValues =
-							process.env.MYSQL_VERSION === '5.6' ? '' : null;
+							process.env.DB_ENGINE === 'mysql:5.6' ? '' : null;
 						if (!values.some(val => val !== emptyValues)) {
 							// Continue
 							return;

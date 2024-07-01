@@ -232,7 +232,7 @@ The type of value affects the choice of SQL Condition syntax to use. For example
 
 Prefixing the prop with:
 
--   `%`: creates a `LIKE` comparison
+-   `%`: creates a `LIKE` comparison (or `ILIKE` in _postgres_)
 -   `-`: hyhen negates the value
 -   `~`: creates a range
 
@@ -1540,14 +1540,14 @@ await dare.patch({
 
 ### DB Engine compatibility
 
-The latest version is designed to work with MySQL 5.7 and 8
+The latest version is designed to work with MySQL (5.6, 5.7 and 8) and Postgres (16.3)
 
-There is currently backwards compatibility with MySQL 5.6 provided by setting the environment variable `MYSQL_VERSION`
+Use the environment variable `DB_ENGINE` to set the desired engine
 
 e.g.
 
 ```js
-process.env.MYSQL_VERSION = '5.6';
+process.env.DB_ENGINE = 'mysql:5.6';
 ```
 
 # Caveats

@@ -6,17 +6,18 @@ import group_concat from '../../src/utils/group_concat.js';
 
 const rowid = '_rowid';
 
-const MYSQL_56 = '5.6';
+const MYSQL_56 = 'mysql:5.6';
+const POSTGRES = 'postgres:16.3';
 
-['', MYSQL_56].forEach(MYSQL_VERSION => {
-	describe(`utils/group_concat: (mysql ${MYSQL_VERSION})`, () => {
+['', MYSQL_56, POSTGRES].forEach(DB_ENGINE => {
+	describe(`utils/group_concat: (mysql ${DB_ENGINE})`, () => {
 		before(() => {
 			// Set the mysql version...
-			process.env.MYSQL_VERSION = MYSQL_VERSION;
+			process.env.DB_ENGINE = DB_ENGINE;
 		});
 
 		after(() => {
-			delete process.env.MYSQL_VERSION;
+			delete process.env.DB_ENGINE;
 		});
 
 		it('should return a function', () => {
@@ -40,10 +41,11 @@ const MYSQL_56 = '5.6';
 				rowid
 			);
 
-			const expectSQLEqual =
-				MYSQL_VERSION === MYSQL_56
-					? `CONCAT('[', GROUP_CONCAT(IF(a._rowid IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(table.b, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), NULL)), ']')`
-					: `JSON_ARRAYAGG(IF(a._rowid IS NOT NULL, JSON_ARRAY(table.a,table.b), NULL))`;
+			const expectSQLEqual = {
+				default: `JSON_ARRAYAGG(IF(a._rowid IS NOT NULL, JSON_ARRAY(table.a,table.b), NULL))`,
+				[POSTGRES]: `JSON_ARRAYAGG(CASE WHEN (a._rowid IS NOT NULL) THEN (JSON_ARRAY(table.a,table.b NULL ON NULL)) ELSE NULL END)`,
+				[MYSQL_56]: `CONCAT('[', GROUP_CONCAT(IF(a._rowid IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(table.b, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), NULL)), ']')`,
+			}[DB_ENGINE || 'default'];
 
 			expect(gc.expression).to.eql(expectSQLEqual);
 			expect(gc.label).to.eql('collection[a,b]');
@@ -62,10 +64,12 @@ const MYSQL_56 = '5.6';
 				},
 			]);
 
-			const expectSQLEqual =
-				MYSQL_VERSION === MYSQL_56
-					? `CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(table.b, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']')`
-					: `JSON_ARRAY(table.a,table.b)`;
+			const expectSQLEqual = {
+				default: `JSON_ARRAY(table.a,table.b)`,
+				[POSTGRES]: `JSON_ARRAY(table.a,table.b NULL ON NULL)`,
+				[MYSQL_56]: `CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(table.b, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']')`,
+			}[DB_ENGINE || 'default'];
+
 
 			expect(gc.expression).to.eql(expectSQLEqual);
 			expect(gc.label).to.eql('a,b');
@@ -97,10 +101,12 @@ const MYSQL_56 = '5.6';
 				rowid
 			);
 
-			const expectSQLEqual =
-				MYSQL_VERSION === MYSQL_56
-					? `CONCAT('[', GROUP_CONCAT(IF(a._rowid IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), NULL)), ']')`
-					: `JSON_ARRAYAGG(IF(a._rowid IS NOT NULL, JSON_ARRAY(table.a), NULL))`;
+			const expectSQLEqual = {
+				default: `JSON_ARRAYAGG(IF(a._rowid IS NOT NULL, JSON_ARRAY(table.a), NULL))`,
+				[POSTGRES]: `JSON_ARRAYAGG(CASE WHEN (a._rowid IS NOT NULL) THEN (JSON_ARRAY(table.a NULL ON NULL)) ELSE NULL END)`,
+				[MYSQL_56]: `CONCAT('[', GROUP_CONCAT(IF(a._rowid IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), NULL)), ']')`,
+			}[DB_ENGINE || 'default'];
+
 
 			expect(gc.expression).to.eql(expectSQLEqual);
 
@@ -135,10 +141,11 @@ const MYSQL_56 = '5.6';
 				'collection.'
 			);
 
-			const expectSQLEqual =
-				MYSQL_VERSION === MYSQL_56
-					? `CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(table.b, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']')`
-					: `JSON_ARRAY(table.a,table.b)`;
+			const expectSQLEqual = {
+				default:`JSON_ARRAY(table.a,table.b)`,
+				[POSTGRES]: `JSON_ARRAY(table.a,table.b NULL ON NULL)`,
+				[MYSQL_56]: `CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(table.b, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']')`,
+			}[DB_ENGINE || 'default'];
 
 			expect(gc_many.expression).to.eql(expectSQLEqual);
 			expect(gc_many.label).to.eql('a,b');

@@ -16,6 +16,10 @@ import format_request from './format_request.js';
 
 import response_handler, {responseRowHandler} from './response_handler.js';
 
+const {
+	DB_ENGINE = 'mysql:5.7',
+} = process.env;
+
 /* eslint-disable jsdoc/valid-types */
 /**
  * @typedef {import('sql-template-tag').Sql} Sql
@@ -110,9 +114,9 @@ Dare.prototype.execute = async requestQuery => {
 /** @type {string} */
 Dare.prototype.group_concat = '$$';
 
-// Rowid, name of primary key field used in grouping operations
+// Rowid, name of primary key field used in grouping operation: MySQL uses _rowid
 /** @type {string} */
-Dare.prototype.rowid = '_rowid';
+Dare.prototype.rowid = DB_ENGINE.startsWith('mysql') ? '_rowid' : 'id';
 
 // Set the Max Limit for SELECT statements
 /** @type {number} */
@@ -198,6 +202,11 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 		if (text.match(/['@-]/)) {
 			return `"${text}"`;
 		}
+
+		if ((process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres') && suffix === '*') {
+			return `${text}:*`;
+		}
+
 		return text + suffix;
 	}
 
@@ -210,8 +219,10 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 
 	// Replace any special characters with quotes
 	const resp = input.matchAll(
-		/\s*(?<sign>[+<>~-]?)(?:\((?<subexpression>[^()]*)\)|(?<quoted>".*?")|(?<unquoted>[^\s()]+))(?<suffix>\*)?/g
+		/\s*(?<sign>[&+<>~-]?)(?:\((?<subexpression>[^()]*)\)|(?<quoted>".*?")|(?<unquoted>[^\s()]+))(?<suffix>\*)?/g
 	);
+
+
 	const output = [...resp]
 		.filter(({groups: {subexpression, quoted, unquoted}}) =>
 			quoted
@@ -221,7 +232,18 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 		.map(
 			({
 				groups: {sign, subexpression, quoted, unquoted, suffix = ''},
-			}) => {
+			}, index) => {
+
+				if ((process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres')) {
+					sign = sign
+						// .replace('+', '&')
+						.replace(/[+<>~]*/, '');
+
+					if (!sign.includes('&') && index > 0) {
+						sign = `& ${sign}`;
+					}
+				}
+
 				if (subexpression) {
 					return `${sign}(${this.fulltextParser(subexpression)})`;
 				} else if (quoted) {
@@ -504,7 +526,7 @@ Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
 	// Prepare post
 	const sql_set = prepareSQLSet({
 		body: req.body,
-		sql_alias: req.sql_alias,
+		sql_alias: (process.env.DB_ENGINE || DB_ENGINE).startsWith('mysql') ? req.sql_alias : null,
 		tableSchema,
 		validateInput,
 		dareInstance,
@@ -528,7 +550,7 @@ Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
 				${sql_set}
 			WHERE
 				${join(req.sql_where_conditions, ' AND ')}
-			${!req.sql_joins.length ? SQL`LIMIT ${req.limit}` : empty}`;
+			${(process.env.DB_ENGINE || DB_ENGINE).startsWith('mysql') && !req.sql_joins.length ? SQL`LIMIT ${req.limit}` : empty}`;
 
 	let resp = await this.sql(sql);
 
@@ -749,7 +771,8 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 		on_duplicate_keys_update = onDuplicateKeysUpdate(
 			req.duplicate_keys_update.map(field =>
 				unAliasFields(modelSchema, field, dareInstance)
-			)
+			),
+			fields
 		);
 	} else if (
 		req.duplicate_keys &&
@@ -762,7 +785,7 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 
 	// Construct a db update
 	const sql = `INSERT ${exec} INTO ${req.sql_table}
-			(${fields.map(field => `\`${field}\``).join(',')})
+			(${fields.map(wrapFieldName).join(',')})
 			${data.length ? `VALUES ${data.join(',')}` : ''}
 			${query || ''}
 			${on_duplicate_keys_update}`;
@@ -816,7 +839,7 @@ Dare.prototype.del = async function del(table, filter, options = {}) {
 					${req.sql_joins.length ? join(req.sql_joins, '\n') : empty}
 					WHERE
 					${join(req.sql_where_conditions, ' AND ')}
-					${!req.sql_joins.length ? SQL`LIMIT ${req.limit}` : empty}`;
+					${(process.env.DB_ENGINE || DB_ENGINE).startsWith('mysql') && !req.sql_joins.length ? SQL`LIMIT ${req.limit}` : empty}`;
 
 	let resp = await this.sql(sql);
 
@@ -830,7 +853,7 @@ Dare.prototype.del = async function del(table, filter, options = {}) {
  * Prepare a SET assignments used in Patch
  * @param {object} obj - Object
  * @param {object} obj.body - body to format
- * @param {string} obj.sql_alias - SQL Alias for update table
+ * @param {string | null} obj.sql_alias - SQL Alias for update table
  * @param {object} [obj.tableSchema={}] - Schema for the current table
  * @param {Function} [obj.validateInput] - Validate input function
  * @param {Dare} obj.dareInstance - Dare Instance
@@ -859,10 +882,14 @@ function prepareSQLSet({
 		});
 
 		// Replace value with a question using any mapped fieldName
-		assignments.push(SQL`${raw(sql_alias)}.\`${raw(field)}\` = ${value}`);
+		assignments.push(SQL`${sql_alias ? raw(`${sql_alias}.`) : empty} ${raw(wrapFieldName(field))} = ${value}`);
 	}
 
 	return join(assignments, ', ');
+}
+
+function wrapFieldName(field) {
+	return (process.env.DB_ENGINE || DB_ENGINE).startsWith('mysql') ? `\`${field}\`` : field;
 }
 
 function mustAffectRows(result, notfound) {
@@ -875,8 +902,13 @@ function mustAffectRows(result, notfound) {
 	return result;
 }
 
-function onDuplicateKeysUpdate(keys = []) {
-	const s = keys.map(name => `\`${name}\`=VALUES(\`${name}\`)`).join(',');
+function onDuplicateKeysUpdate(keys = [], existing = []) {
+
+	if ((process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres')) {
+		return `ON CONFLICT (${existing.filter(item => !keys.includes(item)).join(',')}) DO UPDATE SET ${keys.map(name => `${wrapFieldName(name)}=EXCLUDED.${wrapFieldName(name)}`).join(',')}`;
+	}
+
+	const s = keys.map(name => `${wrapFieldName(name)}=VALUES(${wrapFieldName(name)})`).join(',');
 
 	return `ON DUPLICATE KEY UPDATE ${s}`;
 }

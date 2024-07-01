@@ -22,7 +22,7 @@ describe('get - datatypes', () => {
 
 		dare.execute = async ({sql, values}) => {
 			const expected = `
-				SELECT DATE_FORMAT(a.created_time,'%Y-%m-%dT%TZ') AS 'created_time'
+				SELECT DATE_FORMAT(a.created_time,'%Y-%m-%dT%TZ') AS "created_time"
 				FROM users a
 				LIMIT 1
 			`;
@@ -73,7 +73,7 @@ describe('get - datatypes', () => {
 
 			dare.execute = async ({sql, values}) => {
 				const expected = `
-					SELECT b.settings AS 'users.settings'
+					SELECT b.settings AS "users.settings"
 					FROM users_email a
 					LEFT JOIN users b ON (b.id = a.user_id)
 					LIMIT 1
@@ -129,7 +129,7 @@ describe('get - datatypes', () => {
 
 			dare.execute = async ({sql, values}) => {
 				const expected = `
-					SELECT b.id AS 'users.id'
+					SELECT b.id AS "users.id"
 					FROM users_email a
 					LEFT JOIN users b ON (b.id = a.user_id)
 					LIMIT 1

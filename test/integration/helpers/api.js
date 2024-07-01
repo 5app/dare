@@ -32,7 +32,7 @@ export default function dareInstance() {
 
 export function castToStringIfNeeded(a) {
 	// MySQL 5.6, uses CONCAT_WS, rather than type safe JSON_ARRAY
-	if (process.env.MYSQL_VERSION === '5.6') {
+	if (process.env.DB_ENGINE?.startsWith('mysql:5.6')) {
 		return a === null ? '' : String(a);
 	}
 

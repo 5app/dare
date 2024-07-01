@@ -351,7 +351,7 @@ describe('patch', () => {
 		});
 	});
 
-	it('dallow nested filters', async () => {
+	it('should allow nested filters', async () => {
 		dare.sql = async () => ({affectedRows: 1});
 
 		dare.options.models = {
@@ -375,5 +375,33 @@ describe('patch', () => {
 		});
 
 		expect(test).to.have.property('affectedRows', 1);
+	});
+
+	describe('DB Engine specific tests', () => {
+
+		afterEach(() => {
+			delete process.env.DB_ENGINE;
+		});
+
+		it(`should use the correct syntax for postgres`, async () => {
+
+			process.env.DB_ENGINE = 'postgres:16.3';
+
+			dare.execute = async ({sql, values}) => {
+				sqlEqual(
+					sql,
+					'UPDATE tbl a SET name = ? WHERE a.id = ?'
+				);
+				expect(values).to.deep.equal([name, id]);
+				return {success: true};
+			};
+
+			return dare.patch({
+				table: 'tbl',
+				filter: {id},
+				body: {name},
+			});
+		});
+
 	});
 });

@@ -103,7 +103,7 @@ export default function buildQuery(opts, dareInstance) {
 
 			return raw(
 				`${field.expression}${
-					field.label ? ` AS '${field.label}'` : ''
+					field.label ? ` AS "${field.label}"` : ''
 				}`
 			);
 		});
@@ -123,7 +123,7 @@ export default function buildQuery(opts, dareInstance) {
 				sql_groupby.length
 					? join(sql_groupby)
 					: raw(`${opts.sql_alias}.${dareInstance.rowid}`)
-			}) AS 'count'`,
+			}) AS "count"`,
 		];
 
 		// Remove groupby and orderby...
@@ -153,7 +153,7 @@ export default function buildQuery(opts, dareInstance) {
 
 	if (alias) {
 		// Wrap the whole thing in an alias
-		sql = SQL`(${sql}) AS '${raw(alias)}'`;
+		sql = SQL`(${sql}) AS "${raw(alias)}"`;
 	}
 
 	return sql;

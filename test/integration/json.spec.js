@@ -10,7 +10,7 @@ describe('Working with JSON DataType', () => {
 
 	// JSON DataType not supported in MySQL 5.6
 	beforeEach(function () {
-		if (process.env.MYSQL_VERSION === '5.6') {
+		if (process.env.DB_ENGINE?.startsWith('mysql:5.6')) {
 			this.skip();
 			return;
 		}
@@ -18,9 +18,11 @@ describe('Working with JSON DataType', () => {
 		// Initiate
 		dare = defaultAPI();
 
-		dare.sql(SQL`
-            ALTER TABLE users MODIFY COLUMN settings JSON DEFAULT NULL
-        `);
+		if (process.env.DB_ENGINE?.startsWith('mysql')) {
+			dare.sql(SQL`
+				ALTER TABLE users MODIFY COLUMN settings JSON DEFAULT NULL
+			`);
+		}
 	});
 
 	it('JSON fields should be retrievable', async () => {
@@ -39,7 +41,14 @@ describe('Working with JSON DataType', () => {
 		assert.deepStrictEqual(resp.settings, settings);
 	});
 
-	it('entire JSON field should be queryable as a string', async () => {
+	it('entire JSON field should be queryable as a string', async function() {
+
+		if(!process.env.DB_ENGINE?.startsWith('mysql')) {
+			this.skip();
+			return;
+		}
+			
+
 		const testString = 'testString';
 		const settings = {
 			testString,

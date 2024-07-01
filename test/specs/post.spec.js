@@ -283,4 +283,30 @@ describe('post', () => {
 			});
 		});
 	});
+
+	describe('DB Engine specific tests', () => {
+		afterEach(() => {
+			delete process.env.DB_ENGINE;
+		});
+
+		it('should use ON CONFLICT ... UPDATE ... when postgres is used', async () => {
+
+			process.env.DB_ENGINE = 'postgres';
+
+			dare.execute = async ({sql, values}) => {
+				sqlEqual(
+					sql,
+					'INSERT INTO test (id, name) VALUES (?, ?) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name'
+				);
+				expect(values).to.deep.equal([1, 'name']);
+				return {success: true};
+			};
+
+			return dare.post({
+				table: 'test',
+				body: {id: 1, name: 'name'},
+				duplicate_keys_update: ['name'],
+			});
+		});
+	})
 });

@@ -12,6 +12,10 @@ import unwrap_field from '../utils/unwrap_field.js';
  */
 /* eslint-enable jsdoc/valid-types */
 
+const {
+	DB_ENGINE = 'mysql:5.7.40',
+} = process.env;
+
 /**
  * Reduce conditions, call extract
  *
@@ -143,14 +147,18 @@ function prepCondition({
 	});
 
 	if (isFullText) {
-		// Join the fields
-		const sql_field = join(
-			sql_fields.map(({sql}) => sql),
-			', '
-		);
 
-		// Full Text
-		return SQL`${NOT}MATCH(${sql_field}) AGAINST(${dareInstance.fulltextParser(value)} IN BOOLEAN MODE)`;
+		// Join the fields
+		const sql_field_array = sql_fields.map(({sql}) => sql);
+
+		if ((process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres')) {
+
+			const field = sql_field_array.length === 1 ? sql_field_array.at(0) : SQL`TO_TSVECTOR(${join(sql_field_array, ' || \' \' || ')})`;
+			return SQL`${NOT}${field} @@ to_tsquery('english', ${dareInstance.fulltextParser(value)})`;
+		}
+
+		// Default: MySQL Full Text
+		return SQL`${NOT}MATCH(${join(sql_field_array, ', ')}) AGAINST(${dareInstance.fulltextParser(value)} IN BOOLEAN MODE)`;
 	} else if (sql_fields.length > 1) {
 		/*
 		 * Is the field an array of field names?
@@ -267,6 +275,8 @@ function sqlCondition({
 	const quote =
 		type === 'json' ? a => (typeof a === 'string' ? `"${a}"` : a) : a => a;
 
+	const LIKE = raw((process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres') ? 'ILIKE' : 'LIKE');
+
 	/*
 	 * Range
 	 * A range is denoted by two dots, e.g 1..10
@@ -304,7 +314,7 @@ function sqlCondition({
 		allow_conditional_negate_operator_in_value &&
 		value[0] === '!'
 	) {
-		return SQL`${sql_field} NOT LIKE ${value.slice(1)}`;
+		return SQL`${sql_field} NOT ${LIKE} ${value.slice(1)}`;
 	}
 
 	// String partial match
@@ -313,7 +323,7 @@ function sqlCondition({
 		(isLikey ||
 			(allow_conditional_likey_operator_in_value && value.match('%')))
 	) {
-		return SQL`${sql_field} ${NOT}LIKE ${quote(value)}`;
+		return SQL`${sql_field} ${NOT}${LIKE} ${quote(value)}`;
 	}
 
 	// Null
@@ -361,8 +371,8 @@ function sqlCondition({
 		// Use the `IN(...)` for items which can be grouped...
 		if (filteredValue.length) {
 			const items =
-				process.env.MYSQL_VERSION?.startsWith('8') ||
-				process.env.MYSQL_VERSION?.startsWith('5.6')
+				process.env.DB_ENGINE?.startsWith('mysql:8') ||
+				process.env.DB_ENGINE?.startsWith('mysql:5.6')
 					? filteredValue
 					: filteredValue.map(quote);
 			conds.push(SQL`${sql_field} ${NOT}IN (${items})`);
