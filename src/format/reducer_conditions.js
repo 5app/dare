@@ -275,6 +275,8 @@ function sqlCondition({
 	const quote =
 		type === 'json' ? a => (typeof a === 'string' ? `"${a}"` : a) : a => a;
 
+	const LIKE = raw((process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres') ? 'ILIKE' : 'LIKE');
+
 	/*
 	 * Range
 	 * A range is denoted by two dots, e.g 1..10
@@ -312,7 +314,7 @@ function sqlCondition({
 		allow_conditional_negate_operator_in_value &&
 		value[0] === '!'
 	) {
-		return SQL`${sql_field} NOT LIKE ${value.slice(1)}`;
+		return SQL`${sql_field} NOT ${LIKE} ${value.slice(1)}`;
 	}
 
 	// String partial match
@@ -321,7 +323,7 @@ function sqlCondition({
 		(isLikey ||
 			(allow_conditional_likey_operator_in_value && value.match('%')))
 	) {
-		return SQL`${sql_field} ${NOT}LIKE ${quote(value)}`;
+		return SQL`${sql_field} ${NOT}${LIKE} ${quote(value)}`;
 	}
 
 	// Null

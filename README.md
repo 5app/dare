@@ -232,7 +232,7 @@ The type of value affects the choice of SQL Condition syntax to use. For example
 
 Prefixing the prop with:
 
--   `%`: creates a `LIKE` comparison
+-   `%`: creates a `LIKE` comparison (or `ILIKE` in _postgres_)
 -   `-`: hyhen negates the value
 -   `~`: creates a range
 
