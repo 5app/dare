@@ -1,6 +1,7 @@
 import {execSync} from 'node:child_process';
 import pg from 'pg';
 import fs from 'node:fs';
+import QueryStream from 'pg-query-stream';
 
 const {TEST_DB_DATA_PATH, TEST_DB_SCHEMA_PATH} = process.env;
 
@@ -80,6 +81,24 @@ export default class Postgres {
 		`;
 
 		await this.conn.query(resetDataSql);
+	}
+
+	stream(request, streamOptions = {objectMode: true, highWaterMark: 5}) {
+
+		let index = 0;
+
+		// Format the query
+		const query = (typeof request === 'string' ? request : request.sql)
+			.replaceAll('`', '') // Postgres doesn't like backticks
+			.replace(/\?/g, () => `$${++index}`); // Prepared statement, we need to replace ?, ?...? with $1, $2...$n
+
+		// Stream query results from the DB
+		const queryStream = new QueryStream(query, request?.values, streamOptions);
+
+		// @ts-ignore
+		this.conn.query(queryStream);
+
+		return queryStream;
 	}
 
 	end() {
