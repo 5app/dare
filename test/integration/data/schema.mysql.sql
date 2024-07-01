@@ -18,6 +18,12 @@ CREATE TABLE `users` (
   `secret` varchar(2048) DEFAULT NULL,
   `settings` varchar(2048) DEFAULT NULL,
   `country_id` int(11) DEFAULT NULL,
+
+  /*!50712
+    ft_index TEXT GENERATED ALWAYS AS (CONCAT_WS(username, first_name, last_name)) STORED,
+    FULLTEXT KEY `users-ft-index` (`ft_index`),
+  */
+
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_username` (`username`),
   FULLTEXT KEY `fulltext_users_fields` (`username`, `first_name`, `last_name`),

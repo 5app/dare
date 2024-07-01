@@ -10,6 +10,7 @@ CREATE TABLE users (
   username varchar(255) NOT NULL,
   first_name varchar(255) DEFAULT NULL,
   last_name varchar(255) DEFAULT NULL,
+  ft_index tsvector GENERATED ALWAYS AS (to_tsvector('english', username || ' ' || first_name || ' ' || last_name)) STORED,
   uuid BYTEA DEFAULT NULL,
   secret varchar(2048) DEFAULT NULL,
   country_id INTEGER DEFAULT NULL,

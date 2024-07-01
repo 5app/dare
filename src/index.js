@@ -202,6 +202,11 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 		if (text.match(/['@-]/)) {
 			return `"${text}"`;
 		}
+
+		if ((process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres') && suffix === '*') {
+			return `${text}:*`;
+		}
+
 		return text + suffix;
 	}
 
@@ -214,8 +219,10 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 
 	// Replace any special characters with quotes
 	const resp = input.matchAll(
-		/\s*(?<sign>[+<>~-]?)(?:\((?<subexpression>[^()]*)\)|(?<quoted>".*?")|(?<unquoted>[^\s()]+))(?<suffix>\*)?/g
+		/\s*(?<sign>[&+<>~-]?)(?:\((?<subexpression>[^()]*)\)|(?<quoted>".*?")|(?<unquoted>[^\s()]+))(?<suffix>\*)?/g
 	);
+
+
 	const output = [...resp]
 		.filter(({groups: {subexpression, quoted, unquoted}}) =>
 			quoted
@@ -225,7 +232,18 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 		.map(
 			({
 				groups: {sign, subexpression, quoted, unquoted, suffix = ''},
-			}) => {
+			}, index) => {
+
+				if ((process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres')) {
+					sign = sign
+						// .replace('+', '&')
+						.replace(/[+<>~]*/, '');
+
+					if (!sign.includes('&') && index > 0) {
+						sign = `& ${sign}`;
+					}
+				}
+
 				if (subexpression) {
 					return `${sign}(${this.fulltextParser(subexpression)})`;
 				} else if (quoted) {

@@ -12,6 +12,10 @@ import unwrap_field from '../utils/unwrap_field.js';
  */
 /* eslint-enable jsdoc/valid-types */
 
+const {
+	DB_ENGINE = 'mysql:5.7.40',
+} = process.env;
+
 /**
  * Reduce conditions, call extract
  *
@@ -143,14 +147,18 @@ function prepCondition({
 	});
 
 	if (isFullText) {
-		// Join the fields
-		const sql_field = join(
-			sql_fields.map(({sql}) => sql),
-			', '
-		);
 
-		// Full Text
-		return SQL`${NOT}MATCH(${sql_field}) AGAINST(${dareInstance.fulltextParser(value)} IN BOOLEAN MODE)`;
+		// Join the fields
+		const sql_field_array = sql_fields.map(({sql}) => sql);
+
+		if ((process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres')) {
+
+			const field = sql_field_array.length === 1 ? sql_field_array.at(0) : SQL`TO_TSVECTOR(${join(sql_field_array, ' || \' \' || ')})`;
+			return SQL`${NOT}${field} @@ to_tsquery('english', ${dareInstance.fulltextParser(value)})`;
+		}
+
+		// Default: MySQL Full Text
+		return SQL`${NOT}MATCH(${join(sql_field_array, ', ')}) AGAINST(${dareInstance.fulltextParser(value)} IN BOOLEAN MODE)`;
 	} else if (sql_fields.length > 1) {
 		/*
 		 * Is the field an array of field names?

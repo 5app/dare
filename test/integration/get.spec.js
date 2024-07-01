@@ -244,6 +244,22 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 			});
 			expect(resp).to.have.property('username', username);
 		}
+
+		// Full Text on Generated Fields
+		if (!process.env.DB_ENGINE?.startsWith('mysql:5.6')) {
+	
+			dare.options.models.users.schema.ft_index = {
+				readable: true,
+				writeable: false,
+			};
+
+			{
+				const resp = await dare.get('users', ['username'], {
+					'*ft_index': '+Old*n*',
+				});
+				expect(resp).to.have.property('username', username);
+			}
+		}
 	});
 
 	it('Return a truthy value for existance if no fields are provided', async () => {
