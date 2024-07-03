@@ -172,11 +172,11 @@ describe('Filter Reducer', () => {
 			delete process.env.DB_ENGINE;
 		});
 
-		['5.7', '8.0'].forEach(version => {
-			const quote = version === '5.7';
+		['mysql:5.7', 'mysql:8.0'].forEach(version => {
+			const quote = version === 'mysql:5.7';
 
-			it('should quote json list (IN) sting values', () => {
-				process.env.DB_ENGINE = `mysql:${version}`;
+			it(`${version} should ${quote ? '' : 'NOT '}quote json list (IN) sting values`, () => {
+				process.env.DB_ENGINE = version;
 
 				const filter = {
 					jsonSettings: {
@@ -253,6 +253,33 @@ describe('Filter Reducer', () => {
 			expect(query.sql).to.equal(sql);
 			expect(query.values).to.deep.equal(values);
 		});
+
+		it(`quote json number and boolean values`, () => {
+
+			const filter = {
+				jsonSettings: {
+					key: 1,
+					'%str': 'string%',
+				},
+			};
+
+
+			const [query] = reduceConditions(filter, {
+				extract,
+				sql_alias: 'a',
+				table_schema,
+				conditional_operators_in_value,
+				dareInstance,
+			});
+
+			const sql = `(a.jsonSettings->>? = ? AND a.jsonSettings->>? ILIKE ?)`;
+			const values = ['key', '1', 'str', 'string%'];
+
+			expect(query.sql).to.equal(sql);
+			expect(query.values).to.deep.equal(values);
+		});
+
+
 
 	});
 });

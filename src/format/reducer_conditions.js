@@ -247,6 +247,9 @@ function sqlCondition({
 	operators,
 	type,
 }) {
+
+	const IS_POSTGRES = (process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres');
+
 	// Does it have a negative comparison operator?
 	const negate = operators?.includes('-');
 
@@ -275,7 +278,7 @@ function sqlCondition({
 	const quote =
 		type === 'json' ? a => (typeof a === 'string' ? `"${a}"` : a) : a => a;
 
-	const LIKE = raw((process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres') ? 'ILIKE' : 'LIKE');
+	const LIKE = raw(IS_POSTGRES ? 'ILIKE' : 'LIKE');
 
 	/*
 	 * Range
@@ -323,7 +326,10 @@ function sqlCondition({
 		(isLikey ||
 			(allow_conditional_likey_operator_in_value && value.match('%')))
 	) {
-		return SQL`${sql_field} ${NOT}${LIKE} ${quote(value)}`;
+
+		const strValue = (!IS_POSTGRES ? quote(value) : value);
+
+		return SQL`${sql_field} ${NOT}${LIKE} ${strValue}`;
 	}
 
 	// Null
@@ -371,10 +377,9 @@ function sqlCondition({
 		// Use the `IN(...)` for items which can be grouped...
 		if (filteredValue.length) {
 			const items =
-				process.env.DB_ENGINE?.startsWith('mysql:8') ||
-				process.env.DB_ENGINE?.startsWith('mysql:5.6')
-					? filteredValue
-					: filteredValue.map(quote);
+				(process.env.DB_ENGINE || DB_ENGINE)?.startsWith('mysql:5.7')
+					? filteredValue.map(quote)
+					: filteredValue;
 			conds.push(SQL`${sql_field} ${NOT}IN (${items})`);
 		}
 
@@ -396,6 +401,11 @@ function sqlCondition({
 			? conds.at(0)
 			: SQL`(${join(conds, negate ? ' AND ' : ' OR ')})`;
 	} else {
+
+		if (IS_POSTGRES && type === 'json' && (typeof value === 'boolean' || typeof value === 'number')) {
+			value = String(value);
+		}
+
 		return SQL`${sql_field} ${raw(negate ? '!' : '')}= ${value}`;
 	}
 }
@@ -408,13 +418,23 @@ function sqlCondition({
  * @param {string} [operators] - Operators
  * @returns {Array<{sql: Sql, value: any, operators: string}>} SQL conditions
  */
-function json_contains(sql_field, value, path = '$', operators = '') {
+function json_contains(sql_field, value, path = null, operators = '') {
+
+	const IS_POSTGRES = (process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres');
+
+	if (!path && !IS_POSTGRES) {
+		path = '$';
+	}
+
 	const conds = [];
 
 	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+
+		const separator = IS_POSTGRES ? '->>' : '->';
+
 		return [
 			{
-				sql: SQL`${sql_field}->${path}`,
+				sql: SQL`${sql_field}${raw(separator)}${path}`,
 				value,
 				operators,
 			},
@@ -427,7 +447,7 @@ function json_contains(sql_field, value, path = '$', operators = '') {
 			...json_contains(
 				sql_field,
 				value[key],
-				`${path}.${rootKey}`,
+				[path, rootKey].filter(Boolean).join('.'),
 				operators + newOperators
 			)
 		);

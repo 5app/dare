@@ -47,7 +47,7 @@ export default class Postgres {
 		let index = 0;
 
 		// Format the query
-		let query = (typeof request === 'string' ? request : request.sql)
+		let query = (typeof request === 'string' ? request : (request.text || request.sql))
 			.replaceAll('`', '') // Postgres doesn't like backticks
 			.replace(/\?/g, () => `$${++index}`); // Prepared statement, we need to replace ?, ?...? with $1, $2...$n
 
