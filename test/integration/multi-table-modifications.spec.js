@@ -10,6 +10,9 @@ describe('Multi table modifications', () => {
 
 	it('should be able to patch and delete records based on a cross table join', async () => {
 		const teamName = 'my team';
+		const country_code = 'UK';
+
+		const {insertId: country_id} = await dare.post('country', {code: country_code});
 
 		/*
 		 * Setup
@@ -19,7 +22,7 @@ describe('Multi table modifications', () => {
 			dare.post('teams', {name: teamName}),
 			dare.post(
 				'users',
-				['qe1', 'qe2'].map(username => ({username}))
+				['qe1', 'qe2'].map(username => ({username, country_id}))
 			),
 		]);
 
@@ -46,6 +49,9 @@ describe('Multi table modifications', () => {
 							name: teamName,
 						},
 						id: insertId,
+					},
+					country: {
+						code: country_code,
 					},
 					// Just checking the SQL syntax produced from a negate operator
 					'-userTeams': {

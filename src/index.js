@@ -66,8 +66,10 @@ const {
  * @property {string} [sql_alias] - SQL Alias
  * @property {Array} [sql_joins] - SQL Join
  * @property {string} [ignore] - SQL Fields
+ * @property {boolean} [forceSubquery] - Force the table joins to use a subquery.
  * @property {Array} [sql_where_conditions] - SQL Where conditions
- *
+ * property {Array<{table: string, alias: string, conditions: Array}>} [joinDetails] - Join Details
+ * 
  * @typedef {RequestOptions & InternalProps} QueryOptions
  */
 /* eslint-enable jsdoc/valid-types */
@@ -479,8 +481,11 @@ Dare.prototype.getCount = async function getCount(table, filter, options = {}) {
 	// Execute the query
 	const [resp] = await dareInstance.sql(query);
 
-	// Return the count
-	return resp.count;
+	/*
+	 * Return the count
+	 * postgres: returns a string, which needs to be cast to a number
+	 */
+	return Number(resp.count);
 };
 
 /**
@@ -496,6 +501,9 @@ Dare.prototype.getCount = async function getCount(table, filter, options = {}) {
  * @returns {Promise<any>} Affected Rows statement
  */
 Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
+
+	const IS_POSTGRES = (process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres');
+
 	/**
 	 * @type {QueryOptions} opts
 	 */
@@ -513,6 +521,16 @@ Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
 	setDefaultNotFoundHandler(opts);
 
 	const dareInstance = this.use(opts);
+
+	if (IS_POSTGRES) {
+		/*
+		 * Postgres doesn't support table JOINs to the table being updated
+		 * We can only have one table in the FROM clause, which is a problem if multiple table join to the table being updated.
+		 * To work around this, turn all of the join tables into subquery joins
+		 */
+		opts.forceSubquery = true;
+	}
+
 
 	const req = await dareInstance.format_request(opts);
 
@@ -533,7 +551,7 @@ Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
 	// Prepare post
 	const sql_set = prepareSQLSet({
 		body: req.body,
-		sql_alias: (process.env.DB_ENGINE || DB_ENGINE).startsWith('mysql') ? req.sql_alias : null,
+		sql_alias: IS_POSTGRES ? null : req.sql_alias,
 		tableSchema,
 		validateInput,
 		dareInstance,
@@ -548,16 +566,30 @@ Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
 		exec = 'IGNORE ';
 	}
 
+	/*
+	 * Let sql_from_postgres;
+	 * if (IS_POSTGRES && req.joinDetails.length) {
+	 * 	// Update where condition
+	 * 	req.sql_where_conditions.push(...req.joinDetails.at(0).conditions)
+	 */
+
+	/*
+	 * 	Sql_from_postgres = SQL`
+	 * 		FROM ${raw(req.joinDetails.at(0).table)} ${raw(req.joinDetails.at(0).alias)}
+	 * 		${join(req.sql_joins.slice(1), '\n')}
+	 * 	`;
+	 * }
+	 */
+
 	// Construct a db update
-	const sql = SQL`UPDATE ${raw(exec)}${raw(req.sql_table)} ${raw(
-		req.sql_alias
-	)}
-			${req.sql_joins.length ? join(req.sql_joins, '\n') : empty}
-			SET
-				${sql_set}
-			WHERE
-				${join(req.sql_where_conditions, ' AND ')}
-			${(process.env.DB_ENGINE || DB_ENGINE).startsWith('mysql') && !req.sql_joins.length ? SQL`LIMIT ${req.limit}` : empty}`;
+	const sql = SQL`
+		UPDATE ${raw(exec)}${raw(req.sql_table)} ${raw(req.sql_alias)}
+		${req.sql_joins.length ? join(req.sql_joins, '\n') : empty}
+		SET ${sql_set}
+		WHERE
+			${join(req.sql_where_conditions, ' AND ')}
+		${!IS_POSTGRES && !req.sql_joins.length ? SQL`LIMIT ${req.limit}` : empty}
+	`;
 
 	let resp = await this.sql(sql);
 
@@ -812,6 +844,9 @@ Dare.prototype.post = async function post(table, body, options = {}) {
  * @returns {Promise<any>} Affected Rows statement
  */
 Dare.prototype.del = async function del(table, filter, options = {}) {
+
+	const IS_POSTGRES = (process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres');
+
 	/**
 	 * @type {QueryOptions} opts
 	 */
@@ -830,6 +865,15 @@ Dare.prototype.del = async function del(table, filter, options = {}) {
 
 	const dareInstance = this.use(opts);
 
+	if (IS_POSTGRES) {
+		/*
+		 * Postgres doesn't support table JONS's in DELETE operation
+		 * So we need to tell the formatter that we want the conditions to be within a subquery
+		 */
+		opts.forceSubquery = true;
+	}
+
+
 	const req = await dareInstance.format_request(opts);
 
 	// Skip this operation?
@@ -844,7 +888,7 @@ Dare.prototype.del = async function del(table, filter, options = {}) {
 					${req.sql_joins.length ? join(req.sql_joins, '\n') : empty}
 					WHERE
 					${join(req.sql_where_conditions, ' AND ')}
-					${(process.env.DB_ENGINE || DB_ENGINE).startsWith('mysql') && !req.sql_joins.length ? SQL`LIMIT ${req.limit}` : empty}`;
+					${!IS_POSTGRES && !req.sql_joins.length ? SQL`LIMIT ${req.limit}` : empty}`;
 
 	let resp = await this.sql(sql);
 
