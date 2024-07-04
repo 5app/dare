@@ -296,7 +296,7 @@ describe('post', () => {
 			dare.execute = async ({sql, values}) => {
 				sqlEqual(
 					sql,
-					'INSERT INTO test (id, name) VALUES (?, ?) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name'
+					'INSERT INTO test ("id", "name") VALUES (?, ?) ON CONFLICT (id) DO UPDATE SET "name"=EXCLUDED."name"'
 				);
 				expect(values).to.deep.equal([1, 'name']);
 				return {success: true};

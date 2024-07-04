@@ -47,9 +47,7 @@ export default class Postgres {
 		let index = 0;
 
 		// Format the query
-		let query = (typeof request === 'string' ? request : (request.text || request.sql))
-			.replaceAll('`', '') // Postgres doesn't like backticks
-			.replace(/\?/g, () => `$${++index}`); // Prepared statement, we need to replace ?, ?...? with $1, $2...$n
+		let query = (typeof request === 'string' ? request : (request.text || request.sql?.replace(/\?/g, () => `$${++index}`))); // Prepared statement, we need to replace ?, ?...? with $1, $2...$n
 
 		// Debug console.log(request, query, request?.values);
 
@@ -88,9 +86,7 @@ export default class Postgres {
 		let index = 0;
 
 		// Format the query
-		const query = (typeof request === 'string' ? request : request.sql)
-			.replaceAll('`', '') // Postgres doesn't like backticks
-			.replace(/\?/g, () => `$${++index}`); // Prepared statement, we need to replace ?, ?...? with $1, $2...$n
+		const query = (typeof request === 'string' ? request : (request.text || request.sql?.replace(/\?/g, () => `$${++index}`))); // Prepared statement, we need to replace ?, ?...? with $1, $2...$n
 
 		// Stream query results from the DB
 		const queryStream = new QueryStream(query, request?.values, streamOptions);

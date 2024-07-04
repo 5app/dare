@@ -142,7 +142,13 @@ Dare.prototype.table_alias_handler = function (name) {
 
 Dare.prototype.unique_alias_index = 0;
 
+Dare.prototype.identifierWrapper = function identifierWrapper(field) {
+	const identifier_delimiter = (process.env.DB_ENGINE || DB_ENGINE).startsWith('mysql') ? '`' : '"';
+	return [identifier_delimiter, field, identifier_delimiter].join('');
+}
+
 Dare.prototype.get_unique_alias = function () {
+
 	const i = this.unique_alias_index;
 	const num_characters_in_alphabet = 26;
 	const str = String.fromCharCode(97 + (i % num_characters_in_alphabet));
@@ -161,7 +167,8 @@ Dare.prototype.get_unique_alias = function () {
 	const prefix = String.fromCharCode(
 		96 + Math.floor(i / num_characters_in_alphabet)
 	);
-	return `\`${prefix}${str}\``;
+
+	return this.identifierWrapper(`${prefix}${str}`);
 };
 
 // eslint-disable-next-line jsdoc/valid-types
@@ -768,7 +775,7 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 	// Options
 	let on_duplicate_keys_update = '';
 	if (req.duplicate_keys_update) {
-		on_duplicate_keys_update = onDuplicateKeysUpdate(
+		on_duplicate_keys_update = dareInstance.onDuplicateKeysUpdate(
 			req.duplicate_keys_update.map(field =>
 				unAliasFields(modelSchema, field, dareInstance)
 			),
@@ -778,14 +785,14 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 		req.duplicate_keys &&
 		req.duplicate_keys.toString().toLowerCase() === 'ignore'
 	) {
-		on_duplicate_keys_update = `${onDuplicateKeysUpdate()}${
+		on_duplicate_keys_update = `${dareInstance.onDuplicateKeysUpdate()}${
 			req.sql_table
 		}._rowid=${req.sql_table}._rowid`;
 	}
 
 	// Construct a db update
 	const sql = `INSERT ${exec} INTO ${req.sql_table}
-			(${fields.map(wrapFieldName).join(',')})
+			(${fields.map(dareInstance.identifierWrapper).join(',')})
 			${data.length ? `VALUES ${data.join(',')}` : ''}
 			${query || ''}
 			${on_duplicate_keys_update}`;
@@ -882,14 +889,10 @@ function prepareSQLSet({
 		});
 
 		// Replace value with a question using any mapped fieldName
-		assignments.push(SQL`${sql_alias ? raw(`${sql_alias}.`) : empty} ${raw(wrapFieldName(field))} = ${value}`);
+		assignments.push(SQL`${sql_alias ? raw(`${sql_alias}.`) : empty} ${raw(dareInstance.identifierWrapper(field))} = ${value}`);
 	}
 
 	return join(assignments, ', ');
-}
-
-function wrapFieldName(field) {
-	return (process.env.DB_ENGINE || DB_ENGINE).startsWith('mysql') ? `\`${field}\`` : field;
 }
 
 function mustAffectRows(result, notfound) {
@@ -902,13 +905,13 @@ function mustAffectRows(result, notfound) {
 	return result;
 }
 
-function onDuplicateKeysUpdate(keys = [], existing = []) {
+Dare.prototype.onDuplicateKeysUpdate = function onDuplicateKeysUpdate(keys = [], existing = []) {
 
 	if ((process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres')) {
-		return `ON CONFLICT (${existing.filter(item => !keys.includes(item)).join(',')}) DO UPDATE SET ${keys.map(name => `${wrapFieldName(name)}=EXCLUDED.${wrapFieldName(name)}`).join(',')}`;
+		return `ON CONFLICT (${existing.filter(item => !keys.includes(item)).join(',')}) DO UPDATE SET ${keys.map(name => `${this.identifierWrapper(name)}=EXCLUDED.${this.identifierWrapper(name)}`).join(',')}`;
 	}
 
-	const s = keys.map(name => `${wrapFieldName(name)}=VALUES(${wrapFieldName(name)})`).join(',');
+	const s = keys.map(name => `${this.identifierWrapper(name)}=VALUES(${this.identifierWrapper(name)})`).join(',');
 
 	return `ON DUPLICATE KEY UPDATE ${s}`;
 }

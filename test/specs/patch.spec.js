@@ -390,7 +390,7 @@ describe('patch', () => {
 			dare.execute = async ({sql, values}) => {
 				sqlEqual(
 					sql,
-					'UPDATE tbl a SET name = ? WHERE a.id = ?'
+					'UPDATE tbl a SET "name" = ? WHERE a.id = ?'
 				);
 				expect(values).to.deep.equal([name, id]);
 				return {success: true};

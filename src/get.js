@@ -110,10 +110,10 @@ export default function buildQuery(opts, dareInstance) {
 	}
 
 	// Clean up sql_orderby
-	const sql_orderby = aliasOrderAndGroupFields(orderby, fields);
+	const sql_orderby = aliasOrderAndGroupFields(orderby, fields, dareInstance);
 
 	// Clean up sql_orderby
-	const sql_groupby = aliasOrderAndGroupFields(groupby, fields);
+	const sql_groupby = aliasOrderAndGroupFields(groupby, fields, dareInstance);
 
 	// Convert to count the resultset
 	if (opts.countRows) {
@@ -409,37 +409,34 @@ function prepField(field) {
 	return [expression, label];
 }
 
-function aliasOrderAndGroupFields(arr, fields) {
-	if (arr && arr.length) {
-		return arr.map(({expression, label, direction, original}) => {
-			/*
-			 * _count, etc...
-			 * Is the value a shortcut to a labelled field?
-			 * fields.find(_field => {
-			 *   if (_field.label && _field.label === expression) {
-			 *     return entry;
-			 *   }
-			 * });
-			 */
+function aliasOrderAndGroupFields(arr, fields, dareInstance) {
 
-			for (const field of fields) {
-				// Does the expression belong to something in the fields?
-				if (field.label && field.label === label) {
-					expression = `\`${field.label}\``;
-					break;
-				}
-				if (field.label && field.label === original) {
-					expression = `\`${field.label}\``;
-					break;
-				}
-			}
-
-			return join(
-				[expression, direction].filter(v => !!v).map(item => raw(item)),
-				' '
-			);
-		});
+	if (!arr?.length) {
+		return [];
 	}
 
-	return [];
+	return arr.map(({expression, label, direction, original}) => {
+		/*
+		 * _count, etc...
+		 * Is the value a shortcut to a labelled field?
+		 * fields.find(_field => {
+		 *   if (_field.label && _field.label === expression) {
+		 *     return entry;
+		 *   }
+		 * });
+		 */
+
+		for (const field of fields) {
+			// Does the expression belong to something in the fields?
+			if (field.label && (field.label === label || field.label === original)) {
+				expression = dareInstance.identifierWrapper(field.label);
+				break;
+			}
+		}
+
+		return join(
+			[expression, direction].filter(v => !!v).map(item => raw(item)),
+			' '
+		);
+	});
 }
