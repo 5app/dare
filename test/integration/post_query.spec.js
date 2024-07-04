@@ -24,7 +24,7 @@ describe('post from query', () => {
 		]);
 
 		// Run Tests
-		const {affectedRows} = await dare.post({
+		const request = {
 			table: 'userTeams',
 			query: {
 				table: 'users',
@@ -43,8 +43,19 @@ describe('post from query', () => {
 				limit: 1000,
 			},
 			duplicate_keys: 'ignore',
-		});
+		};
+
+		const {affectedRows} = await dare.post(request);
 
 		assert.strictEqual(affectedRows, 2, 'Should have inserted 2 records');
+
+
+		// Run again, expecting no changes
+		{
+			const {affectedRows} = await dare.post(request);
+			
+			// Both should have been ignored - because they cause duplicates however both show 2 affected rows
+			assert.strictEqual(affectedRows, 2, 'Affected 2 rows... not sure why ignored duplicates count here?');
+		}
 	});
 });

@@ -785,9 +785,7 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 		req.duplicate_keys &&
 		req.duplicate_keys.toString().toLowerCase() === 'ignore'
 	) {
-		on_duplicate_keys_update = `${dareInstance.onDuplicateKeysUpdate()}${
-			req.sql_table
-		}._rowid=${req.sql_table}._rowid`;
+		on_duplicate_keys_update = dareInstance.onDuplicateKeysUpdate([],[], req.sql_table);
 	}
 
 	// Construct a db update
@@ -905,13 +903,27 @@ function mustAffectRows(result, notfound) {
 	return result;
 }
 
-Dare.prototype.onDuplicateKeysUpdate = function onDuplicateKeysUpdate(keys = [], existing = []) {
+Dare.prototype.onDuplicateKeysUpdate = function onDuplicateKeysUpdate(keys = [], existing = [], sql_table = '') {
 
 	if ((process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres')) {
-		return `ON CONFLICT (${existing.filter(item => !keys.includes(item)).join(',')}) DO UPDATE SET ${keys.map(name => `${this.identifierWrapper(name)}=EXCLUDED.${this.identifierWrapper(name)}`).join(',')}`;
+
+		if (!keys.length) {
+			return `ON CONFLICT DO NOTHING`;
+		}
+
+		return `
+			ON CONFLICT (${existing.filter(item => !keys.includes(item)).join(',')})
+				DO UPDATE
+					SET ${keys.map(name => `${this.identifierWrapper(name)}=EXCLUDED.${this.identifierWrapper(name)}`).join(',')}
+		`;
 	}
 
-	const s = keys.map(name => `${this.identifierWrapper(name)}=VALUES(${this.identifierWrapper(name)})`).join(',');
+	let s = keys.map(name => `${this.identifierWrapper(name)}=VALUES(${this.identifierWrapper(name)})`).join(',');
+
+	if (!keys.length) {
+		s = `${sql_table}._rowid`;
+		s = `${s}=${s}`;
+	}
 
 	return `ON DUPLICATE KEY UPDATE ${s}`;
 }
