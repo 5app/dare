@@ -22,7 +22,7 @@ const dbSettings = {
 };
 
 let dbInstance;
-if (DB_ENGINE.startsWith('mysql')) {
+if (DB_ENGINE.startsWith('mysql') || DB_ENGINE.startsWith('mariadb')) {
 	dbInstance = new MySQL(dbSettings);
 } else if (DB_ENGINE.startsWith('postgres')) {
 	dbInstance = new Postgres(dbSettings);

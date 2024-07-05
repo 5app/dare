@@ -148,7 +148,7 @@ Dare.prototype.table_alias_handler = function (name) {
 Dare.prototype.unique_alias_index = 0;
 
 Dare.prototype.identifierWrapper = function identifierWrapper(field) {
-	const identifier_delimiter = this.engine.startsWith('mysql') ? '`' : '"';
+	const identifier_delimiter = this.engine.startsWith('postgres') ? '"' : '`';
 	return [identifier_delimiter, field, identifier_delimiter].join('');
 };
 

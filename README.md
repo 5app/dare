@@ -50,8 +50,8 @@ The setup needs to define a execution handler `dare.execute(SqlRequest) : Promis
 
 The integration tests illustrates how a [setup of a dare instance](`./test/integration/helpers/api.js`) connects to different clients...
 
--   MySQL (5.6, 5.7, 8.0,...) See [connection with `mysql2`](./test/integration/helpers/MySQL.js)
--   Postgres (16+) See [connection with `pg`](./test/integration/helpers/Postgres.js)
+-   **MySQL** (5.6, 5.7, 8.0,...) and **MariaDB** (11) See [connection with `mysql2`](./test/integration/helpers/MySQL.js)
+-   **Postgres** (16+) See [connection with `pg`](./test/integration/helpers/Postgres.js)
 
 # Methods
 
@@ -1545,7 +1545,11 @@ await dare.patch({
 
 ### DB Engine compatibility
 
-This version of Dare is designed to work with MySQL (5.6, 5.7 and 8) and Postgres (16.3)
+This version of Dare is designed to work with:
+
+- MySQL (5.6, 5.7 and 8)
+- Postgres (16.3)
+- MariaDB (11)
 
 Set the property `engine` on the Dare instance
 e.g.
