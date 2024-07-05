@@ -44,10 +44,9 @@ export default class Postgres {
 	}
 
 	async query(request) {
-		let index = 0;
 
 		// Format the query
-		let query = (typeof request === 'string' ? request : (request.text || request.sql?.replace(/\?/g, () => `$${++index}`))); // Prepared statement, we need to replace ?, ?...? with $1, $2...$n
+		let query = request.text;
 
 		// Debug console.log(request, query, request?.values);
 
@@ -83,13 +82,8 @@ export default class Postgres {
 
 	stream(request, streamOptions = {objectMode: true, highWaterMark: 5}) {
 
-		let index = 0;
-
-		// Format the query
-		const query = (typeof request === 'string' ? request : (request.text || request.sql?.replace(/\?/g, () => `$${++index}`))); // Prepared statement, we need to replace ?, ?...? with $1, $2...$n
-
 		// Stream query results from the DB
-		const queryStream = new QueryStream(query, request?.values, streamOptions);
+		const queryStream = new QueryStream(request.text, request?.values, streamOptions);
 
 		// @ts-ignore
 		this.conn.query(queryStream);

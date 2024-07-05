@@ -1,4 +1,4 @@
-import SQL, {raw, join, empty} from 'sql-template-tag';
+import SQL, {raw, join, empty, bulk} from 'sql-template-tag';
 
 import getHandler from './get.js';
 
@@ -647,11 +647,11 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 	// Capture fields...
 	const fields = [];
 
-	// Capture values
-	const values = [];
-
-	// If this is a query
-	let query;
+	/**
+	 * INSERT... SELECT placeholder
+	 * @type {Sql} 
+	 */ 
+	let sql_query = empty;
 
 	if (req.query) {
 		/*
@@ -688,14 +688,11 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 			);
 		}
 
-		const {sql, values: getValues} = getHandler(getRequest, getInstance);
-
-		// Update the capturing variables...
-		query = sql;
+		// Assign the query
+		sql_query = getHandler(getRequest, getInstance);
 
 		fields.push(...walkRequestGetField(getRequest));
 
-		values.push(...getValues);
 	} else {
 		// Validate Body
 		validateBody(req.body);
@@ -710,7 +707,7 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 	}
 
 	// If ignore duplicate keys is stated as ignore
-	const exec = req.ignore ? 'IGNORE' : '';
+	const sql_exec = req.ignore ? raw('IGNORE') : empty;
 
 	// Instance options
 	const {models, validateInput} = dareInstance.options;
@@ -802,43 +799,39 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 			const a = fields.map((_, index) => {
 				// If any of the values are missing, set them as DEFAULT
 				if (_data[index] === undefined) {
-					return 'DEFAULT';
+					return raw('DEFAULT');
 				}
 
-				// Else add the value to prepared statement list
-				values.push(_data[index]);
-
 				// Return the prepared statement placeholder
-				return '?';
+				return _data[index];
 			});
 
-			return `(${a.join(',')})`;
+			return a;
 		});
 
 	// Options
-	let on_duplicate_keys_update = '';
+	let sql_on_duplicate_keys_update = empty;
 	if (req.duplicate_keys_update) {
-		on_duplicate_keys_update = dareInstance.onDuplicateKeysUpdate(
+		sql_on_duplicate_keys_update = raw(dareInstance.onDuplicateKeysUpdate(
 			req.duplicate_keys_update.map(field =>
 				unAliasFields(modelSchema, field, dareInstance)
 			),
 			fields
-		);
+		));
 	} else if (
-		req.duplicate_keys &&
-		req.duplicate_keys.toString().toLowerCase() === 'ignore'
+		req.duplicate_keys?.toString()?.toLowerCase() === 'ignore'
 	) {
-		on_duplicate_keys_update = dareInstance.onDuplicateKeysUpdate([],[], req.sql_table);
+		sql_on_duplicate_keys_update = raw(dareInstance.onDuplicateKeysUpdate([],[], req.sql_table));
 	}
 
 	// Construct a db update
-	const sql = `INSERT ${exec} INTO ${req.sql_table}
-			(${fields.map(dareInstance.identifierWrapper.bind(dareInstance)).join(',')})
-			${data.length ? `VALUES ${data.join(',')}` : ''}
-			${query || ''}
-			${on_duplicate_keys_update}`;
+	const sql = SQL`INSERT ${sql_exec} INTO ${raw(req.sql_table)}
+			(${raw(fields.map(dareInstance.identifierWrapper.bind(dareInstance)).join(','))})
+			${data.length ? SQL`VALUES ${bulk(data)}` : empty}
+			${sql_query}
+			${sql_on_duplicate_keys_update}`;
 
-	const resp = await dareInstance.sql({sql, values});
+	const resp = await dareInstance.sql(sql);
 
 	return dareInstance.after(resp);
 };
