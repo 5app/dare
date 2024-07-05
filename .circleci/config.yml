@@ -85,6 +85,7 @@ workflows:
                                   'mysql:5.6',
                                   'mysql:5.7.40',
                                   'mysql:8.0.23',
+                                  'mariadb:11.4',
                                   'postgres:16.3',
                               ]
             - release:

@@ -2,6 +2,7 @@ import {DareError} from '../../src/index.js';
 import {expect} from 'chai';
 import assert from 'node:assert/strict';
 import defaultAPI, {options, castToStringIfNeeded} from './helpers/api.js';
+import db from './helpers/db.js';
 
 // Connect to db
 
@@ -251,6 +252,13 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 				readable: true,
 				writeable: false,
 			};
+
+			if (process.env.DB_ENGINE?.startsWith('mariadb')) {
+				await db.query(`
+					ALTER TABLE users ADD COLUMN ft_index TEXT GENERATED ALWAYS AS (CONCAT_WS(username, first_name, last_name)) STORED;
+					ALTER TABLE users ADD FULLTEXT KEY users_ft_index (ft_index);
+				`);
+			}
 
 			{
 				const resp = await dare.get('users', ['username'], {

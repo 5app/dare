@@ -12,6 +12,8 @@ const {
 const schemaSql = fs.readFileSync(TEST_DB_SCHEMA_PATH);
 const insertDataSql = fs.readFileSync(TEST_DB_DATA_PATH);
 
+const DB_ENGINE_NAME = DB_ENGINE.split(':')[0];
+
 // Initiates the mysql connection
 export default class MySQL {
 	constructor(credentials) {
@@ -21,7 +23,7 @@ export default class MySQL {
 	async init() {
 		// We have to connect to the docker instance to run in the mysql dump via a query
 		execSync(
-			`docker exec -i --env MYSQL_PWD=${this.credentials.password} dare_db mysql -u${this.credentials.user}`,
+			`docker exec -i --env ${DB_ENGINE_NAME.toUpperCase()}_PWD=${this.credentials.password} dare_db ${DB_ENGINE_NAME} -u${this.credentials.user} -p${this.credentials.password}`,
 			{
 				input: `CREATE DATABASE ${this.credentials.database}; USE ${this.credentials.database}; ${schemaSql}`,
 			}

@@ -70,7 +70,12 @@ describe('Working with JSON DataType', () => {
 		assert.deepStrictEqual(resp.id, insertId);
 	});
 
-	it('JSON fields should be queryable using nested values', async () => {
+	it('JSON fields should be queryable using nested values', async function () {
+		if (DB_ENGINE?.startsWith('mariadb')) {
+			this.skip();
+			return;
+		}
+
 		const settings = {
 			digit: 1,
 			str: 'string',

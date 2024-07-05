@@ -64,29 +64,29 @@ then
 		exit 1
 	}
 
-	for dep in db; do
-		echo "waiting for ${dep}..."
-		i=0
-		until [ "$(docker inspect --format='{{.State.Health.Status}}' "dare_${dep}")" == "healthy" ]; do
-			# LOL:
-			# using `((i++))` exits the program as it returns 1
-			# this only happens on Circle CI
-			# this *doesn't* occur when running bash on mac (GNU bash, version 3.2.57(1)-release)
-			# NOR when re-running a circle job with SSH (which is crazy!)
-			# maybe it's this? https://stackoverflow.com/questions/6877012/incrementing-a-variable-triggers-exit-in-bash-4-but-not-in-bash-3
-			# why is circle running two versions of bash!?!?
-			i=$((i + 1))
-			echo "pending $i";
-			sleep 2
-			if [[ "$i" -gt '20' ]]; then
-				echo "${dep} failed to start. Final status: $(docker inspect --format='{{.State.Health.Status}}' "dare_${dep}")"
-				docker rm -v -f "dare_${dep}"
-				exit 1
-			fi
-		done
-		echo "${dep} up"
-	done
+elif [ "$DB_ENGINE_NAME" = "mariadb" ]
+then
 
+	export TEST_DB_SCHEMA_PATH="${INTEGRATION_TEST_DIR}data/schema.mysql.sql"
+
+	docker run \
+		--name="dare_db" \
+		--tmpfs=/var/lib/mariadb \
+		-d \
+		-p ${DB_PORT}:3306 \
+		--env MARIADB_ROOT_PASSWORD="${DB_ROOT_PASSWORD}" \
+		--env MARIADB_DATABASE="dare" \
+		--env MARIADB_USER="${DB_USER}" \
+		--env MARIADB_PASSWORD="${DB_PASSWORD}" \
+		--env MARIADB_PORT=3306 \
+		--health-cmd="/usr/bin/mariadb --user=root -p${DB_ROOT_PASSWORD} --execute=\"SHOW DATABASES;\"" \
+		--health-interval="4s" \
+		--health-timeout="3s" \
+		--health-retries=20 \
+		$DB_ENGINE --group-concat-max-len=1000000 --sql-mode="" || {
+		echo 'docker run failed'
+		exit 1
+	}
 else
 
 	docker run \
@@ -107,33 +107,42 @@ else
 		echo 'docker run failed'
 		exit 1
 	}
+fi
 
-	for dep in db; do
-		echo "waiting for ${dep}..."
-		i=0
-		until [ "$(docker inspect --format='{{.State.Health.Status}}' "dare_${dep}")" == "healthy" ]; do
-			# LOL:
-			# using `((i++))` exits the program as it returns 1
-			# this only happens on Circle CI
-			# this *doesn't* occur when running bash on mac (GNU bash, version 3.2.57(1)-release)
-			# NOR when re-running a circle job with SSH (which is crazy!)
-			# maybe it's this? https://stackoverflow.com/questions/6877012/incrementing-a-variable-triggers-exit-in-bash-4-but-not-in-bash-3
-			# why is circle running two versions of bash!?!?
-			i=$((i + 1))
-		echo "pending $i";
-			sleep 2
-			if [[ "$i" -gt '20' ]]; then
-				echo "${dep} failed to start. Final status: $(docker inspect --format='{{.State.Health.Status}}' "dare_${dep}")"
-				docker rm -v -f "dare_${dep}"
-				exit 1
-			fi
-		done
-		echo "${dep} up"
+
+# Check that the DB is up...
+
+for dep in db; do
+	echo "waiting for ${dep}..."
+	i=0
+	until [ "$(docker inspect --format='{{.State.Health.Status}}' "dare_${dep}")" == "healthy" ]; do
+		# LOL:
+		# using `((i++))` exits the program as it returns 1
+		# this only happens on Circle CI
+		# this *doesn't* occur when running bash on mac (GNU bash, version 3.2.57(1)-release)
+		# NOR when re-running a circle job with SSH (which is crazy!)
+		# maybe it's this? https://stackoverflow.com/questions/6877012/incrementing-a-variable-triggers-exit-in-bash-4-but-not-in-bash-3
+		# why is circle running two versions of bash!?!?
+		i=$((i + 1))
+	echo "pending $i";
+		sleep 2
+		if [[ "$i" -gt '20' ]]; then
+			echo "${dep} failed to start. Final status: $(docker inspect --format='{{.State.Health.Status}}' "dare_${dep}")"
+			docker rm -v -f "dare_${dep}"
+			exit 1
+		fi
 	done
+	echo "${dep} up"
+done
 
+
+if ( [ "$DB_ENGINE_NAME" = "mysql" ] ); then
 	dbclient="docker exec -e MYSQL_PWD=${DB_ROOT_PASSWORD} dare_db mysql -u${DB_ROOT_USER}"
 	$dbclient -e "GRANT ALL PRIVILEGES ON *.* TO '${DB_USER}'@'%' WITH GRANT OPTION;"
-
+	DB_VERSION=`$dbclient -e "SELECT VERSION()"`;
+elif ( [ "$DB_ENGINE_NAME" = "mariadb" ] ); then
+	dbclient="docker exec dare_db mariadb -u${DB_ROOT_USER} -p${DB_ROOT_PASSWORD}"
+	$dbclient -e "GRANT ALL PRIVILEGES ON *.* TO '${DB_USER}'@'%' WITH GRANT OPTION;"
 	DB_VERSION=`$dbclient -e "SELECT VERSION()"`;
 fi
 
