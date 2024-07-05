@@ -436,9 +436,6 @@ async function format_request(options, dareInstance) {
 	// Initial SQL JOINS reference
 	options.sql_joins = [];
 
-	// /** @type {Array<{table: string, alias: string, conditions: Array}>} */
-	// Options.joinDetails = [];
-
 	/**
 	 * Construct the join conditions
 	 * If this item has a parent, it'll require a join statement with conditions
@@ -473,14 +470,6 @@ async function format_request(options, dareInstance) {
 			})`
 		);
 
-		/*
-		 * // Store meta data about the join
-		 * options.joinDetails.push({
-		 * 	Table: options.sql_table,
-		 * 	Alias: options.sql_alias,
-		 * 	Conditions: sql_join_condition,
-		 * });
-		 */
 	}
 
 	// Add nested joins
@@ -493,14 +482,6 @@ async function format_request(options, dareInstance) {
 				.filter(Boolean)
 		);
 
-		/*
-		 * // Update joinDetails
-		 * Options.joinDetails.push(
-		 * 	...options._joins
-		 * 		.flatMap(({joinDetails}) => joinDetails)
-		 * 		.filter(Boolean)
-		 * );
-		 */
 	}
 
 	/**

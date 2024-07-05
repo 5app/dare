@@ -65,7 +65,6 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {boolean} [forceSubquery] - Force the table joins to use a subquery.
  * @property {Array} [sql_where_conditions] - SQL Where conditions
  * @property {string} [engine] - DB Engine to use
- * property {Array<{table: string, alias: string, conditions: Array}>} [joinDetails] - Join Details
  * 
  * @typedef {RequestOptions & InternalProps} QueryOptions
  */
@@ -576,21 +575,6 @@ Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
 	) {
 		exec = 'IGNORE ';
 	}
-
-	/*
-	 * Let sql_from_postgres;
-	 * if (IS_POSTGRES && req.joinDetails.length) {
-	 * 	// Update where condition
-	 * 	req.sql_where_conditions.push(...req.joinDetails.at(0).conditions)
-	 */
-
-	/*
-	 * 	Sql_from_postgres = SQL`
-	 * 		FROM ${raw(req.joinDetails.at(0).table)} ${raw(req.joinDetails.at(0).alias)}
-	 * 		${join(req.sql_joins.slice(1), '\n')}
-	 * 	`;
-	 * }
-	 */
 
 	// Construct a db update
 	const sql = SQL`
