@@ -45,19 +45,8 @@ export default class Postgres {
 
 	async query(request) {
 
-		// Format the query
-		let query = request.text;
-
-		// Debug console.log(request, query, request?.values);
-
-		// Return insertId (via rows?.[0]?.id)
-		if (query.startsWith('INSERT')) {
-			query += ' RETURNING id;';
-		}
-
-		const resp = await this.conn.query(query, request?.values);
-
-		const {command, rowCount, rows} = resp;
+		// Execute the query
+		const {command, rowCount, rows} = await this.conn.query(request.text, request?.values);
 
 		// Return SELECT rows
 		if (command === 'SELECT') {

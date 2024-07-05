@@ -631,6 +631,9 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 			: // Clone and extend
 				{...options, table, body};
 
+	// Is postgres
+	const IS_POSTGRES = this.engine.startsWith('postgres');
+
 	// Post
 	opts.method = 'post';
 
@@ -824,12 +827,15 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 		sql_on_duplicate_keys_update = raw(dareInstance.onDuplicateKeysUpdate([],[], req.sql_table));
 	}
 
+	const sql_postgres_returning = (IS_POSTGRES ? SQL` RETURNING ${raw(dareInstance.rowid)}` : empty);
+
 	// Construct a db update
 	const sql = SQL`INSERT ${sql_exec} INTO ${raw(req.sql_table)}
 			(${raw(fields.map(dareInstance.identifierWrapper.bind(dareInstance)).join(','))})
 			${data.length ? SQL`VALUES ${bulk(data)}` : empty}
 			${sql_query}
-			${sql_on_duplicate_keys_update}`;
+			${sql_on_duplicate_keys_update}
+			${sql_postgres_returning}`;
 
 	const resp = await dareInstance.sql(sql);
 

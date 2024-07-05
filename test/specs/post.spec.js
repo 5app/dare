@@ -298,7 +298,7 @@ describe('post', () => {
 			dareInst.execute = async ({sql, values}) => {
 				sqlEqual(
 					sql,
-					'INSERT INTO test ("id", "name") VALUES (?, ?) ON CONFLICT (id) DO UPDATE SET "name"=EXCLUDED."name"'
+					'INSERT INTO test ("id", "name") VALUES (?, ?) ON CONFLICT (id) DO UPDATE SET "name"=EXCLUDED."name" RETURNING id'
 				);
 				expect(values).to.deep.equal([1, 'name']);
 				return {success: true};
@@ -315,7 +315,7 @@ describe('post', () => {
 			dareInst.execute = async ({sql, values}) => {
 				sqlEqual(
 					sql,
-					'INSERT INTO test ("id", "name") VALUES (?, ?) ON CONFLICT DO NOTHING'
+					'INSERT INTO test ("id", "name") VALUES (?, ?) ON CONFLICT DO NOTHING RETURNING id'
 				);
 				expect(values).to.deep.equal([1, 'name']);
 				return {success: true};
