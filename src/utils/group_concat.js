@@ -10,7 +10,7 @@ export default function group_concat({
 	address = '',
 	sql_alias = null,
 	rowid = null,
-	engine = ''
+	engine = '',
 }) {
 	// Is this an aggregate list?
 	const agg = fields.reduce(
@@ -30,18 +30,17 @@ export default function group_concat({
 	}
 
 	// Convert to JSON Array
-	if (
-		semverCompare(engine.split(':').at(1), '5.7') < 0
-	) {
+	if (semverCompare(engine.split(':').at(1), '5.7') < 0) {
 		expression = fields.map(
 			field =>
 				`'"', REPLACE(REPLACE(${field.expression}, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"'`
 		);
 		expression = `CONCAT_WS('', '[', ${expression.join(", ',', ")}, ']')`;
 	} else {
-
 		// JSON_ARRAY in postgres default to ABSENT ON NULL, so we need to add NULL ON NULL
-		const json_array_settings = engine.startsWith('postgres') ? ' NULL ON NULL' : '';
+		const json_array_settings = engine.startsWith('postgres')
+			? ' NULL ON NULL'
+			: '';
 
 		expression = fields.map(field => field.expression);
 		expression = `JSON_ARRAY(${expression.join(',')}${json_array_settings})`;
@@ -55,12 +54,9 @@ export default function group_concat({
 	}
 
 	// Multiple
-	if (
-		semverCompare(engine.split(':').at(1), '5.7.21') <= 0
-	) {
+	if (semverCompare(engine.split(':').at(1), '5.7.21') <= 0) {
 		expression = `CONCAT('[', GROUP_CONCAT(IF(${sql_alias}.${rowid} IS NOT NULL, ${expression}, NULL)), ']')`;
 	} else {
-
 		let condition = `CASE WHEN (${sql_alias}.${rowid} IS NOT NULL) THEN (${expression}) ELSE NULL END`;
 
 		if (engine.startsWith('mysql:5.7')) {

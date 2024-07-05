@@ -4,9 +4,7 @@ import defaultAPI from './helpers/api.js';
 
 // Connect to db
 
-const {
-	DB_ENGINE = 'mysql:5.7.40',
-} = process.env;
+const {DB_ENGINE = 'mysql:5.7.40'} = process.env;
 
 describe('Working with JSON DataType', () => {
 	let dare;
@@ -45,13 +43,11 @@ describe('Working with JSON DataType', () => {
 		assert.deepStrictEqual(resp.settings, settings);
 	});
 
-	it('entire JSON field should be queryable as a string', async function() {
-
-		if(!DB_ENGINE?.startsWith('mysql')) {
+	it('entire JSON field should be queryable as a string', async function () {
+		if (!DB_ENGINE?.startsWith('mysql')) {
 			this.skip();
 			return;
 		}
-			
 
 		const testString = 'testString';
 		const settings = {

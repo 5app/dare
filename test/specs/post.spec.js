@@ -285,16 +285,14 @@ describe('post', () => {
 	});
 
 	describe('DB Engine specific tests', () => {
-
 		const DB_ENGINE = 'postgres:16.3';
 		let dareInst;
-		
+
 		beforeEach(() => {
 			dareInst = dare.use({engine: DB_ENGINE});
 		});
 
 		it(`${DB_ENGINE} should use ON CONFLICT ... UPDATE ...`, async () => {
-
 			dareInst.execute = async ({sql, values}) => {
 				sqlEqual(
 					sql,
@@ -311,7 +309,6 @@ describe('post', () => {
 			});
 		});
 		it(`${DB_ENGINE} should use ON CONFLICT DO NOTHING`, async () => {
-
 			dareInst.execute = async ({sql, values}) => {
 				sqlEqual(
 					sql,
@@ -327,5 +324,5 @@ describe('post', () => {
 				duplicate_keys: 'ignore',
 			});
 		});
-	})
+	});
 });

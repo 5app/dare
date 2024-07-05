@@ -411,7 +411,6 @@ function prepField(field) {
 }
 
 function aliasOrderAndGroupFields(arr, fields, dareInstance) {
-
 	if (!arr?.length) {
 		return [];
 	}
@@ -429,7 +428,10 @@ function aliasOrderAndGroupFields(arr, fields, dareInstance) {
 
 		for (const field of fields) {
 			// Does the expression belong to something in the fields?
-			if (field.label && (field.label === label || field.label === original)) {
+			if (
+				field.label &&
+				(field.label === label || field.label === original)
+			) {
 				expression = dareInstance.identifierWrapper(field.label);
 				break;
 			}

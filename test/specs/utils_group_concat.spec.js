@@ -12,7 +12,6 @@ const MYSQL_57 = 'mysql:5.7.40';
 
 [MYSQL_57, MYSQL_56, POSTGRES].forEach(DB_ENGINE => {
 	describe(`utils/group_concat: (mysql ${DB_ENGINE})`, () => {
-
 		it('should return a function', () => {
 			expect(group_concat).to.be.a('function');
 		});
@@ -32,7 +31,7 @@ const MYSQL_57 = 'mysql:5.7.40';
 				address: 'collection.',
 				sql_alias: 'a',
 				rowid,
-				engine: DB_ENGINE
+				engine: DB_ENGINE,
 			});
 
 			const expectSQLEqual = {
@@ -66,7 +65,6 @@ const MYSQL_57 = 'mysql:5.7.40';
 				[POSTGRES]: `JSON_ARRAY(table.a,table.b NULL ON NULL)`,
 				[MYSQL_56]: `CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(table.b, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']')`,
 			}[DB_ENGINE || 'default'];
-
 
 			expect(gc.expression).to.eql(expectSQLEqual);
 			expect(gc.label).to.eql('a,b');
@@ -108,7 +106,6 @@ const MYSQL_57 = 'mysql:5.7.40';
 				[MYSQL_56]: `CONCAT('[', GROUP_CONCAT(IF(a._rowid IS NOT NULL, CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']'), NULL)), ']')`,
 			}[DB_ENGINE || 'default'];
 
-
 			expect(gc.expression).to.eql(expectSQLEqual);
 
 			expect(gc.label).to.eql('collection[a]');
@@ -142,10 +139,10 @@ const MYSQL_57 = 'mysql:5.7.40';
 				],
 				address: 'collection.',
 				engine: DB_ENGINE,
-		});
+			});
 
 			const expectSQLEqual = {
-				[MYSQL_57]:`JSON_ARRAY(table.a,table.b)`,
+				[MYSQL_57]: `JSON_ARRAY(table.a,table.b)`,
 				[POSTGRES]: `JSON_ARRAY(table.a,table.b NULL ON NULL)`,
 				[MYSQL_56]: `CONCAT_WS('', '[', '"', REPLACE(REPLACE(table.a, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ',', '"', REPLACE(REPLACE(table.b, '\\\\', '\\\\\\\\'), '"', '\\\\"'), '"', ']')`,
 			}[DB_ENGINE || 'default'];

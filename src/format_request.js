@@ -469,19 +469,16 @@ async function format_request(options, dareInstance) {
 				options.sql_join_condition
 			})`
 		);
-
 	}
 
 	// Add nested joins
 	if (Array.isArray(options._joins)) {
-
 		// Update sql_joins
 		options.sql_joins.push(
 			...options._joins
 				.flatMap(({sql_joins}) => sql_joins)
 				.filter(Boolean)
 		);
-
 	}
 
 	/**

@@ -65,7 +65,7 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {boolean} [forceSubquery] - Force the table joins to use a subquery.
  * @property {Array} [sql_where_conditions] - SQL Where conditions
  * @property {string} [engine] - DB Engine to use
- * 
+ *
  * @typedef {RequestOptions & InternalProps} QueryOptions
  */
 /* eslint-enable jsdoc/valid-types */
@@ -113,7 +113,7 @@ Dare.prototype.execute = async requestQuery => {
 	);
 };
 
-/** 
+/**
  * Engine, database engine
  * @type {string}
  */
@@ -150,10 +150,9 @@ Dare.prototype.unique_alias_index = 0;
 Dare.prototype.identifierWrapper = function identifierWrapper(field) {
 	const identifier_delimiter = this.engine.startsWith('mysql') ? '`' : '"';
 	return [identifier_delimiter, field, identifier_delimiter].join('');
-}
+};
 
 Dare.prototype.get_unique_alias = function () {
-
 	const i = this.unique_alias_index;
 	const num_characters_in_alphabet = 26;
 	const str = String.fromCharCode(97 + (i % num_characters_in_alphabet));
@@ -203,7 +202,6 @@ Dare.prototype.getFieldKey = function getFieldKey(field, schema) {
  * @returns {string} Formatted string
  */
 Dare.prototype.fulltextParser = function fulltextParser(input) {
-
 	const IS_POSTGRES = this.engine.startsWith('postgres');
 
 	function safequote(text) {
@@ -237,7 +235,6 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 		/\s*(?<sign>[&+<>~-]?)(?:\((?<subexpression>[^()]*)\)|(?<quoted>".*?")|(?<unquoted>[^\s()]+))(?<suffix>\*)?/g
 	);
 
-
 	const output = [...resp]
 		.filter(({groups: {subexpression, quoted, unquoted}}) =>
 			quoted
@@ -245,10 +242,10 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 				: subexpression || unquoted.replace(/^[*+-]+/, '')
 		)
 		.map(
-			({
-				groups: {sign, subexpression, quoted, unquoted, suffix = ''},
-			}, index) => {
-
+			(
+				{groups: {sign, subexpression, quoted, unquoted, suffix = ''}},
+				index
+			) => {
 				if (IS_POSTGRES) {
 					sign = sign
 						// .replace('+', '&')
@@ -511,7 +508,6 @@ Dare.prototype.getCount = async function getCount(table, filter, options = {}) {
  * @returns {Promise<any>} Affected Rows statement
  */
 Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
-
 	const IS_POSTGRES = this.engine.startsWith('postgres');
 
 	/**
@@ -540,7 +536,6 @@ Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
 		 */
 		opts.forceSubquery = true;
 	}
-
 
 	const req = await dareInstance.format_request(opts);
 
@@ -636,8 +631,8 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 
 	/**
 	 * INSERT... SELECT placeholder
-	 * @type {Sql} 
-	 */ 
+	 * @type {Sql}
+	 */
 	let sql_query = empty;
 
 	if (req.query) {
@@ -679,7 +674,6 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 		sql_query = getHandler(getRequest, getInstance);
 
 		fields.push(...walkRequestGetField(getRequest));
-
 	} else {
 		// Validate Body
 		validateBody(req.body);
@@ -799,19 +793,23 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 	// Options
 	let sql_on_duplicate_keys_update = empty;
 	if (req.duplicate_keys_update) {
-		sql_on_duplicate_keys_update = raw(dareInstance.onDuplicateKeysUpdate(
-			req.duplicate_keys_update.map(field =>
-				unAliasFields(modelSchema, field, dareInstance)
-			),
-			fields
-		));
-	} else if (
-		req.duplicate_keys?.toString()?.toLowerCase() === 'ignore'
-	) {
-		sql_on_duplicate_keys_update = raw(dareInstance.onDuplicateKeysUpdate([],[], req.sql_table));
+		sql_on_duplicate_keys_update = raw(
+			dareInstance.onDuplicateKeysUpdate(
+				req.duplicate_keys_update.map(field =>
+					unAliasFields(modelSchema, field, dareInstance)
+				),
+				fields
+			)
+		);
+	} else if (req.duplicate_keys?.toString()?.toLowerCase() === 'ignore') {
+		sql_on_duplicate_keys_update = raw(
+			dareInstance.onDuplicateKeysUpdate([], [], req.sql_table)
+		);
 	}
 
-	const sql_postgres_returning = (IS_POSTGRES ? SQL` RETURNING ${raw(dareInstance.rowid)}` : empty);
+	const sql_postgres_returning = IS_POSTGRES
+		? SQL` RETURNING ${raw(dareInstance.rowid)}`
+		: empty;
 
 	// Construct a db update
 	const sql = SQL`INSERT ${sql_exec} INTO ${raw(req.sql_table)}
@@ -838,7 +836,6 @@ Dare.prototype.post = async function post(table, body, options = {}) {
  * @returns {Promise<any>} Affected Rows statement
  */
 Dare.prototype.del = async function del(table, filter, options = {}) {
-
 	const IS_POSTGRES = this.engine.startsWith('postgres');
 
 	/**
@@ -866,7 +863,6 @@ Dare.prototype.del = async function del(table, filter, options = {}) {
 		 */
 		opts.forceSubquery = true;
 	}
-
 
 	const req = await dareInstance.format_request(opts);
 
@@ -925,7 +921,9 @@ function prepareSQLSet({
 		});
 
 		// Replace value with a question using any mapped fieldName
-		assignments.push(SQL`${sql_alias ? raw(`${sql_alias}.`) : empty} ${raw(dareInstance.identifierWrapper(field))} = ${value}`);
+		assignments.push(
+			SQL`${sql_alias ? raw(`${sql_alias}.`) : empty} ${raw(dareInstance.identifierWrapper(field))} = ${value}`
+		);
 	}
 
 	return join(assignments, ', ');
@@ -941,12 +939,14 @@ function mustAffectRows(result, notfound) {
 	return result;
 }
 
-Dare.prototype.onDuplicateKeysUpdate = function onDuplicateKeysUpdate(keys = [], existing = [], sql_table = '') {
-
+Dare.prototype.onDuplicateKeysUpdate = function onDuplicateKeysUpdate(
+	keys = [],
+	existing = [],
+	sql_table = ''
+) {
 	const IS_POSTGRES = this.engine.startsWith('postgres');
 
 	if (IS_POSTGRES) {
-
 		if (!keys.length) {
 			return `ON CONFLICT DO NOTHING`;
 		}
@@ -958,7 +958,12 @@ Dare.prototype.onDuplicateKeysUpdate = function onDuplicateKeysUpdate(keys = [],
 		`;
 	}
 
-	let s = keys.map(name => `${this.identifierWrapper(name)}=VALUES(${this.identifierWrapper(name)})`).join(',');
+	let s = keys
+		.map(
+			name =>
+				`${this.identifierWrapper(name)}=VALUES(${this.identifierWrapper(name)})`
+		)
+		.join(',');
 
 	if (!keys.length) {
 		s = `${sql_table}._rowid`;
@@ -966,7 +971,7 @@ Dare.prototype.onDuplicateKeysUpdate = function onDuplicateKeysUpdate(keys = [],
 	}
 
 	return `ON DUPLICATE KEY UPDATE ${s}`;
-}
+};
 
 /**
  * Format Input Value

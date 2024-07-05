@@ -247,7 +247,6 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 
 		// Full Text on Generated Fields
 		if (!process.env.DB_ENGINE?.startsWith('mysql:5.6')) {
-	
 			dare.options.models.users.schema.ft_index = {
 				readable: true,
 				writeable: false,

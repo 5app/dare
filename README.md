@@ -25,7 +25,7 @@ const dare = new Dare();
 dare.execute = async (request) => {
 
 	// Execute query using prepared statements
-	// use request.sql, whilst in postgres use request.text 
+	// use request.sql, whilst in postgres use request.text
 	return dbconn.query(request.sql, request.values);
 };
 
@@ -36,13 +36,11 @@ const resp = await dare.get('users', ['name'], {id: 1});
 console.log(`Hi ${resp.name}');
 ```
 
-
 ## Install
 
 ```bash
 npm i dare --save
 ```
-
 
 ## Connect
 
@@ -50,9 +48,8 @@ The setup needs to define a execution handler `dare.execute(SqlRequest) : Promis
 
 The integration tests illustrates how a [setup of a dare instance](`./test/integration/helpers/api.js`) connects to different clients...
 
-- MySQL (5.6, 5.7, 8.0,...) See [connection with `mysql2`](./test/integration/helpers/MySQL.js)
-- Postgres (16+) See [connection with `pg`](./test/integration/helpers/Postgres.js)
-
+-   MySQL (5.6, 5.7, 8.0,...) See [connection with `mysql2`](./test/integration/helpers/MySQL.js)
+-   Postgres (16+) See [connection with `pg`](./test/integration/helpers/Postgres.js)
 
 # Methods
 

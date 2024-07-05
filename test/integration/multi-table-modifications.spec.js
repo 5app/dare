@@ -12,7 +12,9 @@ describe('Multi table modifications', () => {
 		const teamName = 'my team';
 		const country_code = 'UK';
 
-		const {insertId: country_id} = await dare.post('country', {code: country_code});
+		const {insertId: country_id} = await dare.post('country', {
+			code: country_code,
+		});
 
 		/*
 		 * Setup

@@ -168,12 +168,10 @@ describe('Filter Reducer', () => {
 	});
 
 	describe('mysql engine version handling', () => {
-
 		['mysql:5.7', 'mysql:8.0'].forEach(engine => {
 			const quote = engine === 'mysql:5.7';
 
 			it(`${engine} should ${quote ? '' : 'NOT '}quote json list (IN) sting values`, () => {
-
 				const dareInst = dareInstance.use({engine});
 
 				const filter = {
@@ -204,11 +202,9 @@ describe('Filter Reducer', () => {
 	});
 
 	describe('postgres engine version handling', () => {
-
 		const engine = 'postgres:16.3';
 
 		it('should search fulltext - with an index', () => {
-
 			const dareInst = dareInstance.use({engine});
 
 			const filter = {
@@ -231,7 +227,6 @@ describe('Filter Reducer', () => {
 		});
 
 		it('should search fulltext - and build an index', () => {
-
 			const dareInst = dareInstance.use({engine});
 
 			const filter = {
@@ -254,7 +249,6 @@ describe('Filter Reducer', () => {
 		});
 
 		it(`quote json number and boolean values`, () => {
-
 			const dareInst = dareInstance.use({engine});
 
 			const filter = {
@@ -278,8 +272,5 @@ describe('Filter Reducer', () => {
 			expect(query.sql).to.equal(sql);
 			expect(query.values).to.deep.equal(values);
 		});
-
-
-
 	});
 });

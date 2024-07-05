@@ -107,7 +107,11 @@ function formatHandler(item, dareInstance) {
 						 * JSON_ARRAY can include a NULL value even if there is no matching join
 						 * CONCAT_WS would in the same circumstance return an empty string
 						 */
-						const emptyValues = dareInstance.engine.startsWith('mysql:5.6') ? '' : null;
+						const emptyValues = dareInstance.engine.startsWith(
+							'mysql:5.6'
+						)
+							? ''
+							: null;
 
 						if (!values.some(val => val !== emptyValues)) {
 							// Continue

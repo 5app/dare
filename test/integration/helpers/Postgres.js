@@ -44,9 +44,11 @@ export default class Postgres {
 	}
 
 	async query(request) {
-
 		// Execute the query
-		const {command, rowCount, rows} = await this.conn.query(request.text, request?.values);
+		const {command, rowCount, rows} = await this.conn.query(
+			request.text,
+			request?.values
+		);
 
 		// Return SELECT rows
 		if (command === 'SELECT') {
@@ -70,9 +72,12 @@ export default class Postgres {
 	}
 
 	stream(request, streamOptions = {objectMode: true, highWaterMark: 5}) {
-
 		// Stream query results from the DB
-		const queryStream = new QueryStream(request.text, request?.values, streamOptions);
+		const queryStream = new QueryStream(
+			request.text,
+			request?.values,
+			streamOptions
+		);
 
 		// @ts-ignore
 		this.conn.query(queryStream);

@@ -46,7 +46,6 @@ describe('Stream', () => {
 		dare = defaultAPI();
 	});
 
-
 	it('should expose the stream of data through rowHandler', async () => {
 		// Populate users
 		const postUsers = Array(100)

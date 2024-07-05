@@ -126,7 +126,6 @@ function prepCondition({
 	conditional_operators_in_value,
 	dareInstance,
 }) {
-
 	const {engine} = dareInstance;
 
 	// Does it have a negative comparison operator?
@@ -146,15 +145,16 @@ function prepCondition({
 	});
 
 	if (isFullText) {
-
 		// Join the fields
 		const sql_field_array = sql_fields.map(({sql}) => sql);
 
 		const IS_POSTGRES = dareInstance.engine.startsWith('postgres');
 
 		if (IS_POSTGRES) {
-
-			const field = sql_field_array.length === 1 ? sql_field_array.at(0) : SQL`TO_TSVECTOR(${join(sql_field_array, ' || \' \' || ')})`;
+			const field =
+				sql_field_array.length === 1
+					? sql_field_array.at(0)
+					: SQL`TO_TSVECTOR(${join(sql_field_array, " || ' ' || ")})`;
 			return SQL`${NOT}${field} @@ to_tsquery('english', ${dareInstance.fulltextParser(value)})`;
 		}
 
@@ -252,7 +252,6 @@ function sqlCondition({
 	type,
 	engine,
 }) {
-
 	const IS_POSTGRES = engine.startsWith('postgres');
 
 	// Does it have a negative comparison operator?
@@ -331,8 +330,7 @@ function sqlCondition({
 		(isLikey ||
 			(allow_conditional_likey_operator_in_value && value.match('%')))
 	) {
-
-		const strValue = (!IS_POSTGRES ? quote(value) : value);
+		const strValue = !IS_POSTGRES ? quote(value) : value;
 
 		return SQL`${sql_field} ${NOT}${LIKE} ${strValue}`;
 	}
@@ -381,10 +379,9 @@ function sqlCondition({
 
 		// Use the `IN(...)` for items which can be grouped...
 		if (filteredValue.length) {
-			const items =
-				engine.startsWith('mysql:5.7')
-					? filteredValue.map(quote)
-					: filteredValue;
+			const items = engine.startsWith('mysql:5.7')
+				? filteredValue.map(quote)
+				: filteredValue;
 			conds.push(SQL`${sql_field} ${NOT}IN (${join(items)})`);
 		}
 
@@ -407,8 +404,11 @@ function sqlCondition({
 			? conds.at(0)
 			: SQL`(${join(conds, negate ? ' AND ' : ' OR ')})`;
 	} else {
-
-		if (IS_POSTGRES && type === 'json' && (typeof value === 'boolean' || typeof value === 'number')) {
+		if (
+			IS_POSTGRES &&
+			type === 'json' &&
+			(typeof value === 'boolean' || typeof value === 'number')
+		) {
 			value = String(value);
 		}
 
@@ -426,8 +426,13 @@ function sqlCondition({
  * @param {string} [params.engine] - Engine
  * @returns {Array<{sql: Sql, value: any, operators: string}>} SQL conditions
  */
-function json_contains({sql_field, value, path = null, operators = '', engine}) {
-
+function json_contains({
+	sql_field,
+	value,
+	path = null,
+	operators = '',
+	engine,
+}) {
 	const IS_POSTGRES = engine.startsWith('postgres');
 
 	if (!path && !IS_POSTGRES) {
@@ -437,7 +442,6 @@ function json_contains({sql_field, value, path = null, operators = '', engine}) 
 	const conds = [];
 
 	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-
 		const separator = IS_POSTGRES ? '->>' : '->';
 
 		return [
@@ -457,7 +461,7 @@ function json_contains({sql_field, value, path = null, operators = '', engine}) 
 				value: value[key],
 				path: [path, rootKey].filter(Boolean).join('.'),
 				operators: operators + newOperators,
-				engine
+				engine,
 			})
 		);
 	}

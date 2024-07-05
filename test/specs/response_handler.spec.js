@@ -380,7 +380,6 @@ describe('response_handler', () => {
 	});
 
 	describe('mysql 5.6', () => {
-
 		let dareInst;
 
 		beforeEach(() => {
@@ -389,7 +388,6 @@ describe('response_handler', () => {
 		});
 
 		it('should exclude a series of empty strings, a side-effect of inline GROUP_CONCAT', () => {
-
 			// Return a response field which is invalid
 			const data = dareInst.response_handler([
 				{

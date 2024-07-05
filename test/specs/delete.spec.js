@@ -205,16 +205,14 @@ describe('del', () => {
 	});
 
 	describe('DB Engine specific tests', () => {
-
 		const DB_ENGINE = 'postgres:16.3';
 		let dareInst;
-		
+
 		beforeEach(() => {
 			dareInst = dare.use({engine: DB_ENGINE});
 		});
 
 		it(`${DB_ENGINE} should delete with subquery conditions rather than JOINs`, async () => {
-
 			dareInst.options.models = {
 				tbl: {
 					schema: {
@@ -251,8 +249,6 @@ describe('del', () => {
 			});
 
 			assert.deepStrictEqual(test, {success: true});
-
 		});
-
 	});
 });

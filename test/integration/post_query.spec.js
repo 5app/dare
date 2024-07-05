@@ -49,13 +49,16 @@ describe('post from query', () => {
 
 		assert.strictEqual(affectedRows, 2, 'Should have inserted 2 records');
 
-
 		// Run again, expecting no changes
 		{
 			const {affectedRows} = await dare.post(request);
-			
+
 			// Both should have been ignored - because they cause duplicates however both show 2 affected rows
-			assert.strictEqual(affectedRows, 2, 'Affected 2 rows... not sure why ignored duplicates count here?');
+			assert.strictEqual(
+				affectedRows,
+				2,
+				'Affected 2 rows... not sure why ignored duplicates count here?'
+			);
 		}
 	});
 });

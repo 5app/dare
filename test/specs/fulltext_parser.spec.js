@@ -28,11 +28,8 @@ describe('fulltextParser', () => {
 			[ENGINE_MYSQL]: '-foo +(<"bar foo @ bar" >"bar bar foo")',
 		},
 	].forEach(({input, ...expects}) => {
-
 		Object.entries(expects).forEach(([engine, expected]) => {
-
 			it(`${engine} should format ${input} to ${expected}`, () => {
-
 				const dare = new Dare({engine});
 				const output = dare.fulltextParser(input);
 				assert.strictEqual(
@@ -41,7 +38,6 @@ describe('fulltextParser', () => {
 					'input and output should be the same'
 				);
 			});
-		
 		});
 	});
 
