@@ -1,3 +1,10 @@
+# [0.89.0](https://github.com/5app/dare/compare/v0.88.3...v0.89.0) (2024-07-05)
+
+
+### Features
+
+* **postgres:** initial integration test implementation ([#338](https://github.com/5app/dare/issues/338)) ([9e81d0c](https://github.com/5app/dare/commit/9e81d0c25462897646c75e645d438050984646c8)), closes [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339)
+
 ## [0.88.3](https://github.com/5app/dare/compare/v0.88.2...v0.88.3) (2024-05-22)
 
 
