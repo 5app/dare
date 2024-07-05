@@ -19,7 +19,9 @@ import Dare from 'dare';
 import dbconn from './dbConn.js'; // <- your script for executing queries
 
 // Initiate it
-const dare = new Dare();
+const dare = new Dare({
+	engine: 'mysql:8.0' // set the engine
+});
 
 // Define the handler dare.execute for handing database requests
 dare.execute = async (request) => {
@@ -42,7 +44,7 @@ console.log(`Hi ${resp.name}');
 npm i dare --save
 ```
 
-## Connect
+# Connect
 
 The setup needs to define a execution handler `dare.execute(SqlRequest) : Promise<Array | Object<{insertId, affectedRows}>`
 
@@ -581,38 +583,30 @@ await dare.get({
 });
 ```
 
-As you can see, to apply `options` you have... um _options_.
-
-# `options.models`
-
-The `options.models` object, allows us to apply all our models to Dare. Where the object key is the label for which we'll refer to that model.
-
-See next section **Model** for what a model looks like.
-
-```js
-// options Object containing a property called `models`
-// Models is a key => model store, where the key is what we'll always refer to as the label for that model.
-const options = {
-	models: {
-		// modelA,
-		// modelB,
-		// etc...
-	},
-};
-
-// options applied to dare as before.
-```
+| option name     | type                                      | description                                                                                                                                    |
+| --------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `engine`        | `string`                                  | Database engine, e.g. `mysql:5.7:40`, `postgres:16.3`                                                                                          |
+| `models`        | `Object<ModelName, Model>`                | An object where the keys are the model names to which models can be referred.                                                                  |
+| `validateInput` | `Function(fieldAttributes, field, value)` | Validate input on _patch_ and _post_ operations                                                                                                |
+| `getFieldKey`   | `Function(field, schema)`                 | Override the default function for retrieving schema fields, this is useful if you want to support altenative case (camelCase and/or snakeCase) |
 
 # Model
 
-Perhaps the most important part of the **Dare** library is concept of a **model**.
+Models define many things, the underling db table, the schema and any handler functions which are invoked on any operation (post, patch, del, get, getCount).
 
-A **model** defines:
+Models are applied to the `options.models` object e.g...
 
--   how data is interlinked, i.e. how one relational data table is joined to another via a key
--   mutation handlers, for changing requests. This allows access permissions to be applied, to filter results, to restrict or mutate input data.
+```js
+const dare = new Dare({
+	models: {
+		mymodel : {
+			/** model properties */
+		}.
+	}
+});
+```
 
-E.g. here are available properties which can be defined on a model,
+Available properties which can be defined on a model are...
 
 ```js
 const myModel = {

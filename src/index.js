@@ -50,6 +50,7 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {Function} [getFieldKey] - Override default Function to interpret the field key
  * @property {string} [conditional_operators_in_value] - Allowable conditional operators in value
  * @property {any} [state] - Arbitary data to carry through to the model/response handlers
+ * @property {string} [engine] - DB Engine to use
  *
  * @typedef {object} InternalProps
  * @property {'post' | 'get' | 'patch' | 'del'} [method] - Method to use
@@ -64,7 +65,6 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {string} [ignore] - SQL Fields
  * @property {boolean} [forceSubquery] - Force the table joins to use a subquery.
  * @property {Array} [sql_where_conditions] - SQL Where conditions
- * @property {string} [engine] - DB Engine to use
  *
  * @typedef {RequestOptions & InternalProps} QueryOptions
  */
