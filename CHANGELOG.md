@@ -1,3 +1,10 @@
+# [0.90.0](https://github.com/5app/dare/compare/v0.89.0...v0.90.0) (2024-07-05)
+
+
+### Features
+
+* **mariadb:** add support for MariaDB ([0e9c8b9](https://github.com/5app/dare/commit/0e9c8b9ab69f46f82b8b23864572dfaa74011927))
+
 # [0.89.0](https://github.com/5app/dare/compare/v0.88.3...v0.89.0) (2024-07-05)
 
 
