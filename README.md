@@ -9,22 +9,24 @@
 
 Dare is a brave API for generating SQL out of structured Javascript objects.
 
-# Example usage...
+## Example usage...
 
-This is a simple setup to get started with, it'll make a basic SELECT query.
+This is a simple setup to make a SELECT query
 
 ```js
 // Require the module
 import Dare from 'dare';
-import sqlConn from './mySqlConn.js';
+import dbconn from './dbConn.js'; // <- your script for executing queries
 
 // Initiate it
 const dare = new Dare();
 
 // Define the handler dare.execute for handing database requests
-dare.execute = async ({sql, values}) => {
+dare.execute = async (request) => {
+
 	// Execute query using prepared statements
-	return sqlConn.execute(sql, values);
+	// use request.sql, whilst in postgres use request.text 
+	return dbconn.query(request.sql, request.values);
 };
 
 // Make a request
@@ -34,11 +36,23 @@ const resp = await dare.get('users', ['name'], {id: 1});
 console.log(`Hi ${resp.name}');
 ```
 
+
 ## Install
 
 ```bash
 npm i dare --save
 ```
+
+
+## Connect
+
+The setup needs to define a execution handler `dare.execute(SqlRequest) : Promise<Array | Object<{insertId, affectedRows}>`
+
+The integration tests illustrates how a [setup of a dare instance](`./test/integration/helpers/api.js`) connects to different clients...
+
+- MySQL (5.6, 5.7, 8.0,...) See [connection with `mysql2`](./test/integration/helpers/MySQL.js)
+- Postgres (16+) See [connection with `pg`](./test/integration/helpers/Postgres.js)
+
 
 # Methods
 
