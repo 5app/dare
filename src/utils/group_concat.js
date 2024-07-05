@@ -1,15 +1,17 @@
 import semverCompare from 'semver-compare';
 
-const {
-	DB_ENGINE = 'mysql:5.7.40',
-} = process.env;
-
 /*
  * Generate GROUP_CONCAT statement given an array of fields definitions
  * Label the GROUP CONCAT(..) AS 'address[fields,...]'
  * Wrap all the fields in a GROUP_CONCAT statement
  */
-export default function group_concat(fields, address = '', sql_alias, rowid) {
+export default function group_concat({
+	fields,
+	address = '',
+	sql_alias = null,
+	rowid = null,
+	engine = ''
+}) {
 	// Is this an aggregate list?
 	const agg = fields.reduce(
 		(prev, curr) => prev || curr.agg || curr.label.indexOf(address) !== 0,
@@ -29,8 +31,7 @@ export default function group_concat(fields, address = '', sql_alias, rowid) {
 
 	// Convert to JSON Array
 	if (
-		process.env.DB_ENGINE &&
-		semverCompare(process.env.DB_ENGINE.split(':').at(1), '5.7') < 0
+		semverCompare(engine.split(':').at(1), '5.7') < 0
 	) {
 		expression = fields.map(
 			field =>
@@ -40,7 +41,7 @@ export default function group_concat(fields, address = '', sql_alias, rowid) {
 	} else {
 
 		// JSON_ARRAY in postgres default to ABSENT ON NULL, so we need to add NULL ON NULL
-		const json_array_settings = process.env.DB_ENGINE?.startsWith('postgres') ? ' NULL ON NULL' : '';
+		const json_array_settings = engine.startsWith('postgres') ? ' NULL ON NULL' : '';
 
 		expression = fields.map(field => field.expression);
 		expression = `JSON_ARRAY(${expression.join(',')}${json_array_settings})`;
@@ -55,15 +56,14 @@ export default function group_concat(fields, address = '', sql_alias, rowid) {
 
 	// Multiple
 	if (
-		process.env.DB_ENGINE &&
-		semverCompare(process.env.DB_ENGINE.split(':').at(1), '5.7.21') <= 0
+		semverCompare(engine.split(':').at(1), '5.7.21') <= 0
 	) {
 		expression = `CONCAT('[', GROUP_CONCAT(IF(${sql_alias}.${rowid} IS NOT NULL, ${expression}, NULL)), ']')`;
 	} else {
 
 		let condition = `CASE WHEN (${sql_alias}.${rowid} IS NOT NULL) THEN (${expression}) ELSE NULL END`;
 
-		if ((process.env.DB_ENGINE || DB_ENGINE)?.startsWith('mysql:5.7')) {
+		if (engine.startsWith('mysql:5.7')) {
 			// Overwrite condition for MySQL 5.7
 			condition = `IF(${sql_alias}.${rowid} IS NOT NULL, ${expression}, NULL)`;
 		}

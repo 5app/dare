@@ -168,15 +168,13 @@ describe('Filter Reducer', () => {
 	});
 
 	describe('mysql engine version handling', () => {
-		afterEach(() => {
-			delete process.env.DB_ENGINE;
-		});
 
-		['mysql:5.7', 'mysql:8.0'].forEach(version => {
-			const quote = version === 'mysql:5.7';
+		['mysql:5.7', 'mysql:8.0'].forEach(engine => {
+			const quote = engine === 'mysql:5.7';
 
-			it(`${version} should ${quote ? '' : 'NOT '}quote json list (IN) sting values`, () => {
-				process.env.DB_ENGINE = version;
+			it(`${engine} should ${quote ? '' : 'NOT '}quote json list (IN) sting values`, () => {
+
+				const dareInst = dareInstance.use({engine});
 
 				const filter = {
 					jsonSettings: {
@@ -196,7 +194,7 @@ describe('Filter Reducer', () => {
 					sql_alias: 'a',
 					table_schema,
 					conditional_operators_in_value,
-					dareInstance,
+					dareInstance: dareInst,
 				});
 
 				expect(query.sql).to.equal(sql);
@@ -207,14 +205,12 @@ describe('Filter Reducer', () => {
 
 	describe('postgres engine version handling', () => {
 
-		beforeEach(() => {
-			process.env.DB_ENGINE = 'postgres:16.3';
-		});
-		afterEach(() => {
-			delete process.env.DB_ENGINE;
-		});
+		const engine = 'postgres:16.3';
 
 		it('should search fulltext - with an index', () => {
+
+			const dareInst = dareInstance.use({engine});
+
 			const filter = {
 				'*vector_index': 'string',
 			};
@@ -227,7 +223,7 @@ describe('Filter Reducer', () => {
 				sql_alias: 'a',
 				table_schema,
 				conditional_operators_in_value,
-				dareInstance,
+				dareInstance: dareInst,
 			});
 
 			expect(query.sql).to.equal(sql);
@@ -235,6 +231,9 @@ describe('Filter Reducer', () => {
 		});
 
 		it('should search fulltext - and build an index', () => {
+
+			const dareInst = dareInstance.use({engine});
+
 			const filter = {
 				'*givenname,lastname,email': 'string',
 			};
@@ -247,7 +246,7 @@ describe('Filter Reducer', () => {
 				sql_alias: 'a',
 				table_schema,
 				conditional_operators_in_value,
-				dareInstance,
+				dareInstance: dareInst,
 			});
 
 			expect(query.sql).to.equal(sql);
@@ -256,6 +255,8 @@ describe('Filter Reducer', () => {
 
 		it(`quote json number and boolean values`, () => {
 
+			const dareInst = dareInstance.use({engine});
+
 			const filter = {
 				jsonSettings: {
 					key: 1,
@@ -263,13 +264,12 @@ describe('Filter Reducer', () => {
 				},
 			};
 
-
 			const [query] = reduceConditions(filter, {
 				extract,
 				sql_alias: 'a',
 				table_schema,
 				conditional_operators_in_value,
-				dareInstance,
+				dareInstance: dareInst,
 			});
 
 			const sql = `(a.jsonSettings->>? = ? AND a.jsonSettings->>? ILIKE ?)`;

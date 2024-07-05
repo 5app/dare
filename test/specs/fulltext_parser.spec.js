@@ -33,9 +33,7 @@ describe('fulltextParser', () => {
 
 			it(`${engine} should format ${input} to ${expected}`, () => {
 
-				process.env.DB_ENGINE = engine;
-
-				const dare = new Dare();
+				const dare = new Dare({engine});
 				const output = dare.fulltextParser(input);
 				assert.strictEqual(
 					output,

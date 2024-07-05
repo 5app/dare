@@ -15,7 +15,6 @@ describe('response_handler', () => {
 
 	it('response handler should be defined in instances of Dare', () => {
 		expect(dare).to.have.property('response_handler');
-		expect(dare).to.have.property('group_concat');
 	});
 
 	it('should expand dot delimited field into a nested object', () => {
@@ -381,15 +380,18 @@ describe('response_handler', () => {
 	});
 
 	describe('mysql 5.6', () => {
-		afterEach(() => {
-			delete process.env.DB_ENGINE;
+
+		let dareInst;
+
+		beforeEach(() => {
+			// Create a new instance
+			dareInst = dare.use({engine: 'mysql:5.6'});
 		});
 
 		it('should exclude a series of empty strings, a side-effect of inline GROUP_CONCAT', () => {
-			process.env.DB_ENGINE = 'mysql:5.6';
 
 			// Return a response field which is invalid
-			const data = dare.response_handler([
+			const data = dareInst.response_handler([
 				{
 					field: 'value',
 					'collection[id,name,assoc.id,assoc.name]':

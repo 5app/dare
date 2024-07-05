@@ -287,18 +287,15 @@ describe('post', () => {
 	describe('DB Engine specific tests', () => {
 
 		const DB_ENGINE = 'postgres:16.3';
-
-		afterEach(() => {
-			delete process.env.DB_ENGINE;
-		});
-
+		let dareInst;
+		
 		beforeEach(() => {
-			process.env.DB_ENGINE = DB_ENGINE;
+			dareInst = dare.use({engine: DB_ENGINE});
 		});
 
 		it(`${DB_ENGINE} should use ON CONFLICT ... UPDATE ...`, async () => {
 
-			dare.execute = async ({sql, values}) => {
+			dareInst.execute = async ({sql, values}) => {
 				sqlEqual(
 					sql,
 					'INSERT INTO test ("id", "name") VALUES (?, ?) ON CONFLICT (id) DO UPDATE SET "name"=EXCLUDED."name"'
@@ -307,7 +304,7 @@ describe('post', () => {
 				return {success: true};
 			};
 
-			return dare.post({
+			return dareInst.post({
 				table: 'test',
 				body: {id: 1, name: 'name'},
 				duplicate_keys_update: ['name'],
@@ -315,7 +312,7 @@ describe('post', () => {
 		});
 		it(`${DB_ENGINE} should use ON CONFLICT DO NOTHING`, async () => {
 
-			dare.execute = async ({sql, values}) => {
+			dareInst.execute = async ({sql, values}) => {
 				sqlEqual(
 					sql,
 					'INSERT INTO test ("id", "name") VALUES (?, ?) ON CONFLICT DO NOTHING'
@@ -324,7 +321,7 @@ describe('post', () => {
 				return {success: true};
 			};
 
-			return dare.post({
+			return dareInst.post({
 				table: 'test',
 				body: {id: 1, name: 'name'},
 				duplicate_keys: 'ignore',

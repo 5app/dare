@@ -207,18 +207,15 @@ describe('del', () => {
 	describe('DB Engine specific tests', () => {
 
 		const DB_ENGINE = 'postgres:16.3';
-
-		afterEach(() => {
-			delete process.env.DB_ENGINE;
-		});
-
+		let dareInst;
+		
 		beforeEach(() => {
-			process.env.DB_ENGINE = DB_ENGINE;
+			dareInst = dare.use({engine: DB_ENGINE});
 		});
 
 		it(`${DB_ENGINE} should delete with subquery conditions rather than JOINs`, async () => {
 
-			dare.options.models = {
+			dareInst.options.models = {
 				tbl: {
 					schema: {
 						// Create a reference to tblB
@@ -227,7 +224,7 @@ describe('del', () => {
 				},
 			};
 
-			dare.execute = async ({sql, values}) => {
+			dareInst.execute = async ({sql, values}) => {
 				sqlEqual(
 					sql,
 					`DELETE FROM tbl
@@ -243,7 +240,7 @@ describe('del', () => {
 				return {success: true};
 			};
 
-			const test = await dare.del({
+			const test = await dareInst.del({
 				table: 'tbl',
 				filter: {
 					id: 1,

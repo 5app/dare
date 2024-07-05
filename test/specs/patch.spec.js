@@ -379,15 +379,11 @@ describe('patch', () => {
 
 	describe('DB Engine specific tests', () => {
 
-		afterEach(() => {
-			delete process.env.DB_ENGINE;
-		});
-
 		it(`should use the correct syntax for postgres`, async () => {
 
-			process.env.DB_ENGINE = 'postgres:16.3';
+			const dareInst = dare.use({engine: 'postgres:16.3'});
 
-			dare.execute = async ({sql, values}) => {
+			dareInst.execute = async ({sql, values}) => {
 				sqlEqual(
 					sql,
 					'UPDATE tbl a SET "name" = ? WHERE a.id = ?'
@@ -396,7 +392,7 @@ describe('patch', () => {
 				return {success: true};
 			};
 
-			return dare.patch({
+			return dareInst.patch({
 				table: 'tbl',
 				filter: {id},
 				body: {name},

@@ -87,12 +87,13 @@ export default function buildQuery(opts, dareInstance) {
 		const gc_sql_alias = opts.field_alias_path
 			? sql_alias
 			: opts._joins[0].sql_alias;
-		const gc = group_concat(
+		const gc = group_concat({
 			fields,
 			address,
-			gc_sql_alias,
-			dareInstance.rowid
-		);
+			sql_alias: gc_sql_alias,
+			rowid: dareInstance.rowid,
+			engine: dareInstance.engine,
+		});
 		sql_fields = [raw(gc.expression)];
 		alias = gc.label;
 	} else {
@@ -224,7 +225,6 @@ function traverse(item, is_subquery, dareInstance) {
 		 * And has a one to many relationship with its parent.
 		 */
 		if (
-			dareInstance.group_concat &&
 			!is_subquery &&
 			!ancestors_many &&
 			!item.required_join &&
@@ -373,12 +373,13 @@ function traverse(item, is_subquery, dareInstance) {
 		const gc_sql_alias = item.field_alias_path
 			? sql_alias
 			: item._joins[0].sql_alias;
-		const gc = group_concat(
+		const gc = group_concat({
 			fields,
 			address,
-			gc_sql_alias,
-			dareInstance.rowid
-		);
+			sql_alias: gc_sql_alias,
+			rowid: dareInstance.rowid,
+			engine: dareInstance.engine,
+		});
 
 		// Reset the fields array
 		fields.length = 0;

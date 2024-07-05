@@ -1540,14 +1540,21 @@ await dare.patch({
 
 ### DB Engine compatibility
 
-The latest version is designed to work with MySQL (5.6, 5.7 and 8) and Postgres (16.3)
+This version of Dare is designed to work with MySQL (5.6, 5.7 and 8) and Postgres (16.3)
 
-Use the environment variable `DB_ENGINE` to set the desired engine
-
+Set the property `engine` on the Dare instance
 e.g.
 
 ```js
-process.env.DB_ENGINE = 'mysql:5.6';
+const dare = new Dare{{
+	engine: 'postgres:16.3',
+	...
+}};
+
+// Or, have multiple instances...
+let dareWithPostgres = dare.use({
+	engine: 'postgres:16.3'
+});
 ```
 
 # Caveats

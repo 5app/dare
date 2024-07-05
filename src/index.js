@@ -16,10 +16,6 @@ import format_request from './format_request.js';
 
 import response_handler, {responseRowHandler} from './response_handler.js';
 
-const {
-	DB_ENGINE = 'mysql:5.7',
-} = process.env;
-
 /* eslint-disable jsdoc/valid-types */
 /**
  * @typedef {import('sql-template-tag').Sql} Sql
@@ -68,6 +64,7 @@ const {
  * @property {string} [ignore] - SQL Fields
  * @property {boolean} [forceSubquery] - Force the table joins to use a subquery.
  * @property {Array} [sql_where_conditions] - SQL Where conditions
+ * @property {string} [engine] - DB Engine to use
  * property {Array<{table: string, alias: string, conditions: Array}>} [joinDetails] - Join Details
  * 
  * @typedef {RequestOptions & InternalProps} QueryOptions
@@ -86,9 +83,14 @@ export {DareError};
  * @param {QueryOptions} options - Initial options defining the instance
  * @returns {Dare} instance of dare
  */
-function Dare(options = {}) {
+function Dare({engine, ...options} = {}) {
 	// Overwrite default properties
 	this.options = extend(clone(this.options), options);
+
+	if (engine) {
+		this.engine = engine;
+		this.rowid = engine.startsWith('postgres') ? 'id' : '_rowid';
+	}
 
 	return this;
 }
@@ -112,13 +114,15 @@ Dare.prototype.execute = async requestQuery => {
 	);
 };
 
-// Group concat
-/** @type {string} */
-Dare.prototype.group_concat = '$$';
+/** 
+ * Engine, database engine
+ * @type {string}
+ */
+Dare.prototype.engine = 'mysql:5.7.40';
 
 // Rowid, name of primary key field used in grouping operation: MySQL uses _rowid
 /** @type {string} */
-Dare.prototype.rowid = DB_ENGINE.startsWith('mysql') ? '_rowid' : 'id';
+Dare.prototype.rowid = '_rowid';
 
 // Set the Max Limit for SELECT statements
 /** @type {number} */
@@ -145,7 +149,7 @@ Dare.prototype.table_alias_handler = function (name) {
 Dare.prototype.unique_alias_index = 0;
 
 Dare.prototype.identifierWrapper = function identifierWrapper(field) {
-	const identifier_delimiter = (process.env.DB_ENGINE || DB_ENGINE).startsWith('mysql') ? '`' : '"';
+	const identifier_delimiter = this.engine.startsWith('mysql') ? '`' : '"';
 	return [identifier_delimiter, field, identifier_delimiter].join('');
 }
 
@@ -200,6 +204,9 @@ Dare.prototype.getFieldKey = function getFieldKey(field, schema) {
  * @returns {string} Formatted string
  */
 Dare.prototype.fulltextParser = function fulltextParser(input) {
+
+	const IS_POSTGRES = this.engine.startsWith('postgres');
+
 	function safequote(text) {
 		let suffix = '';
 
@@ -212,7 +219,7 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 			return `"${text}"`;
 		}
 
-		if ((process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres') && suffix === '*') {
+		if (IS_POSTGRES && suffix === '*') {
 			return `${text}:*`;
 		}
 
@@ -243,7 +250,7 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 				groups: {sign, subexpression, quoted, unquoted, suffix = ''},
 			}, index) => {
 
-				if ((process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres')) {
+				if (IS_POSTGRES) {
 					sign = sign
 						// .replace('+', '&')
 						.replace(/[+<>~]*/, '');
@@ -299,7 +306,7 @@ Dare.prototype.after = function (resp) {
  * @param {QueryOptions} options - set of instance options
  * @returns {Dare} Instance of Dare
  */
-Dare.prototype.use = function (options = {}) {
+Dare.prototype.use = function ({engine, ...options} = {}) {
 	const inst = Object.create(this);
 
 	/**
@@ -314,6 +321,10 @@ Dare.prototype.use = function (options = {}) {
 	}
 	if (options.getFieldKey) {
 		inst.getFieldKey = options.getFieldKey;
+	}
+	if (engine) {
+		inst.engine = engine;
+		inst.rowid = engine.startsWith('postgres') ? 'id' : '_rowid';
 	}
 
 	// Set the generate_fields array
@@ -502,7 +513,7 @@ Dare.prototype.getCount = async function getCount(table, filter, options = {}) {
  */
 Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
 
-	const IS_POSTGRES = (process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres');
+	const IS_POSTGRES = this.engine.startsWith('postgres');
 
 	/**
 	 * @type {QueryOptions} opts
@@ -822,7 +833,7 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 
 	// Construct a db update
 	const sql = `INSERT ${exec} INTO ${req.sql_table}
-			(${fields.map(dareInstance.identifierWrapper).join(',')})
+			(${fields.map(dareInstance.identifierWrapper.bind(dareInstance)).join(',')})
 			${data.length ? `VALUES ${data.join(',')}` : ''}
 			${query || ''}
 			${on_duplicate_keys_update}`;
@@ -845,7 +856,7 @@ Dare.prototype.post = async function post(table, body, options = {}) {
  */
 Dare.prototype.del = async function del(table, filter, options = {}) {
 
-	const IS_POSTGRES = (process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres');
+	const IS_POSTGRES = this.engine.startsWith('postgres');
 
 	/**
 	 * @type {QueryOptions} opts
@@ -949,7 +960,9 @@ function mustAffectRows(result, notfound) {
 
 Dare.prototype.onDuplicateKeysUpdate = function onDuplicateKeysUpdate(keys = [], existing = [], sql_table = '') {
 
-	if ((process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres')) {
+	const IS_POSTGRES = this.engine.startsWith('postgres');
+
+	if (IS_POSTGRES) {
 
 		if (!keys.length) {
 			return `ON CONFLICT DO NOTHING`;

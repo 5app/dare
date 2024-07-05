@@ -4,13 +4,17 @@ import defaultAPI from './helpers/api.js';
 
 // Connect to db
 
+const {
+	DB_ENGINE = 'mysql:5.7.40',
+} = process.env;
+
 describe('Working with JSON DataType', () => {
 	let dare;
 	const username = 'mightyduck';
 
 	// JSON DataType not supported in MySQL 5.6
 	beforeEach(function () {
-		if (process.env.DB_ENGINE?.startsWith('mysql:5.6')) {
+		if (DB_ENGINE?.startsWith('mysql:5.6')) {
 			this.skip();
 			return;
 		}
@@ -18,7 +22,7 @@ describe('Working with JSON DataType', () => {
 		// Initiate
 		dare = defaultAPI();
 
-		if (process.env.DB_ENGINE?.startsWith('mysql')) {
+		if (DB_ENGINE?.startsWith('mysql')) {
 			dare.sql(SQL`
 				ALTER TABLE users MODIFY COLUMN settings JSON DEFAULT NULL
 			`);
@@ -43,7 +47,7 @@ describe('Working with JSON DataType', () => {
 
 	it('entire JSON field should be queryable as a string', async function() {
 
-		if(!process.env.DB_ENGINE?.startsWith('mysql')) {
+		if(!DB_ENGINE?.startsWith('mysql')) {
 			this.skip();
 			return;
 		}

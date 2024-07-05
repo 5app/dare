@@ -12,10 +12,6 @@ import unwrap_field from '../utils/unwrap_field.js';
  */
 /* eslint-enable jsdoc/valid-types */
 
-const {
-	DB_ENGINE = 'mysql:5.7.40',
-} = process.env;
-
 /**
  * Reduce conditions, call extract
  *
@@ -130,6 +126,9 @@ function prepCondition({
 	conditional_operators_in_value,
 	dareInstance,
 }) {
+
+	const {engine} = dareInstance;
+
 	// Does it have a negative comparison operator?
 	const negate = operators?.includes('-');
 
@@ -151,7 +150,9 @@ function prepCondition({
 		// Join the fields
 		const sql_field_array = sql_fields.map(({sql}) => sql);
 
-		if ((process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres')) {
+		const IS_POSTGRES = dareInstance.engine.startsWith('postgres');
+
+		if (IS_POSTGRES) {
 
 			const field = sql_field_array.length === 1 ? sql_field_array.at(0) : SQL`TO_TSVECTOR(${join(sql_field_array, ' || \' \' || ')})`;
 			return SQL`${NOT}${field} @@ to_tsquery('english', ${dareInstance.fulltextParser(value)})`;
@@ -203,7 +204,7 @@ function prepCondition({
 		!Array.isArray(value)
 	) {
 		// Loop through the object and create the sql_field
-		const sql_fields = json_contains(sql_field, value);
+		const sql_fields = json_contains({sql_field, value, engine});
 
 		// Return a single or a wrapped group
 		return SQL`${NOT}(${join(
@@ -214,6 +215,7 @@ function prepCondition({
 					conditional_operators_in_value,
 					operators,
 					type,
+					engine,
 				})
 			),
 			' AND '
@@ -227,6 +229,7 @@ function prepCondition({
 		operators,
 		// Treat json as text
 		type: type === 'json' ? 'text' : type,
+		engine,
 	});
 }
 
@@ -238,6 +241,7 @@ function prepCondition({
  * @param {string|null} params.conditional_operators_in_value - Allowable conditional operators in value
  * @param {string|null} params.operators - Operators
  * @param {string|null} params.type - Type
+ * @param {string} params.engine - DB Engine
  * @returns {Sql} SQL condition
  */
 function sqlCondition({
@@ -246,9 +250,10 @@ function sqlCondition({
 	conditional_operators_in_value,
 	operators,
 	type,
+	engine,
 }) {
 
-	const IS_POSTGRES = (process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres');
+	const IS_POSTGRES = engine.startsWith('postgres');
 
 	// Does it have a negative comparison operator?
 	const negate = operators?.includes('-');
@@ -377,7 +382,7 @@ function sqlCondition({
 		// Use the `IN(...)` for items which can be grouped...
 		if (filteredValue.length) {
 			const items =
-				(process.env.DB_ENGINE || DB_ENGINE)?.startsWith('mysql:5.7')
+				engine.startsWith('mysql:5.7')
 					? filteredValue.map(quote)
 					: filteredValue;
 			conds.push(SQL`${sql_field} ${NOT}IN (${join(items)})`);
@@ -392,6 +397,7 @@ function sqlCondition({
 					operators,
 					conditional_operators_in_value,
 					type,
+					engine,
 				})
 			)
 		);
@@ -412,15 +418,17 @@ function sqlCondition({
 
 /**
  * JSON Contains
- * @param {Sql} sql_field - SQL Field
- * @param {any} value - Value
- * @param {string} [path] - Path
- * @param {string} [operators] - Operators
+ * @param {object} params - Params
+ * @param {Sql} params.sql_field - SQL Field
+ * @param {any} params.value - Value
+ * @param {string} [params.path] - Path
+ * @param {string} [params.operators] - Operators
+ * @param {string} [params.engine] - Engine
  * @returns {Array<{sql: Sql, value: any, operators: string}>} SQL conditions
  */
-function json_contains(sql_field, value, path = null, operators = '') {
+function json_contains({sql_field, value, path = null, operators = '', engine}) {
 
-	const IS_POSTGRES = (process.env.DB_ENGINE || DB_ENGINE).startsWith('postgres');
+	const IS_POSTGRES = engine.startsWith('postgres');
 
 	if (!path && !IS_POSTGRES) {
 		path = '$';
@@ -444,12 +452,13 @@ function json_contains(sql_field, value, path = null, operators = '') {
 	for (const key in value) {
 		const {operators: newOperators, rootKey} = stripKey(key);
 		conds.push(
-			...json_contains(
+			...json_contains({
 				sql_field,
-				value[key],
-				[path, rootKey].filter(Boolean).join('.'),
-				operators + newOperators
-			)
+				value: value[key],
+				path: [path, rootKey].filter(Boolean).join('.'),
+				operators: operators + newOperators,
+				engine
+			})
 		);
 	}
 

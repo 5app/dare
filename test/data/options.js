@@ -7,6 +7,7 @@ const string = {
 };
 
 export default {
+	engine: process.env.DB_ENGINE,
 	models: {
 		// Users table
 		users: {
