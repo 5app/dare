@@ -133,8 +133,8 @@ describe('Filter Reducer', () => {
 						key: ['a', 'b', 1],
 					},
 				},
-				`(a.jsonSettings->? IN (?))`,
-				['$.key', ['"a"', '"b"', 1]],
+				`(a.jsonSettings->? IN (?,?,?))`,
+				['$.key', '"a"', '"b"', 1],
 			],
 		];
 
@@ -188,8 +188,8 @@ describe('Filter Reducer', () => {
 					? ['"a"', '"b"', 1]
 					: ['a', 'b', 1];
 
-				const sql = `(a.jsonSettings->? IN (?))`;
-				const values = ['$.key', expectedValues];
+				const sql = `(a.jsonSettings->? IN (?,?,?))`;
+				const values = ['$.key', ...expectedValues];
 
 				const [query] = reduceConditions(filter, {
 					extract,

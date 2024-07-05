@@ -380,7 +380,7 @@ function sqlCondition({
 				(process.env.DB_ENGINE || DB_ENGINE)?.startsWith('mysql:5.7')
 					? filteredValue.map(quote)
 					: filteredValue;
-			conds.push(SQL`${sql_field} ${NOT}IN (${items})`);
+			conds.push(SQL`${sql_field} ${NOT}IN (${join(items)})`);
 		}
 
 		// Other Values which can't be grouped ...
