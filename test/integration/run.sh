@@ -23,70 +23,124 @@ echo "INTEGRATION_TEST_DIR=${INTEGRATION_TEST_DIR}"
 # Could always move the docker-compose file to the root (dashboardV2/)
 cd "$INTEGRATION_TEST_DIR" || exit 1
 
-MYSQL_ROOT_USER="root"
-MYSQL_ROOT_PASSWORD="test_pass"
-MYSQL_VERSION=${MYSQL_VERSION:-5.7.40}
+DB_ROOT_USER="root"
+DB_ROOT_PASSWORD="test_pass"
+DB_ENGINE=${DB_ENGINE:-mysql:5.7.40}
 
-export TEST_DB_SCHEMA_PATH="${INTEGRATION_TEST_DIR}data/schema.sql"
+DB_ENGINE_NAME=$(echo $DB_ENGINE | cut -d: -f1)
+
+
+export TEST_DB_SCHEMA_PATH="${INTEGRATION_TEST_DIR}data/schema.${DB_ENGINE_NAME}.sql"
 export TEST_DB_DATA_PATH="${INTEGRATION_TEST_DIR}data/data.sql"
 export TEST_STATE_CLEANUP_MODE=${TEST_STATE_CLEANUP_MODE:-remove}
-export MYSQL_USER="mysqluser"
-export MYSQL_PASSWORD="password"
-export MYSQL_HOST="127.0.0.1"
-export MYSQL_PORT=3308
+export DB_USER="user"
+export DB_PASSWORD="password"
+export DB_HOST="127.0.0.1"
+export DB_PORT=3308
 
 export TZ="UTC"
 
-docker rm -vf "dare_mysql"
+docker rm -vf "dare_db"
 
-echo "Starting mysql:$MYSQL_VERSION"
+echo "Starting $DB_ENGINE"
 
-docker run \
-  --name="dare_mysql" \
-  --tmpfs=/var/lib/mysql \
-  -d \
-  -p 3308:3306 \
-  --env MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD}" \
-  --env MYSQL_DATABASE="dare" \
-  --env MYSQL_USER="${MYSQL_USER}" \
-  --env MYSQL_PASSWORD="${MYSQL_PASSWORD}" \
-  --env MYSQL_PORT=3306 \
-  --health-cmd="/usr/bin/mysql --user=root -p${MYSQL_ROOT_PASSWORD} --execute=\"SHOW DATABASES;\"" \
-  --health-interval="4s" \
-  --health-timeout="3s" \
-  --health-retries=20 \
-  mysql:$MYSQL_VERSION --group-concat-max-len=1000000 --sql-mode="" || {
-  echo 'docker run failed'
-  exit 1
-}
+if [ "$DB_ENGINE_NAME" = "postgres" ]
+then
 
-for dep in mysql; do
-  echo "waiting for ${dep}..."
-  i=0
-  until [ "$(docker inspect --format='{{.State.Health.Status}}' "dare_${dep}")" == "healthy" ]; do
-    # LOL:
-    # using `((i++))` exits the program as it returns 1
-    # this only happens on Circle CI
-    # this *doesn't* occur when running bash on mac (GNU bash, version 3.2.57(1)-release)
-    # NOR when re-running a circle job with SSH (which is crazy!)
-    # maybe it's this? https://stackoverflow.com/questions/6877012/incrementing-a-variable-triggers-exit-in-bash-4-but-not-in-bash-3
-    # why is circle running two versions of bash!?!?
-    i=$((i + 1))
-	echo "pending $i";
-    sleep 2
-    if [[ "$i" -gt '40' ]]; then
-      echo "${dep} failed to start. Final status: $(docker inspect --format='{{.State.Health.Status}}' "dare_${dep}")"
-      docker rm -v -f "dare_${dep}"
-      exit 1
-    fi
-  done
-  sleep 2
-  echo "${dep} up"
-done
+	docker run \
+		--name="dare_db" \
+		--tmpfs=/var/lib/postgresql/data \
+		-d \
+		-p ${DB_PORT}:5432 \
+		--env POSTGRES_USER="postgres" \
+		--env POSTGRES_PASSWORD="${DB_PASSWORD}" \
+		--env POSTGRES_DB="dare" \
+		--health-cmd="/usr/bin/psql --username=postgres --dbname=postgres --command=\"SELECT 1;\"" \
+		--health-interval="4s" \
+		--health-timeout="3s" \
+		--health-retries=20 \
+		$DB_ENGINE || {
+		echo 'docker run failed'
+		exit 1
+	}
+
+	for dep in db; do
+		echo "waiting for ${dep}..."
+		i=0
+		until [ "$(docker inspect --format='{{.State.Health.Status}}' "dare_${dep}")" == "healthy" ]; do
+			# LOL:
+			# using `((i++))` exits the program as it returns 1
+			# this only happens on Circle CI
+			# this *doesn't* occur when running bash on mac (GNU bash, version 3.2.57(1)-release)
+			# NOR when re-running a circle job with SSH (which is crazy!)
+			# maybe it's this? https://stackoverflow.com/questions/6877012/incrementing-a-variable-triggers-exit-in-bash-4-but-not-in-bash-3
+			# why is circle running two versions of bash!?!?
+			i=$((i + 1))
+			echo "pending $i";
+			sleep 2
+			if [[ "$i" -gt '20' ]]; then
+				echo "${dep} failed to start. Final status: $(docker inspect --format='{{.State.Health.Status}}' "dare_${dep}")"
+				docker rm -v -f "dare_${dep}"
+				exit 1
+			fi
+		done
+		echo "${dep} up"
+	done
+
+else
+
+	docker run \
+		--name="dare_db" \
+		--tmpfs=/var/lib/mysql \
+		-d \
+		-p ${DB_PORT}:3306 \
+		--env MYSQL_ROOT_PASSWORD="${DB_ROOT_PASSWORD}" \
+		--env MYSQL_DATABASE="dare" \
+		--env MYSQL_USER="${DB_USER}" \
+		--env MYSQL_PASSWORD="${DB_PASSWORD}" \
+		--env MYSQL_PORT=3306 \
+		--health-cmd="/usr/bin/mysql --user=root -p${DB_ROOT_PASSWORD} --execute=\"SHOW DATABASES;\"" \
+		--health-interval="4s" \
+		--health-timeout="3s" \
+		--health-retries=20 \
+		$DB_ENGINE --group-concat-max-len=1000000 --sql-mode="" || {
+		echo 'docker run failed'
+		exit 1
+	}
+
+	for dep in db; do
+		echo "waiting for ${dep}..."
+		i=0
+		until [ "$(docker inspect --format='{{.State.Health.Status}}' "dare_${dep}")" == "healthy" ]; do
+			# LOL:
+			# using `((i++))` exits the program as it returns 1
+			# this only happens on Circle CI
+			# this *doesn't* occur when running bash on mac (GNU bash, version 3.2.57(1)-release)
+			# NOR when re-running a circle job with SSH (which is crazy!)
+			# maybe it's this? https://stackoverflow.com/questions/6877012/incrementing-a-variable-triggers-exit-in-bash-4-but-not-in-bash-3
+			# why is circle running two versions of bash!?!?
+			i=$((i + 1))
+		echo "pending $i";
+			sleep 2
+			if [[ "$i" -gt '20' ]]; then
+				echo "${dep} failed to start. Final status: $(docker inspect --format='{{.State.Health.Status}}' "dare_${dep}")"
+				docker rm -v -f "dare_${dep}"
+				exit 1
+			fi
+		done
+		echo "${dep} up"
+	done
+
+	dbclient="docker exec -e MYSQL_PWD=${DB_ROOT_PASSWORD} dare_db mysql -u${DB_ROOT_USER}"
+	$dbclient -e "GRANT ALL PRIVILEGES ON *.* TO '${DB_USER}'@'%' WITH GRANT OPTION;"
+
+	DB_VERSION=`$dbclient -e "SELECT VERSION()"`;
+fi
+
+echo "Connected to $DB_ENGINE_NAME:$DB_VERSION";
 
 echo 'building template db...'
 export TEST_DB_PREFIX="test_"
-docker exec -e MYSQL_PWD=${MYSQL_ROOT_PASSWORD} dare_mysql mysql -u${MYSQL_ROOT_USER} -e "GRANT ALL PRIVILEGES ON *.* TO '${MYSQL_USER}'@'%' WITH GRANT OPTION;"
 
 echo 'template db built'
 
@@ -105,18 +159,18 @@ echo 'tests complete'
 if [[ -n "$KEEP_DOCKER" ]]; then
   echo "leaving docker running (detached)"
   if [ "$TEST_STATE_CLEANUP_MODE" == "remove" ]; then
-    DBS="$($mysql -e 'SHOW DATABASES')"
+    DBS="$($dbclient -e 'SHOW DATABASES')"
     for db in $DBS; do
       if [[ "$db" =~ ^${TEST_DB_PREFIX} ]]; then
         echo "removing test DB: $db"
-        $mysql -e "DROP DATABASE $db"
+        $dbclient -e "DROP DATABASE $db"
       fi
 
     done
   fi
 else
   echo "shutting down docker..."
-  docker rm -v -f "dare_mysql"
+  docker rm -v -f "dare_db"
 
 fi
 echo "finished (tests exit code: $EXIT_CODE)"

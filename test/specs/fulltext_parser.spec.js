@@ -1,22 +1,43 @@
 import assert from 'node:assert/strict';
 import Dare from '../../src/index.js';
 
+const ENGINE_POSTGRES = 'postgres:16.3';
+const ENGINE_MYSQL = 'mysql:5.7.40';
+
 describe('fulltextParser', () => {
 	// No formatting should be applied to these inputs
 	[
-		'foo bar',
-		'-foo +bar* ~"bar@  abar"',
-		'-foo +"bar foo bar"',
-		'-foo +(<"bar foo @ bar" >"bar bar foo")',
-	].forEach(input => {
-		it(`should leave untouched ${input}`, () => {
-			const dare = new Dare();
-			const output = dare.fulltextParser(input);
-			assert.strictEqual(
-				input,
-				output,
-				'input and output should be the same'
-			);
+		{
+			input: 'foo bar',
+			[ENGINE_POSTGRES]: 'foo & bar',
+			[ENGINE_MYSQL]: 'foo bar',
+		},
+		{
+			input: '-foo +bar* ~"bar@  abar"',
+			[ENGINE_POSTGRES]: '-foo & bar:* & "bar@  abar"',
+			[ENGINE_MYSQL]: '-foo +bar* ~"bar@  abar"',
+		},
+		{
+			input: '-foo +"bar foo bar"',
+			[ENGINE_POSTGRES]: '-foo & "bar foo bar"',
+			[ENGINE_MYSQL]: '-foo +"bar foo bar"',
+		},
+		{
+			input: '-foo +(<"bar foo @ bar" >"bar bar foo")',
+			[ENGINE_POSTGRES]: '-foo & ("bar foo @ bar" & "bar bar foo")',
+			[ENGINE_MYSQL]: '-foo +(<"bar foo @ bar" >"bar bar foo")',
+		},
+	].forEach(({input, ...expects}) => {
+		Object.entries(expects).forEach(([engine, expected]) => {
+			it(`${engine} should format ${input} to ${expected}`, () => {
+				const dare = new Dare({engine});
+				const output = dare.fulltextParser(input);
+				assert.strictEqual(
+					output,
+					expected,
+					'input and output should be the same'
+				);
+			});
 		});
 	});
 

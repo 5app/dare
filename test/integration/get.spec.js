@@ -1,11 +1,7 @@
-import Dare, {DareError} from '../../src/index.js';
-import Debug from 'debug';
+import {DareError} from '../../src/index.js';
 import {expect} from 'chai';
 import assert from 'node:assert/strict';
-import mysql from 'mysql2/promise';
-import db from './helpers/db.js';
-import {options, castToStringIfNeeded} from './helpers/api.js';
-const debug = Debug('sql');
+import defaultAPI, {options, castToStringIfNeeded} from './helpers/api.js';
 
 // Connect to db
 
@@ -14,16 +10,7 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 
 	beforeEach(() => {
 		// Initiate
-		dare = new Dare(options);
-
-		// Set a test instance
-		// eslint-disable-next-line arrow-body-style
-		dare.execute = query => {
-			// DEBUG
-			debug(mysql.format(query.sql, query.values));
-
-			return db.query(query);
-		};
+		dare = defaultAPI();
 	});
 
 	it('Can insert and retrieve results ', async () => {
@@ -123,18 +110,16 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 				fields: [
 					{
 						userTeams: {
-							teams: ['id', 'name', 'description'],
+							teams: ['id', 'description', 'name'],
 						},
 					},
 				],
 			});
 
-			expect(resp).to.deep.nested.include({
-				'userTeams[0].teams': {
-					id: castToStringIfNeeded(team.insertId),
-					name: teamName,
-					description: castToStringIfNeeded(null),
-				},
+			assert.deepStrictEqual(resp.userTeams[0].teams, {
+				id: castToStringIfNeeded(team.insertId),
+				name: teamName,
+				description: castToStringIfNeeded(null),
 			});
 		}
 
@@ -159,7 +144,7 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 			});
 
 			// UserTeams should be an empty array
-			expect(resp).to.deep.nested.include({
+			assert.deepStrictEqual(resp, {
 				userTeams: [],
 			});
 		}
@@ -177,7 +162,7 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 				],
 			});
 
-			expect(resp).to.deep.nested.equal({
+			assert.deepStrictEqual(resp, {
 				id: castToStringIfNeeded(team.insertId),
 				name: teamName,
 				description: castToStringIfNeeded(null),
@@ -201,7 +186,7 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 				},
 			});
 
-			expect(resp).to.deep.nested.equal({});
+			assert.deepStrictEqual(resp, {});
 		}
 	});
 
@@ -258,6 +243,21 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 				'*textsearch': "+Old'n'Name",
 			});
 			expect(resp).to.have.property('username', username);
+		}
+
+		// Full Text on Generated Fields
+		if (!process.env.DB_ENGINE?.startsWith('mysql:5.6')) {
+			dare.options.models.users.schema.ft_index = {
+				readable: true,
+				writeable: false,
+			};
+
+			{
+				const resp = await dare.get('users', ['username'], {
+					'*ft_index': '+Old*n*',
+				});
+				expect(resp).to.have.property('username', username);
+			}
 		}
 	});
 
