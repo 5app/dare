@@ -1547,9 +1547,9 @@ await dare.patch({
 
 This version of Dare is designed to work with:
 
-- MySQL (5.6, 5.7 and 8)
-- Postgres (16.3)
-- MariaDB (11)
+-   MySQL (5.6, 5.7 and 8)
+-   Postgres (16.3)
+-   MariaDB (11)
 
 Set the property `engine` on the Dare instance
 e.g.

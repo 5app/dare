@@ -9,6 +9,7 @@ import unwrap_field from '../utils/unwrap_field.js';
 /**
  * @typedef {import('sql-template-tag').Sql} Sql
  * @typedef {import('../index.js').default} Dare
+ * @typedef {import('../index.js').Engine} Engine
  */
 /* eslint-enable jsdoc/valid-types */
 
@@ -241,7 +242,7 @@ function prepCondition({
  * @param {string|null} params.conditional_operators_in_value - Allowable conditional operators in value
  * @param {string|null} params.operators - Operators
  * @param {string|null} params.type - Type
- * @param {string} params.engine - DB Engine
+ * @param {Engine} params.engine - DB Engine
  * @returns {Sql} SQL condition
  */
 function sqlCondition({

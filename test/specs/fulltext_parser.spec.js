@@ -1,7 +1,20 @@
 import assert from 'node:assert/strict';
 import Dare from '../../src/index.js';
 
+/* eslint-disable jsdoc/valid-types */
+/**
+ * @typedef {import('../../src/index.js').Engine} Engine
+ */
+/* eslint-enable jsdoc/valid-types */
+
+/**
+ * @type {Engine}
+ */
 const ENGINE_POSTGRES = 'postgres:16.3';
+
+/**
+ * @type {Engine}
+ */
 const ENGINE_MYSQL = 'mysql:5.7.40';
 
 describe('fulltextParser', () => {
@@ -30,6 +43,7 @@ describe('fulltextParser', () => {
 	].forEach(({input, ...expects}) => {
 		Object.entries(expects).forEach(([engine, expected]) => {
 			it(`${engine} should format ${input} to ${expected}`, () => {
+				// @ts-ignore
 				const dare = new Dare({engine});
 				const output = dare.fulltextParser(input);
 				assert.strictEqual(

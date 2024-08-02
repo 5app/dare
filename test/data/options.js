@@ -6,8 +6,24 @@ const string = {
 	type: 'string',
 };
 
+/* eslint-disable jsdoc/valid-types */
+/**
+ * @typedef {import('../../src/index.js').RequestOptions} RequestOptions
+ * @typedef {import('../../src/index.js').Engine} Engine
+ */
+/* eslint-enable jsdoc/valid-types */
+
+/**
+ * @type {Engine}
+ */
+// @ts-ignore
+const engine = process.env.DB_ENGINE;
+
+/**
+ * @type {RequestOptions}
+ */
 export default {
-	engine: process.env.DB_ENGINE,
+	engine,
 	models: {
 		// Users table
 		users: {

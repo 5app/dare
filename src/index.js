@@ -20,6 +20,8 @@ import response_handler, {responseRowHandler} from './response_handler.js';
 /**
  * @typedef {import('sql-template-tag').Sql} Sql
  *
+ * @typedef {`${'mysql' | 'postgres' | 'mariadb'}:${number}.${number}${string?}`} Engine
+ *
  * @typedef {object} Model
  * @property {Object<string, object | Function | Array<string> | string | null | boolean>} [schema] - Model Schema
  * @property {string} [table] - Alias for the table
@@ -50,7 +52,7 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {Function} [getFieldKey] - Override default Function to interpret the field key
  * @property {string} [conditional_operators_in_value] - Allowable conditional operators in value
  * @property {any} [state] - Arbitary data to carry through to the model/response handlers
- * @property {string} [engine] - DB Engine to use
+ * @property {Engine} [engine] - DB Engine to use
  *
  * @typedef {object} InternalProps
  * @property {'post' | 'get' | 'patch' | 'del'} [method] - Method to use
@@ -115,7 +117,7 @@ Dare.prototype.execute = async requestQuery => {
 
 /**
  * Engine, database engine
- * @type {string}
+ * @type {Engine}
  */
 Dare.prototype.engine = 'mysql:5.7.40';
 
