@@ -1,3 +1,10 @@
+## [0.90.2](https://github.com/5app/dare/compare/v0.90.1...v0.90.2) (2024-08-02)
+
+
+### Bug Fixes
+
+* **patch:** remove space between alias name and set value, noissue ([8876b85](https://github.com/5app/dare/commit/8876b8572af4557c9237791af4f060ef18d49faa))
+
 ## [0.90.1](https://github.com/5app/dare/compare/v0.90.0...v0.90.1) (2024-08-02)
 
 
