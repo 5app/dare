@@ -924,7 +924,7 @@ function prepareSQLSet({
 
 		// Replace value with a question using any mapped fieldName
 		assignments.push(
-			SQL`${sql_alias ? raw(`${sql_alias}.`) : empty} ${raw(dareInstance.identifierWrapper(field))} = ${value}`
+			SQL`${raw((sql_alias ? `${sql_alias}.` : '') + dareInstance.identifierWrapper(field))} = ${value}`
 		);
 	}
 
