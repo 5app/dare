@@ -1,3 +1,10 @@
+## [0.90.1](https://github.com/5app/dare/compare/v0.90.0...v0.90.1) (2024-08-02)
+
+
+### Bug Fixes
+
+* **ts:** add Engine string type pattern, noissue ([9cf7313](https://github.com/5app/dare/commit/9cf7313f7cb970f8b3f945a07bccb490010397c8))
+
 # [0.90.0](https://github.com/5app/dare/compare/v0.89.0...v0.90.0) (2024-07-05)
 
 
