@@ -9,22 +9,26 @@
 
 Dare is a brave API for generating SQL out of structured Javascript objects.
 
-# Example usage...
+## Example usage...
 
-This is a simple setup to get started with, it'll make a basic SELECT query.
+This is a simple setup to make a SELECT query
 
 ```js
 // Require the module
 import Dare from 'dare';
-import sqlConn from './mySqlConn.js';
+import dbconn from './dbConn.js'; // <- your script for executing queries
 
 // Initiate it
-const dare = new Dare();
+const dare = new Dare({
+	engine: 'mysql:8.0' // set the engine
+});
 
 // Define the handler dare.execute for handing database requests
-dare.execute = async ({sql, values}) => {
+dare.execute = async (request) => {
+
 	// Execute query using prepared statements
-	return sqlConn.execute(sql, values);
+	// use request.sql, whilst in postgres use request.text
+	return dbconn.query(request.sql, request.values);
 };
 
 // Make a request
@@ -39,6 +43,15 @@ console.log(`Hi ${resp.name}');
 ```bash
 npm i dare --save
 ```
+
+# Connect
+
+The setup needs to define a execution handler `dare.execute(SqlRequest) : Promise<Array | Object<{insertId, affectedRows}>`
+
+The integration tests illustrates how a [setup of a dare instance](`./test/integration/helpers/api.js`) connects to different clients...
+
+-   **MySQL** (5.6, 5.7, 8.0,...) and **MariaDB** (11) See [connection with `mysql2`](./test/integration/helpers/MySQL.js)
+-   **Postgres** (16+) See [connection with `pg`](./test/integration/helpers/Postgres.js)
 
 # Methods
 
@@ -232,7 +245,7 @@ The type of value affects the choice of SQL Condition syntax to use. For example
 
 Prefixing the prop with:
 
--   `%`: creates a `LIKE` comparison
+-   `%`: creates a `LIKE` comparison (or `ILIKE` in _postgres_)
 -   `-`: hyhen negates the value
 -   `~`: creates a range
 
@@ -570,38 +583,30 @@ await dare.get({
 });
 ```
 
-As you can see, to apply `options` you have... um _options_.
-
-# `options.models`
-
-The `options.models` object, allows us to apply all our models to Dare. Where the object key is the label for which we'll refer to that model.
-
-See next section **Model** for what a model looks like.
-
-```js
-// options Object containing a property called `models`
-// Models is a key => model store, where the key is what we'll always refer to as the label for that model.
-const options = {
-	models: {
-		// modelA,
-		// modelB,
-		// etc...
-	},
-};
-
-// options applied to dare as before.
-```
+| option name     | type                                      | description                                                                                                                                    |
+| --------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `engine`        | `string`                                  | Database engine, e.g. `mysql:5.7:40`, `postgres:16.3`                                                                                          |
+| `models`        | `Object<ModelName, Model>`                | An object where the keys are the model names to which models can be referred.                                                                  |
+| `validateInput` | `Function(fieldAttributes, field, value)` | Validate input on _patch_ and _post_ operations                                                                                                |
+| `getFieldKey`   | `Function(field, schema)`                 | Override the default function for retrieving schema fields, this is useful if you want to support altenative case (camelCase and/or snakeCase) |
 
 # Model
 
-Perhaps the most important part of the **Dare** library is concept of a **model**.
+Models define many things, the underling db table, the schema and any handler functions which are invoked on any operation (post, patch, del, get, getCount).
 
-A **model** defines:
+Models are applied to the `options.models` object e.g...
 
--   how data is interlinked, i.e. how one relational data table is joined to another via a key
--   mutation handlers, for changing requests. This allows access permissions to be applied, to filter results, to restrict or mutate input data.
+```js
+const dare = new Dare({
+	models: {
+		mymodel : {
+			/** model properties */
+		}.
+	}
+});
+```
 
-E.g. here are available properties which can be defined on a model,
+Available properties which can be defined on a model are...
 
 ```js
 const myModel = {
@@ -1540,14 +1545,25 @@ await dare.patch({
 
 ### DB Engine compatibility
 
-The latest version is designed to work with MySQL 5.7 and 8
+This version of Dare is designed to work with:
 
-There is currently backwards compatibility with MySQL 5.6 provided by setting the environment variable `MYSQL_VERSION`
+-   MySQL (5.6, 5.7 and 8)
+-   Postgres (16.3)
+-   MariaDB (11)
 
+Set the property `engine` on the Dare instance
 e.g.
 
 ```js
-process.env.MYSQL_VERSION = '5.6';
+const dare = new Dare{{
+	engine: 'postgres:16.3',
+	...
+}};
+
+// Or, have multiple instances...
+let dareWithPostgres = dare.use({
+	engine: 'postgres:16.3'
+});
 ```
 
 # Caveats

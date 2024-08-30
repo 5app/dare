@@ -18,6 +18,12 @@ CREATE TABLE `users` (
   `secret` varchar(2048) DEFAULT NULL,
   `settings` varchar(2048) DEFAULT NULL,
   `country_id` int(11) DEFAULT NULL,
+
+  /*!50712
+    ft_index TEXT GENERATED ALWAYS AS (CONCAT_WS(username, first_name, last_name)) STORED,
+    FULLTEXT KEY `users-ft-index` (`ft_index`),
+  */
+
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_username` (`username`),
   FULLTEXT KEY `fulltext_users_fields` (`username`, `first_name`, `last_name`),
@@ -31,7 +37,6 @@ CREATE TABLE users_email (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
   `email` varchar(255) NOT NULL,
-  `is_primary` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_email` (`email`),
   -- users
@@ -62,7 +67,6 @@ CREATE TABLE `userTeams` (
   CONSTRAINT `fk_userTeams_team_id` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`)
 
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
-
 
 CREATE TABLE `country` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

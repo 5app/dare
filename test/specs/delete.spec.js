@@ -1,5 +1,6 @@
 import {expect} from 'chai';
 import Dare from '../../src/index.js';
+import assert from 'node:assert/strict';
 
 // Test Generic DB functions
 import sqlEqual from '../lib/sql-equal.js';
@@ -201,5 +202,53 @@ describe('del', () => {
 		});
 
 		expect(test).to.have.property('affectedRows', 1);
+	});
+
+	describe('DB Engine specific tests', () => {
+		const DB_ENGINE = 'postgres:16.3';
+		let dareInst;
+
+		beforeEach(() => {
+			dareInst = dare.use({engine: DB_ENGINE});
+		});
+
+		it(`${DB_ENGINE} should delete with subquery conditions rather than JOINs`, async () => {
+			dareInst.options.models = {
+				tbl: {
+					schema: {
+						// Create a reference to tblB
+						ref_id: ['tblB.id'],
+					},
+				},
+			};
+
+			dareInst.execute = async ({sql, values}) => {
+				sqlEqual(
+					sql,
+					`DELETE FROM tbl
+					WHERE tbl.id = ?
+						AND tbl.ref_id IN (
+							SELECT id FROM (
+								SELECT a.id FROM tblB a WHERE a.id= ?
+							) AS a_tmp
+						)
+					`
+				);
+				assert.deepStrictEqual(values, [1, 1]);
+				return {success: true};
+			};
+
+			const test = await dareInst.del({
+				table: 'tbl',
+				filter: {
+					id: 1,
+					tblB: {
+						id: 1,
+					},
+				},
+			});
+
+			assert.deepStrictEqual(test, {success: true});
+		});
 	});
 });

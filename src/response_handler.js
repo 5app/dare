@@ -21,7 +21,7 @@ export function responseRowHandler(row, index) {
 	const dareInstance = this;
 
 	// Expand row...
-	let item = formatHandler(row);
+	let item = formatHandler(row, dareInstance);
 
 	// Add generate fields for generating fields etc...
 
@@ -38,7 +38,7 @@ export function responseRowHandler(row, index) {
 }
 
 // Format
-function formatHandler(item) {
+function formatHandler(item, dareInstance) {
 	// Some of the names were prefixed to ensure uniqueness, e.g., [{name: name, 'asset:name': name}]
 	for (const label in item) {
 		let value = item[label];
@@ -107,8 +107,12 @@ function formatHandler(item) {
 						 * JSON_ARRAY can include a NULL value even if there is no matching join
 						 * CONCAT_WS would in the same circumstance return an empty string
 						 */
-						const emptyValues =
-							process.env.MYSQL_VERSION === '5.6' ? '' : null;
+						const emptyValues = dareInstance.engine.startsWith(
+							'mysql:5.6'
+						)
+							? ''
+							: null;
+
 						if (!values.some(val => val !== emptyValues)) {
 							// Continue
 							return;

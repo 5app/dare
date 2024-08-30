@@ -4,10 +4,11 @@ import Debug from 'debug';
 import mysql from 'mysql2/promise';
 import db from './helpers/db.js';
 import options from '../data/options.js';
+import defaultAPI from './helpers/api.js';
 
 const debug = Debug('sql');
 
-function dareStream() {
+function DareStream() {
 	// Initiate
 	const dare = new Dare(options);
 
@@ -37,10 +38,12 @@ function dareStream() {
 }
 
 describe('Stream', () => {
+	let dareStream;
 	let dare;
 
 	beforeEach(() => {
-		dare = dareStream();
+		dareStream = DareStream();
+		dare = defaultAPI();
 	});
 
 	it('should expose the stream of data through rowHandler', async () => {
@@ -49,13 +52,13 @@ describe('Stream', () => {
 			.fill(0)
 			.map((_, index) => ({username: `User${index}`}));
 
-		await dare.post('users', postUsers);
+		const {insertId} = await dare.post('users', postUsers);
 
 		// Push data out
 		const data = [];
 
 		// Retrieve a list of users via a stream
-		const resp = await dare.get({
+		const resp = await dareStream.get({
 			table: 'users',
 			fields: ['username', 'generatedUrl'],
 			limit: 100,
@@ -78,7 +81,7 @@ describe('Stream', () => {
 			data[0],
 			{
 				username: 'User0',
-				generatedUrl: '/user/1',
+				generatedUrl: `/user/${insertId}`,
 			},
 			'Should return formated data'
 		);

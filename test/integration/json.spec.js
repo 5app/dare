@@ -4,13 +4,15 @@ import defaultAPI from './helpers/api.js';
 
 // Connect to db
 
+const {DB_ENGINE = 'mysql:5.7.40'} = process.env;
+
 describe('Working with JSON DataType', () => {
 	let dare;
 	const username = 'mightyduck';
 
 	// JSON DataType not supported in MySQL 5.6
 	beforeEach(function () {
-		if (process.env.MYSQL_VERSION === '5.6') {
+		if (DB_ENGINE?.startsWith('mysql:5.6')) {
 			this.skip();
 			return;
 		}
@@ -18,9 +20,11 @@ describe('Working with JSON DataType', () => {
 		// Initiate
 		dare = defaultAPI();
 
-		dare.sql(SQL`
-            ALTER TABLE users MODIFY COLUMN settings JSON DEFAULT NULL
-        `);
+		if (DB_ENGINE?.startsWith('mysql')) {
+			dare.sql(SQL`
+				ALTER TABLE users MODIFY COLUMN settings JSON DEFAULT NULL
+			`);
+		}
 	});
 
 	it('JSON fields should be retrievable', async () => {
@@ -39,7 +43,12 @@ describe('Working with JSON DataType', () => {
 		assert.deepStrictEqual(resp.settings, settings);
 	});
 
-	it('entire JSON field should be queryable as a string', async () => {
+	it('entire JSON field should be queryable as a string', async function () {
+		if (!DB_ENGINE?.startsWith('mysql')) {
+			this.skip();
+			return;
+		}
+
 		const testString = 'testString';
 		const settings = {
 			testString,
@@ -61,7 +70,12 @@ describe('Working with JSON DataType', () => {
 		assert.deepStrictEqual(resp.id, insertId);
 	});
 
-	it('JSON fields should be queryable using nested values', async () => {
+	it('JSON fields should be queryable using nested values', async function () {
+		if (DB_ENGINE?.startsWith('mariadb')) {
+			this.skip();
+			return;
+		}
+
 		const settings = {
 			digit: 1,
 			str: 'string',
@@ -107,7 +121,7 @@ describe('Working with JSON DataType', () => {
 					'%stringy': 'chee%', // In MySQL the LIKE operator looks at the "quoted" string, so need to add a quote if comparing against the start or end of a value respectively
 
 					// In operator
-					option: ['one', 'two'], // String items, must be quoted?
+					option: ['one', 'two'],
 
 					/*
 					 * // Not supported yet

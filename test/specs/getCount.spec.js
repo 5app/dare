@@ -24,7 +24,7 @@ describe('getCount', () => {
 		dare.execute = async ({sql, values}) => {
 			sqlEqual(
 				sql,
-				"SELECT COUNT(DISTINCT a._rowid) AS 'count' FROM test a WHERE a.id = ? LIMIT 1"
+				'SELECT COUNT(DISTINCT a._rowid) AS "count" FROM test a WHERE a.id = ? LIMIT 1'
 			);
 			expect(values).to.deep.equal([id]);
 			return [{count}];
@@ -38,7 +38,7 @@ describe('getCount', () => {
 	it('should remove the groupby to the fields section', async () => {
 		dare.execute = async ({sql, values}) => {
 			const expected = `
-				SELECT COUNT(DISTINCT DATE(a.created_time)) AS 'count'
+				SELECT COUNT(DISTINCT DATE(a.created_time)) AS "count"
 				FROM test a
 				LIMIT 1
 			`;
@@ -61,7 +61,7 @@ describe('getCount', () => {
 	it('should apply multiple groupby', async () => {
 		dare.execute = async ({sql, values}) => {
 			const expected = `
-				SELECT COUNT(DISTINCT DATE(a.created_time), a.name) AS 'count'
+				SELECT COUNT(DISTINCT DATE(a.created_time), a.name) AS "count"
 				FROM test a
 				LIMIT 1
 			`;

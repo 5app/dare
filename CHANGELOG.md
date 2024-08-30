@@ -1,3 +1,31 @@
+## [0.90.2](https://github.com/5app/dare/compare/v0.90.1...v0.90.2) (2024-08-02)
+
+
+### Bug Fixes
+
+* **patch:** remove space between alias name and set value, noissue ([8876b85](https://github.com/5app/dare/commit/8876b8572af4557c9237791af4f060ef18d49faa))
+
+## [0.90.1](https://github.com/5app/dare/compare/v0.90.0...v0.90.1) (2024-08-02)
+
+
+### Bug Fixes
+
+* **ts:** add Engine string type pattern, noissue ([9cf7313](https://github.com/5app/dare/commit/9cf7313f7cb970f8b3f945a07bccb490010397c8))
+
+# [0.90.0](https://github.com/5app/dare/compare/v0.89.0...v0.90.0) (2024-07-05)
+
+
+### Features
+
+* **mariadb:** add support for MariaDB ([0e9c8b9](https://github.com/5app/dare/commit/0e9c8b9ab69f46f82b8b23864572dfaa74011927))
+
+# [0.89.0](https://github.com/5app/dare/compare/v0.88.3...v0.89.0) (2024-07-05)
+
+
+### Features
+
+* **postgres:** initial integration test implementation ([#338](https://github.com/5app/dare/issues/338)) ([9e81d0c](https://github.com/5app/dare/commit/9e81d0c25462897646c75e645d438050984646c8)), closes [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339)
+
 ## [0.88.3](https://github.com/5app/dare/compare/v0.88.2...v0.88.3) (2024-05-22)
 
 

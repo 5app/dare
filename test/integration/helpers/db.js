@@ -1,36 +1,31 @@
-import mysql from 'mysql2/promise';
-import {PassThrough} from 'node:stream';
+import MySQL from './MySQL.js';
+import Postgres from './Postgres.js';
 
-// Initiates the mysql connection
-class DB {
-	async init(mysqlSettings) {
-		this.conn = await mysql.createConnection({
-			...mysqlSettings,
-			multipleStatements: true,
-		});
+const {
+	DB_ENGINE = 'mysql:5.6',
+	DB_HOST = 'mysql',
+	DB_PORT = 13_306,
+	DB_USER = 'db_user',
+	DB_PASSWORD = 'password',
+	TEST_DB_PREFIX = 'test_',
+} = process.env;
 
-		return this.conn;
-	}
-	async query(query) {
-		const [rows] = await this.conn.query(query);
+// To support parallel tests, we create a separate db per-process/thread and just reset the state (truncate tables) per-test.
+const dbName = `${TEST_DB_PREFIX}${Date.now()}_${process.pid}`;
 
-		return rows;
-	}
-	end() {
-		// Close this connection
-		return this.conn.end();
-	}
+const dbSettings = {
+	host: DB_HOST,
+	user: DB_USER,
+	port: +DB_PORT,
+	password: DB_PASSWORD,
+	database: dbName,
+};
 
-	stream(query, streamOptions = {objectMode: true, highWaterMark: 5}) {
-		const resultStream = new PassThrough(streamOptions);
-
-		// Stream query results from the DB
-
-		// @ts-ignore
-		this.conn.connection.query(query).stream().pipe(resultStream);
-
-		return resultStream;
-	}
+let dbInstance;
+if (DB_ENGINE.startsWith('mysql') || DB_ENGINE.startsWith('mariadb')) {
+	dbInstance = new MySQL(dbSettings);
+} else if (DB_ENGINE.startsWith('postgres')) {
+	dbInstance = new Postgres(dbSettings);
 }
 
-export default new DB();
+export default dbInstance;

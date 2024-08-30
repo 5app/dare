@@ -50,8 +50,8 @@ jobs:
 
     integration:
         parameters:
-            mysql_version:
-                default: '5.6'
+            db_engine:
+                default: 'mysql:5.6'
                 type: string
         executor: ubuntu-machine
         steps:
@@ -59,7 +59,7 @@ jobs:
             - node/install-packages
             - run:
                   name: Run integration tests
-                  command: MYSQL_VERSION=<< parameters.mysql_version >> npm run test:integration -- --exit --timeout=4000
+                  command: DB_ENGINE=<< parameters.db_engine >> npm run test:integration -- --exit --timeout=4000
 
     release:
         executor:
@@ -80,7 +80,14 @@ workflows:
             - integration:
                   matrix:
                       parameters:
-                          mysql_version: ['5.6', '5.7.40', '8.0.23']
+                          db_engine:
+                              [
+                                  'mysql:5.6',
+                                  'mysql:5.7.40',
+                                  'mysql:8.0.23',
+                                  'mariadb:11.4',
+                                  'postgres:16.3',
+                              ]
             - release:
                   context: org-global
                   requires:
