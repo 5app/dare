@@ -376,4 +376,35 @@ describe('get - subquery', () => {
 			});
 		});
 	});
+
+
+
+	describe(`Disparities`, () => {
+	
+		it('MySQL 8 fails to correctly count the items in this scenario', async () => {
+			/*
+			 * See Bug report: https://bugs.mysql.com/bug.php?id=109585
+			 */
+			const dareInst = dare.use({engine: 'mysql:8.0.36'});
+			
+			dareInst.options.models.userContent = {
+				schema: {
+					content_id: ['content.id'],
+				},
+			};
+
+			dareInst.sql = async ({sql}) => {
+				expect(sql).to.not.contain('LIMIT 1');
+			};
+	
+			// Construct a query which counts these
+			await dareInst.get({
+				table: 'content',
+				fields: ['id', {count: 'COUNT(DISTINCT userContent.user_id)'}],
+				limit: 3,
+			});
+	
+		});
+	});
+	
 });
