@@ -9,6 +9,13 @@ export default function unwrap_field(expression, allowValue = true) {
 		let suffix = '';
 		let prefix = '';
 
+		if (str.length > 200) {
+			throw new DareError(
+				DareError.INVALID_REFERENCE,
+				`The field definition '${expression}' is too long.`
+			);
+		}
+
 		// Match a function, "STRING_DENOTES_FUNCTION(.*)"
 		while ((m = str.match(/^(!?[_a-z]+\()(.*)(\))$/i))) {
 			// Change the string to match the inner string...
@@ -26,17 +33,30 @@ export default function unwrap_field(expression, allowValue = true) {
 				str = int_m[1];
 			}
 
+			// Split out comma variables from front
+			while (
+				(int_m = str.match(
+					/^(?<prefix>((?<quote>["'])[^"';\\]*\k<quote>),\s*)(?<body>.+)$/i
+				))
+			) {
+				str = int_m?.groups?.body;
+				prefix += int_m?.groups?.prefix;
+			}
+
 			// Split out comma variables
 			while (
 				(int_m = str.match(
-					/(.*)(,\s*((?<quote>["'])?[\s\w%./-]*\k<quote>))$/i
+					/^(.*)(,\s*(?<suffix>(?<quote>["'])?[\s\w%./-]*\k<quote>))$/i
 				))
 			) {
 				/*
-				 * Is there an unquoted parameter
-				 * Ensure there are no lowercase strings (e.g. column names)
+				 * If unquoted parameter
+				 * Ensure no lowercase strings (i.e. column names)
 				 */
-				if (!int_m[4] && int_m[3] && int_m[3].match(/[a-z]/)) {
+				if (
+					!int_m.groups.quote &&
+					int_m.groups.suffix?.match(/[a-z]/)
+				) {
 					// Is this a valid field
 					throw new DareError(
 						DareError.INVALID_REFERENCE,

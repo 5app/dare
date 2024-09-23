@@ -36,6 +36,28 @@ export default function fieldReducer({
 						continue;
 					}
 
+					// /*
+					//  * Is this a JSON field to drill into?
+					//  * -> Extract Type
+					//  */
+					// Const {type} = getFieldAttributes(
+					// 	Table_schema[key]
+					// );
+					// // -> If type === json;
+					// If (type === 'json') {
+
+					// 	/*
+					// 	 * Deconstruct the object into an array of values
+					// 	 * Format these to have lables and pipe into `fieldsArray`
+					// 	 */
+
+					/*
+					 * }
+					 * else {
+					 * 	// Extract nested field
+					 * }
+					 */
+
 					// Extract nested field
 					extract(key, Array.isArray(value) ? value : [value]);
 				} else {
@@ -101,6 +123,7 @@ export default function fieldReducer({
  * @param {Function} opts.extract - Function for handling the extraction of content
  * @param {object} opts.table_schema - Schema of the current table
  * @param {object} opts.dareInstance - An instance of the current Dare object
+ * @param {boolean} [opts.initialCall=true] - Is this the initial call to fieldMapping?
  * @returns {string|object} The augemented field expression
  */
 function fieldMapping({
@@ -112,6 +135,7 @@ function fieldMapping({
 	extract,
 	table_schema,
 	dareInstance,
+	initialCall = true,
 }) {
 	// Extract the underlying field
 	const {
@@ -177,7 +201,8 @@ function fieldMapping({
 	const {handler, alias, type, readable} = getFieldAttributes(
 		field_name,
 		table_schema,
-		dareInstance
+		dareInstance,
+		initialCall // Is this the initialCall? Then use the default schema definition when the field is not found
 	);
 
 	// Is this readable?
@@ -270,6 +295,7 @@ function fieldMapping({
 			extract,
 			table_schema,
 			dareInstance,
+			initialCall: false,
 		});
 	}
 

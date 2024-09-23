@@ -33,7 +33,7 @@ const limit = 5;
 		it('should add orderby using nested tables', async () => {
 			dare.sql = async ({sql}) => {
 				const expected = `
-					SELECT a.email, b.name AS 'name'
+					SELECT a.email, b.name AS "name"
 					FROM users_email a
 					LEFT JOIN users b ON(b.id = a.user_id)
 					${SQL_EXPR} \`name\`
@@ -55,7 +55,7 @@ const limit = 5;
 		it('should use the field label', async () => {
 			dare.sql = async ({sql}) => {
 				const expected = `
-					SELECT a.email, DATE(c.created) AS 'users.country.date', c.name AS 'CountryName'
+					SELECT a.email, DATE(c.created) AS "users.country.date", c.name AS "CountryName"
 					FROM users_email a
 					LEFT JOIN users b ON(b.id = a.user_id)
 					LEFT JOIN country c ON(c.id = b.country_id)

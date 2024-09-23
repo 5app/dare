@@ -1,4 +1,4 @@
-import SQL, {raw, join, empty} from 'sql-template-tag';
+import SQL, {raw, join, empty, bulk} from 'sql-template-tag';
 
 import getHandler from './get.js';
 
@@ -20,6 +20,8 @@ import response_handler, {responseRowHandler} from './response_handler.js';
 /**
  * @typedef {import('sql-template-tag').Sql} Sql
  *
+ * @typedef {`${'mysql' | 'postgres' | 'mariadb'}:${number}.${number}${string?}`} Engine
+ *
  * @typedef {object} Model
  * @property {Object<string, object | Function | Array<string> | string | null | boolean>} [schema] - Model Schema
  * @property {string} [table] - Alias for the table
@@ -29,13 +31,13 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {Function} [patch] - Patch handler
  * @property {Function} [del] - Delete handler
  *
- * @typedef {object} RequestObject
+ * @typedef {object} RequestOptions
  * @property {string} [table] - Name of the table to query
  * @property {Array} [fields] - Fields array to return
  * @property {object} [filter] - Filter Object to query
  * @property {object} [join] - Place filters on the joining tables
  * @property {object} [body] - Body containing new data
- * @property {RequestObject} [query] - Query attached to a post request to create INSERT...SELECT operations
+ * @property {RequestOptions} [query] - Query attached to a post request to create INSERT...SELECT operations
  * @property {number} [limit] - Number of items to return
  * @property {number} [start] - Number of items to skip
  * @property {string | string[]} [orderby] - Array of fields to order by
@@ -50,6 +52,7 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {Function} [getFieldKey] - Override default Function to interpret the field key
  * @property {string} [conditional_operators_in_value] - Allowable conditional operators in value
  * @property {any} [state] - Arbitary data to carry through to the model/response handlers
+ * @property {Engine} [engine] - DB Engine to use
  *
  * @typedef {object} InternalProps
  * @property {'post' | 'get' | 'patch' | 'del'} [method] - Method to use
@@ -62,9 +65,10 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {string} [sql_alias] - SQL Alias
  * @property {Array} [sql_joins] - SQL Join
  * @property {string} [ignore] - SQL Fields
+ * @property {boolean} [forceSubquery] - Force the table joins to use a subquery.
  * @property {Array} [sql_where_conditions] - SQL Where conditions
  *
- * @typedef {RequestObject & InternalProps} QueryOptions
+ * @typedef {RequestOptions & InternalProps} QueryOptions
  */
 /* eslint-enable jsdoc/valid-types */
 
@@ -80,9 +84,14 @@ export {DareError};
  * @param {QueryOptions} options - Initial options defining the instance
  * @returns {Dare} instance of dare
  */
-function Dare(options = {}) {
+function Dare({engine, ...options} = {}) {
 	// Overwrite default properties
 	this.options = extend(clone(this.options), options);
+
+	if (engine) {
+		this.engine = engine;
+		this.rowid = engine.startsWith('postgres') ? 'id' : '_rowid';
+	}
 
 	return this;
 }
@@ -106,11 +115,13 @@ Dare.prototype.execute = async requestQuery => {
 	);
 };
 
-// Group concat
-/** @type {string} */
-Dare.prototype.group_concat = '$$';
+/**
+ * Engine, database engine
+ * @type {Engine}
+ */
+Dare.prototype.engine = 'mysql:5.7.40';
 
-// Rowid, name of primary key field used in grouping operations
+// Rowid, name of primary key field used in grouping operation: MySQL uses _rowid
 /** @type {string} */
 Dare.prototype.rowid = '_rowid';
 
@@ -138,6 +149,11 @@ Dare.prototype.table_alias_handler = function (name) {
 
 Dare.prototype.unique_alias_index = 0;
 
+Dare.prototype.identifierWrapper = function identifierWrapper(field) {
+	const identifier_delimiter = this.engine.startsWith('postgres') ? '"' : '`';
+	return [identifier_delimiter, field, identifier_delimiter].join('');
+};
+
 Dare.prototype.get_unique_alias = function () {
 	const i = this.unique_alias_index;
 	const num_characters_in_alphabet = 26;
@@ -157,7 +173,8 @@ Dare.prototype.get_unique_alias = function () {
 	const prefix = String.fromCharCode(
 		96 + Math.floor(i / num_characters_in_alphabet)
 	);
-	return `\`${prefix}${str}\``;
+
+	return this.identifierWrapper(`${prefix}${str}`);
 };
 
 // eslint-disable-next-line jsdoc/valid-types
@@ -187,6 +204,8 @@ Dare.prototype.getFieldKey = function getFieldKey(field, schema) {
  * @returns {string} Formatted string
  */
 Dare.prototype.fulltextParser = function fulltextParser(input) {
+	const IS_POSTGRES = this.engine.startsWith('postgres');
+
 	function safequote(text) {
 		let suffix = '';
 
@@ -198,6 +217,11 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 		if (text.match(/['@-]/)) {
 			return `"${text}"`;
 		}
+
+		if (IS_POSTGRES && suffix === '*') {
+			return `${text}:*`;
+		}
+
 		return text + suffix;
 	}
 
@@ -210,8 +234,9 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 
 	// Replace any special characters with quotes
 	const resp = input.matchAll(
-		/\s*(?<sign>[+<>~-]?)(?:\((?<subexpression>[^()]*)\)|(?<quoted>".*?")|(?<unquoted>[^\s()]+))(?<suffix>\*)?/g
+		/\s*(?<sign>[&+<>~-]?)(?:\((?<subexpression>[^()]*)\)|(?<quoted>".*?")|(?<unquoted>[^\s()]+))(?<suffix>\*)?/g
 	);
+
 	const output = [...resp]
 		.filter(({groups: {subexpression, quoted, unquoted}}) =>
 			quoted
@@ -219,9 +244,20 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 				: subexpression || unquoted.replace(/^[*+-]+/, '')
 		)
 		.map(
-			({
-				groups: {sign, subexpression, quoted, unquoted, suffix = ''},
-			}) => {
+			(
+				{groups: {sign, subexpression, quoted, unquoted, suffix = ''}},
+				index
+			) => {
+				if (IS_POSTGRES) {
+					sign = sign
+						// .replace('+', '&')
+						.replace(/[+<>~]*/, '');
+
+					if (!sign.includes('&') && index > 0) {
+						sign = `& ${sign}`;
+					}
+				}
+
 				if (subexpression) {
 					return `${sign}(${this.fulltextParser(subexpression)})`;
 				} else if (quoted) {
@@ -268,7 +304,7 @@ Dare.prototype.after = function (resp) {
  * @param {QueryOptions} options - set of instance options
  * @returns {Dare} Instance of Dare
  */
-Dare.prototype.use = function (options = {}) {
+Dare.prototype.use = function ({engine, ...options} = {}) {
 	const inst = Object.create(this);
 
 	/**
@@ -283,6 +319,10 @@ Dare.prototype.use = function (options = {}) {
 	}
 	if (options.getFieldKey) {
 		inst.getFieldKey = options.getFieldKey;
+	}
+	if (engine) {
+		inst.engine = engine;
+		inst.rowid = engine.startsWith('postgres') ? 'id' : '_rowid';
 	}
 
 	// Set the generate_fields array
@@ -340,10 +380,12 @@ Dare.prototype.sql = async function sql(sql, values) {
  * Dare.get
  * Triggers a DB SELECT request to rerieve records from the database.
  *
- * @param {string | RequestObject} table - Name of the table to query
+ * @typedef {Omit<RequestOptions, 'body' | 'query' | 'duplicate_keys' | 'duplicate_keys_update'>} GetRequestOptions
+ *
+ * @param {string | GetRequestOptions} table - Name of the table to query
  * @param {Array} [fields] - Fields array to return
  * @param {object} [filter] - Filter Object to query
- * @param {RequestObject} [options] - An Options object containing all other request options
+ * @param {Omit<GetRequestOptions, 'table' | 'fields' | 'filter'>} [options] - An Options object containing all other request options
  * @returns {Promise<any>} Results
  */
 Dare.prototype.get = async function get(table, fields, filter, options = {}) {
@@ -357,8 +399,12 @@ Dare.prototype.get = async function get(table, fields, filter, options = {}) {
 			: // Clone and extend
 				{...options, table, filter, fields};
 
+	const existanceCheck = opts.fields === undefined;
+
 	// Ensure fields is provided
-	if (typeof fields === 'object' && !Array.isArray(fields)) {
+	if (existanceCheck) {
+		opts.fields = [{recordExists: true}];
+	} else if (typeof opts.fields !== 'object' || opts.fields === null) {
 		// Fields must be defined
 		throw new DareError(DareError.INVALID_REQUEST);
 	}
@@ -403,9 +449,9 @@ Dare.prototype.get = async function get(table, fields, filter, options = {}) {
  * Dare.getCount
  * Returns the total number of results which match the conditions
  *
- * @param {string | RequestObject} table - Name of the table to query
+ * @param {string | GetRequestOptions} table - Name of the table to query
  * @param {object} [filter] - Filter Object to query
- * @param {RequestObject} [options] - An Options object containing all other request options
+ * @param {Omit<GetRequestOptions, 'table' | 'filter'>} [options] - An Options object containing all other request options
  * @returns {Promise<number>} Number of matched items
  */
 Dare.prototype.getCount = async function getCount(table, filter, options = {}) {
@@ -444,21 +490,28 @@ Dare.prototype.getCount = async function getCount(table, filter, options = {}) {
 	// Execute the query
 	const [resp] = await dareInstance.sql(query);
 
-	// Return the count
-	return resp.count;
+	/*
+	 * Return the count
+	 * postgres: returns a string, which needs to be cast to a number
+	 */
+	return Number(resp.count);
 };
 
 /**
  * Dare.patch
  * Updates records matching the conditions
  *
- * @param {string | RequestObject} table - Name of the table to query
+ * @typedef {Omit<RequestOptions, 'fields' | 'groupby' | 'query'>} PatchRequestOptions
+ *
+ * @param {string | PatchRequestOptions} table - Name of the table to query
  * @param {object} [filter] - Filter Object to query
  * @param {object} [body] - Body containing new data
- * @param {RequestObject} [options] - An Options object containing all other request options
+ * @param {Omit<PatchRequestOptions, 'table' | 'body' | 'filter'>} [options] - An Options object containing all other request options
  * @returns {Promise<any>} Affected Rows statement
  */
 Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
+	const IS_POSTGRES = this.engine.startsWith('postgres');
+
 	/**
 	 * @type {QueryOptions} opts
 	 */
@@ -476,6 +529,15 @@ Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
 	setDefaultNotFoundHandler(opts);
 
 	const dareInstance = this.use(opts);
+
+	if (IS_POSTGRES) {
+		/*
+		 * Postgres doesn't support table JOINs to the table being updated
+		 * We can only have one table in the FROM clause, which is a problem if multiple table join to the table being updated.
+		 * To work around this, turn all of the join tables into subquery joins
+		 */
+		opts.forceSubquery = true;
+	}
 
 	const req = await dareInstance.format_request(opts);
 
@@ -496,7 +558,7 @@ Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
 	// Prepare post
 	const sql_set = prepareSQLSet({
 		body: req.body,
-		sql_alias: req.sql_alias,
+		sql_alias: IS_POSTGRES ? null : req.sql_alias,
 		tableSchema,
 		validateInput,
 		dareInstance,
@@ -512,15 +574,14 @@ Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
 	}
 
 	// Construct a db update
-	const sql = SQL`UPDATE ${raw(exec)}${raw(req.sql_table)} ${raw(
-		req.sql_alias
-	)}
-			${req.sql_joins.length ? join(req.sql_joins, '\n') : empty}
-			SET
-				${sql_set}
-			WHERE
-				${join(req.sql_where_conditions, ' AND ')}
-			${!req.sql_joins.length ? SQL`LIMIT ${req.limit}` : empty}`;
+	const sql = SQL`
+		UPDATE ${raw(exec)}${raw(req.sql_table)} ${raw(req.sql_alias)}
+		${req.sql_joins.length ? join(req.sql_joins, '\n') : empty}
+		SET ${sql_set}
+		WHERE
+			${join(req.sql_where_conditions, ' AND ')}
+		${!IS_POSTGRES && !req.sql_joins.length ? SQL`LIMIT ${req.limit}` : empty}
+	`;
 
 	let resp = await this.sql(sql);
 
@@ -533,9 +594,11 @@ Dare.prototype.patch = async function patch(table, filter, body, options = {}) {
  * Dare.post
  * Insert new data into database
  *
- * @param {string | RequestObject} table - Name of the table to query
+ * @typedef {Omit<RequestOptions, 'filter' | 'start' | 'limit' | 'groupby' | 'orderby'>} PostRequestOptions
+ *
+ * @param {string | RequestOptions} table - Name of the table to query
  * @param {object | Array<object>} [body] - Body containing new data
- * @param {RequestObject} [options] - An Options object containing all other request options
+ * @param {Omit<RequestOptions, 'table' | 'body'>} [options] - An Options object containing all other request options
  * @returns {Promise<any>} Affected Rows statement
  */
 Dare.prototype.post = async function post(table, body, options = {}) {
@@ -548,6 +611,9 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 				{...table}
 			: // Clone and extend
 				{...options, table, body};
+
+	// Is postgres
+	const IS_POSTGRES = this.engine.startsWith('postgres');
 
 	// Post
 	opts.method = 'post';
@@ -565,11 +631,11 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 	// Capture fields...
 	const fields = [];
 
-	// Capture values
-	const values = [];
-
-	// If this is a query
-	let query;
+	/**
+	 * INSERT... SELECT placeholder
+	 * @type {Sql}
+	 */
+	let sql_query = empty;
 
 	if (req.query) {
 		/*
@@ -606,14 +672,10 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 			);
 		}
 
-		const {sql, values: getValues} = getHandler(getRequest, getInstance);
-
-		// Update the capturing variables...
-		query = sql;
+		// Assign the query
+		sql_query = getHandler(getRequest, getInstance);
 
 		fields.push(...walkRequestGetField(getRequest));
-
-		values.push(...getValues);
 	} else {
 		// Validate Body
 		validateBody(req.body);
@@ -628,7 +690,7 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 	}
 
 	// If ignore duplicate keys is stated as ignore
-	const exec = req.ignore ? 'IGNORE' : '';
+	const sql_exec = req.ignore ? raw('IGNORE') : empty;
 
 	// Instance options
 	const {models, validateInput} = dareInstance.options;
@@ -720,44 +782,46 @@ Dare.prototype.post = async function post(table, body, options = {}) {
 			const a = fields.map((_, index) => {
 				// If any of the values are missing, set them as DEFAULT
 				if (_data[index] === undefined) {
-					return 'DEFAULT';
+					return raw('DEFAULT');
 				}
 
-				// Else add the value to prepared statement list
-				values.push(_data[index]);
-
 				// Return the prepared statement placeholder
-				return '?';
+				return _data[index];
 			});
 
-			return `(${a.join(',')})`;
+			return a;
 		});
 
 	// Options
-	let on_duplicate_keys_update = '';
+	let sql_on_duplicate_keys_update = empty;
 	if (req.duplicate_keys_update) {
-		on_duplicate_keys_update = onDuplicateKeysUpdate(
-			req.duplicate_keys_update.map(field =>
-				unAliasFields(modelSchema, field, dareInstance)
+		sql_on_duplicate_keys_update = raw(
+			dareInstance.onDuplicateKeysUpdate(
+				req.duplicate_keys_update.map(field =>
+					unAliasFields(modelSchema, field, dareInstance)
+				),
+				fields
 			)
 		);
-	} else if (
-		req.duplicate_keys &&
-		req.duplicate_keys.toString().toLowerCase() === 'ignore'
-	) {
-		on_duplicate_keys_update = `${onDuplicateKeysUpdate()}${
-			req.sql_table
-		}._rowid=${req.sql_table}._rowid`;
+	} else if (req.duplicate_keys?.toString()?.toLowerCase() === 'ignore') {
+		sql_on_duplicate_keys_update = raw(
+			dareInstance.onDuplicateKeysUpdate([], [], req.sql_table)
+		);
 	}
 
-	// Construct a db update
-	const sql = `INSERT ${exec} INTO ${req.sql_table}
-			(${fields.map(field => `\`${field}\``).join(',')})
-			${data.length ? `VALUES ${data.join(',')}` : ''}
-			${query || ''}
-			${on_duplicate_keys_update}`;
+	const sql_postgres_returning = IS_POSTGRES
+		? SQL` RETURNING ${raw(dareInstance.rowid)}`
+		: empty;
 
-	const resp = await dareInstance.sql({sql, values});
+	// Construct a db update
+	const sql = SQL`INSERT ${sql_exec} INTO ${raw(req.sql_table)}
+			(${raw(fields.map(dareInstance.identifierWrapper.bind(dareInstance)).join(','))})
+			${data.length ? SQL`VALUES ${bulk(data)}` : empty}
+			${sql_query}
+			${sql_on_duplicate_keys_update}
+			${sql_postgres_returning}`;
+
+	const resp = await dareInstance.sql(sql);
 
 	return dareInstance.after(resp);
 };
@@ -766,12 +830,16 @@ Dare.prototype.post = async function post(table, body, options = {}) {
  * Dare.del
  * Delete a record matching condition
  *
- * @param {string | RequestObject} table - Name of the table to query
+ * @typedef {Omit<RequestOptions, 'body' | 'query'>} DeleteRequestOptions
+ *
+ * @param {string | DeleteRequestOptions} table - Name of the table to query
  * @param {object} [filter] - Filter Object to query
- * @param {RequestObject} [options] - An Options object containing all other request options
+ * @param {Omit<DeleteRequestOptions, 'table' | 'filter'>} [options] - An Options object containing all other request options
  * @returns {Promise<any>} Affected Rows statement
  */
 Dare.prototype.del = async function del(table, filter, options = {}) {
+	const IS_POSTGRES = this.engine.startsWith('postgres');
+
 	/**
 	 * @type {QueryOptions} opts
 	 */
@@ -790,6 +858,14 @@ Dare.prototype.del = async function del(table, filter, options = {}) {
 
 	const dareInstance = this.use(opts);
 
+	if (IS_POSTGRES) {
+		/*
+		 * Postgres doesn't support table JONS's in DELETE operation
+		 * So we need to tell the formatter that we want the conditions to be within a subquery
+		 */
+		opts.forceSubquery = true;
+	}
+
 	const req = await dareInstance.format_request(opts);
 
 	// Skip this operation?
@@ -804,7 +880,7 @@ Dare.prototype.del = async function del(table, filter, options = {}) {
 					${req.sql_joins.length ? join(req.sql_joins, '\n') : empty}
 					WHERE
 					${join(req.sql_where_conditions, ' AND ')}
-					${!req.sql_joins.length ? SQL`LIMIT ${req.limit}` : empty}`;
+					${!IS_POSTGRES && !req.sql_joins.length ? SQL`LIMIT ${req.limit}` : empty}`;
 
 	let resp = await this.sql(sql);
 
@@ -818,10 +894,10 @@ Dare.prototype.del = async function del(table, filter, options = {}) {
  * Prepare a SET assignments used in Patch
  * @param {object} obj - Object
  * @param {object} obj.body - body to format
- * @param {string} obj.sql_alias - SQL Alias for update table
+ * @param {string | null} obj.sql_alias - SQL Alias for update table
  * @param {object} [obj.tableSchema={}] - Schema for the current table
  * @param {Function} [obj.validateInput] - Validate input function
- * @param {object} obj.dareInstance - Dare Instance
+ * @param {Dare} obj.dareInstance - Dare Instance
  * @returns {object} {assignment, values}
  */
 function prepareSQLSet({
@@ -847,7 +923,9 @@ function prepareSQLSet({
 		});
 
 		// Replace value with a question using any mapped fieldName
-		assignments.push(SQL`${raw(sql_alias)}.\`${raw(field)}\` = ${value}`);
+		assignments.push(
+			SQL`${raw((sql_alias ? `${sql_alias}.` : '') + dareInstance.identifierWrapper(field))} = ${value}`
+		);
 	}
 
 	return join(assignments, ', ');
@@ -863,11 +941,39 @@ function mustAffectRows(result, notfound) {
 	return result;
 }
 
-function onDuplicateKeysUpdate(keys = []) {
-	const s = keys.map(name => `\`${name}\`=VALUES(\`${name}\`)`).join(',');
+Dare.prototype.onDuplicateKeysUpdate = function onDuplicateKeysUpdate(
+	keys = [],
+	existing = [],
+	sql_table = ''
+) {
+	const IS_POSTGRES = this.engine.startsWith('postgres');
+
+	if (IS_POSTGRES) {
+		if (!keys.length) {
+			return `ON CONFLICT DO NOTHING`;
+		}
+
+		return `
+			ON CONFLICT (${existing.filter(item => !keys.includes(item)).join(',')})
+				DO UPDATE
+					SET ${keys.map(name => `${this.identifierWrapper(name)}=EXCLUDED.${this.identifierWrapper(name)}`).join(',')}
+		`;
+	}
+
+	let s = keys
+		.map(
+			name =>
+				`${this.identifierWrapper(name)}=VALUES(${this.identifierWrapper(name)})`
+		)
+		.join(',');
+
+	if (!keys.length) {
+		s = `${sql_table}._rowid`;
+		s = `${s}=${s}`;
+	}
 
 	return `ON DUPLICATE KEY UPDATE ${s}`;
-}
+};
 
 /**
  * Format Input Value
@@ -877,7 +983,7 @@ function onDuplicateKeysUpdate(keys = []) {
  * @param {string} obj.field - field identifier
  * @param {*} obj.value - Given value
  * @param {Function} [obj.validateInput] - Custom validation function
- * @param {object} obj.dareInstance - Dare Instance
+ * @param {Dare} obj.dareInstance - Dare Instance
  * @throws Will throw an error if the field is not writable
  * @returns {{field: string, value: *}} A singular value which can be inserted
  */
@@ -888,15 +994,17 @@ function formatInputValue({
 	validateInput,
 	dareInstance,
 }) {
-	let fieldAttributes = getFieldAttributes(field, tableSchema, dareInstance);
+	/*
+	 * Get the field attributes
+	 * If the field is not found, use `default` field otherwise return an empty object
+	 */
+	let fieldAttributes = getFieldAttributes(
+		field,
+		tableSchema,
+		dareInstance,
+		true
+	);
 
-	if (Object.keys(fieldAttributes).length === 0 && 'default' in tableSchema) {
-		fieldAttributes = getFieldAttributes(
-			'default',
-			tableSchema,
-			dareInstance
-		);
-	}
 	if (Object.keys(fieldAttributes).length === 0) {
 		// Set this to null for validateInput
 		fieldAttributes = null;
@@ -962,7 +1070,7 @@ function formatInputValue({
  *
  * @param {object} tableSchema - An object containing the table schema
  * @param {string} field - field identifier
- * @param {object} dareInstance - Dare Instance
+ * @param {Dare} dareInstance - Dare Instance
  * @returns {string} Unaliased field name
  */
 function unAliasFields(tableSchema, field, dareInstance) {

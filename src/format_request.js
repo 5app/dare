@@ -1,4 +1,4 @@
-import SQL, {join, raw} from 'sql-template-tag';
+import SQL, {empty, join, raw} from 'sql-template-tag';
 import DareError from './utils/error.js';
 import fieldReducer from './format/field_reducer.js';
 import groupbyReducer from './format/groupby_reducer.js';
@@ -473,6 +473,7 @@ async function format_request(options, dareInstance) {
 
 	// Add nested joins
 	if (Array.isArray(options._joins)) {
+		// Update sql_joins
 		options.sql_joins.push(
 			...options._joins
 				.flatMap(({sql_joins}) => sql_joins)
@@ -484,9 +485,11 @@ async function format_request(options, dareInstance) {
 	 * Negate
 	 * NOT EXIST (SELECT 1 FROM alias WHERE join_conditions)
 	 */
-	if (options.negate) {
+	if (options.negate || options.parent?.forceSubquery) {
 		// Mark as another subquery
 		let sql_where_conditions = [];
+
+		const sql_negate = options.negate ? raw('NOT') : empty;
 
 		if (method === 'get') {
 			// Get queries can be much simpler, we're allowed to use the same table in an exist statement like...
@@ -495,7 +498,7 @@ async function format_request(options, dareInstance) {
 			// Create sub_query
 			const sub_query = buildQuery(options, dareInstance);
 
-			sql_where_conditions = [SQL`NOT EXISTS (${sub_query})`];
+			sql_where_conditions = [SQL`${sql_negate} EXISTS (${sub_query})`];
 		} else {
 			/*
 			 * Whilst patch and delete will throw an ER_UPDATE_TABLE_USED error
@@ -517,7 +520,7 @@ async function format_request(options, dareInstance) {
 
 			sql_where_conditions = [
 				SQL`${raw(parentReferences[0])}
-				NOT IN (
+				${sql_negate} IN (
 					SELECT ${raw(options.fields)} FROM (
 						${sub_query}
 					) AS ${raw(options.sql_alias)}_tmp

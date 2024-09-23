@@ -99,15 +99,15 @@ describe('field alias', () => {
 			});
 
 			// Field alias
-			expect(_sql).to.contain("email AS 'emailAddress'");
-			expect(_sql).to.contain("email AS 'field'");
-			expect(_sql).to.contain("LOWER(a.email) AS 'emailaddress'");
+			expect(_sql).to.contain('email AS "emailAddress"');
+			expect(_sql).to.contain('email AS "field"');
+			expect(_sql).to.contain('LOWER(a.email) AS "emailaddress"');
 
 			// Field SQL Alias
-			expect(_sql).to.contain("!ISNULL(a.email) AS 'hasEmail'");
-			expect(_sql).to.contain("!ISNULL(a.email) AS 'alternateHasEmail'");
+			expect(_sql).to.contain('!ISNULL(a.email) AS "hasEmail"');
+			expect(_sql).to.contain('!ISNULL(a.email) AS "alternateHasEmail"');
 			expect(_sql).to.contain(
-				'IF(!ISNULL(a.email), "YES", "NO") AS \'yesNoEmail\''
+				'IF(!ISNULL(a.email), "YES", "NO") AS "yesNoEmail"'
 			);
 
 			// Standard
@@ -181,13 +181,13 @@ describe('field alias', () => {
 				limit,
 			});
 
-			expect(_sql).to.contain("email AS 'Email Field'");
-			expect(_sql).to.contain("email AS 'Email Alias'");
-			expect(_sql).to.contain("LOWER(b.email) AS 'email_field'");
-			expect(_sql).to.contain("LOWER(b.email) AS 'email_alias'");
+			expect(_sql).to.contain('email AS "Email Field"');
+			expect(_sql).to.contain('email AS "Email Alias"');
+			expect(_sql).to.contain('LOWER(b.email) AS "email_field"');
+			expect(_sql).to.contain('LOWER(b.email) AS "email_alias"');
 
 			expect(_sql).to.contain(
-				'IF(!ISNULL(b.email), "Yes", "No") AS \'Has Email alias\''
+				'IF(!ISNULL(b.email), "Yes", "No") AS "Has Email alias"'
 			);
 
 			expect(_sql).to.contain('email LIKE ?');

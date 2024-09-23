@@ -1,3 +1,122 @@
+## [0.90.2](https://github.com/5app/dare/compare/v0.90.1...v0.90.2) (2024-08-02)
+
+
+### Bug Fixes
+
+* **patch:** remove space between alias name and set value, noissue ([8876b85](https://github.com/5app/dare/commit/8876b8572af4557c9237791af4f060ef18d49faa))
+
+## [0.90.1](https://github.com/5app/dare/compare/v0.90.0...v0.90.1) (2024-08-02)
+
+
+### Bug Fixes
+
+* **ts:** add Engine string type pattern, noissue ([9cf7313](https://github.com/5app/dare/commit/9cf7313f7cb970f8b3f945a07bccb490010397c8))
+
+# [0.90.0](https://github.com/5app/dare/compare/v0.89.0...v0.90.0) (2024-07-05)
+
+
+### Features
+
+* **mariadb:** add support for MariaDB ([0e9c8b9](https://github.com/5app/dare/commit/0e9c8b9ab69f46f82b8b23864572dfaa74011927))
+
+# [0.89.0](https://github.com/5app/dare/compare/v0.88.3...v0.89.0) (2024-07-05)
+
+
+### Features
+
+* **postgres:** initial integration test implementation ([#338](https://github.com/5app/dare/issues/338)) ([9e81d0c](https://github.com/5app/dare/commit/9e81d0c25462897646c75e645d438050984646c8)), closes [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339) [#339](https://github.com/5app/dare/issues/339)
+
+## [0.88.3](https://github.com/5app/dare/compare/v0.88.2...v0.88.3) (2024-05-22)
+
+
+### Bug Fixes
+
+* **anonymous-field-default:** dont apply to _group and _count keywords, [#357](https://github.com/5app/dare/issues/357) ([#364](https://github.com/5app/dare/issues/364)) ([a45c27a](https://github.com/5app/dare/commit/a45c27a632093997ca503dfc0cf765959b7e2bd1))
+
+## [0.88.2](https://github.com/5app/dare/compare/v0.88.1...v0.88.2) (2024-05-22)
+
+
+### Bug Fixes
+
+* **regexp:** address Polynomial regular expression vulnerability length 200, noissue ([#363](https://github.com/5app/dare/issues/363)) ([f8d4770](https://github.com/5app/dare/commit/f8d477084e93dbb0d752208ca6a9726823bb8b1c))
+
+## [0.88.1](https://github.com/5app/dare/compare/v0.88.0...v0.88.1) (2024-05-21)
+
+
+### Bug Fixes
+
+* **unknown-field-attr:** dont apply field default to alias, fixes [#357](https://github.com/5app/dare/issues/357) ([#362](https://github.com/5app/dare/issues/362)) ([9ccb98c](https://github.com/5app/dare/commit/9ccb98ca2abe8f6d8210e362cce84c4d88207a25))
+
+# [0.88.0](https://github.com/5app/dare/compare/v0.87.0...v0.88.0) (2024-05-21)
+
+
+### Bug Fixes
+
+* **regexp:** address Polynomial regular expression vulnerability, noissue ([4e90481](https://github.com/5app/dare/commit/4e904812010d3a780354961009b07aa553778f6c))
+
+
+### Features
+
+* **func-str-prefix:** allow strings at beginning of function, fixes [#355](https://github.com/5app/dare/issues/355) ([6441f1a](https://github.com/5app/dare/commit/6441f1a1317c5eca909563e6b765674180b7f294))
+
+# [0.87.0](https://github.com/5app/dare/compare/v0.86.2...v0.87.0) (2024-05-21)
+
+
+### Bug Fixes
+
+* **extend:** allow functions to be replaced, i.e inputValidation ([#358](https://github.com/5app/dare/issues/358)) ([d16d9ee](https://github.com/5app/dare/commit/d16d9eed346ee7c1d43ca9194b67bcfd0bb213c1))
+
+
+### Features
+
+* **unknown-field-attr:** define default attributes for unknown fields, fixes [#357](https://github.com/5app/dare/issues/357) ([#360](https://github.com/5app/dare/issues/360)) ([f66ba90](https://github.com/5app/dare/commit/f66ba9012b47ae35362fe0556f573868e4839dff))
+
+## [0.86.3](https://github.com/5app/dare/compare/v0.86.2...v0.86.3) (2024-05-21)
+
+
+### Bug Fixes
+
+* **extend:** allow functions to be replaced, i.e inputValidation ([#358](https://github.com/5app/dare/issues/358)) ([d16d9ee](https://github.com/5app/dare/commit/d16d9eed346ee7c1d43ca9194b67bcfd0bb213c1))
+
+## [0.86.2](https://github.com/5app/dare/compare/v0.86.1...v0.86.2) (2024-04-10)
+
+
+### Bug Fixes
+
+* **json-querying:** default handling set to MySQL 5.7 ([#348](https://github.com/5app/dare/issues/348)) ([90ad9d0](https://github.com/5app/dare/commit/90ad9d0657710ec2abd852274a73e40ea78593a0))
+
+## [0.86.1](https://github.com/5app/dare/compare/v0.86.0...v0.86.1) (2024-04-10)
+
+
+### Bug Fixes
+
+* **ci:** local CI default mysql_version, noissue ([d6810c0](https://github.com/5app/dare/commit/d6810c05ed962b810d8201dd53bf5ec7d2d4b4ee))
+* **json_arrayagg:** returns null row in shortcut_map, noissue ([d2abb77](https://github.com/5app/dare/commit/d2abb7710551b548353740baf534d307aea1614a))
+* **json:** should compare entire json object as text, noissue ([c26f8aa](https://github.com/5app/dare/commit/c26f8aa1e1e0c00654fa2011f6274b9f7c813fee))
+* **json:** should compare entire json object as text, noissue ([bd74741](https://github.com/5app/dare/commit/bd747414d3fc8f5fbe036ea1ea3914b3a1071121))
+
+# [0.86.0](https://github.com/5app/dare/compare/v0.85.0...v0.86.0) (2024-04-08)
+
+
+### Features
+
+* **json:** querying json props ([#286](https://github.com/5app/dare/issues/286)) ([fc148cc](https://github.com/5app/dare/commit/fc148cc6d8ccaea417a9860b9e7dfa6ced353439)), closes [#283](https://github.com/5app/dare/issues/283) [#283](https://github.com/5app/dare/issues/283) [#283](https://github.com/5app/dare/issues/283) [#283](https://github.com/5app/dare/issues/283)
+
+# [0.85.0](https://github.com/5app/dare/compare/v0.84.0...v0.85.0) (2024-04-08)
+
+
+### Features
+
+* **json_arrayagg:** replaces group_concat in mysql>=5.7.22 ([cf0e212](https://github.com/5app/dare/commit/cf0e212b1e8797251c419089a0d54cd4f4958a52))
+
+# [0.84.0](https://github.com/5app/dare/compare/v0.83.0...v0.84.0) (2024-04-08)
+
+
+### Features
+
+* **exists:** easy way to determine whether a record exists ([#336](https://github.com/5app/dare/issues/336)) ([3304f68](https://github.com/5app/dare/commit/3304f68bcbd1b4f39b29cfed74ac80e3f1f3cd28))
+* **offset:** use explicit offset syntax, [#339](https://github.com/5app/dare/issues/339) ([d5d252b](https://github.com/5app/dare/commit/d5d252b1ba0236752b8c689703795836b76147f0))
+
 # [0.83.0](https://github.com/5app/dare/compare/v0.82.3...v0.83.0) (2024-03-06)
 
 

@@ -1,10 +1,8 @@
-import Dare, {DareError} from '../../src/index.js';
-import Debug from 'debug';
+import {DareError} from '../../src/index.js';
 import {expect} from 'chai';
-import mysql from 'mysql2/promise';
+import assert from 'node:assert/strict';
+import defaultAPI, {options, castToStringIfNeeded} from './helpers/api.js';
 import db from './helpers/db.js';
-import {options, castToStringIfNeeded} from './helpers/api.js';
-const debug = Debug('sql');
 
 // Connect to db
 
@@ -13,16 +11,7 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 
 	beforeEach(() => {
 		// Initiate
-		dare = new Dare(options);
-
-		// Set a test instance
-		// eslint-disable-next-line arrow-body-style
-		dare.execute = query => {
-			// DEBUG
-			debug(mysql.format(query.sql, query.values));
-
-			return db.query(query);
-		};
+		dare = defaultAPI();
 	});
 
 	it('Can insert and retrieve results ', async () => {
@@ -32,6 +21,30 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 		const resp = await dare.get('users', ['username']);
 
 		expect(resp).to.have.property('username', username);
+	});
+
+	it('can use pagination to get more results', async () => {
+		const username = 'A Name';
+		const body = Array(10)
+			.fill(0)
+			.map((_, index) => ({username: `${username}-${index}`}));
+		await dare.post('users', body);
+
+		const limit = 3;
+		for (let page = 0; page < 5; page++) {
+			const start = page * limit;
+			// eslint-disable-next-line no-await-in-loop
+			const pageResponse = await dare.get(
+				'users',
+				['username'],
+				{},
+				{limit, start}
+			);
+			assert.deepStrictEqual(
+				pageResponse,
+				body.slice(start, start + limit)
+			);
+		}
 	});
 
 	it('Can update results', async () => {
@@ -98,18 +111,16 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 				fields: [
 					{
 						userTeams: {
-							teams: ['id', 'name', 'description'],
+							teams: ['id', 'description', 'name'],
 						},
 					},
 				],
 			});
 
-			expect(resp).to.deep.nested.include({
-				'userTeams[0].teams': {
-					id: castToStringIfNeeded(team.insertId),
-					name: teamName,
-					description: castToStringIfNeeded(null),
-				},
+			assert.deepStrictEqual(resp.userTeams[0].teams, {
+				id: castToStringIfNeeded(team.insertId),
+				name: teamName,
+				description: castToStringIfNeeded(null),
 			});
 		}
 
@@ -134,7 +145,7 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 			});
 
 			// UserTeams should be an empty array
-			expect(resp).to.deep.nested.include({
+			assert.deepStrictEqual(resp, {
 				userTeams: [],
 			});
 		}
@@ -152,7 +163,7 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 				],
 			});
 
-			expect(resp).to.deep.nested.equal({
+			assert.deepStrictEqual(resp, {
 				id: castToStringIfNeeded(team.insertId),
 				name: teamName,
 				description: castToStringIfNeeded(null),
@@ -176,7 +187,7 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 				},
 			});
 
-			expect(resp).to.deep.nested.equal({});
+			assert.deepStrictEqual(resp, {});
 		}
 	});
 
@@ -234,5 +245,37 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 			});
 			expect(resp).to.have.property('username', username);
 		}
+
+		// Full Text on Generated Fields
+		if (!process.env.DB_ENGINE?.startsWith('mysql:5.6')) {
+			dare.options.models.users.schema.ft_index = {
+				readable: true,
+				writeable: false,
+			};
+
+			if (process.env.DB_ENGINE?.startsWith('mariadb')) {
+				await db.query(`
+					ALTER TABLE users ADD COLUMN ft_index TEXT GENERATED ALWAYS AS (CONCAT_WS(username, first_name, last_name)) STORED;
+					ALTER TABLE users ADD FULLTEXT KEY users_ft_index (ft_index);
+				`);
+			}
+
+			{
+				const resp = await dare.get('users', ['username'], {
+					'*ft_index': '+Old*n*',
+				});
+				expect(resp).to.have.property('username', username);
+			}
+		}
+	});
+
+	it('Return a truthy value for existance if no fields are provided', async () => {
+		const username = 'A Name';
+		await dare.post('users', {username});
+
+		// Get request with no parameters
+		const resp = await dare.get('users');
+
+		assert.ok(resp);
 	});
 });

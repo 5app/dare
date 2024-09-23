@@ -22,53 +22,119 @@ describe('Filter Reducer', () => {
 		dareInstance = new Dare();
 		table_schema = {
 			textsearch: 'givenname,lastname,email',
+			jsonSettings: {
+				type: 'json',
+			},
+			// Join with an arbitrary table
+			a_id: 'a.id',
 		};
 	});
 
 	describe('should prep conditions', () => {
+		const testStr = 'string';
+
 		const a = [
-			[{prop: 'string'}, 'a.prop = ?', ['string']],
+			[{prop: testStr}, 'a.prop = ?', [testStr]],
+
+			// Across multiple fields: field1,field2,field3
 			[
 				{
-					'givenname,lastname,email': 'test string',
+					'givenname,lastname,email': testStr,
 				},
 				`(a.givenname = ? OR a.lastname = ? OR a.email = ?)`,
-				['test string', 'test string', 'test string'],
+				[testStr, testStr, testStr],
 			],
 			[
 				{
-					'%givenname,lastname,email': 'test string',
+					'%givenname,lastname,email': testStr,
 				},
 				`(a.givenname LIKE ? OR a.lastname LIKE ? OR a.email LIKE ?)`,
-				['test string', 'test string', 'test string'],
+				[testStr, testStr, testStr],
 			],
 			[
 				{
-					'-givenname,lastname,email': 'test string',
+					'-givenname,lastname,email': testStr,
 				},
 				`NOT (a.givenname = ? OR a.lastname = ? OR a.email = ?)`,
-				['test string', 'test string', 'test string'],
+				[testStr, testStr, testStr],
 			],
+
+			// *: Full text
 			[
 				{
-					'*givenname,lastname,email': 'test string',
+					'*givenname,lastname,email': testStr,
 				},
 				`MATCH(a.givenname, a.lastname, a.email) AGAINST(? IN BOOLEAN MODE)`,
-				['test string'],
+				[testStr],
 			],
 			[
 				{
-					'-*givenname,lastname,email': 'test string',
+					'-*givenname,lastname,email': testStr,
 				},
 				`NOT MATCH(a.givenname, a.lastname, a.email) AGAINST(? IN BOOLEAN MODE)`,
-				['test string'],
+				[testStr],
 			],
 			[
 				{
-					'*textsearch': 'test string',
+					'*textsearch': testStr,
 				},
 				`MATCH(a.givenname, a.lastname, a.email) AGAINST(? IN BOOLEAN MODE)`,
-				['test string'],
+				[testStr],
+			],
+
+			// JSON
+			[
+				// Entire JSON field should be queryable as a string
+				{
+					'%jsonSettings': testStr,
+				},
+				`a.jsonSettings LIKE ?`,
+				[testStr],
+			],
+			[
+				{
+					jsonSettings: {
+						key: testStr,
+					},
+				},
+				`(a.jsonSettings->? = ?)`,
+				['$.key', testStr],
+			],
+			[
+				{
+					'-jsonSettings': {
+						key: testStr,
+					},
+				},
+				`NOT (a.jsonSettings->? = ?)`,
+				['$.key', testStr],
+			],
+			[
+				{
+					jsonSettings: {
+						'-key': testStr,
+					},
+				},
+				`(a.jsonSettings->? != ?)`,
+				['$.key', testStr],
+			],
+			[
+				{
+					jsonSettings: {
+						'-key': null,
+					},
+				},
+				`(a.jsonSettings->? IS NOT NULL)`,
+				['$.key'],
+			],
+			[
+				{
+					jsonSettings: {
+						key: ['a', 'b', 1],
+					},
+				},
+				`(a.jsonSettings->? IN (?,?,?))`,
+				['$.key', '"a"', '"b"', 1],
 			],
 		];
 
@@ -98,6 +164,113 @@ describe('Filter Reducer', () => {
 				// Should not mutate the filters...
 				expect(filter).to.deep.eql(filter_cloned);
 			});
+		});
+	});
+
+	describe('mysql engine version handling', () => {
+		['mysql:5.7', 'mysql:8.0'].forEach(engine => {
+			const quote = engine === 'mysql:5.7';
+
+			it(`${engine} should ${quote ? '' : 'NOT '}quote json list (IN) sting values`, () => {
+				const dareInst = dareInstance.use({engine});
+
+				const filter = {
+					jsonSettings: {
+						key: ['a', 'b', 1],
+					},
+				};
+
+				const expectedValues = quote
+					? ['"a"', '"b"', 1]
+					: ['a', 'b', 1];
+
+				const sql = `(a.jsonSettings->? IN (?,?,?))`;
+				const values = ['$.key', ...expectedValues];
+
+				const [query] = reduceConditions(filter, {
+					extract,
+					sql_alias: 'a',
+					table_schema,
+					conditional_operators_in_value,
+					dareInstance: dareInst,
+				});
+
+				expect(query.sql).to.equal(sql);
+				expect(query.values).to.deep.equal(values);
+			});
+		});
+	});
+
+	describe('postgres engine version handling', () => {
+		const engine = 'postgres:16.3';
+
+		it('should search fulltext - with an index', () => {
+			const dareInst = dareInstance.use({engine});
+
+			const filter = {
+				'*vector_index': 'string',
+			};
+
+			const sql = `a.vector_index @@ to_tsquery('english', ?)`;
+			const values = ['string'];
+
+			const [query] = reduceConditions(filter, {
+				extract,
+				sql_alias: 'a',
+				table_schema,
+				conditional_operators_in_value,
+				dareInstance: dareInst,
+			});
+
+			expect(query.sql).to.equal(sql);
+			expect(query.values).to.deep.equal(values);
+		});
+
+		it('should search fulltext - and build an index', () => {
+			const dareInst = dareInstance.use({engine});
+
+			const filter = {
+				'*givenname,lastname,email': 'string',
+			};
+
+			const sql = `TO_TSVECTOR(a.givenname || ' ' || a.lastname || ' ' || a.email) @@ to_tsquery('english', ?)`;
+			const values = ['string'];
+
+			const [query] = reduceConditions(filter, {
+				extract,
+				sql_alias: 'a',
+				table_schema,
+				conditional_operators_in_value,
+				dareInstance: dareInst,
+			});
+
+			expect(query.sql).to.equal(sql);
+			expect(query.values).to.deep.equal(values);
+		});
+
+		it(`quote json number and boolean values`, () => {
+			const dareInst = dareInstance.use({engine});
+
+			const filter = {
+				jsonSettings: {
+					key: 1,
+					'%str': 'string%',
+				},
+			};
+
+			const [query] = reduceConditions(filter, {
+				extract,
+				sql_alias: 'a',
+				table_schema,
+				conditional_operators_in_value,
+				dareInstance: dareInst,
+			});
+
+			const sql = `(a.jsonSettings->>? = ? AND a.jsonSettings->>? ILIKE ?)`;
+			const values = ['key', '1', 'str', 'string%'];
+
+			expect(query.sql).to.equal(sql);
+			expect(query.values).to.deep.equal(values);
 		});
 	});
 });

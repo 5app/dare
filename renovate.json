@@ -2,5 +2,6 @@
 	"rangeStrategy": "replace",
 	"automerge": true,
 	"extends": ["config:base"],
-	"ignoreDeps": ["husky"]
+	"baseBranches": ["next"],
+	"ignoreDeps": ["eslint", "eslint-config-5app"]
 }

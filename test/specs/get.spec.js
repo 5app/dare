@@ -1,4 +1,5 @@
 import {expect} from 'chai';
+import assert from 'node:assert/strict';
 import Dare from '../../src/index.js';
 
 // Test Generic DB functions
@@ -112,9 +113,9 @@ describe('get', () => {
 			dare.execute = async ({sql, values}) => {
 				sqlEqual(
 					sql,
-					'SELECT a.id, a.name FROM test a WHERE a.id IN (?) LIMIT 2'
+					'SELECT a.id, a.name FROM test a WHERE a.id IN (?,?) LIMIT 2'
 				);
-				expect(values).to.deep.equal([ids]);
+				assert.deepStrictEqual(values, ids);
 
 				return [basic_record, basic_record];
 			};
@@ -196,7 +197,7 @@ describe('get', () => {
 			dare.execute = async ({sql, values}) => {
 				sqlEqual(
 					sql,
-					'SELECT a.id, a.name FROM test a WHERE a.id = ? LIMIT 4, 5'
+					'SELECT a.id, a.name FROM test a WHERE a.id = ? LIMIT 5 OFFSET 4'
 				);
 				expect(values).to.deep.equal([id]);
 				return [basic_record];
@@ -297,7 +298,7 @@ describe('get', () => {
 		it('should use field labels in the orderby', async () => {
 			dare.execute = async ({sql, values}) => {
 				const expected = `
-					SELECT DATE(a.created) AS 'date'
+					SELECT DATE(a.created) AS "date"
 					FROM test a
 					ORDER BY \`date\`
 					LIMIT 1
@@ -322,7 +323,7 @@ describe('get', () => {
 		it('should use functions in the orderby', async () => {
 			dare.execute = async ({sql, values}) => {
 				const expected = `
-					SELECT DATE(a.created) AS 'date'
+					SELECT DATE(a.created) AS "date"
 					FROM test a
 					ORDER BY DATE(a.created)
 					LIMIT 1
@@ -352,8 +353,8 @@ describe('get', () => {
 				.and.have.property('code', DareError.INVALID_REQUEST);
 		});
 
-		it('should throw an error if missing fields on an unknown schema', () => {
-			const test = dare.get('test', {id}, {groupby: 'id'});
+		it('should throw an error if fields are a scalar value', () => {
+			const test = dare.get('test', true, {id}, {groupby: 'id'});
 
 			return expect(test)
 				.to.be.eventually.rejectedWith(DareError)
@@ -364,7 +365,7 @@ describe('get', () => {
 			dare.execute = async ({sql, values}) => {
 				sqlEqual(
 					sql,
-					"SELECT count(a.*) AS '_count' FROM test a WHERE a.id = ? GROUP BY a.name LIMIT 1"
+					'SELECT count(a.*) AS "_count" FROM test a WHERE a.id = ? GROUP BY a.name LIMIT 1'
 				);
 				expect(values).to.deep.equal([id]);
 				return [{id}];
@@ -383,7 +384,7 @@ describe('get', () => {
 		it('should interpret _count as COUNT(*)', async () => {
 			dare.execute = async ({sql, values}) => {
 				const expected = `
-					SELECT COUNT(*) AS '_count'
+					SELECT COUNT(*) AS "_count"
 					FROM test a
 					LIMIT 1
 				`;
@@ -402,7 +403,7 @@ describe('get', () => {
 		it('should use the special field _count as a label for orderby reference', async () => {
 			dare.execute = async ({sql, values}) => {
 				const expected = `
-					SELECT COUNT(*) AS '_count'
+					SELECT COUNT(*) AS "_count"
 					FROM test a
 					ORDER BY \`_count\`
 					LIMIT 1
@@ -424,7 +425,7 @@ describe('get', () => {
 		it('should interpret _group as a shortcut to the groupby', async () => {
 			dare.execute = async ({sql, values}) => {
 				const expected = `
-					SELECT DATE(a.created_time) AS '_group'
+					SELECT DATE(a.created_time) AS "_group"
 					FROM test a
 					GROUP BY DATE(a.created_time)
 					LIMIT 1
@@ -471,7 +472,7 @@ describe('get', () => {
 				sqlEqual(
 					sql,
 					`
-					SELECT 100 AS 'show_100', null AS 'show_null', "Text string 123" AS 'show_text', CONCAT("Hello", "World") AS 'show_function_text', a.name AS 'name' FROM test a WHERE a.id = ? LIMIT 1
+					SELECT 100 AS "show_100", null AS "show_null", "Text string 123" AS "show_text", CONCAT("Hello", "World") AS "show_function_text", a.name AS "name" FROM test a WHERE a.id = ? LIMIT 1
 				`
 				);
 				expect(values).to.deep.equal([id]);
@@ -528,5 +529,34 @@ describe('get', () => {
 			expect(data[0]).to.have.property('name', 'Jupiter');
 			expect(data[0]).to.have.property('age', 4);
 		});
+	});
+
+	it('should return boolean true if no fields are present', async () => {
+		// Returns a value
+		dare.execute = async () => [{name: 'Jupiter'}];
+
+		// Should return a truthy object response
+		{
+			const resp = await dare.get({
+				table: 'test',
+				filter: {name: 'Jupiter'},
+			});
+
+			assert.ok(resp);
+		}
+
+		// Returns an empty resultset
+		dare.execute = async () => [];
+
+		// Check returns null
+		{
+			const resp = await dare.get({
+				table: 'test',
+				filter: {name: 'Jupiter'},
+				notfound: null,
+			});
+
+			assert.strictEqual(resp, null);
+		}
 	});
 });

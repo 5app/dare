@@ -6,7 +6,24 @@ const string = {
 	type: 'string',
 };
 
+/* eslint-disable jsdoc/valid-types */
+/**
+ * @typedef {import('../../src/index.js').RequestOptions} RequestOptions
+ * @typedef {import('../../src/index.js').Engine} Engine
+ */
+/* eslint-enable jsdoc/valid-types */
+
+/**
+ * @type {Engine}
+ */
+// @ts-ignore
+const engine = process.env.DB_ENGINE;
+
+/**
+ * @type {RequestOptions}
+ */
 export default {
+	engine,
 	models: {
 		// Users table
 		users: {
@@ -33,7 +50,7 @@ export default {
 				/*
 				 * JSON data type
 				 */
-				meta: {
+				settings: {
 					type: 'json',
 				},
 
@@ -69,17 +86,16 @@ export default {
 		// Users have multiple emails
 		users_email: {
 			schema: {
+				email: {
+					type: 'string',
+				},
+
 				/*
-				 * User_id defines a field which references the users table
+				 * Defines a field which references the users.id field
 				 */
 				user_id: {
 					references: ['users.id'],
 				},
-
-				/*
-				 * Date Type
-				 */
-				created_time,
 			},
 		},
 

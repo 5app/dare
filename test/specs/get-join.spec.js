@@ -34,7 +34,7 @@ describe('get - request object', () => {
 		dare.sql = ({sql}) => {
 			const expected = `
 
-				SELECT DATE_FORMAT(a.created_time, '%Y-%m-%dT%TZ') AS 'created_time', COUNT(*) AS '_count', c.id AS 'asset.id', c.name AS 'asset.name', DATE(c.updated_time) AS 'asset.last_updated'
+				SELECT DATE_FORMAT(a.created_time, '%Y-%m-%dT%TZ') AS "created_time", COUNT(*) AS "_count", c.id AS "asset.id", c.name AS "asset.name", DATE(c.updated_time) AS "asset.last_updated"
 				FROM activityEvents a
 					LEFT JOIN activitySession b ON (b.id = a.session_id)
 					LEFT JOIN apps c ON (c.id = a.ref_id)
@@ -286,7 +286,7 @@ describe('get - request object', () => {
 						},
 					},
 					expected: `
-						SELECT a.id, b.name AS 'asset.name'
+						SELECT a.id, b.name AS "asset.name"
 						FROM activityEvents a
 						LEFT JOIN apps b ON (b.type = ? AND b.id = a.ref_id)
 						LIMIT 5
@@ -300,7 +300,7 @@ describe('get - request object', () => {
 						},
 					},
 					expected: `
-						SELECT a.id, b.name AS 'asset$1.name'
+						SELECT a.id, b.name AS "asset$1.name"
 						FROM activityEvents a
 						LEFT JOIN apps b ON (b.type = ? AND b.id = a.ref_id)
 						LIMIT 5
@@ -314,7 +314,7 @@ describe('get - request object', () => {
 						},
 					},
 					expected: `
-						SELECT a.id, COUNT(DISTINCT b.id) AS 'Count'
+						SELECT a.id, COUNT(DISTINCT b.id) AS "Count"
 						FROM activityEvents a
 						LEFT JOIN apps b ON (b.type = ? AND b.id = a.ref_id)
 						LIMIT 5
@@ -387,7 +387,7 @@ describe('get - request object', () => {
 		it('should enforce required table joins', async () => {
 			dare.sql = ({sql}) => {
 				const expected = `
-					SELECT a.id, b.name AS 'asset.name'
+					SELECT a.id, b.name AS "asset.name"
 					FROM activityEvents a
 					JOIN apps b ON (b.type = ? AND b.id = a.ref_id)
 					LIMIT 5
@@ -414,7 +414,7 @@ describe('get - request object', () => {
 		it('should enforce required table joins between deep nested tables', async () => {
 			dare.sql = ({sql}) => {
 				const expected = `
-					SELECT a.id, b.name AS 'asset.name'
+					SELECT a.id, b.name AS "asset.name"
 					FROM activityEvents a
 					LEFT JOIN apps b ON (b.type = ? AND b.id = a.ref_id)
 					LEFT JOIN assetDomains c ON (c.asset_id = b.id)
@@ -476,7 +476,7 @@ describe('get - request object', () => {
 		it('should not automatically assign a GROUP on an 1:n join where there are Aggregate ', async () => {
 			dare.sql = ({sql}) => {
 				const expected = `
-					SELECT COUNT(*) AS '_count'
+					SELECT COUNT(*) AS "_count"
 					FROM apps a
 					LEFT JOIN activityEvents b ON(b.ref_id = a.id)
 					WHERE b.type = ?

@@ -283,4 +283,46 @@ describe('post', () => {
 			});
 		});
 	});
+
+	describe('DB Engine specific tests', () => {
+		const DB_ENGINE = 'postgres:16.3';
+		let dareInst;
+
+		beforeEach(() => {
+			dareInst = dare.use({engine: DB_ENGINE});
+		});
+
+		it(`${DB_ENGINE} should use ON CONFLICT ... UPDATE ...`, async () => {
+			dareInst.execute = async ({sql, values}) => {
+				sqlEqual(
+					sql,
+					'INSERT INTO test ("id", "name") VALUES (?, ?) ON CONFLICT (id) DO UPDATE SET "name"=EXCLUDED."name" RETURNING id'
+				);
+				expect(values).to.deep.equal([1, 'name']);
+				return {success: true};
+			};
+
+			return dareInst.post({
+				table: 'test',
+				body: {id: 1, name: 'name'},
+				duplicate_keys_update: ['name'],
+			});
+		});
+		it(`${DB_ENGINE} should use ON CONFLICT DO NOTHING`, async () => {
+			dareInst.execute = async ({sql, values}) => {
+				sqlEqual(
+					sql,
+					'INSERT INTO test ("id", "name") VALUES (?, ?) ON CONFLICT DO NOTHING RETURNING id'
+				);
+				expect(values).to.deep.equal([1, 'name']);
+				return {success: true};
+			};
+
+			return dareInst.post({
+				table: 'test',
+				body: {id: 1, name: 'name'},
+				duplicate_keys: 'ignore',
+			});
+		});
+	});
 });

@@ -87,12 +87,13 @@ export default function buildQuery(opts, dareInstance) {
 		const gc_sql_alias = opts.field_alias_path
 			? sql_alias
 			: opts._joins[0].sql_alias;
-		const gc = group_concat(
+		const gc = group_concat({
 			fields,
 			address,
-			gc_sql_alias,
-			dareInstance.rowid
-		);
+			sql_alias: gc_sql_alias,
+			rowid: dareInstance.rowid,
+			engine: dareInstance.engine,
+		});
 		sql_fields = [raw(gc.expression)];
 		alias = gc.label;
 	} else {
@@ -103,17 +104,17 @@ export default function buildQuery(opts, dareInstance) {
 
 			return raw(
 				`${field.expression}${
-					field.label ? ` AS '${field.label}'` : ''
+					field.label ? ` AS "${field.label}"` : ''
 				}`
 			);
 		});
 	}
 
 	// Clean up sql_orderby
-	const sql_orderby = aliasOrderAndGroupFields(orderby, fields);
+	const sql_orderby = aliasOrderAndGroupFields(orderby, fields, dareInstance);
 
 	// Clean up sql_orderby
-	const sql_groupby = aliasOrderAndGroupFields(groupby, fields);
+	const sql_groupby = aliasOrderAndGroupFields(groupby, fields, dareInstance);
 
 	// Convert to count the resultset
 	if (opts.countRows) {
@@ -123,7 +124,7 @@ export default function buildQuery(opts, dareInstance) {
 				sql_groupby.length
 					? join(sql_groupby)
 					: raw(`${opts.sql_alias}.${dareInstance.rowid}`)
-			}) AS 'count'`,
+			}) AS "count"`,
 		];
 
 		// Remove groupby and orderby...
@@ -147,18 +148,13 @@ export default function buildQuery(opts, dareInstance) {
 		${optionalJoin(sql_filter, ' AND ', 'WHERE ')}
 		${optionalJoin(sql_groupby, ',', 'GROUP BY ')}
 		${optionalJoin(sql_orderby, ',', 'ORDER BY ')}
-		${
-			opts.limit
-				? SQL`LIMIT ${opts.start ? raw(`${opts.start},`) : empty}${raw(
-						opts.limit
-					)}`
-				: empty
-		}
+		${opts.limit ? SQL`LIMIT ${raw(opts.limit)}` : empty}
+		${opts.start ? SQL`OFFSET ${raw(opts.start)}` : empty}
 	`;
 
 	if (alias) {
 		// Wrap the whole thing in an alias
-		sql = SQL`(${sql}) AS '${raw(alias)}'`;
+		sql = SQL`(${sql}) AS "${raw(alias)}"`;
 	}
 
 	return sql;
@@ -229,7 +225,6 @@ function traverse(item, is_subquery, dareInstance) {
 		 * And has a one to many relationship with its parent.
 		 */
 		if (
-			dareInstance.group_concat &&
 			!is_subquery &&
 			!ancestors_many &&
 			!item.required_join &&
@@ -378,12 +373,13 @@ function traverse(item, is_subquery, dareInstance) {
 		const gc_sql_alias = item.field_alias_path
 			? sql_alias
 			: item._joins[0].sql_alias;
-		const gc = group_concat(
+		const gc = group_concat({
 			fields,
 			address,
-			gc_sql_alias,
-			dareInstance.rowid
-		);
+			sql_alias: gc_sql_alias,
+			rowid: dareInstance.rowid,
+			engine: dareInstance.engine,
+		});
 
 		// Reset the fields array
 		fields.length = 0;
@@ -414,37 +410,36 @@ function prepField(field) {
 	return [expression, label];
 }
 
-function aliasOrderAndGroupFields(arr, fields) {
-	if (arr && arr.length) {
-		return arr.map(({expression, label, direction, original}) => {
-			/*
-			 * _count, etc...
-			 * Is the value a shortcut to a labelled field?
-			 * fields.find(_field => {
-			 *   if (_field.label && _field.label === expression) {
-			 *     return entry;
-			 *   }
-			 * });
-			 */
-
-			for (const field of fields) {
-				// Does the expression belong to something in the fields?
-				if (field.label && field.label === label) {
-					expression = `\`${field.label}\``;
-					break;
-				}
-				if (field.label && field.label === original) {
-					expression = `\`${field.label}\``;
-					break;
-				}
-			}
-
-			return join(
-				[expression, direction].filter(v => !!v).map(item => raw(item)),
-				' '
-			);
-		});
+function aliasOrderAndGroupFields(arr, fields, dareInstance) {
+	if (!arr?.length) {
+		return [];
 	}
 
-	return [];
+	return arr.map(({expression, label, direction, original}) => {
+		/*
+		 * _count, etc...
+		 * Is the value a shortcut to a labelled field?
+		 * fields.find(_field => {
+		 *   if (_field.label && _field.label === expression) {
+		 *     return entry;
+		 *   }
+		 * });
+		 */
+
+		for (const field of fields) {
+			// Does the expression belong to something in the fields?
+			if (
+				field.label &&
+				(field.label === label || field.label === original)
+			) {
+				expression = dareInstance.identifierWrapper(field.label);
+				break;
+			}
+		}
+
+		return join(
+			[expression, direction].filter(v => !!v).map(item => raw(item)),
+			' '
+		);
+	});
 }
