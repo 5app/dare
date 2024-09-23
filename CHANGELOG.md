@@ -1,3 +1,10 @@
+# [0.91.0](https://github.com/5app/dare/compare/v0.90.2...v0.91.0) (2024-09-23)
+
+
+### Features
+
+* **next:** trigger next channel release ([2dcc5f1](https://github.com/5app/dare/commit/2dcc5f1cfe5fd79cc0351d6cd9e753255e7ab06b))
+
 ## [0.90.2](https://github.com/5app/dare/compare/v0.90.1...v0.90.2) (2024-08-02)
 
 
