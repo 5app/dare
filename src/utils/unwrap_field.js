@@ -46,7 +46,7 @@ export default function unwrap_field(expression, allowValue = true) {
 			// Split out comma variables
 			while (
 				(int_m = str.match(
-					/^(.*)(,\s*(?<suffix>(?<quote>["'])?[\s\w%./-]*\k<quote>))$/i
+					/^(.*)((,|AS)\s*(?<suffix>(?<quote>["'])?[\s\w%./-]*\k<quote>))$/
 				))
 			) {
 				/*
@@ -64,7 +64,7 @@ export default function unwrap_field(expression, allowValue = true) {
 					);
 				}
 
-				str = int_m[1];
+				str = int_m[1].trim();
 				suffix = int_m[2] + suffix;
 			}
 
@@ -132,6 +132,8 @@ export default function unwrap_field(expression, allowValue = true) {
 			value: expression,
 		};
 	}
+
+
 
 	// Is this a valid field
 	throw new DareError(
