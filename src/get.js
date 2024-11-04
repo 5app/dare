@@ -141,6 +141,18 @@ export default function buildQuery(opts, dareInstance) {
 		throw new DareError(DareError.INVALID_REQUEST, 'Missing fields');
 	}
 
+	/*
+	 * Workaround for MySQL 8.0 bug https://bugs.mysql.com/bug.php?id=109585
+	 * -> When, all fields are aggregates
+	 * -> And, this is a subquery
+	 * -> Then, remove the limit
+	 */
+	if (dareInstance.engine?.startsWith('mysql:8') && alias) {
+		if (fields.every(item => item.agg)) {
+			opts.limit = null;
+		};
+	}
+
 	// Put it all together
 	let sql = SQL`SELECT ${join(sql_fields)}
 		FROM ${raw(sql_table)} ${raw(sql_alias)}
