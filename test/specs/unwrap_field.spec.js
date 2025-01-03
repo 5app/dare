@@ -37,6 +37,8 @@ describe('utils/unwrap_field', () => {
 		'IF(field IS NULL, "yes", "no")',
 		'IF(field IS NOT NULL, "yes", "no")',
 		'COALESCE(field, "")',
+		'CAST(field AS SIGNED)',
+		'CONVERT(field , SIGNED)',
 		'NULLIF(field, "is null")',
 		'ROUND(field, 2)',
 		'ROUND(AVG(field) * 100, 2)',
@@ -69,6 +71,8 @@ describe('utils/unwrap_field', () => {
 		'field(',
 		'IF(field < "string"str, "yes", "no")',
 		'IF(field = \'string", "yes", "no")',
+		'IF(field, SELECT 1 FROM table)',
+		'IF(field, ""), SELECT 1 FROM table)',
 		'DATE_FORMAT(field, ',
 		'IF(field <<< 123, "yes", "no")',
 
