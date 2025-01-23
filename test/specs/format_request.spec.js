@@ -1,4 +1,5 @@
 import {expect} from 'chai';
+import assert from 'node:assert/strict';
 import Dare from '../../src/index.js';
 /*
  * Format Request
@@ -825,6 +826,42 @@ describe('format_request', () => {
 			const commentsJoin = users._joins[0];
 
 			expect(commentsJoin).to.not.have.property('filter');
+		});
+
+		it('should allow nested children to assign filters', async () => {
+			const removed = {removed: false};
+
+			dare.options.method = method;
+			dare.options.models = {
+				users: {
+					schema: {},
+					get(options) {
+						// Add a filter to users to only show user who haven't been removed
+						options.filter = removed;
+					},
+				},
+				comments: {
+					schema: {
+						// Join definition to users model
+						user_id: ['users.id'],
+					},
+				},
+			};
+
+			/**
+			 * Run a setup whereby we call `users` tree from within the `comments` tree, but with no `users` filter
+			 */
+			const comments = await dare.format_request({
+				method,
+				table: 'comments',
+				fields: ['name', {users: ['name']}],
+			});
+
+			/**
+			 * Test that `has_filter` and `filter` have been assigned to the `users` tree
+			 */
+			assert.strictEqual(comments._joins.at(0).has_filter, true);
+			assert.deepStrictEqual(comments._joins.at(0).filter, removed);
 		});
 
 		it('should await the response from a promise', () => {
