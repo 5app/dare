@@ -589,6 +589,7 @@ await dare.get({
 | `models`        | `Object<ModelName, Model>`                | An object where the keys are the model names to which models can be referred.                                                                  |
 | `validateInput` | `Function(fieldAttributes, field, value)` | Validate input on _patch_ and _post_ operations                                                                                                |
 | `getFieldKey`   | `Function(field, schema)`                 | Override the default function for retrieving schema fields, this is useful if you want to support altenative case (camelCase and/or snakeCase) |
+| `state`		  | `any`                                     | Arbitary data which can be used within the Method handlers to set additional filters or formatting          |
 
 # Model
 
@@ -1022,11 +1023,13 @@ const resp = await dare.get({
 
 ## `model.get`
 
-Here's an example of setting a model to be invoked whenever we access `users` model, we'll go into each of the properties afterwards.
+Here's an example of setting a model to be invoked whenever we access `users` model. In the below example we're restricting what records the user has access to.
 
 ```js
 function get(options) {
-	options.filter.deleted = null;
+
+	// In this example we're filtering access to the `users` model by the properties of the `state` data.
+	options.filter.id = options.state.userId;
 }
 
 // For completeness we'll assume the new Dare instance approach for adding the options...
@@ -1043,9 +1046,12 @@ await dare.get({
 	table: 'users',
 	fields: ['name'],
 	limit: 100,
+	state: {
+		userId: 123,
+	}
 });
 
-// SELECT name FROM users WHERE deleted = false LIMIT 100;
+// SELECT name FROM users WHERE id = 123 LIMIT 100;
 ```
 
 # Data validation

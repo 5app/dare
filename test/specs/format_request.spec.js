@@ -1,4 +1,6 @@
 import {expect} from 'chai';
+import SQL from 'sql-template-tag';
+import assert from 'node:assert/strict'
 import Dare from '../../src/index.js';
 /*
  * Format Request
@@ -50,27 +52,22 @@ describe('format_request', () => {
 			fields,
 		});
 
-		expect(resp).to.deep.equal({
+		assert.deepStrictEqual(resp, {
 			fields,
 			table,
 			alias: table,
 			name: table,
+			state: undefined,
 			sql_table: actualtable,
 			field_alias_path: '',
 			filter,
 			_filter: [
-				{
-					strings: ['a.id = ', ''],
-					values: [1],
-				},
+				SQL`a.id = ${1}`,
 			],
 			sql_alias: 'a',
 			sql_joins: [],
 			sql_where_conditions: [
-				{
-					strings: ['a.id = ', ''],
-					values: [1],
-				},
+				SQL`a.id = ${1}`,
 			],
 			limit: 1,
 			single: true,
@@ -760,10 +757,22 @@ describe('format_request', () => {
 			expect(options.filter).to.eql({is_deleted: false});
 		});
 
-		it('should append parent through the table scoped request', async () => {
+		it('should append parent and state through the table scoped request', async () => {
 			const removed = {removed: false};
 
+			/**
+			 * An arbitary state object
+			 */
+			const state = {
+				member_id: 1,
+				auth: {
+					role: 'admin',
+				},
+			};
+
+			// Set the method
 			dare.options.method = method;
+			dare.options.state = state;
 			dare.options.models = {
 				users: {
 					schema: {},
@@ -807,6 +816,10 @@ describe('format_request', () => {
 			});
 
 			expect(comments.filter).to.eql({users: removed});
+			assert.strictEqual(comments.state, state);
+
+			// Check the joins include the state too
+			assert.strictEqual(comments._joins.at(0).state, state);
 
 			/*
 			 * Test 2
