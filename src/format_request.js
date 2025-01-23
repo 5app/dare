@@ -60,8 +60,13 @@ async function format_request(options, dareInstance) {
 	/*
 	 * Get option settings
 	 */
-	const {conditional_operators_in_value, method, models} =
+	const {conditional_operators_in_value, method, models, state} =
 		dareInstance.options;
+
+	/**
+	 * Assign the state to the options if it is not already defined
+	 */
+	options.state ??= state;
 
 	/*
 	 * Options name defines the model name
