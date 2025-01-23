@@ -1,3 +1,10 @@
+# [0.93.0](https://github.com/5app/dare/compare/v0.92.1...v0.93.0) (2025-01-23)
+
+
+### Features
+
+* **state:** attach state to each tree node, fixes [#392](https://github.com/5app/dare/issues/392) ([#393](https://github.com/5app/dare/issues/393)) ([5221086](https://github.com/5app/dare/commit/522108626a64b68eef9d0865771a711ac1401735))
+
 ## [0.92.1](https://github.com/5app/dare/compare/v0.92.0...v0.92.1) (2025-01-23)
 
 
