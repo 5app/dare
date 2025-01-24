@@ -26,10 +26,10 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {Object<string, object | Function | Array<string> | string | null | boolean>} [schema] - Model Schema
  * @property {string} [table] - Alias for the table
  * @property {Object<string, string>} [shortcut_map] - Shortcut map
- * @property {Function} [get] - Get handler
- * @property {Function} [post] - Post handler
- * @property {Function} [patch] - Patch handler
- * @property {Function} [del] - Delete handler
+ * @property {function(GetRequestOptions, Dare):void} [get] - Get handler
+ * @property {function(PostRequestOptions, Dare):void} [post] - Post handler
+ * @property {function(PatchRequestOptions, Dare):void} [patch] - Patch handler
+ * @property {function(DeleteRequestOptions, Dare):void} [del] - Delete handler
  *
  * @typedef {object} RequestOptions
  * @property {string} [table] - Name of the table to query
