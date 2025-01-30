@@ -61,9 +61,6 @@ describe('format_request', () => {
 			sql_table: actualtable,
 			field_alias_path: '',
 			filter,
-			_filter: [
-				SQL`a.id = ${1}`,
-			],
 			sql_alias: 'a',
 			sql_joins: [],
 			sql_where_conditions: [
@@ -484,7 +481,7 @@ describe('format_request', () => {
 							[condition_type]: filter,
 						});
 
-						const query = resp[`_${condition_type}`][0];
+						const query = resp.sql_where_conditions[0];
 
 						expect(query.sql).to.equal(sql);
 						expect(query.values).to.deep.equal(values);
@@ -571,7 +568,7 @@ describe('format_request', () => {
 							},
 						});
 
-						const query = resp[`_${condition_type}`][0];
+						const query = resp.sql_where_conditions[0];
 
 						expect(query.sql).to.equal(sql);
 						expect(query.values).to.deep.equal(values);

@@ -11,8 +11,8 @@ import DareError from '../utils/error.js';
  * Limit Clause
  * Set/Check limit and start positions
  * @param {object} opts - Options object
- * @param {number} opts.limit - Limit defintion
- * @param {number} opts.start - Start defintion
+ * @param {number} [opts.limit] - Limit defintion
+ * @param {number} [opts.start] - Start defintion
  * @param {number} MAX_LIMIT - Max limit on instance
  * @returns {LimitClause} - Limit Clause
  */

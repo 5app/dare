@@ -21,22 +21,28 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @typedef {import('sql-template-tag').Sql} Sql
  *
  * @typedef {`${'mysql' | 'postgres' | 'mariadb'}:${number}.${number}${string?}`} Engine
+ * 
+ * @typedef {object} FieldAttributes
  *
  * @typedef {object} Model
- * @property {Object<string, object | Function | Array<string> | string | null | boolean>} [schema] - Model Schema
+ * @property {Record<string, object | Function | Array<string> | string | null | boolean>} [schema] - Model Schema
  * @property {string} [table] - Alias for the table
  * @property {Object<string, string>} [shortcut_map] - Shortcut map
- * @property {function(GetRequestOptions, Dare):void} [get] - Get handler
- * @property {function(PostRequestOptions, Dare):void} [post] - Post handler
- * @property {function(PatchRequestOptions, Dare):void} [patch] - Patch handler
- * @property {function(DeleteRequestOptions, Dare):void} [del] - Delete handler
+ * @property {function(?GetRequestOptions, ?Dare):void} [get] - Get handler
+ * @property {function(?PostRequestOptions, ?Dare):void} [post] - Post handler
+ * @property {function(?PatchRequestOptions, ?Dare):void} [patch] - Patch handler
+ * @property {function(?DeleteRequestOptions, ?Dare):void} [del] - Delete handler
+ * 
+ * @typedef {Array<string | number | boolean | Record<string, string | number | boolean | RequestFields>>} RequestFields
+ * 
+ * @typedef {function(Record<string, any>, string, any):void} ValidateInputFunction
  *
  * @typedef {object} RequestOptions
  * @property {string} [table] - Name of the table to query
- * @property {Array} [fields] - Fields array to return
- * @property {object} [filter] - Filter Object to query
- * @property {object} [join] - Place filters on the joining tables
- * @property {object} [body] - Body containing new data
+ * @property {RequestFields} [fields] - Fields array to return
+ * @property {Record<string, any>} [filter] - Filter Object to query
+ * @property {Record<string, any>} [join] - Place filters on the joining tables
+ * @property {Record<string, any>} [body] - Body containing new data
  * @property {RequestOptions} [query] - Query attached to a post request to create INSERT...SELECT operations
  * @property {number} [limit] - Number of items to return
  * @property {number} [start] - Number of items to skip
@@ -45,10 +51,10 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {string} [duplicate_keys] - 'ignore' to prevent throwing Duplicate key errors
  * @property {string[]} [duplicate_keys_update] - An array of fields to update on presence of duplicate key constraints
  * @property {*} [notfound] - If not undefined will be returned in case of a single entry not found
- * @property {Object<string, Model>} [models] - Models with schema defintitions
- * @property {Function} [validateInput] - Validate input
+ * @property {Record<string, Model>} [models] - Models with schema defintitions
+ * @property {ValidateInputFunction} [validateInput] - Validate input
  * @property {boolean} [infer_intermediate_models] - Infer intermediate models
- * @property {Function} [rowHandler] - Override default Function to handle each row
+ * @property {function(Record<string, any>):any} [rowHandler] - Override default Function to handle each row
  * @property {Function} [getFieldKey] - Override default Function to interpret the field key
  * @property {string} [conditional_operators_in_value] - Allowable conditional operators in value
  * @property {any} [state] - Arbitary data to carry through to the model/response handlers
@@ -65,8 +71,21 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {string} [sql_alias] - SQL Alias
  * @property {Array} [sql_joins] - SQL Join
  * @property {string} [ignore] - SQL Fields
+ * @property {InternalProps} [parent] - Defines the parent request
  * @property {boolean} [forceSubquery] - Force the table joins to use a subquery.
  * @property {Array} [sql_where_conditions] - SQL Where conditions
+ * -- properties of the format_request function
+ * @property {boolean} [has_filter] - Has filter, used to determine whether a node and it's descendents can be defined as a subquery
+ * @property {boolean} [has_fields] - Has fields, used to determine whether the subqueries are required
+ * @property {string} [field_alias_path] - An alternative path to these fields when intermediate models are used
+ * @property {string} [required_join] - Join is required
+ * @property {boolean} [negate] - Whether this node is connected via a negation operator
+ * @property {boolean} [is_subquery] - Identify a node as a subquery, used to place fields into a subquery, or a filter into a subquery (i.e. when negated)
+ * @property {boolean} [many] - 1:n join
+ * @property {Record<string, any>} [join_conditions] - Join conditions between nodes
+ * @property {Sql} [sql_join_condition] - Table to join
+ * @property {Array<QueryOptions>} [joins] - Usually this is derived when processing the node, however when there is an intermediate node, we can pre-define the joins
+ * @property {Array<QueryOptions>} [_joins] - Descendent nodes, post-processed
  *
  * @typedef {RequestOptions & InternalProps} QueryOptions
  */
