@@ -23,15 +23,35 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @typedef {`${'mysql' | 'postgres' | 'mariadb'}:${number}.${number}${string?}`} Engine
  * 
  * @typedef {object} FieldAttributes
+ * 
+ * @callback GetModelHandler
+ * @param {GetRequestOptions} [options] - Request Options
+ * @param {Dare} [dareInstance] - Dare Instance
+ * @returns {void}
+ * 
+ * @callback PostModelHandler
+ * @param {PostRequestOptions} [options] - Request Options
+ * @param {Dare} [dareInstance] - Dare Instance
+ * @returns {void}
+ * 
+ * @callback PatchModelHandler
+ * @param {PatchRequestOptions} [options] - Request Options
+ * @param {Dare} [dareInstance] - Dare Instance
+ * @returns {void}
+ * 
+ * @callback DeleteModelHandler
+ * @param {DeleteRequestOptions} [options] - Request Options
+ * @param {Dare} [dareInstance] - Dare Instance
+ * @returns {void}
  *
  * @typedef {object} Model
  * @property {Record<string, object | Function | Array<string> | string | null | boolean>} [schema] - Model Schema
  * @property {string} [table] - Alias for the table
  * @property {Object<string, string>} [shortcut_map] - Shortcut map
- * @property {function(?GetRequestOptions, ?Dare):void} [get] - Get handler
- * @property {function(?PostRequestOptions, ?Dare):void} [post] - Post handler
- * @property {function(?PatchRequestOptions, ?Dare):void} [patch] - Patch handler
- * @property {function(?DeleteRequestOptions, ?Dare):void} [del] - Delete handler
+ * @property {GetModelHandler} [get] - Get handler
+ * @property {PostModelHandler} [post] - Post handler
+ * @property {PatchModelHandler} [patch] - Patch handler
+ * @property {DeleteModelHandler} [del] - Delete handler
  * 
  * @typedef {Array<string | number | boolean | Record<string, string | number | boolean | RequestFields>>} RequestFields
  * 
