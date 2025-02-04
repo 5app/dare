@@ -25,22 +25,22 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @typedef {object} FieldAttributes
  * 
  * @callback GetModelHandler
- * @param {GetRequestOptions} [options] - Request Options
+ * @param {GetRequestOptions & InternalProps} [options] - Request Options
  * @param {Dare} [dareInstance] - Dare Instance
  * @returns {void}
  * 
  * @callback PostModelHandler
- * @param {PostRequestOptions} [options] - Request Options
+ * @param {PostRequestOptions & InternalProps} [options] - Request Options
  * @param {Dare} [dareInstance] - Dare Instance
  * @returns {void}
  * 
  * @callback PatchModelHandler
- * @param {PatchRequestOptions} [options] - Request Options
+ * @param {PatchRequestOptions & InternalProps} [options] - Request Options
  * @param {Dare} [dareInstance] - Dare Instance
  * @returns {void}
  * 
  * @callback DeleteModelHandler
- * @param {DeleteRequestOptions} [options] - Request Options
+ * @param {DeleteRequestOptions & InternalProps} [options] - Request Options
  * @param {Dare} [dareInstance] - Dare Instance
  * @returns {void}
  *
