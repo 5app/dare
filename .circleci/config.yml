@@ -25,7 +25,7 @@ executors:
 # Orbs
 
 orbs:
-    node: circleci/node@5.2.0
+    node: circleci/node@7.0.0
 
 ################################
 # Jobs

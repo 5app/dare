@@ -1,3 +1,17 @@
+# [0.93.0](https://github.com/5app/dare/compare/v0.92.1...v0.93.0) (2025-01-23)
+
+
+### Features
+
+* **state:** attach state to each tree node, fixes [#392](https://github.com/5app/dare/issues/392) ([#393](https://github.com/5app/dare/issues/393)) ([5221086](https://github.com/5app/dare/commit/522108626a64b68eef9d0865771a711ac1401735))
+
+## [0.92.1](https://github.com/5app/dare/compare/v0.92.0...v0.92.1) (2025-01-23)
+
+
+### Bug Fixes
+
+* **handler:** enable handlers to attach filters to the request, fixes [#391](https://github.com/5app/dare/issues/391) ([#394](https://github.com/5app/dare/issues/394)) ([d6323b7](https://github.com/5app/dare/commit/d6323b7842cb0a40e6d891b8325fcf334ec961ae))
+
 # [0.92.0](https://github.com/5app/dare/compare/v0.91.0...v0.92.0) (2024-11-04)
 
 

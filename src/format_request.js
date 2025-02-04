@@ -60,8 +60,13 @@ async function format_request(options, dareInstance) {
 	/*
 	 * Get option settings
 	 */
-	const {conditional_operators_in_value, method, models} =
+	const {conditional_operators_in_value, method, models, state} =
 		dareInstance.options;
+
+	/**
+	 * Assign the state to the options if it is not already defined
+	 */
+	options.state ??= state;
 
 	/*
 	 * Options name defines the model name
@@ -392,12 +397,21 @@ async function format_request(options, dareInstance) {
 		// Loop through the joins array
 		if (joins.length) {
 			// Loop through the joins and pass through the formatter
-			const a = joins.map(join_object => {
+			const a = joins.map(async join_object => {
 				// Set the parent
 				join_object.parent = options;
 
 				// Format join...
-				return format_request(join_object, dareInstance);
+				const formatedObject = await format_request(join_object, dareInstance);
+
+				// If this is present
+				if (formatedObject) {
+					// The handler may have assigned filters when their previously wasn't any
+					formatedObject.has_filter ||= Boolean(formatedObject.filter);
+				}
+
+				return formatedObject;
+				
 			});
 
 			// Add Joins
