@@ -1,3 +1,10 @@
+## [0.93.1](https://github.com/5app/dare/compare/v0.93.0...v0.93.1) (2025-02-04)
+
+
+### Bug Fixes
+
+* **ts:** type model handler parameters ([#397](https://github.com/5app/dare/issues/397)) ([d434f67](https://github.com/5app/dare/commit/d434f67fcfa6de3cfa2bd1e5490fd6b9c7def4dc))
+
 # [0.93.0](https://github.com/5app/dare/compare/v0.92.1...v0.93.0) (2025-01-23)
 
 
