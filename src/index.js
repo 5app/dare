@@ -315,7 +315,7 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 /**
  * Dare.after
  * Defines where the instance goes looking to apply post execution handlers and potentially mutate the response
- * @param {object|Array} resp - Response object
+ * @param {unknown} resp - Response object
  * @returns {unknown} response data formatted or not
  */
 /* eslint-enable jsdoc/valid-types */
