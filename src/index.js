@@ -24,7 +24,7 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * 
  * @typedef {object} FieldAttributes
  * 
- * @typedef {Pick<InternalProps, 'alias' | 'parent' | 'name' | 'skip' | 'sql_table'>} ModalHandlerExtraProps
+ * @typedef {Pick<InternalProps, 'alias' | 'parent' | 'name' | 'skip'>} ModalHandlerExtraProps
  * 
  * @callback GetModelHandler
  * @param {GetRequestOptions & ModalHandlerExtraProps} [options] - Request Options
