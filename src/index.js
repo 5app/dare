@@ -24,23 +24,25 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * 
  * @typedef {object} FieldAttributes
  * 
+ * @typedef {Pick<InternalProps, 'alias' | 'parent' | 'name' | 'skip'>} ModalHandlerExtraProps
+ * 
  * @callback GetModelHandler
- * @param {GetRequestOptions & InternalProps} [options] - Request Options
+ * @param {GetRequestOptions & ModalHandlerExtraProps} [options] - Request Options
  * @param {Dare} [dareInstance] - Dare Instance
  * @returns {void}
  * 
  * @callback PostModelHandler
- * @param {PostRequestOptions & InternalProps} [options] - Request Options
+ * @param {PostRequestOptions & ModalHandlerExtraProps} [options] - Request Options
  * @param {Dare} [dareInstance] - Dare Instance
  * @returns {void}
  * 
  * @callback PatchModelHandler
- * @param {PatchRequestOptions & InternalProps} [options] - Request Options
+ * @param {PatchRequestOptions & ModalHandlerExtraProps} [options] - Request Options
  * @param {Dare} [dareInstance] - Dare Instance
  * @returns {void}
  * 
  * @callback DeleteModelHandler
- * @param {DeleteRequestOptions & InternalProps} [options] - Request Options
+ * @param {DeleteRequestOptions & ModalHandlerExtraProps} [options] - Request Options
  * @param {Dare} [dareInstance] - Dare Instance
  * @returns {void}
  *
