@@ -67,9 +67,10 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * 
  * @typedef {Record<string, any> & FieldAttributeProps} FieldAttributes
  * @typedef {FieldAttributes | Handler | Reference[] | Alias | (Authorised & false) | null} FieldAttributesWithShorthand
+ * @typedef {Record<string, FieldAttributesWithShorthand>} Schema
  * 
  * @typedef {object} Model
- * @property {Record<string, FieldAttributesWithShorthand>} [schema] - Model Schema
+ * @property {Schema} [schema] - Model Schema
  * @property {string} [table] - Alias for the table
  * @property {Object<string, string>} [shortcut_map] - Shortcut map
  * @property {GetModelHandler} [get] - Get handler
@@ -249,7 +250,7 @@ Dare.prototype.response_handler = response_handler;
 /**
  * GetFieldKey
  * @param {string} field - Field
- * @param {object} schema - Model Schema
+ * @param {Schema} schema - Model Schema
  * @returns {string | void} Field Key
  */
 // eslint-disable-next-line no-unused-vars
@@ -1041,7 +1042,7 @@ Dare.prototype.onDuplicateKeysUpdate = function onDuplicateKeysUpdate(
  * Format Input Value
  * For a given field definition, return the db key (alias) and format the input it required
  * @param {object} obj - Object
- * @param {object} [obj.tableSchema={}] - An object containing the table schema
+ * @param {Schema} [obj.tableSchema={}] - An object containing the table schema
  * @param {string} obj.field - field identifier
  * @param {*} obj.value - Given value
  * @param {Function} [obj.validateInput] - Custom validation function
@@ -1130,7 +1131,7 @@ function formatInputValue({
 /**
  * Return un-aliased field names
  *
- * @param {object} tableSchema - An object containing the table schema
+ * @param {Schema} tableSchema - An object containing the table schema
  * @param {string} field - field identifier
  * @param {Dare} dareInstance - Dare Instance
  * @returns {string} Unaliased field name

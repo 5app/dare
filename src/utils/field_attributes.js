@@ -50,18 +50,6 @@ export default function getFieldAttributes(
 			Object.assign(respDefinition, fieldDefinition[method]);
 		}
 
-		/*
-		 * @legacy support `defaultValue{get, post, patch, del}` definitions.
-		 * If 'defaultValue' is an object
-		 * Expand default value
-		 */
-		if (
-			fieldDefinition.defaultValue !== null &&
-			typeof fieldDefinition.defaultValue === 'object'
-		) {
-			respDefinition.defaultValue = fieldDefinition.defaultValue[method];
-		}
-
 		// This is already a definition object
 		return {
 			...fieldDefinition,

@@ -1,17 +1,25 @@
-const created_time = {
-	type: 'datetime',
-};
-
-const string = {
-	type: 'string',
-};
 
 /* eslint-disable jsdoc/valid-types */
 /**
  * @typedef {import('../../src/index.js').RequestOptions} RequestOptions
+ * @typedef {import('../../src/index.js').FieldAttributes} FieldAttributes
  * @typedef {import('../../src/index.js').Engine} Engine
  */
 /* eslint-enable jsdoc/valid-types */
+
+/**
+ * @type {FieldAttributes}
+ */
+const created_time = {
+	type: 'datetime',
+};
+
+/**
+ * @type {FieldAttributes}
+ */
+const string = {
+	type: 'string',
+};
 
 /**
  * @type {Engine}
@@ -124,7 +132,7 @@ export default {
 		comments: {
 			schema: {
 				author_id: {
-					references: 'users.id',
+					references: ['users.id'],
 				},
 				/*
 				 * Date Type
@@ -136,7 +144,7 @@ export default {
 		activityEvents: {
 			schema: {
 				session_id: {
-					references: 'activitySession.id',
+					references: ['activitySession.id'],
 				},
 
 				ref_id: ['asset.id'],
