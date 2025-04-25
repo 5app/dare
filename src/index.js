@@ -22,8 +22,6 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  *
  * @typedef {`${'mysql' | 'postgres' | 'mariadb'}:${number}.${number}${string?}`} Engine
  * 
- * @typedef {object} FieldAttributes
- * 
  * @typedef {Pick<InternalProps, 'alias' | 'parent' | 'name' | 'skip'>} ModalHandlerExtraProps
  * 
  * @callback GetModelHandler
@@ -45,9 +43,33 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @param {DeleteRequestOptions & ModalHandlerExtraProps} [options] - Request Options
  * @param {Dare} [dareInstance] - Dare Instance
  * @returns {void}
- *
+ * 
+ * @typedef {string} Alias
+ * @typedef {`${string}.${string}`} Reference
+ * @typedef {string | number | boolean | null} DefaultValue
+ * @typedef {Function} Handler
+ * @typedef {boolean} Authorised
+ * 
+ * @typedef {object} FieldAttributeProps
+ * @property {'json' | 'number' | 'boolean' | 'string' | 'datetime'} [type] - The type of the field
+ * @property {Alias} [alias] - Alias for the field
+ * @property {Reference[]} [references] - References to other models fields
+ * @property {string} [type] - Type of field
+ * @property {DefaultValue | DefaultValue[]} [defaultValue] - Default value for the field
+ * @property {boolean} [readable=true] - Whether this field is readable
+ * @property {boolean} [writeable=true] - Whether this field is writeable
+ * @property {boolean} [required=false] - Whether this field is required
+ * @property {Handler} [handler] - Handler to generate the field value
+ * @property {FieldAttributes} [get] - The get definition of this field
+ * @property {FieldAttributes} [post] - The post definition of this field
+ * @property {FieldAttributes} [patch] - The patch definition of this field
+ * @property {FieldAttributes} [del] - The del definition of this field
+ * 
+ * @typedef {Record<string, any> & FieldAttributeProps} FieldAttributes
+ * @typedef {FieldAttributes | Handler | Reference[] | Alias | (Authorised & false) | null} FieldAttributesWithShorthand
+ * 
  * @typedef {object} Model
- * @property {Record<string, object | Function | Array<string> | string | null | boolean>} [schema] - Model Schema
+ * @property {Record<string, FieldAttributesWithShorthand>} [schema] - Model Schema
  * @property {string} [table] - Alias for the table
  * @property {Object<string, string>} [shortcut_map] - Shortcut map
  * @property {GetModelHandler} [get] - Get handler
