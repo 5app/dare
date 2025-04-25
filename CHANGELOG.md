@@ -1,3 +1,10 @@
+# [0.94.0](https://github.com/5app/dare/compare/v0.93.2...v0.94.0) (2025-04-25)
+
+
+### Features
+
+* **type:** field attributes ([#403](https://github.com/5app/dare/issues/403)) ([dc92f17](https://github.com/5app/dare/commit/dc92f17cef0ab697b41c86a6dd3c9cc0aaa9b37e))
+
 ## [0.93.2](https://github.com/5app/dare/compare/v0.93.1...v0.93.2) (2025-02-05)
 
 
