@@ -1,3 +1,10 @@
+/* eslint-disable jsdoc/valid-types */
+/**
+ * @typedef {import('../../src/index.js').QueryOptions} QueryOptions
+ */
+/* eslint-enable jsdoc/valid-types */
+
+
 import {expect} from 'chai';
 import Dare, {DareError} from '../../src/index.js';
 import clone from 'tricks/object/clone.js';
@@ -50,6 +57,10 @@ describe('Dare', () => {
 
 	describe('dare.use to extend the instance', () => {
 		let dare;
+
+		/**
+		 * @type {QueryOptions}
+		 */
 		let options;
 
 		beforeEach(() => {

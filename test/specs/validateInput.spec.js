@@ -1,8 +1,18 @@
+/* eslint-disable jsdoc/valid-types */
+/**
+ * @typedef {import('../../src/index.js').Schema} Schema
+ */
+/* eslint-enable jsdoc/valid-types */
+
 import {expect} from 'chai';
 import Dare from '../../src/index.js';
 
 describe('validateInput', () => {
 	let dare;
+
+	/**
+	 * @type {Schema}
+	 */
 	let memberSchema;
 
 	beforeEach(() => {

@@ -46,24 +46,6 @@ describe('schema.defaultValue', () => {
 			expect(attr).to.not.have.property('defaultValue');
 		});
 
-		// @deprecated defaultValue[method]
-		it('@legacy: defaultValue object should return as a single property', () => {
-			const defaultValue = {
-				post: 'postValue',
-				get: 123,
-				patch: null,
-			};
-
-			const value = defaultValue[dareInstance.options.method];
-
-			const attr = getFieldAttributes(
-				field,
-				{[field]: {defaultValue}},
-				dareInstance
-			);
-			expect(attr).to.have.property('defaultValue', value);
-		});
-
 		[undefined, 1, null, 'string'].forEach(defaultValue => {
 			it(`should expand defaultValue, ${defaultValue}`, () => {
 				const attr = getFieldAttributes(
@@ -85,25 +67,6 @@ describe('schema.defaultValue', () => {
 
 	describe('formatRequest', () => {
 		['get', 'post', 'patch', 'del'].forEach(method => {
-			// @deprecated defaultValue[method]
-			it(`@legacy: should add as a join filter in formatRequest for ${method}`, async () => {
-				const value = method;
-
-				// Update dare instance
-				dare.options.method = method;
-
-				// Set the default value for the method
-				dare.options.models.mytable.schema.status = {
-					defaultValue: {[value]: value},
-				};
-
-				const resp = await dare.format_request({
-					table: 'mytable',
-					fields: ['id', 'name'],
-				});
-
-				expect(resp.join).to.have.property('status', value);
-			});
 			it(`should add as a join filter in formatRequest for ${method}`, async () => {
 				const defaultValue = method;
 
@@ -214,29 +177,6 @@ describe('schema.defaultValue', () => {
 
 	describe('DEL/GET/PATCH', () => {
 		['get', 'patch', 'del'].forEach(method => {
-			// @deprecated defaultValue[method]
-			it(`@legacy: should add WHERE condition for the dare.${method}() call`, async () => {
-				const value = method;
-
-				// Set the default value for the method
-				dare.options.models.mytable.schema.status = {
-					defaultValue: {[method]: value},
-				};
-
-				const history = spy(dare, 'execute', () => []);
-
-				await dare[method]({
-					table: 'mytable',
-					fields: ['id', 'name'],
-					body: {name: 'newvalue'},
-					notfound: null,
-				});
-
-				const [{sql, values}] = history.at(0);
-
-				expect(sql).to.include('status = ');
-				expect(values).to.include(method);
-			});
 
 			it(`should add WHERE condition for the dare.${method}() call`, async () => {
 				const defaultValue = method;
