@@ -51,7 +51,7 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @typedef {boolean} Authorised
  * 
  * @typedef {object} FieldAttributeProps
- * @property {'json' | 'number' | 'boolean' | 'string' | 'datetime'} [type] - The type of the field
+ * @property {'json' | 'number' | 'boolean' | 'string' | 'datetime' | 'date'} [type] - The type of the field
  * @property {Alias} [alias] - Alias for the field
  * @property {Reference[]} [references] - References to other models fields
  * @property {string} [type] - Type of field
