@@ -1,3 +1,10 @@
+## [0.94.1](https://github.com/5app/dare/compare/v0.94.0...v0.94.1) (2025-04-29)
+
+
+### Bug Fixes
+
+* **null-safe:** add null-safe negate equality conditions ([#404](https://github.com/5app/dare/issues/404)) ([3eb962f](https://github.com/5app/dare/commit/3eb962f7bcb93a7f0099bfa5053c3aca41969a59))
+
 # [0.94.0](https://github.com/5app/dare/compare/v0.93.2...v0.94.0) (2025-04-25)
 
 
