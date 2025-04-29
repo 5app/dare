@@ -364,7 +364,7 @@ describe('format_request', () => {
 			describe('should prep conditions', () => {
 				const a = [
 					[{prop: 'string'}, 'a.prop = ?', ['string']],
-					[{'-prop': 'string'}, 'a.prop != ?', ['string']],
+					[{'-prop': 'string'}, '(a.prop != ? OR a.prop IS NULL)', ['string']],
 					[{prop: '%string'}, 'a.prop LIKE ?', ['%string']],
 					[
 						{prop: '%string'},
@@ -384,14 +384,14 @@ describe('format_request', () => {
 					[{'-prop': 'patt%rn'}, 'a.prop NOT LIKE ?', ['patt%rn']],
 					[
 						{'-prop': 'patt%rn'},
-						'a.prop != ?',
+						'(a.prop != ? OR a.prop IS NULL)',
 						['patt%rn'],
 						noCondOperators,
 					],
 					[{prop: [1, 2, 3]}, 'a.prop IN (?,?,?)', [1, 2, 3]],
-					[{'-prop': [1, 2, 3]}, 'a.prop NOT IN (?,?,?)', [1, 2, 3]],
+					[{'-prop': [1, 2, 3]}, '(a.prop NOT IN (?,?,?) OR a.prop IS NULL)', [1, 2, 3]],
 					[{prop: [1]}, 'a.prop IN (?)', [1]],
-					[{'-prop': [1]}, 'a.prop NOT IN (?)', [1]],
+					[{'-prop': [1]}, '(a.prop NOT IN (?) OR a.prop IS NULL)', [1]],
 					[
 						{prop: [1, null, 2]},
 						'(a.prop IN (?,?) OR a.prop IS NULL)',

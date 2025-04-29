@@ -269,6 +269,50 @@ describe(`Dare init tests: options ${Object.keys(options)}`, () => {
 		}
 	});
 
+	it('NULL-safe negate equality operator', async () => {
+		
+		const username = 'name@example.com';
+		await dare.post('users', [
+			{
+				username,
+				first_name: "First Old'n'Name",
+				last_name: null,
+			},
+		]);
+
+		// Should be able to return null values in a negated search
+		{
+			const resp = await dare.get('users', ['username'], {
+				'-last_name': 'Last-Name',
+			});
+
+			assert.deepStrictEqual(resp, {username});
+		}
+
+		// Should be able to return null values in a negated search
+		{
+			const resp = await dare.get('users', ['username'], {
+				'-last_name': ['Last-Name'],
+			});
+
+			assert.deepStrictEqual(resp, {username});
+		}
+
+		// Should be able to exclude null values in a negated search
+		{
+			const resp = await dare.get('users', ['username'], {
+				'-last_name': ['Last-Name', null],
+			}, 
+				{
+					notfound: {}
+				},
+			);
+
+			assert.deepStrictEqual(resp, {});
+		}
+
+	});
+
 	it('Return a truthy value for existance if no fields are provided', async () => {
 		const username = 'A Name';
 		await dare.post('users', {username});

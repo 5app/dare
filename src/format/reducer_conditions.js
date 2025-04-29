@@ -383,7 +383,16 @@ function sqlCondition({
 			const items = engine.startsWith('mysql:5.7')
 				? filteredValue.map(quote)
 				: filteredValue;
-			conds.push(SQL`${sql_field} ${NOT}IN (${join(items)})`);
+
+			let condition = SQL`${sql_field} ${NOT}IN (${join(items)})`;
+
+			if (negate && !value.includes(null)) {
+				// If negated, and the value is not null, then add the null check
+				condition = SQL`(${condition} OR ${sql_field} IS NULL)`;
+			}
+
+			conds.push(condition);
+	
 		}
 
 		// Other Values which can't be grouped ...
@@ -413,7 +422,18 @@ function sqlCondition({
 			value = String(value);
 		}
 
-		return SQL`${sql_field} ${raw(negate ? '!' : '')}= ${value}`;
+		let condition =  SQL`${sql_field} ${raw(negate ? '!' : '')}= ${value}`;
+
+		if (negate) {
+			/*
+			 * NULL-safe equity operator
+			 * @see {@link https://vettabase.com/null-comparisons-in-mariadb-postgresql-and-sqlite/}
+			 * If negated, then add the null check
+			 */
+			condition = SQL`(${condition} OR ${sql_field} IS NULL)`;
+		}
+		return condition;
+
 	}
 }
 
