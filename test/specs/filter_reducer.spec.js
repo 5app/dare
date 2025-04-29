@@ -115,8 +115,8 @@ describe('Filter Reducer', () => {
 						'-key': testStr,
 					},
 				},
-				`(a.jsonSettings->? != ?)`,
-				['$.key', testStr],
+				`((a.jsonSettings->? != ? OR a.jsonSettings->? IS NULL))`,
+				['$.key', testStr, '$.key'],
 			],
 			[
 				{
