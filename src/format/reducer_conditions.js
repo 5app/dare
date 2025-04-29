@@ -426,7 +426,7 @@ function sqlCondition({
 
 		if (negate) {
 			/*
-			 * NULL-safe equity operator
+			 * NULL-safe equality operator
 			 * @see {@link https://vettabase.com/null-comparisons-in-mariadb-postgresql-and-sqlite/}
 			 * If negated, then add the null check
 			 */
