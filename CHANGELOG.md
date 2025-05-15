@@ -1,3 +1,10 @@
+# [0.95.0](https://github.com/5app/dare/compare/v0.94.1...v0.95.0) (2025-05-15)
+
+
+### Features
+
+* **jsdoc:** use [@import](https://github.com/import) ([#405](https://github.com/5app/dare/issues/405)) ([64b0fd9](https://github.com/5app/dare/commit/64b0fd93f600fdebf700f0bd0dc052e1e799a217))
+
 ## [0.94.1](https://github.com/5app/dare/compare/v0.94.0...v0.94.1) (2025-04-29)
 
 
