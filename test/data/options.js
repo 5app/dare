@@ -1,9 +1,6 @@
-
 /* eslint-disable jsdoc/valid-types */
 /**
- * @typedef {import('../../src/index.js').RequestOptions} RequestOptions
- * @typedef {import('../../src/index.js').FieldAttributes} FieldAttributes
- * @typedef {import('../../src/index.js').Engine} Engine
+ * @import {RequestOptions, FieldAttributes, Engine} from '../../src/index.js'
  */
 /* eslint-enable jsdoc/valid-types */
 

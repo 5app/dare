@@ -1,8 +1,6 @@
-/* eslint-disable jsdoc/valid-types */
 /**
- * @typedef {import('../../src/index.js').Schema} Schema
+ * @import {Schema} from '../../src/index.js'
  */
-/* eslint-enable jsdoc/valid-types */
 
 import {expect} from 'chai';
 import Dare from '../../src/index.js';

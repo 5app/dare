@@ -5,17 +5,11 @@ import formatDateTime from '../utils/format_datetime.js';
 import getFieldAttributes from '../utils/field_attributes.js';
 import unwrap_field from '../utils/unwrap_field.js';
 
-/* eslint-disable jsdoc/valid-types */
 /**
- * @typedef {import('sql-template-tag').Sql} Sql
- * @typedef {import('../index.js').default} Dare
- * @typedef {import('../index.js').Engine} Engine
- */
-/* eslint-enable jsdoc/valid-types */
-
-/**
- * Reduce conditions, call extract
+ * @import {Sql} from 'sql-template-tag'
+ * @import Dare, {Engine} from '../index.js'
  *
+ * Reduce conditions, call extract
  * @param {object} filter - Filter conditions
  * @param {object} options - Options object
  * @param {Function} options.extract - Extract (key, value) related to nested model

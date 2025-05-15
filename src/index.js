@@ -18,7 +18,7 @@ import response_handler, {responseRowHandler} from './response_handler.js';
 
 /* eslint-disable jsdoc/valid-types */
 /**
- * @typedef {import('sql-template-tag').Sql} Sql
+ * @import {Sql} from 'sql-template-tag'
  *
  * @typedef {`${'mysql' | 'postgres' | 'mariadb'}:${number}.${number}${string?}`} Engine
  * 

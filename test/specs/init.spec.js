@@ -1,9 +1,6 @@
-/* eslint-disable jsdoc/valid-types */
 /**
- * @typedef {import('../../src/index.js').QueryOptions} QueryOptions
+ * @import {QueryOptions} from '../../src/index.js'
  */
-/* eslint-enable jsdoc/valid-types */
-
 
 import {expect} from 'chai';
 import Dare, {DareError} from '../../src/index.js';
