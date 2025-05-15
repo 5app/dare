@@ -10,13 +10,10 @@ import getFieldAttributes from './utils/field_attributes.js';
 import extend from './utils/extend.js';
 import buildQuery from './get.js';
 
-/* eslint-disable jsdoc/valid-types */
 /**
- * @typedef {import('sql-template-tag').Sql} Sql
- * @typedef {import('./index.js').default} Dare
- * @typedef {import('./index.js').QueryOptions} QueryOptions
+ * @import {Sql} from 'sql-template-tag'
+ * @import Dare, {QueryOptions} from './index.js'
  */
-/* eslint-enable jsdoc/valid-types */
 
 /**
  * Format Request initiation

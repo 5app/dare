@@ -1,12 +1,9 @@
-/* eslint-disable jsdoc/valid-types */
-/**
- * @typedef {import("../index.js").FieldAttributesWithShorthand} FieldAttributesWithShorthand
- * @typedef {import("../index.js").FieldAttributes} FieldAttributes
- */
 
 /**
- * Given a field definition defined in the schema, extract it's attributes
+ * @import {FieldAttributesWithShorthand} from '../index.js'
+ * @import {FieldAttributes} from '../index.js'
  *
+ * Given a field definition defined in the schema, extract it's attributes
  * @param {string} field - A field reference
  * @param {Object<string, FieldAttributesWithShorthand>} schema - A model schema definition
  * @param {object} dareInstance - A dare instance

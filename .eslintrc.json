@@ -21,6 +21,12 @@
 		"max-params": [2, {"max": 4}],
 		"multiline-comment-style": [2, "starred-block"],
 		"linebreak-style": 0,
+		"jsdoc/check-tag-names": [
+			2,
+			{
+				"definedTags": ["import"]
+			}
+		],
 		"n/no-unsupported-features/es-syntax": [2, {"ignores": ["modules"]}],
 		"n/no-missing-import": [
 			"error",
