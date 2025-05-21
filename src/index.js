@@ -21,35 +21,35 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @import {Sql} from 'sql-template-tag'
  *
  * @typedef {`${'mysql' | 'postgres' | 'mariadb'}:${number}.${number}${string?}`} Engine
- * 
+ *
  * @typedef {Pick<InternalProps, 'alias' | 'parent' | 'name' | 'skip'>} ModalHandlerExtraProps
- * 
+ *
  * @callback GetModelHandler
  * @param {GetRequestOptions & ModalHandlerExtraProps} [options] - Request Options
  * @param {Dare} [dareInstance] - Dare Instance
  * @returns {void}
- * 
+ *
  * @callback PostModelHandler
  * @param {PostRequestOptions & ModalHandlerExtraProps} [options] - Request Options
  * @param {Dare} [dareInstance] - Dare Instance
  * @returns {void}
- * 
+ *
  * @callback PatchModelHandler
  * @param {PatchRequestOptions & ModalHandlerExtraProps} [options] - Request Options
  * @param {Dare} [dareInstance] - Dare Instance
  * @returns {void}
- * 
+ *
  * @callback DeleteModelHandler
  * @param {DeleteRequestOptions & ModalHandlerExtraProps} [options] - Request Options
  * @param {Dare} [dareInstance] - Dare Instance
  * @returns {void}
- * 
+ *
  * @typedef {string} Alias
  * @typedef {`${string}.${string}`} Reference
  * @typedef {string | number | boolean | null} DefaultValue
  * @typedef {Function} Handler
  * @typedef {boolean} Authorised
- * 
+ *
  * @typedef {object} FieldAttributeProps
  * @property {'json' | 'number' | 'boolean' | 'string' | 'datetime' | 'date'} [type] - The type of the field
  * @property {Alias} [alias] - Alias for the field
@@ -64,11 +64,11 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {FieldAttributes} [post] - The post definition of this field
  * @property {FieldAttributes} [patch] - The patch definition of this field
  * @property {FieldAttributes} [del] - The del definition of this field
- * 
+ *
  * @typedef {Record<string, any> & FieldAttributeProps} FieldAttributes
  * @typedef {FieldAttributes | Handler | Reference[] | Alias | (Authorised & false) | null} FieldAttributesWithShorthand
  * @typedef {Record<string, FieldAttributesWithShorthand>} Schema
- * 
+ *
  * @typedef {object} Model
  * @property {Schema} [schema] - Model Schema
  * @property {string} [table] - Alias for the table
@@ -77,9 +77,9 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {PostModelHandler} [post] - Post handler
  * @property {PatchModelHandler} [patch] - Patch handler
  * @property {DeleteModelHandler} [del] - Delete handler
- * 
+ *
  * @typedef {Array<string | number | boolean | Record<string, string | number | boolean | RequestFields>>} RequestFields
- * 
+ *
  * @typedef {function(Record<string, any>, string, any):void} ValidateInputFunction
  *
  * @typedef {object} RequestOptions

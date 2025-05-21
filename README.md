@@ -50,8 +50,8 @@ The setup needs to define a execution handler `dare.execute(SqlRequest) : Promis
 
 The integration tests illustrates how a [setup of a dare instance](`./test/integration/helpers/api.js`) connects to different clients...
 
--   **MySQL** (5.6, 5.7, 8.0,...) and **MariaDB** (11) See [connection with `mysql2`](./test/integration/helpers/MySQL.js)
--   **Postgres** (16+) See [connection with `pg`](./test/integration/helpers/Postgres.js)
+- **MySQL** (5.6, 5.7, 8.0,...) and **MariaDB** (11) See [connection with `mysql2`](./test/integration/helpers/MySQL.js)
+- **Postgres** (16+) See [connection with `pg`](./test/integration/helpers/Postgres.js)
 
 # Methods
 
@@ -146,11 +146,11 @@ _note_: It is currently limited to defining just one table field, we hope this w
 
 `FUNCTION_NAME([FIELD_PREFIX]? field_name [MATH_OPERATOR MATH_VALUE]?[, ADDITIONAL_PARAMETERS]*)`
 
--   _FUNCTION_NAME_: uppercase, no spaces
--   _FIELD_PREFIX_: optional, uppercase
--   _field_name_: db field reference
--   _MATH_OPERATOR_ _MATH_VALUE_: optional
--   _ADDITIONAL_PARAMETERS_: optional, prefixed with `,`, (uppercase, digit or quoted string)
+- _FUNCTION_NAME_: uppercase, no spaces
+- _FIELD_PREFIX_: optional, uppercase
+- _field_name_: db field reference
+- _MATH_OPERATOR_ _MATH_VALUE_: optional
+- _ADDITIONAL_PARAMETERS_: optional, prefixed with `,`, (uppercase, digit or quoted string)
 
 _e.g._
 
@@ -193,8 +193,8 @@ The SQL this creates renames the fields and then recreates the structured format
 	}
 ```
 
--   At the moment this only supports _n:1_ mapping.
--   The relationship between the tables must be defined in a model field reference.
+- At the moment this only supports _n:1_ mapping.
+- The relationship between the tables must be defined in a model field reference.
 
 ### Filter `filter`
 
@@ -245,9 +245,9 @@ The type of value affects the choice of SQL Condition syntax to use. For example
 
 Prefixing the prop with:
 
--   `%`: creates a `LIKE` comparison (or `ILIKE` in _postgres_)
--   `-`: hyhen negates the value
--   `~`: creates a range
+- `%`: creates a `LIKE` comparison (or `ILIKE` in _postgres_)
+- `-`: hyhen negates the value
+- `~`: creates a range
 
 | Key        | Value                    | Type          | = SQL Condition                                                                                                                             |
 | ---------- | ------------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -589,7 +589,7 @@ await dare.get({
 | `models`        | `Object<ModelName, Model>`                | An object where the keys are the model names to which models can be referred.                                                                  |
 | `validateInput` | `Function(fieldAttributes, field, value)` | Validate input on _patch_ and _post_ operations                                                                                                |
 | `getFieldKey`   | `Function(field, schema)`                 | Override the default function for retrieving schema fields, this is useful if you want to support altenative case (camelCase and/or snakeCase) |
-| `state`		  | `any`                                     | Arbitary data which can be used within the Method handlers to set additional filters or formatting          |
+| `state`         | `any`                                     | Arbitary data which can be used within the Method handlers to set additional filters or formatting                                             |
 
 # Model
 
@@ -1027,7 +1027,6 @@ Here's an example of setting a model to be invoked whenever we access `users` mo
 
 ```js
 function get(options) {
-
 	// In this example we're filtering access to the `users` model by the properties of the `state` data.
 	options.filter.id = options.state.userId;
 }
@@ -1048,7 +1047,7 @@ await dare.get({
 	limit: 100,
 	state: {
 		userId: 123,
-	}
+	},
 });
 
 // SELECT name FROM users WHERE id = 123 LIMIT 100;
@@ -1248,8 +1247,8 @@ Typically databases will buffer the resultset into memory and send over one larg
 
 Dare, has some functions to take advantage of Streaming
 
--   `this.addRow(record)`: process an individual record
--   `options.rowHandler`: See above
+- `this.addRow(record)`: process an individual record
+- `options.rowHandler`: See above
 
 When combined we can efficiently redirect the results immediatly without building up an internal memory.
 
@@ -1474,9 +1473,9 @@ await dare.get({
 
 By default `conditional_operators_in_value = '!%'`. Which is a selection of special characters within the value to be compared.
 
--   `%`: A string containing `%` within the value to be compared will indicate a wild character and the SQL `LIKE` conditional operator will be used.
--   `!`: A string starting with `!` will negate the value using a SQL `LIKE` comparison operator.
--   `..`: A string containing `..` will use a range `BETWEEN`, `<` or `>` comparison operator where a string value contains `..` or the value is an array with two values (dependending if the first or second value is empty it will use `<` or `>` respecfively). This denotes a range and is enabled using the `~` operator (because `.` within prop name has another meaning)
+- `%`: A string containing `%` within the value to be compared will indicate a wild character and the SQL `LIKE` conditional operator will be used.
+- `!`: A string starting with `!` will negate the value using a SQL `LIKE` comparison operator.
+- `..`: A string containing `..` will use a range `BETWEEN`, `<` or `>` comparison operator where a string value contains `..` or the value is an array with two values (dependending if the first or second value is empty it will use `<` or `>` respecfively). This denotes a range and is enabled using the `~` operator (because `.` within prop name has another meaning)
 
 ```js
 // Enabling support for one or more of the above special characters...
@@ -1553,9 +1552,9 @@ await dare.patch({
 
 This version of Dare is designed to work with:
 
--   MySQL (5.6, 5.7 and 8)
--   Postgres (16.3)
--   MariaDB (11)
+- MySQL (5.6, 5.7 and 8)
+- Postgres (16.3)
+- MariaDB (11)
 
 Set the property `engine` on the Dare instance
 e.g.

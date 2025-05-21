@@ -63,9 +63,7 @@ describe('format_request', () => {
 			filter,
 			sql_alias: 'a',
 			sql_joins: [],
-			sql_where_conditions: [
-				SQL`a.id = ${1}`,
-			],
+			sql_where_conditions: [SQL`a.id = ${1}`],
 			limit: 1,
 			single: true,
 		});
@@ -364,7 +362,11 @@ describe('format_request', () => {
 			describe('should prep conditions', () => {
 				const a = [
 					[{prop: 'string'}, 'a.prop = ?', ['string']],
-					[{'-prop': 'string'}, '(a.prop != ? OR a.prop IS NULL)', ['string']],
+					[
+						{'-prop': 'string'},
+						'(a.prop != ? OR a.prop IS NULL)',
+						['string'],
+					],
 					[{prop: '%string'}, 'a.prop LIKE ?', ['%string']],
 					[
 						{prop: '%string'},
@@ -389,9 +391,17 @@ describe('format_request', () => {
 						noCondOperators,
 					],
 					[{prop: [1, 2, 3]}, 'a.prop IN (?,?,?)', [1, 2, 3]],
-					[{'-prop': [1, 2, 3]}, '(a.prop NOT IN (?,?,?) OR a.prop IS NULL)', [1, 2, 3]],
+					[
+						{'-prop': [1, 2, 3]},
+						'(a.prop NOT IN (?,?,?) OR a.prop IS NULL)',
+						[1, 2, 3],
+					],
 					[{prop: [1]}, 'a.prop IN (?)', [1]],
-					[{'-prop': [1]}, '(a.prop NOT IN (?) OR a.prop IS NULL)', [1]],
+					[
+						{'-prop': [1]},
+						'(a.prop NOT IN (?) OR a.prop IS NULL)',
+						[1],
+					],
 					[
 						{prop: [1, null, 2]},
 						'(a.prop IN (?,?) OR a.prop IS NULL)',

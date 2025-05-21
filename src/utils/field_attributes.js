@@ -1,4 +1,3 @@
-
 /**
  * @import {FieldAttributesWithShorthand} from '../index.js'
  * @import {FieldAttributes} from '../index.js'

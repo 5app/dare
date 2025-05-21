@@ -133,8 +133,6 @@ export default function unwrap_field(expression, allowValue = true) {
 		};
 	}
 
-
-
 	// Is this a valid field
 	throw new DareError(
 		DareError.INVALID_REFERENCE,

@@ -386,7 +386,6 @@ function sqlCondition({
 			}
 
 			conds.push(condition);
-	
 		}
 
 		// Other Values which can't be grouped ...
@@ -416,7 +415,7 @@ function sqlCondition({
 			value = String(value);
 		}
 
-		let condition =  SQL`${sql_field} ${raw(negate ? '!' : '')}= ${value}`;
+		let condition = SQL`${sql_field} ${raw(negate ? '!' : '')}= ${value}`;
 
 		if (negate) {
 			/*
@@ -427,7 +426,6 @@ function sqlCondition({
 			condition = SQL`(${condition} OR ${sql_field} IS NULL)`;
 		}
 		return condition;
-
 	}
 }
 

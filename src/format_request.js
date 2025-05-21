@@ -27,11 +27,10 @@ export default function (options) {
 
 /**
  * @typedef {object} SimpleNode
- * @property {string} alias - Alias	
+ * @property {string} alias - Alias
  * @property {string} field_alias_path - Field alias path
  * @property {string} table - Table name
  */
-
 
 /**
  * Format Request
@@ -299,8 +298,7 @@ async function format_request(options, dareInstance) {
 		 */
 		if (arrJoins.length && !options.parent) {
 			sql_filters.push(...arrJoins);
-		}
-		else {
+		} else {
 			sql_join_condition.push(...arrJoins);
 		}
 	}
@@ -361,7 +359,6 @@ async function format_request(options, dareInstance) {
 
 	// Joins
 	{
-
 		/** @type {Array<QueryOptions>} */
 		const joins = options.joins || [];
 
@@ -420,16 +417,20 @@ async function format_request(options, dareInstance) {
 				join_object.parent = options;
 
 				// Format join...
-				const formatedObject = await format_request(join_object, dareInstance);
+				const formatedObject = await format_request(
+					join_object,
+					dareInstance
+				);
 
 				// If this is present
 				if (formatedObject) {
 					// The handler may have assigned filters when their previously wasn't any
-					formatedObject.has_filter ||= Boolean(formatedObject.filter);
+					formatedObject.has_filter ||= Boolean(
+						formatedObject.filter
+					);
 				}
 
 				return formatedObject;
-				
 			});
 
 			// Add Joins
@@ -468,7 +469,6 @@ async function format_request(options, dareInstance) {
 	 * If this item has a parent, it'll require a join statement with conditions
 	 */
 	if (options.parent) {
-
 		// Join_conditions, defines how a node is linked to its parent
 		for (const x in options.join_conditions) {
 			const val = options.join_conditions[x];

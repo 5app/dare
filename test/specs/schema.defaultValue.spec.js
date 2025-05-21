@@ -177,7 +177,6 @@ describe('schema.defaultValue', () => {
 
 	describe('DEL/GET/PATCH', () => {
 		['get', 'patch', 'del'].forEach(method => {
-
 			it(`should add WHERE condition for the dare.${method}() call`, async () => {
 				const defaultValue = method;
 
