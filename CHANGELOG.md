@@ -1,3 +1,10 @@
+# [0.96.0](https://github.com/5app/dare/compare/v0.95.0...v0.96.0) (2025-05-21)
+
+
+### Features
+
+* **type:** format date types ([#406](https://github.com/5app/dare/issues/406)) ([4256631](https://github.com/5app/dare/commit/4256631f0234d4c9ed2098382ae5b6169bf3862f))
+
 # [0.95.0](https://github.com/5app/dare/compare/v0.94.1...v0.95.0) (2025-05-15)
 
 
