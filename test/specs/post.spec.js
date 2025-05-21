@@ -282,6 +282,34 @@ describe('post', () => {
 					.and.have.property('code', DareError.INVALID_VALUE);
 			});
 		});
+
+		[new Date('2023-01-01')].forEach(testValue => {
+			it(`type=date: should accept date, given ${testValue}`, async () => {
+				dare.options = {
+					models: {
+						test: {
+							schema: {
+								startDate: {
+									type: 'date',
+								},
+							},
+						},
+					},
+				};
+
+				dare.execute = async ({sql, values}) => {
+					// Limit: 1
+					sqlEqual(sql, 'INSERT INTO test (`startDate`) VALUES (?)');
+					expect(values).to.deep.equal(['2023-01-01']);
+					return {success: true};
+				};
+
+				return dare.post({
+					table: 'test',
+					body: {startDate: testValue},
+				});
+			});
+		});
 	});
 
 	describe('DB Engine specific tests', () => {
