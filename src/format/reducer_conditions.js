@@ -51,6 +51,7 @@ export default function reduceConditions(
 		if (
 			value &&
 			typeof value === 'object' &&
+			!(value instanceof Date) && 
 			!Array.isArray(value) &&
 			key_definition?.type !== 'json' &&
 			!Buffer.isBuffer(value)
@@ -189,6 +190,10 @@ function prepCondition({
 	// Format date time values
 	if (type === 'datetime') {
 		value = formatDateTime(value);
+	}
+	// @ts-ignore
+	else if (type === 'date' && value instanceof Date) {
+		value = value.toISOString().split('T').at(0);
 	}
 
 	// JSON
