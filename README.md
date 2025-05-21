@@ -708,6 +708,27 @@ const dare = new Dare({
 });
 ```
 
+**`date`**
+
+With `type=date`; Instance of the `Date` objects are converted to `YYYY-MM-DD` format for insertion
+
+```js
+const dare = new Dare({
+	models: {
+		members: {
+			schema: {
+				start_date: {
+					type: 'date',
+				},
+			},
+		},
+	},
+});
+
+// Example POSt => SQL
+dare.post('members', {start_date: new Date()}); // 'INSERT INTO members (`start_date`) VALUES ('2025-01-02');`
+```
+
 **`json`**
 
 Serializes Objects and Deserializes JSON strings in `get`, `post` and `patch` operations. Setting this value also enables the ability to filter results by querying within the JSON values

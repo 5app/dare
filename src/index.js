@@ -1104,6 +1104,16 @@ function formatInputValue({
 		}
 	}
 
+	/**
+	 * Type=date
+	 * Sadly, Date objects via prepared statements are converted to full length datetimeoffset i.e. `YYYY-MM-DDT23:59:59.000Z`
+	 * - MySQL (that we know of) throws errors when expecting just `YYYY-MM-DD`
+	 */
+	if (type === 'date' && value instanceof Date) {
+		// ISO date, extract the date part
+		value = value.toISOString().split('T').at(0);
+	}
+
 	// Check this is not an object
 	if (value && typeof value === 'object' && !Buffer.isBuffer(value)) {
 		throw new DareError(
