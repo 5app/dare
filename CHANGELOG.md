@@ -1,3 +1,10 @@
+# [0.97.0](https://github.com/5app/dare/compare/v0.96.0...v0.97.0) (2025-05-21)
+
+
+### Features
+
+* **type:** format date filters, noissue ([#407](https://github.com/5app/dare/issues/407)) ([6a12832](https://github.com/5app/dare/commit/6a12832e5e0fb75493e45c99e743dd5bba5b5e18))
+
 # [0.96.0](https://github.com/5app/dare/compare/v0.95.0...v0.96.0) (2025-05-21)
 
 
