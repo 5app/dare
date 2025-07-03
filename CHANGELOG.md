@@ -1,3 +1,10 @@
+## [0.97.1](https://github.com/5app/dare/compare/v0.97.0...v0.97.1) (2025-07-03)
+
+
+### Bug Fixes
+
+* add type RequestOptions ignore boolean ([#410](https://github.com/5app/dare/issues/410)) ([c3ff946](https://github.com/5app/dare/commit/c3ff946ef27c9143acf28f923559e8ee11aed837))
+
 # [0.97.0](https://github.com/5app/dare/compare/v0.96.0...v0.97.0) (2025-05-21)
 
 
