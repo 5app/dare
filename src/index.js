@@ -104,6 +104,7 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {string} [conditional_operators_in_value] - Allowable conditional operators in value
  * @property {any} [state] - Arbitary data to carry through to the model/response handlers
  * @property {Engine} [engine] - DB Engine to use
+ * @property {boolean} [ignore] - Aka INSERT IGNORE INTO...
  *
  * @typedef {object} InternalProps
  * @property {'post' | 'get' | 'patch' | 'del'} [method] - Method to use
@@ -115,7 +116,6 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {string} [sql_table] - SQL Table
  * @property {string} [sql_alias] - SQL Alias
  * @property {Array} [sql_joins] - SQL Join
- * @property {string} [ignore] - SQL Fields
  * @property {QueryOptions} [parent] - Defines the parent request
  * @property {boolean} [forceSubquery] - Force the table joins to use a subquery.
  * @property {Array} [sql_where_conditions] - SQL Where conditions
