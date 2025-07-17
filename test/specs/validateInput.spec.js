@@ -1,8 +1,16 @@
+/**
+ * @import {Schema} from '../../src/index.js'
+ */
+
 import {expect} from 'chai';
 import Dare from '../../src/index.js';
 
 describe('validateInput', () => {
 	let dare;
+
+	/**
+	 * @type {Schema}
+	 */
 	let memberSchema;
 
 	beforeEach(() => {

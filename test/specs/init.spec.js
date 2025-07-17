@@ -1,3 +1,7 @@
+/**
+ * @import {QueryOptions} from '../../src/index.js'
+ */
+
 import {expect} from 'chai';
 import Dare, {DareError} from '../../src/index.js';
 import clone from 'tricks/object/clone.js';
@@ -50,6 +54,10 @@ describe('Dare', () => {
 
 	describe('dare.use to extend the instance', () => {
 		let dare;
+
+		/**
+		 * @type {QueryOptions}
+		 */
 		let options;
 
 		beforeEach(() => {

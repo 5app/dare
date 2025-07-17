@@ -1,13 +1,9 @@
 import assert from 'node:assert/strict';
 import Dare from '../../src/index.js';
 
-/* eslint-disable jsdoc/valid-types */
 /**
- * @typedef {import('../../src/index.js').Engine} Engine
- */
-/* eslint-enable jsdoc/valid-types */
-
-/**
+ * @import {Engine} from '../../src/index.js'
+ *
  * @type {Engine}
  */
 const ENGINE_POSTGRES = 'postgres:16.3';

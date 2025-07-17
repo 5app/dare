@@ -1,3 +1,59 @@
+## [0.97.1](https://github.com/5app/dare/compare/v0.97.0...v0.97.1) (2025-07-03)
+
+
+### Bug Fixes
+
+* add type RequestOptions ignore boolean ([#410](https://github.com/5app/dare/issues/410)) ([c3ff946](https://github.com/5app/dare/commit/c3ff946ef27c9143acf28f923559e8ee11aed837))
+
+# [0.97.0](https://github.com/5app/dare/compare/v0.96.0...v0.97.0) (2025-05-21)
+
+
+### Features
+
+* **type:** format date filters, noissue ([#407](https://github.com/5app/dare/issues/407)) ([6a12832](https://github.com/5app/dare/commit/6a12832e5e0fb75493e45c99e743dd5bba5b5e18))
+
+# [0.96.0](https://github.com/5app/dare/compare/v0.95.0...v0.96.0) (2025-05-21)
+
+
+### Features
+
+* **type:** format date types ([#406](https://github.com/5app/dare/issues/406)) ([4256631](https://github.com/5app/dare/commit/4256631f0234d4c9ed2098382ae5b6169bf3862f))
+
+# [0.95.0](https://github.com/5app/dare/compare/v0.94.1...v0.95.0) (2025-05-15)
+
+
+### Features
+
+* **jsdoc:** use [@import](https://github.com/import) ([#405](https://github.com/5app/dare/issues/405)) ([64b0fd9](https://github.com/5app/dare/commit/64b0fd93f600fdebf700f0bd0dc052e1e799a217))
+
+## [0.94.1](https://github.com/5app/dare/compare/v0.94.0...v0.94.1) (2025-04-29)
+
+
+### Bug Fixes
+
+* **null-safe:** add null-safe negate equality conditions ([#404](https://github.com/5app/dare/issues/404)) ([3eb962f](https://github.com/5app/dare/commit/3eb962f7bcb93a7f0099bfa5053c3aca41969a59))
+
+# [0.94.0](https://github.com/5app/dare/compare/v0.93.2...v0.94.0) (2025-04-25)
+
+
+### Features
+
+* **type:** field attributes ([#403](https://github.com/5app/dare/issues/403)) ([dc92f17](https://github.com/5app/dare/commit/dc92f17cef0ab697b41c86a6dd3c9cc0aaa9b37e))
+
+## [0.93.2](https://github.com/5app/dare/compare/v0.93.1...v0.93.2) (2025-02-05)
+
+
+### Bug Fixes
+
+* **ts:** type model handler parameters ([#398](https://github.com/5app/dare/issues/398)) ([877c3e7](https://github.com/5app/dare/commit/877c3e7a7e14fa4f245ce28c54222e1ab50b966c))
+
+## [0.93.1](https://github.com/5app/dare/compare/v0.93.0...v0.93.1) (2025-02-04)
+
+
+### Bug Fixes
+
+* **ts:** type model handler parameters ([#397](https://github.com/5app/dare/issues/397)) ([d434f67](https://github.com/5app/dare/commit/d434f67fcfa6de3cfa2bd1e5490fd6b9c7def4dc))
+
 # [0.93.0](https://github.com/5app/dare/compare/v0.92.1...v0.93.0) (2025-01-23)
 
 

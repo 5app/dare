@@ -18,25 +18,76 @@ import response_handler, {responseRowHandler} from './response_handler.js';
 
 /* eslint-disable jsdoc/valid-types */
 /**
- * @typedef {import('sql-template-tag').Sql} Sql
+ * @import {Sql} from 'sql-template-tag'
  *
  * @typedef {`${'mysql' | 'postgres' | 'mariadb'}:${number}.${number}${string?}`} Engine
  *
+ * @typedef {Pick<InternalProps, 'alias' | 'parent' | 'name' | 'skip'>} ModalHandlerExtraProps
+ *
+ * @callback GetModelHandler
+ * @param {GetRequestOptions & ModalHandlerExtraProps} [options] - Request Options
+ * @param {Dare} [dareInstance] - Dare Instance
+ * @returns {void}
+ *
+ * @callback PostModelHandler
+ * @param {PostRequestOptions & ModalHandlerExtraProps} [options] - Request Options
+ * @param {Dare} [dareInstance] - Dare Instance
+ * @returns {void}
+ *
+ * @callback PatchModelHandler
+ * @param {PatchRequestOptions & ModalHandlerExtraProps} [options] - Request Options
+ * @param {Dare} [dareInstance] - Dare Instance
+ * @returns {void}
+ *
+ * @callback DeleteModelHandler
+ * @param {DeleteRequestOptions & ModalHandlerExtraProps} [options] - Request Options
+ * @param {Dare} [dareInstance] - Dare Instance
+ * @returns {void}
+ *
+ * @typedef {string} Alias
+ * @typedef {`${string}.${string}`} Reference
+ * @typedef {string | number | boolean | null} DefaultValue
+ * @typedef {Function} Handler
+ * @typedef {boolean} Authorised
+ *
+ * @typedef {object} FieldAttributeProps
+ * @property {'json' | 'number' | 'boolean' | 'string' | 'datetime' | 'date'} [type] - The type of the field
+ * @property {Alias} [alias] - Alias for the field
+ * @property {Reference[]} [references] - References to other models fields
+ * @property {string} [type] - Type of field
+ * @property {DefaultValue | DefaultValue[]} [defaultValue] - Default value for the field
+ * @property {boolean} [readable=true] - Whether this field is readable
+ * @property {boolean} [writeable=true] - Whether this field is writeable
+ * @property {boolean} [required=false] - Whether this field is required
+ * @property {Handler} [handler] - Handler to generate the field value
+ * @property {FieldAttributes} [get] - The get definition of this field
+ * @property {FieldAttributes} [post] - The post definition of this field
+ * @property {FieldAttributes} [patch] - The patch definition of this field
+ * @property {FieldAttributes} [del] - The del definition of this field
+ *
+ * @typedef {Record<string, any> & FieldAttributeProps} FieldAttributes
+ * @typedef {FieldAttributes | Handler | Reference[] | Alias | (Authorised & false) | null} FieldAttributesWithShorthand
+ * @typedef {Record<string, FieldAttributesWithShorthand>} Schema
+ *
  * @typedef {object} Model
- * @property {Object<string, object | Function | Array<string> | string | null | boolean>} [schema] - Model Schema
+ * @property {Schema} [schema] - Model Schema
  * @property {string} [table] - Alias for the table
  * @property {Object<string, string>} [shortcut_map] - Shortcut map
- * @property {Function} [get] - Get handler
- * @property {Function} [post] - Post handler
- * @property {Function} [patch] - Patch handler
- * @property {Function} [del] - Delete handler
+ * @property {GetModelHandler} [get] - Get handler
+ * @property {PostModelHandler} [post] - Post handler
+ * @property {PatchModelHandler} [patch] - Patch handler
+ * @property {DeleteModelHandler} [del] - Delete handler
+ *
+ * @typedef {Array<string | number | boolean | Record<string, string | number | boolean | RequestFields>>} RequestFields
+ *
+ * @typedef {function(Record<string, any>, string, any):void} ValidateInputFunction
  *
  * @typedef {object} RequestOptions
  * @property {string} [table] - Name of the table to query
- * @property {Array} [fields] - Fields array to return
- * @property {object} [filter] - Filter Object to query
- * @property {object} [join] - Place filters on the joining tables
- * @property {object} [body] - Body containing new data
+ * @property {RequestFields} [fields] - Fields array to return
+ * @property {Record<string, any>} [filter] - Filter Object to query
+ * @property {Record<string, any>} [join] - Place filters on the joining tables
+ * @property {Record<string, any>} [body] - Body containing new data
  * @property {RequestOptions} [query] - Query attached to a post request to create INSERT...SELECT operations
  * @property {number} [limit] - Number of items to return
  * @property {number} [start] - Number of items to skip
@@ -45,14 +96,15 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {string} [duplicate_keys] - 'ignore' to prevent throwing Duplicate key errors
  * @property {string[]} [duplicate_keys_update] - An array of fields to update on presence of duplicate key constraints
  * @property {*} [notfound] - If not undefined will be returned in case of a single entry not found
- * @property {Object<string, Model>} [models] - Models with schema defintitions
- * @property {Function} [validateInput] - Validate input
+ * @property {Record<string, Model>} [models] - Models with schema defintitions
+ * @property {ValidateInputFunction} [validateInput] - Validate input
  * @property {boolean} [infer_intermediate_models] - Infer intermediate models
- * @property {Function} [rowHandler] - Override default Function to handle each row
+ * @property {function(Record<string, any>):any} [rowHandler] - Override default Function to handle each row
  * @property {Function} [getFieldKey] - Override default Function to interpret the field key
  * @property {string} [conditional_operators_in_value] - Allowable conditional operators in value
  * @property {any} [state] - Arbitary data to carry through to the model/response handlers
  * @property {Engine} [engine] - DB Engine to use
+ * @property {boolean} [ignore] - Aka INSERT IGNORE INTO...
  *
  * @typedef {object} InternalProps
  * @property {'post' | 'get' | 'patch' | 'del'} [method] - Method to use
@@ -64,9 +116,21 @@ import response_handler, {responseRowHandler} from './response_handler.js';
  * @property {string} [sql_table] - SQL Table
  * @property {string} [sql_alias] - SQL Alias
  * @property {Array} [sql_joins] - SQL Join
- * @property {string} [ignore] - SQL Fields
+ * @property {QueryOptions} [parent] - Defines the parent request
  * @property {boolean} [forceSubquery] - Force the table joins to use a subquery.
  * @property {Array} [sql_where_conditions] - SQL Where conditions
+ * -- properties of the format_request function
+ * @property {boolean} [has_filter] - Has filter, used to determine whether a node and it's descendents can be defined as a subquery
+ * @property {boolean} [has_fields] - Has fields, used to determine whether the subqueries are required
+ * @property {string} [field_alias_path] - An alternative path to these fields when intermediate models are used
+ * @property {string} [required_join] - Join is required
+ * @property {boolean} [negate] - Whether this node is connected via a negation operator
+ * @property {boolean} [is_subquery] - Identify a node as a subquery, used to place fields into a subquery, or a filter into a subquery (i.e. when negated)
+ * @property {boolean} [many] - 1:n join
+ * @property {Record<string, any>} [join_conditions] - Join conditions between nodes
+ * @property {Sql} [sql_join_condition] - Table to join
+ * @property {Array<QueryOptions>} [joins] - Usually this is derived when processing the node, however when there is an intermediate node, we can pre-define the joins
+ * @property {Array<QueryOptions>} [_joins] - Descendent nodes, post-processed
  *
  * @typedef {RequestOptions & InternalProps} QueryOptions
  */
@@ -186,7 +250,7 @@ Dare.prototype.response_handler = response_handler;
 /**
  * GetFieldKey
  * @param {string} field - Field
- * @param {object} schema - Model Schema
+ * @param {Schema} schema - Model Schema
  * @returns {string | void} Field Key
  */
 // eslint-disable-next-line no-unused-vars
@@ -276,9 +340,8 @@ Dare.prototype.fulltextParser = function fulltextParser(input) {
 /**
  * Dare.after
  * Defines where the instance goes looking to apply post execution handlers and potentially mutate the response
- * @template {object|Array} T
- * @param {T} resp - Response object
- * @returns {T} response data formatted or not
+ * @param {any} resp - Response object
+ * @returns {any} response data formatted or not
  */
 /* eslint-enable jsdoc/valid-types */
 /* eslint-enable jsdoc/check-tag-names */
@@ -979,7 +1042,7 @@ Dare.prototype.onDuplicateKeysUpdate = function onDuplicateKeysUpdate(
  * Format Input Value
  * For a given field definition, return the db key (alias) and format the input it required
  * @param {object} obj - Object
- * @param {object} [obj.tableSchema={}] - An object containing the table schema
+ * @param {Schema} [obj.tableSchema={}] - An object containing the table schema
  * @param {string} obj.field - field identifier
  * @param {*} obj.value - Given value
  * @param {Function} [obj.validateInput] - Custom validation function
@@ -1041,6 +1104,16 @@ function formatInputValue({
 		}
 	}
 
+	/**
+	 * Type=date
+	 * Sadly, Date objects via prepared statements are converted to full length datetimeoffset i.e. `YYYY-MM-DDT23:59:59.000Z`
+	 * - MySQL (that we know of) throws errors when expecting just `YYYY-MM-DD`
+	 */
+	if (type === 'date' && value instanceof Date) {
+		// ISO date, extract the date part
+		value = value.toISOString().split('T').at(0);
+	}
+
 	// Check this is not an object
 	if (value && typeof value === 'object' && !Buffer.isBuffer(value)) {
 		throw new DareError(
@@ -1068,7 +1141,7 @@ function formatInputValue({
 /**
  * Return un-aliased field names
  *
- * @param {object} tableSchema - An object containing the table schema
+ * @param {Schema} tableSchema - An object containing the table schema
  * @param {string} field - field identifier
  * @param {Dare} dareInstance - Dare Instance
  * @returns {string} Unaliased field name

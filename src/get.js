@@ -150,7 +150,7 @@ export default function buildQuery(opts, dareInstance) {
 	if (dareInstance.engine?.startsWith('mysql:8') && alias) {
 		if (fields.every(item => item.agg)) {
 			opts.limit = null;
-		};
+		}
 	}
 
 	// Put it all together

@@ -7,7 +7,7 @@ import QueryStream from 'pg-query-stream';
  * Aggregate functions are returned as BigInts which by default are converted to strings
  * This changes floats and ints to their respective types
  */
-pg.types.setTypeParser(1700, parseFloat)
+pg.types.setTypeParser(1700, parseFloat);
 pg.types.setTypeParser(20, parseInt);
 
 const {TEST_DB_DATA_PATH, TEST_DB_SCHEMA_PATH} = process.env;

@@ -10,11 +10,10 @@ import getFieldAttributes from './utils/field_attributes.js';
 import extend from './utils/extend.js';
 import buildQuery from './get.js';
 
-/* eslint-disable jsdoc/valid-types */
 /**
- * @typedef {import('./index.js').default} Dare
+ * @import {Sql} from 'sql-template-tag'
+ * @import Dare, {QueryOptions} from './index.js'
  */
-/* eslint-enable jsdoc/valid-types */
 
 /**
  * Format Request initiation
@@ -27,11 +26,18 @@ export default function (options) {
 }
 
 /**
+ * @typedef {object} SimpleNode
+ * @property {string} alias - Alias
+ * @property {string} field_alias_path - Field alias path
+ * @property {string} table - Table name
+ */
+
+/**
  * Format Request
  *
- * @param {object} options - Current iteration
+ * @param {QueryOptions} options - Current iteration
  * @param {Dare} dareInstance - Instance of Dare
- * @returns {Promise<object>} formatted object with all the joins
+ * @returns {Promise<QueryOptions>} formatted object with all the joins
  */
 async function format_request(options, dareInstance) {
 	if (!options) {
@@ -170,7 +176,7 @@ async function format_request(options, dareInstance) {
 	const {field_alias_path} = options;
 
 	// Current Path
-	const current_path = options.field_alias_path || `${options.alias}.`;
+	const current_path = field_alias_path || `${options.alias}.`;
 
 	// Create a shared object to provide nested objects
 	const joined = {};
@@ -199,6 +205,9 @@ async function format_request(options, dareInstance) {
 		}
 	}
 
+	/** @type {Array<Sql>} */
+	const sql_filters = [];
+
 	// Format filters
 	if (options.filter) {
 		// Filter must be an object with key=>values
@@ -221,7 +230,8 @@ async function format_request(options, dareInstance) {
 			dareInstance,
 		});
 
-		options._filter = arr.length ? arr : null;
+		// Add to filters
+		sql_filters.push(...arr);
 	}
 
 	// Format fields
@@ -249,6 +259,9 @@ async function format_request(options, dareInstance) {
 		options.fields = toArray(options.fields).reduce(reducer, []);
 	}
 
+	/** @type {Array<Sql>} */
+	const sql_join_condition = [];
+
 	// Format conditional joins
 	if (options.join) {
 		// Filter must be an object with key=>values
@@ -272,7 +285,7 @@ async function format_request(options, dareInstance) {
 		const extract = extractJoined.bind(null, 'join', false);
 
 		// Return array of immediate props
-		options._join = reduceConditions(options.join, {
+		const arrJoins = reduceConditions(options.join, {
 			extract,
 			sql_alias,
 			table_schema,
@@ -283,9 +296,10 @@ async function format_request(options, dareInstance) {
 		/*
 		 * Convert root joins to filters...
 		 */
-		if (options._join.length && !options.parent) {
-			options._filter ??= [];
-			options._filter.push(...options._join);
+		if (arrJoins.length && !options.parent) {
+			sql_filters.push(...arrJoins);
+		} else {
+			sql_join_condition.push(...arrJoins);
 		}
 	}
 
@@ -345,6 +359,7 @@ async function format_request(options, dareInstance) {
 
 	// Joins
 	{
+		/** @type {Array<QueryOptions>} */
 		const joins = options.joins || [];
 
 		// Add additional joins which have been derived from nested fields and filters...
@@ -402,16 +417,20 @@ async function format_request(options, dareInstance) {
 				join_object.parent = options;
 
 				// Format join...
-				const formatedObject = await format_request(join_object, dareInstance);
+				const formatedObject = await format_request(
+					join_object,
+					dareInstance
+				);
 
 				// If this is present
 				if (formatedObject) {
 					// The handler may have assigned filters when their previously wasn't any
-					formatedObject.has_filter ||= Boolean(formatedObject.filter);
+					formatedObject.has_filter ||= Boolean(
+						formatedObject.filter
+					);
 				}
 
 				return formatedObject;
-				
 			});
 
 			// Add Joins
@@ -427,16 +446,10 @@ async function format_request(options, dareInstance) {
 
 	{
 		// Place holder
-		const sql_where_conditions = [];
-
-		if (options._filter) {
-			// Get current filters
-			sql_where_conditions.push(...options._filter);
-		}
 
 		// Get nested filters
 		if (options._joins) {
-			sql_where_conditions.push(
+			sql_filters.push(
 				...options._joins.flatMap(
 					({sql_where_conditions}) => sql_where_conditions
 				)
@@ -444,7 +457,8 @@ async function format_request(options, dareInstance) {
 		}
 
 		// Assign
-		options.sql_where_conditions = sql_where_conditions.filter(Boolean);
+		/** @type {Array<Sql>} */
+		options.sql_where_conditions = sql_filters.filter(Boolean);
 	}
 
 	// Initial SQL JOINS reference
@@ -455,17 +469,7 @@ async function format_request(options, dareInstance) {
 	 * If this item has a parent, it'll require a join statement with conditions
 	 */
 	if (options.parent) {
-		// Update the values with the alias of the parent
-		const sql_join_condition = [];
-
-		if (options._join) {
-			sql_join_condition.push(...options._join);
-
-			// Prevent join condifions from being applied twice in buildQuery
-			options._join.length = 0;
-		}
-
-		// Always going to be defined
+		// Join_conditions, defines how a node is linked to its parent
 		for (const x in options.join_conditions) {
 			const val = options.join_conditions[x];
 			sql_join_condition.push(
@@ -535,7 +539,7 @@ async function format_request(options, dareInstance) {
 			sql_where_conditions = [
 				SQL`${raw(parentReferences[0])}
 				${sql_negate} IN (
-					SELECT ${raw(options.fields)} FROM (
+					SELECT ${join(options.fields.map(field => raw(String(field))))} FROM (
 						${sub_query}
 					) AS ${raw(options.sql_alias)}_tmp
 				)

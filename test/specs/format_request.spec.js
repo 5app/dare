@@ -61,14 +61,9 @@ describe('format_request', () => {
 			sql_table: actualtable,
 			field_alias_path: '',
 			filter,
-			_filter: [
-				SQL`a.id = ${1}`,
-			],
 			sql_alias: 'a',
 			sql_joins: [],
-			sql_where_conditions: [
-				SQL`a.id = ${1}`,
-			],
+			sql_where_conditions: [SQL`a.id = ${1}`],
 			limit: 1,
 			single: true,
 		});
@@ -355,8 +350,11 @@ describe('format_request', () => {
 					models: {
 						[table]: {
 							schema: {
-								date: {
+								datetime: {
 									type: 'datetime',
+								},
+								date: {
+									type: 'date',
 								},
 							},
 						},
@@ -367,7 +365,11 @@ describe('format_request', () => {
 			describe('should prep conditions', () => {
 				const a = [
 					[{prop: 'string'}, 'a.prop = ?', ['string']],
-					[{'-prop': 'string'}, 'a.prop != ?', ['string']],
+					[
+						{'-prop': 'string'},
+						'(a.prop != ? OR a.prop IS NULL)',
+						['string'],
+					],
 					[{prop: '%string'}, 'a.prop LIKE ?', ['%string']],
 					[
 						{prop: '%string'},
@@ -387,14 +389,22 @@ describe('format_request', () => {
 					[{'-prop': 'patt%rn'}, 'a.prop NOT LIKE ?', ['patt%rn']],
 					[
 						{'-prop': 'patt%rn'},
-						'a.prop != ?',
+						'(a.prop != ? OR a.prop IS NULL)',
 						['patt%rn'],
 						noCondOperators,
 					],
 					[{prop: [1, 2, 3]}, 'a.prop IN (?,?,?)', [1, 2, 3]],
-					[{'-prop': [1, 2, 3]}, 'a.prop NOT IN (?,?,?)', [1, 2, 3]],
+					[
+						{'-prop': [1, 2, 3]},
+						'(a.prop NOT IN (?,?,?) OR a.prop IS NULL)',
+						[1, 2, 3],
+					],
 					[{prop: [1]}, 'a.prop IN (?)', [1]],
-					[{'-prop': [1]}, 'a.prop NOT IN (?)', [1]],
+					[
+						{'-prop': [1]},
+						'(a.prop NOT IN (?) OR a.prop IS NULL)',
+						[1],
+					],
 					[
 						{prop: [1, null, 2]},
 						'(a.prop IN (?,?) OR a.prop IS NULL)',
@@ -435,8 +445,8 @@ describe('format_request', () => {
 					[{prop: null}, 'a.prop IS NULL', []],
 					[{'-prop': null}, 'a.prop IS NOT NULL', []],
 					[
-						{'-date': '1981-12-05..'},
-						'(NOT a.date > ? OR a.date IS NULL)',
+						{'-datetime': '1981-12-05..'},
+						'(NOT a.datetime > ? OR a.datetime IS NULL)',
 						['1981-12-05T00:00:00'],
 					],
 					[{prop: '1981-12-05..'}, 'a.prop > ?', ['1981-12-05']],
@@ -484,7 +494,7 @@ describe('format_request', () => {
 							[condition_type]: filter,
 						});
 
-						const query = resp[`_${condition_type}`][0];
+						const query = resp.sql_where_conditions[0];
 
 						expect(query.sql).to.equal(sql);
 						expect(query.values).to.deep.equal(values);
@@ -532,36 +542,59 @@ describe('format_request', () => {
 			describe('field type=datetime', () => {
 				const o = {
 					'1981-12-05': [
-						'a.date BETWEEN ? AND ?',
+						'a.datetime BETWEEN ? AND ?',
 						['1981-12-05T00:00:00', '1981-12-05T23:59:59'],
 					],
 					'1981-1-5': [
-						'a.date BETWEEN ? AND ?',
+						'a.datetime BETWEEN ? AND ?',
 						['1981-01-05T00:00:00', '1981-01-05T23:59:59'],
 					],
 					'1981-12-05..1981-12-06': [
-						'a.date BETWEEN ? AND ?',
+						'a.datetime BETWEEN ? AND ?',
 						['1981-12-05T00:00:00', '1981-12-06T23:59:59'],
 					],
-					'1981-12-05..': ['a.date > ?', ['1981-12-05T00:00:00']],
-					'..1981-12-05': ['a.date < ?', ['1981-12-05T00:00:00']],
+					'1981-12-05..': ['a.datetime > ?', ['1981-12-05T00:00:00']],
+					'..1981-12-05': ['a.datetime < ?', ['1981-12-05T00:00:00']],
 					'1981-12': [
-						'a.date BETWEEN ? AND ?',
+						'a.datetime BETWEEN ? AND ?',
 						['1981-12-01T00:00:00', '1981-12-31T23:59:59'],
 					],
 					'1981-1': [
-						'a.date BETWEEN ? AND ?',
+						'a.datetime BETWEEN ? AND ?',
 						['1981-01-01T00:00:00', '1981-01-31T23:59:59'],
 					],
 					2016: [
-						'a.date BETWEEN ? AND ?',
+						'a.datetime BETWEEN ? AND ?',
 						['2016-01-01T00:00:00', '2016-12-31T23:59:59'],
 					],
 				};
 
-				for (const date in o) {
-					const [sql, values] = o[date];
+				for (const datetime in o) {
+					const [sql, values] = o[datetime];
 
+					it(`should augment filter values ${datetime}`, async () => {
+						const resp = await dare.format_request({
+							table,
+							fields: ['id'],
+							[condition_type]: {
+								datetime,
+							},
+						});
+
+						const query = resp.sql_where_conditions[0];
+
+						expect(query.sql).to.equal(sql);
+						expect(query.values).to.deep.equal(values);
+					});
+				}
+			});
+
+			describe('field type=date', () => {
+				const o = [
+					[new Date('1981-12-05'), 'a.date = ?', ['1981-12-05']],
+				];
+
+				o.forEach(([date, sql, values]) => {
 					it(`should augment filter values ${date}`, async () => {
 						const resp = await dare.format_request({
 							table,
@@ -571,12 +604,12 @@ describe('format_request', () => {
 							},
 						});
 
-						const query = resp[`_${condition_type}`][0];
+						const query = resp.sql_where_conditions[0];
 
 						expect(query.sql).to.equal(sql);
 						expect(query.values).to.deep.equal(values);
 					});
-				}
+				});
 			});
 		});
 	});

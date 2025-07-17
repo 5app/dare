@@ -5,17 +5,11 @@ import formatDateTime from '../utils/format_datetime.js';
 import getFieldAttributes from '../utils/field_attributes.js';
 import unwrap_field from '../utils/unwrap_field.js';
 
-/* eslint-disable jsdoc/valid-types */
 /**
- * @typedef {import('sql-template-tag').Sql} Sql
- * @typedef {import('../index.js').default} Dare
- * @typedef {import('../index.js').Engine} Engine
- */
-/* eslint-enable jsdoc/valid-types */
-
-/**
- * Reduce conditions, call extract
+ * @import {Sql} from 'sql-template-tag'
+ * @import Dare, {Engine} from '../index.js'
  *
+ * Reduce conditions, call extract
  * @param {object} filter - Filter conditions
  * @param {object} options - Options object
  * @param {Function} options.extract - Extract (key, value) related to nested model
@@ -57,6 +51,7 @@ export default function reduceConditions(
 		if (
 			value &&
 			typeof value === 'object' &&
+			!(value instanceof Date) && 
 			!Array.isArray(value) &&
 			key_definition?.type !== 'json' &&
 			!Buffer.isBuffer(value)
@@ -195,6 +190,10 @@ function prepCondition({
 	// Format date time values
 	if (type === 'datetime') {
 		value = formatDateTime(value);
+	}
+	// @ts-ignore
+	else if (type === 'date' && value instanceof Date) {
+		value = value.toISOString().split('T').at(0);
 	}
 
 	// JSON
@@ -383,7 +382,15 @@ function sqlCondition({
 			const items = engine.startsWith('mysql:5.7')
 				? filteredValue.map(quote)
 				: filteredValue;
-			conds.push(SQL`${sql_field} ${NOT}IN (${join(items)})`);
+
+			let condition = SQL`${sql_field} ${NOT}IN (${join(items)})`;
+
+			if (negate && !value.includes(null)) {
+				// If negated, and the value is not null, then add the null check
+				condition = SQL`(${condition} OR ${sql_field} IS NULL)`;
+			}
+
+			conds.push(condition);
 		}
 
 		// Other Values which can't be grouped ...
@@ -413,7 +420,17 @@ function sqlCondition({
 			value = String(value);
 		}
 
-		return SQL`${sql_field} ${raw(negate ? '!' : '')}= ${value}`;
+		let condition = SQL`${sql_field} ${raw(negate ? '!' : '')}= ${value}`;
+
+		if (negate) {
+			/*
+			 * NULL-safe equality operator
+			 * @see {@link https://vettabase.com/null-comparisons-in-mariadb-postgresql-and-sqlite/}
+			 * If negated, then add the null check
+			 */
+			condition = SQL`(${condition} OR ${sql_field} IS NULL)`;
+		}
+		return condition;
 	}
 }
 
