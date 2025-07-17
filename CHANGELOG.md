@@ -1,3 +1,10 @@
+## [0.97.2](https://github.com/5app/dare/compare/v0.97.1...v0.97.2) (2025-07-17)
+
+
+### Bug Fixes
+
+* **field_expression:** support [FUNCNAME](field AS [UPPERCASE|String|Number]) ([#385](https://github.com/5app/dare/issues/385)) ([93dd70e](https://github.com/5app/dare/commit/93dd70e2507a8ad8ca5879b221ff898539c82009))
+
 ## [0.97.1](https://github.com/5app/dare/compare/v0.97.0...v0.97.1) (2025-07-03)
 
 
