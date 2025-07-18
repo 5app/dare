@@ -1,3 +1,10 @@
+# [0.98.0](https://github.com/5app/dare/compare/v0.97.2...v0.98.0) (2025-07-18)
+
+
+### Features
+
+* **field.setFunction:** enable JSON_MERGE_PATCH definition ([#412](https://github.com/5app/dare/issues/412)) ([2e5d363](https://github.com/5app/dare/commit/2e5d363f79cebc043bb6f4e044e5ac77975c5604))
+
 ## [0.97.2](https://github.com/5app/dare/compare/v0.97.1...v0.97.2) (2025-07-17)
 
 
