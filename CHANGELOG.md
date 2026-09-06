@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/MrSwitch/dare/compare/v1.0.0...v1.0.1) (2026-09-06)
+
+
+### Bug Fixes
+
+* **ci:** remove superflous types/test/ files ([efb1efc](https://github.com/MrSwitch/dare/commit/efb1efca3fb373dc51e5aad9b6cfb7a5c6d7c066))
+
 # [1.0.0](https://github.com/MrSwitch/dare/compare/v0.101.1...v1.0.0) (2026-09-06)
 
 
