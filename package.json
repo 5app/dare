@@ -3,54 +3,56 @@
 	"version": "0.101.1",
 	"description": "Database to REST, REST to Database",
 	"type": "module",
-	"main": "./src/index.js",
+	"main": "./dist/index.js",
 	"exports": {
 		".": {
-			"import": "./src/index.js",
-			"types": "./types/src/index.d.ts"
+			"types": "./types/src/index.d.ts",
+			"import": "./dist/index.js"
 		},
 		"./mariadb11": {
-			"import": "./src/index.js",
-			"types": "./types/src/index.d.ts"
+			"types": "./types/src/index.d.ts",
+			"import": "./dist/index.js"
 		},
 		"./mysql57": {
-			"import": "./src/mysql57.js",
-			"types": "./types/src/index.d.ts"
+			"types": "./types/src/mysql57.d.ts",
+			"import": "./dist/mysql57.js"
 		},
 		"./mysql80": {
-			"import": "./src/index.js",
-			"types": "./types/src/index.d.ts"
+			"types": "./types/src/index.d.ts",
+			"import": "./dist/index.js"
 		},
 		"./postgres16": {
-			"import": "./src/postgres16.js",
-			"types": "./types/src/index.d.ts"
+			"types": "./types/src/postgres16.d.ts",
+			"import": "./dist/postgres16.js"
 		},
 		"./sqlite3": {
-			"import": "./src/sqlite.js",
-			"types": "./types/src/index.d.ts"
+			"types": "./types/src/sqlite.d.ts",
+			"import": "./dist/sqlite.js"
 		},
 		"./utils/*": {
-			"import": "./src/utils/*.js",
-			"types": "./types/src/utils/*.d.ts"
+			"types": "./types/src/utils/*.d.ts",
+			"import": "./dist/utils/*.js"
 		}
 	},
 	"types": "./types/src/index.d.ts",
 	"engines": {
-		"node": ">=20"
+		"node": ">=24"
 	},
 	"scripts": {
 		"prepare": "is-ci || husky install",
-		"check-types": "tsc -p ./tsconfig.json",
+		"build": "tsc -p ./tsconfig.build.json",
+		"prepack": "npm run build && npm run check-types",
+		"check-types": "tsc -p ./tsconfig.json && node scripts/rewrite-dts-extensions.ts",
 		"test": "npm run lint && npm run spec && ((c8 report --reporter=text-lcov | coveralls) || exit 0)",
-		"test:ci": "npm run lint && c8 node --test test/specs/**/*.spec.js && (c8 report --reporter=text-lcov | coveralls)",
+		"test:ci": "npm run lint && c8 node --test 'test/specs/**/*.spec.ts' && (c8 report --reporter=text-lcov | coveralls)",
 		"test:integration": "bash ./test/integration/run.sh",
 		"test:integration:sqlite": "DB_ENGINE=sqlite:3 bash ./test/integration/run.sh",
-		"spec": "c8 node --test 'test/specs/**/*.spec.js'",
+		"spec": "c8 node --test 'test/specs/**/*.spec.ts'",
 		"lint": "eslint ./ && npx prettier --check . && npm run check-types",
 		"prettier": "prettier --write --ignore-unknown .",
 		"lint-fix": "eslint --fix ./",
-		"lint-diff": "LIST=`git diff-index --cached --name-only --diff-filter=d HEAD | grep '.*\\.js$';`; if [ \"$LIST\" ]; then eslint $LIST; fi",
-		"lint-diff-fix": "LIST=`git diff-index --name-only --diff-filter=d HEAD | grep '.*\\.js$';`; if [ \"$LIST\" ]; then eslint --fix $LIST; fi"
+		"lint-diff": "LIST=`git diff-index --cached --name-only --diff-filter=d HEAD | grep '.*\\.ts$';`; if [ \"$LIST\" ]; then eslint $LIST; fi",
+		"lint-diff-fix": "LIST=`git diff-index --name-only --diff-filter=d HEAD | grep '.*\\.ts$';`; if [ \"$LIST\" ]; then eslint --fix $LIST; fi"
 	},
 	"repository": {
 		"type": "git",
@@ -69,6 +71,7 @@
 	"homepage": "https://github.com/MrSwitch/dare#readme",
 	"files": [
 		"src/",
+		"dist/",
 		"types/"
 	],
 	"devDependencies": {
@@ -77,7 +80,7 @@
 		"@commitlint/cli": "^21.0.1",
 		"@commitlint/config-conventional": "^21.0.1",
 		"@types/mocha": "^10.0.10",
-		"c8": "^11.0.0",
+		"c8": "^12.0.0",
 		"coveralls-next": "^6.0.1",
 		"debug": "^4.4.3",
 		"eslint": "^10.4.0",
@@ -89,13 +92,15 @@
 		"globals": "^17.6.0",
 		"husky": "^9.1.7",
 		"is-ci": "^4.1.0",
+		"jiti": "^2.7.0",
 		"mocha": "^11.7.5",
 		"mysql2": "3.22",
 		"pg": "^8.20.0",
 		"pg-query-stream": "^4.14.0",
 		"prettier": "^3.8.3",
 		"semantic-release": "^25.0.3",
-		"typescript": "^6.0.3"
+		"typescript": "^6.0.3",
+		"typescript-eslint": "^8.69.0"
 	},
 	"dependencies": {
 		"semver-compare": "^1.0.0",
