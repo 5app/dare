@@ -52,7 +52,7 @@ then
 	set +e
 	(
 	  set -x
-	  mocha './**/*.spec.js' "$@"
+	  mocha './**/*.spec.ts' "$@"
 	)
 	EXIT_CODE=$?
 	set -e
@@ -180,7 +180,7 @@ set +e
   # `-x` so we echo the command itself for reference
   set -x
   # $@ proxies all the args to this script to mocha (e.g. for filtering tests etc)
-  mocha './**/*.spec.js' "$@"
+  mocha './**/*.spec.ts' "$@"
 )
 EXIT_CODE=$?
 set -e

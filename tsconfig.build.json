@@ -1,0 +1,11 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		// Emit runnable JavaScript for publishing (plain Node consumers)
+		"declaration": false,
+		"emitDeclarationOnly": false,
+		"rootDir": "src",
+		"outDir": "dist"
+	},
+	"include": ["src/**/*.ts"]
+}
