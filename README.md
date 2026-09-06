@@ -66,11 +66,11 @@ console.log(`Hi ${resp.name}');
 
 The setup needs to define a execution handler `dare.execute(SqlRequest) : Promise<Array | Object<{insertId, affectedRows}>`
 
-The integration tests illustrates how a [setup of a dare instance](`./test/integration/helpers/api.js`) connects to different clients...
+The integration tests illustrates how a [setup of a dare instance](./test/integration/helpers/api.ts) connects to different clients...
 
-- **MySQL** (5.6, 5.7, 8.0,...) and **MariaDB** (11) See [connection with `mysql2`](./test/integration/helpers/MySQL.js)
-- **Postgres** (16+) See [connection with `pg`](./test/integration/helpers/Postgres.js)
-- **SQLite** (3+) See [connection with `node:sqlite`](./test/integration/helpers/Sqlite.js)
+- **MySQL** (5.6, 5.7, 8.0,...) and **MariaDB** (11) See [connection with `mysql2`](./test/integration/helpers/MySQL.ts)
+- **Postgres** (16+) See [connection with `pg`](./test/integration/helpers/Postgres.ts)
+- **SQLite** (3+) See [connection with `node:sqlite`](./test/integration/helpers/SQLite.ts)
 
 # Methods
 
