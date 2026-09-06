@@ -72,7 +72,7 @@
 	"files": [
 		"src/",
 		"dist/",
-		"types/"
+		"types/src/"
 	],
 	"devDependencies": {
 		"@5app/prettier-config": "^1.0.4",
