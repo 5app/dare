@@ -1,3 +1,15 @@
+# [1.0.0](https://github.com/MrSwitch/dare/compare/v0.101.1...v1.0.0) (2026-09-06)
+
+
+### Features
+
+* **typescript:** convert source and test files to typescript ([d511e16](https://github.com/MrSwitch/dare/commit/d511e1609a72aa0d518dfce04c89c5e55935b041))
+
+
+### BREAKING CHANGES
+
+* **typescript:** this potentially introduces new bugs
+
 ## [0.101.1](https://github.com/MrSwitch/dare/compare/v0.101.0...v0.101.1) (2026-06-16)
 
 
