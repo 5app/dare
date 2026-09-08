@@ -3,15 +3,17 @@
 		"allowSyntheticDefaultImports": true,
 		"esModuleInterop": true,
 		"moduleResolution": "nodenext",
-		"target": "ES2022",
+		"target": "ES2024",
 		"typeRoots": ["node_modules/@types"],
 		"types": ["mocha", "node"],
 		"module": "NodeNext",
-		"checkJs": true,
 		"strict": false, // true for making types mandatory
-		// Tells TypeScript to read JS files, as
-		// normally they are ignored as source files
-		"allowJs": true,
+		// Rewrite relative .ts import specifiers to .js in emitted declaration files
+		"rewriteRelativeImportExtensions": true,
+		// Restrict to type syntax which can be erased by Node.js native type stripping
+		"erasableSyntaxOnly": true,
+		// Enforce `import type` for type-only imports, required for Node.js native type stripping
+		"verbatimModuleSyntax": true,
 		// Generate d.ts files
 		"declaration": true,
 		// This compiler run should
@@ -22,5 +24,5 @@
 		// next to the .js file
 		"outDir": "types"
 	},
-	"include": ["./**/*.js"]
+	"include": ["./**/*.ts"]
 }

@@ -1,13 +1,11 @@
 # Database and REST (dare)
 
 [![Coverage Status](https://coveralls.io/repos/github/MrSwitch/dare/badge.svg)](https://coveralls.io/github/MrSwitch/dare)
-[![CircleCI](https://circleci.com/gh/MrSwitch/dare.svg?style=shield)](https://circleci.com/gh/MrSwitch/dare)
 [![NPM Version](https://img.shields.io/npm/v/dare.svg)](https://www.npmjs.com/package/dare)
 [![Known Vulnerabilities](https://snyk.io/test/github/MrSwitch/dare/badge.svg)](https://snyk.io/test/github/MrSwitch/dare)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
-[![codebeat badge](https://codebeat.co/badges/718b30e2-76fa-4c61-b770-751b22c5ea5e)](https://codebeat.co/projects/github-com-5app-dare-main)
 
-Dare is a brave API for generating SQL out of structured Javascript objects.
+Dare is a brave API for generating SQL out of structured Javascript (and Typescript) objects.
 
 ## Install
 
@@ -66,11 +64,11 @@ console.log(`Hi ${resp.name}');
 
 The setup needs to define a execution handler `dare.execute(SqlRequest) : Promise<Array | Object<{insertId, affectedRows}>`
 
-The integration tests illustrates how a [setup of a dare instance](`./test/integration/helpers/api.js`) connects to different clients...
+The integration tests illustrates how a [setup of a dare instance](./test/integration/helpers/api.ts) connects to different clients...
 
-- **MySQL** (5.6, 5.7, 8.0,...) and **MariaDB** (11) See [connection with `mysql2`](./test/integration/helpers/MySQL.js)
-- **Postgres** (16+) See [connection with `pg`](./test/integration/helpers/Postgres.js)
-- **SQLite** (3+) See [connection with `node:sqlite`](./test/integration/helpers/Sqlite.js)
+- **MySQL** (5.6, 5.7, 8.0,...) and **MariaDB** (11) See [connection with `mysql2`](./test/integration/helpers/MySQL.ts)
+- **Postgres** (16+) See [connection with `pg`](./test/integration/helpers/Postgres.ts)
+- **SQLite** (3+) See [connection with `node:sqlite`](./test/integration/helpers/SQLite.ts)
 
 # Methods
 
