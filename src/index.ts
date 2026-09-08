@@ -441,8 +441,13 @@ export type GetRequestOptions = Omit<
  */
 export type PatchRequestOptions = Omit<
 	RequestOptions,
-	'fields' | 'groupby' | 'query'
->;
+	'fields' | 'groupby' | 'query' | 'body'
+> & {
+	/**
+	 * Body containing new data
+	 */
+	body?: Record<string, any>;
+};
 
 /**
  * Dare.post Request Options
@@ -1035,9 +1040,9 @@ export default class Dare {
 	 * @returns Affected Rows statement
 	 */
 	async patch(
-		table: string | PatchRequestOptions,
-		filter?: Record<string, any>,
-		body?: Record<string, any>,
+		table: PatchRequestOptions['table'] | PatchRequestOptions,
+		filter?: PatchRequestOptions['filter'],
+		body?: PatchRequestOptions['body'],
 		options: Omit<PatchRequestOptions, 'table' | 'body' | 'filter'> = {}
 	): Promise<any> {
 		const opts: QueryOptions =
