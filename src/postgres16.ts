@@ -1,5 +1,6 @@
 import SQL, {Sql, join} from 'sql-template-tag';
 import Dare, {type QueryOptions} from './index.ts';
+import makeMethodsEnumerable from './utils/make_methods_enumerable.ts';
 
 /**
  * PostgresDare
@@ -103,6 +104,9 @@ class PostgresDare extends Dare {
 		return String(value);
 	}
 }
+
+// Restore the enumerable behaviour of the former prototype assignments
+makeMethodsEnumerable(PostgresDare);
 
 /**
  * Default engine for Postgres

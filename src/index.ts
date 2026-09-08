@@ -12,6 +12,8 @@ import getFieldAttributes from './utils/field_attributes.ts';
 
 import extend from './utils/extend.ts';
 
+import makeMethodsEnumerable from './utils/make_methods_enumerable.ts';
+
 import clone from 'tricks/object/clone.js';
 
 import format_request from './format_request.ts';
@@ -439,8 +441,13 @@ export type GetRequestOptions = Omit<
  */
 export type PatchRequestOptions = Omit<
 	RequestOptions,
-	'fields' | 'groupby' | 'query'
->;
+	'fields' | 'groupby' | 'query' | 'body'
+> & {
+	/**
+	 * Body containing new data
+	 */
+	body?: Record<string, any>;
+};
 
 /**
  * Dare.post Request Options
@@ -1033,9 +1040,9 @@ export default class Dare {
 	 * @returns Affected Rows statement
 	 */
 	async patch(
-		table: string | PatchRequestOptions,
-		filter?: Record<string, any>,
-		body?: Record<string, any>,
+		table: PatchRequestOptions['table'] | PatchRequestOptions,
+		filter?: PatchRequestOptions['filter'],
+		body?: PatchRequestOptions['body'],
 		options: Omit<PatchRequestOptions, 'table' | 'body' | 'filter'> = {}
 	): Promise<any> {
 		const opts: QueryOptions =
@@ -1439,6 +1446,12 @@ export default class Dare {
 		return `ON DUPLICATE KEY UPDATE ${s}`;
 	}
 }
+
+/*
+ * ES class methods are non-enumerable by default,
+ * restore the enumerable behaviour of the former prototype assignments
+ */
+makeMethodsEnumerable(Dare);
 
 /**
  * Engine, database engine

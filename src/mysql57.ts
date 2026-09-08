@@ -1,4 +1,5 @@
 import Dare, {type QueryOptions} from './index.ts';
+import makeMethodsEnumerable from './utils/make_methods_enumerable.ts';
 import semverCompare from 'semver-compare';
 
 /**
@@ -81,6 +82,9 @@ class MySQL57Dare extends Dare {
 		return value;
 	}
 }
+
+// Restore the enumerable behaviour of the former prototype assignments
+makeMethodsEnumerable(MySQL57Dare);
 
 /**
  * Default engine for MySQL 5.7
