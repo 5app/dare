@@ -1,3 +1,19 @@
+# [2.0.0](https://github.com/MrSwitch/dare/compare/v1.0.2...v2.0.0) (2026-09-08)
+
+
+* Merge pull request [#467](https://github.com/MrSwitch/dare/issues/467) from MrSwitch/next ([dd85dc2](https://github.com/MrSwitch/dare/commit/dd85dc25238ca60c1380d795903630df16a7e813))
+
+
+### Bug Fixes
+
+* **release-bump:** blame npm/cli[#8547](https://github.com/MrSwitch/dare/issues/8547) ([6c54fe5](https://github.com/MrSwitch/dare/commit/6c54fe5bd854e908b2bf4eea51ff993fe50202a2))
+* **release:** workaround see [#433](https://github.com/MrSwitch/dare/issues/433) ([3087a44](https://github.com/MrSwitch/dare/commit/3087a44b64c215f9a8aef7e09b1f9c171de3ad56))
+
+
+### BREAKING CHANGES
+
+* Stricter Typescript implementation will correctly raise errors on implementation.
+
 ## [1.0.2](https://github.com/MrSwitch/dare/compare/v1.0.1...v1.0.2) (2026-09-08)
 
 
