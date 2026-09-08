@@ -1,5 +1,6 @@
 import SQL, {Sql, raw} from 'sql-template-tag';
 import Dare, {type QueryOptions} from './index.ts';
+import makeMethodsEnumerable from './utils/make_methods_enumerable.ts';
 
 /**
  * SQLiteDare
@@ -125,6 +126,9 @@ class SQLiteDare extends Dare {
 		return value;
 	}
 }
+
+// Restore the enumerable behaviour of the former prototype assignments
+makeMethodsEnumerable(SQLiteDare);
 
 /**
  * Default engine for SQLite
