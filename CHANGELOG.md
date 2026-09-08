@@ -1,3 +1,11 @@
+## [1.0.2](https://github.com/MrSwitch/dare/compare/v1.0.1...v1.0.2) (2026-09-08)
+
+
+### Bug Fixes
+
+* **ts:** allow Dare class methods to be enumerated ([6c63b16](https://github.com/MrSwitch/dare/commit/6c63b1635d78af8d790b7ff0fd1762120d4d5ba5))
+* **ts:** patch request body accepts only single item ([c55bde1](https://github.com/MrSwitch/dare/commit/c55bde17328fa18d65eb1165c5b8ef7bcfe4fdf8))
+
 ## [1.0.1](https://github.com/MrSwitch/dare/compare/v1.0.0...v1.0.1) (2026-09-06)
 
 
